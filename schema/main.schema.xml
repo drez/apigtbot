@@ -169,7 +169,7 @@
 			<parameter name="set_menu_priority" value="5" />
 			<parameter name="set_order_list_columns" value='[[&quot;computed_at&quot;,&quot;DESC&quot;]]' />
 			<parameter name="set_list_hide_columns" value='[&quot;recent_candles&quot;]' />
-			<parameter name="set_readonly_columns" value='[&quot;symbol&quot;,&quot;tf&quot;,&quot;price&quot;,&quot;ema20&quot;,&quot;ema50&quot;,&quot;ema200&quot;,&quot;rsi14&quot;,&quot;atr14&quot;,&quot;atr_pct&quot;,&quot;trend&quot;,&quot;swing_high&quot;,&quot;swing_low&quot;,&quot;candles_used&quot;,&quot;recent_candles&quot;,&quot;computed_at&quot;,&quot;depth_imbalance_avg&quot;,&quot;adx14&quot;,&quot;atr_pct_rank&quot;,&quot;taker_buy_ratio&quot;,&quot;vol_zscore&quot;]' />
+			<parameter name="set_readonly_columns" value='[&quot;symbol&quot;,&quot;tf&quot;,&quot;price&quot;,&quot;ema20&quot;,&quot;ema50&quot;,&quot;ema200&quot;,&quot;rsi14&quot;,&quot;atr14&quot;,&quot;atr_pct&quot;,&quot;trend&quot;,&quot;swing_high&quot;,&quot;swing_low&quot;,&quot;candles_used&quot;,&quot;recent_candles&quot;,&quot;computed_at&quot;,&quot;depth_imbalance_avg&quot;,&quot;adx14&quot;,&quot;atr_pct_rank&quot;,&quot;taker_buy_ratio&quot;,&quot;vol_zscore&quot;,&quot;er20&quot;,&quot;chop14&quot;,&quot;funding_pct&quot;]' />
 		</behavior>
 		<column name="id_market_summary" description="" type="INTEGER" size="11" required="true" primaryKey="true" autoIncrement="true" />
 		<column name="symbol" description="Symbol" type="VARCHAR" size="20" required="true" />
@@ -193,6 +193,9 @@
 		<column name="atr_pct_rank" description="ATR% percentile" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
 		<column name="taker_buy_ratio" description="Taker buy ratio" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
 		<column name="vol_zscore" description="Volume z-score" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="er20" description="Efficiency ratio" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="chop14" description="Choppiness" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="funding_pct" description="Funding 30d percentile" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
 		<column name="computed_at" description="Computed at" type="TIMESTAMP" required="false" defaultValue="null" />
 		<unique >
 			<unique-column name="symbol" />
@@ -204,7 +207,7 @@
 			<parameter name="set_parent_menu" value="Settings" />
 			<parameter name="set_menu_priority" value="6" />
 			<parameter name="set_order_list_columns" value='[[&quot;date_creation&quot;,&quot;DESC&quot;]]' />
-			<parameter name="set_readonly_columns" value='[&quot;symbol&quot;,&quot;tf&quot;,&quot;price&quot;,&quot;trend&quot;,&quot;rsi14&quot;,&quot;atr_pct&quot;,&quot;adx14&quot;,&quot;atr_pct_rank&quot;,&quot;taker_buy_ratio&quot;,&quot;vol_zscore&quot;,&quot;funding_rate&quot;,&quot;depth_imbalance&quot;,&quot;depth_imbalance_avg&quot;]' />
+			<parameter name="set_readonly_columns" value='[&quot;symbol&quot;,&quot;tf&quot;,&quot;price&quot;,&quot;trend&quot;,&quot;rsi14&quot;,&quot;atr_pct&quot;,&quot;adx14&quot;,&quot;atr_pct_rank&quot;,&quot;taker_buy_ratio&quot;,&quot;vol_zscore&quot;,&quot;funding_rate&quot;,&quot;depth_imbalance&quot;,&quot;depth_imbalance_avg&quot;,&quot;er20&quot;,&quot;chop14&quot;,&quot;funding_pct&quot;]' />
 		</behavior>
 		<column name="id_market_regime" description="" type="INTEGER" size="11" required="true" primaryKey="true" autoIncrement="true" />
 		<column name="symbol" description="Symbol" type="VARCHAR" size="20" required="true" />
@@ -217,6 +220,9 @@
 		<column name="atr_pct_rank" description="ATR% percentile" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
 		<column name="taker_buy_ratio" description="Taker buy ratio" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
 		<column name="vol_zscore" description="Volume z-score" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="er20" description="Efficiency ratio" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="chop14" description="Choppiness" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="funding_pct" description="Funding 30d percentile" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
 		<column name="funding_rate" description="Funding rate" type="DECIMAL" size="12" scale=" 8" required="false" defaultValue="null" />
 		<column name="depth_imbalance" description="Depth imbalance" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
 		<column name="depth_imbalance_avg" description="Depth imbalance (smoothed)" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />

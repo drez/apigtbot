@@ -579,7 +579,7 @@ class TemplateForm extends Template
             $data['Status'] = 'Active';
         }
         if( $data['Lang'] == '' )unset($data['Lang']);
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
         #
@@ -625,7 +625,7 @@ class TemplateForm extends Template
             $data['Status'] = 'Active';
         }
         if( $data['Lang'] == '' )unset($data['Lang']);
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
 

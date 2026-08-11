@@ -553,7 +553,7 @@ class ConfigForm extends Config
             $data['Category'] = 'General';
         }
         if( $data['System'] == '' )unset($data['System']);
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
         #
@@ -593,7 +593,7 @@ class ConfigForm extends Config
             $data['Category'] = 'General';
         }
         if( $data['System'] == '' )unset($data['System']);
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
 

@@ -880,6 +880,18 @@ $table['market_summary'] = [
         'type' => 'DECIMAL',
         'description' => 'Volume z-score',
     ],
+    'er20' => [
+        'type' => 'DECIMAL',
+        'description' => 'Efficiency ratio',
+    ],
+    'chop14' => [
+        'type' => 'DECIMAL',
+        'description' => 'Choppiness',
+    ],
+    'funding_pct' => [
+        'type' => 'DECIMAL',
+        'description' => 'Funding 30d percentile',
+    ],
     'computed_at' => [
         'type' => 'TIMESTAMP',
         'description' => 'Computed at',
@@ -959,6 +971,18 @@ $table['market_regime'] = [
     'vol_zscore' => [
         'type' => 'DECIMAL',
         'description' => 'Volume z-score',
+    ],
+    'er20' => [
+        'type' => 'DECIMAL',
+        'description' => 'Efficiency ratio',
+    ],
+    'chop14' => [
+        'type' => 'DECIMAL',
+        'description' => 'Choppiness',
+    ],
+    'funding_pct' => [
+        'type' => 'DECIMAL',
+        'description' => 'Funding 30d percentile',
     ],
     'funding_rate' => [
         'type' => 'DECIMAL',

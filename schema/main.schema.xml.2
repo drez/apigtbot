@@ -72,7 +72,8 @@
 			<parameter name="set_summary_cards" value='[{&quot;label&quot;:&quot;Open buys&quot;,&quot;agg&quot;:&quot;count&quot;,&quot;filter&quot;:{&quot;state&quot;:&quot;BUY_OPEN&quot;}},{&quot;label&quot;:&quot;Open sells&quot;,&quot;agg&quot;:&quot;count&quot;,&quot;filter&quot;:{&quot;state&quot;:&quot;SELL_OPEN&quot;}},{&quot;label&quot;:&quot;Vetoed&quot;,&quot;agg&quot;:&quot;count&quot;,&quot;filter&quot;:{&quot;state&quot;:&quot;Vetoed&quot;}}]' />
 			<parameter name="set_order_child_list_columns" value='[[&quot;date_modification&quot;,&quot;DESC&quot;]]' />
 			<parameter name="add_search_columns" value='{&quot;Client order id&quot;:[[&quot;client_order_id&quot;,&quot;%val&quot;]],&quot;Side&quot;:[[&quot;side&quot;,&quot;%val&quot;,&quot;multiple&quot;]],&quot;State&quot;:[[&quot;state&quot;,&quot;%val&quot;,&quot;multiple&quot;]],&quot;Simulated&quot;:[[&quot;simulated&quot;,&quot;val&quot;]]}' />
-			<parameter name="set_readonly_columns" value='[&quot;client_order_id&quot;,&quot;exchange_order_id&quot;,&quot;filled_qty&quot;,&quot;fee_paid&quot;,&quot;simulated&quot;]' />
+			<parameter name="set_list_hide_columns" value='[&quot;legacy_buy_price&quot;,&quot;legacy_buy_fee&quot;]' />
+			<parameter name="set_readonly_columns" value='[&quot;client_order_id&quot;,&quot;exchange_order_id&quot;,&quot;filled_qty&quot;,&quot;fee_paid&quot;,&quot;simulated&quot;,&quot;legacy_buy_price&quot;,&quot;legacy_buy_fee&quot;]' />
 		</behavior>
 		<column name="id_bot_order" description="" type="INTEGER" size="11" required="true" primaryKey="true" autoIncrement="true" />
 		<column name="id_grid_run" description="Run" type="INTEGER" size="11" required="true" />
@@ -90,6 +91,8 @@
 		<column name="fee_paid" description="Fee paid" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="0" />
 		<column name="fee_asset" description="Fee asset" type="VARCHAR" size="10" required="false" defaultValue="null" />
 		<column name="is_legacy" description="Legacy exit" type="BOOLEAN" size="10" defaultValue="0" />
+		<column name="legacy_buy_price" description="Legacy buy price (daemon-managed)" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
+		<column name="legacy_buy_fee" description="Legacy buy fee (daemon-managed)" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
 		<column name="simulated" description="Simulated" type="BOOLEAN" size="10" defaultValue="0" />
 		<unique >
 			<unique-column name="client_order_id" />

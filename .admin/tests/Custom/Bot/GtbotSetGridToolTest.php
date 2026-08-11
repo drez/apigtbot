@@ -164,6 +164,92 @@ class GtbotSetGridToolTest extends TestCase
         $this->assertStringContainsStringIgnoringCase('bracket', json_encode($out['errors']));
     }
 
+    /** Seed (or update) the stored 4h market summary the regime gate reads. */
+    private function seedRegime(string $trend, string $adx, int $ageSeconds = 0): void
+    {
+        $row = \App\MarketSummaryQuery::create()
+            ->filterBySymbol('BTCUSDT')->filterByTf('4h')->findOne() ?? new \App\MarketSummary();
+        $row->setSymbol('BTCUSDT');
+        $row->setTf('4h');
+        $row->setTrend($trend);
+        $row->setAdx14($adx);
+        $row->setComputedAt(date('Y-m-d H:i:s', time() - $ageSeconds));
+        $row->save();
+    }
+
+    public function testHostileRegimeCapsDeployPct(): void
+    {
+        $this->seedRegime('down', '35');
+        $out = $this->decode($this->tool()->handle([
+            'p_low' => '62000', 'p_high' => '70000', 'n_levels' => 14,
+            'deploy_pct' => 100,
+            'reason' => 'x',
+        ], $this->session()));
+        $this->assertTrue($out['applied']);
+        $this->assertSame(25, $out['preview']['deploy_pct']);
+        $this->assertStringContainsString('hostile regime', (string) ($out['regime_gate'] ?? ''));
+        $this->run->reload();
+        $this->assertSame(25, (int) $this->run->getDeployPct(), 'sweep gate: down|adx>=30 caps deploy at 25');
+    }
+
+    public function testFriendlyRegimeDoesNotCap(): void
+    {
+        $this->seedRegime('sideways', '15');
+        $out = $this->decode($this->tool()->handle([
+            'p_low' => '62000', 'p_high' => '70000', 'n_levels' => 14,
+            'deploy_pct' => 100,
+            'reason' => 'x',
+        ], $this->session()));
+        $this->assertTrue($out['applied']);
+        $this->run->reload();
+        $this->assertSame(100, (int) $this->run->getDeployPct());
+        $this->assertArrayNotHasKey('regime_gate', $out);
+    }
+
+    public function testExplicitOverrideBypassesRegimeGate(): void
+    {
+        $this->seedRegime('down', '35');
+        $out = $this->decode($this->tool()->handle([
+            'p_low' => '62000', 'p_high' => '70000', 'n_levels' => 14,
+            'deploy_pct' => 100,
+            'override_regime_gate' => true,
+            'reason' => 'capitulation wick reclaimed — deploying into the reversal deliberately',
+        ], $this->session()));
+        $this->assertTrue($out['applied']);
+        $this->run->reload();
+        $this->assertSame(100, (int) $this->run->getDeployPct(), 'explicit override keeps the requested size');
+        // the override is auditable, not silent: the response still reports the hostile read
+        $this->assertStringContainsString('overridden', strtolower((string) ($out['regime_gate'] ?? '')));
+    }
+
+    public function testOverrideInFriendlyRegimeIsANoOp(): void
+    {
+        $this->seedRegime('sideways', '15');
+        $out = $this->decode($this->tool()->handle([
+            'p_low' => '62000', 'p_high' => '70000', 'n_levels' => 14,
+            'deploy_pct' => 100,
+            'override_regime_gate' => true,
+            'reason' => 'x',
+        ], $this->session()));
+        $this->assertTrue($out['applied']);
+        $this->run->reload();
+        $this->assertSame(100, (int) $this->run->getDeployPct());
+        $this->assertArrayNotHasKey('regime_gate', $out, 'nothing to report when the gate would not have fired');
+    }
+
+    public function testStaleRegimeDataFailsOpen(): void
+    {
+        $this->seedRegime('down', '35', 3 * 3600); // 3h old — collector is down
+        $out = $this->decode($this->tool()->handle([
+            'p_low' => '62000', 'p_high' => '70000', 'n_levels' => 14,
+            'deploy_pct' => 100,
+            'reason' => 'x',
+        ], $this->session()));
+        $this->assertTrue($out['applied']);
+        $this->run->reload();
+        $this->assertSame(100, (int) $this->run->getDeployPct(), 'stale signal must not strand the routine at minimum size');
+    }
+
     public function testRequiresReason(): void
     {
         $this->expectException(\ApiGoat\Mcp\ToolError::class);

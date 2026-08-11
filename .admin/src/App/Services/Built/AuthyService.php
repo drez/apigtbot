@@ -299,6 +299,7 @@ class AuthyService
 
 
 
+
     public function deleteOne()
     {
         $error = [];

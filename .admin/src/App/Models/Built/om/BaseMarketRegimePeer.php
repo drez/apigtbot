@@ -38,13 +38,13 @@ abstract class BaseMarketRegimePeer
     const TM_CLASS = 'App\\map\\MarketRegimeTableMap';
 
     /** The total number of columns. */
-    const NUM_COLUMNS = 19;
+    const NUM_COLUMNS = 22;
 
     /** The number of lazy-loaded columns. */
     const NUM_LAZY_LOAD_COLUMNS = 0;
 
     /** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
-    const NUM_HYDRATE_COLUMNS = 19;
+    const NUM_HYDRATE_COLUMNS = 22;
 
     /** the column name for the id_market_regime field */
     const ID_MARKET_REGIME = 'market_regime.id_market_regime';
@@ -78,6 +78,15 @@ abstract class BaseMarketRegimePeer
 
     /** the column name for the vol_zscore field */
     const VOL_ZSCORE = 'market_regime.vol_zscore';
+
+    /** the column name for the er20 field */
+    const ER20 = 'market_regime.er20';
+
+    /** the column name for the chop14 field */
+    const CHOP14 = 'market_regime.chop14';
+
+    /** the column name for the funding_pct field */
+    const FUNDING_PCT = 'market_regime.funding_pct';
 
     /** the column name for the funding_rate field */
     const FUNDING_RATE = 'market_regime.funding_rate';
@@ -129,12 +138,12 @@ abstract class BaseMarketRegimePeer
      * e.g. MarketRegimePeer::$fieldNames[MarketRegimePeer::TYPE_PHPNAME][0] = 'Id'
      */
     protected static $fieldNames = array (
-        BasePeer::TYPE_PHPNAME => array ('IdMarketRegime', 'Symbol', 'Tf', 'Price', 'Trend', 'Rsi14', 'AtrPct', 'Adx14', 'AtrPctRank', 'TakerBuyRatio', 'VolZscore', 'FundingRate', 'DepthImbalance', 'DepthImbalanceAvg', 'DateCreation', 'DateModification', 'IdGroupCreation', 'IdCreation', 'IdModification', ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('idMarketRegime', 'symbol', 'tf', 'price', 'trend', 'rsi14', 'atrPct', 'adx14', 'atrPctRank', 'takerBuyRatio', 'volZscore', 'fundingRate', 'depthImbalance', 'depthImbalanceAvg', 'dateCreation', 'dateModification', 'idGroupCreation', 'idCreation', 'idModification', ),
-        BasePeer::TYPE_COLNAME => array (MarketRegimePeer::ID_MARKET_REGIME, MarketRegimePeer::SYMBOL, MarketRegimePeer::TF, MarketRegimePeer::PRICE, MarketRegimePeer::TREND, MarketRegimePeer::RSI14, MarketRegimePeer::ATR_PCT, MarketRegimePeer::ADX14, MarketRegimePeer::ATR_PCT_RANK, MarketRegimePeer::TAKER_BUY_RATIO, MarketRegimePeer::VOL_ZSCORE, MarketRegimePeer::FUNDING_RATE, MarketRegimePeer::DEPTH_IMBALANCE, MarketRegimePeer::DEPTH_IMBALANCE_AVG, MarketRegimePeer::DATE_CREATION, MarketRegimePeer::DATE_MODIFICATION, MarketRegimePeer::ID_GROUP_CREATION, MarketRegimePeer::ID_CREATION, MarketRegimePeer::ID_MODIFICATION, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID_MARKET_REGIME', 'SYMBOL', 'TF', 'PRICE', 'TREND', 'RSI14', 'ATR_PCT', 'ADX14', 'ATR_PCT_RANK', 'TAKER_BUY_RATIO', 'VOL_ZSCORE', 'FUNDING_RATE', 'DEPTH_IMBALANCE', 'DEPTH_IMBALANCE_AVG', 'DATE_CREATION', 'DATE_MODIFICATION', 'ID_GROUP_CREATION', 'ID_CREATION', 'ID_MODIFICATION', ),
-        BasePeer::TYPE_FIELDNAME => array ('id_market_regime', 'symbol', 'tf', 'price', 'trend', 'rsi14', 'atr_pct', 'adx14', 'atr_pct_rank', 'taker_buy_ratio', 'vol_zscore', 'funding_rate', 'depth_imbalance', 'depth_imbalance_avg', 'date_creation', 'date_modification', 'id_group_creation', 'id_creation', 'id_modification', ),
-        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, )
+        BasePeer::TYPE_PHPNAME => array ('IdMarketRegime', 'Symbol', 'Tf', 'Price', 'Trend', 'Rsi14', 'AtrPct', 'Adx14', 'AtrPctRank', 'TakerBuyRatio', 'VolZscore', 'Er20', 'Chop14', 'FundingPct', 'FundingRate', 'DepthImbalance', 'DepthImbalanceAvg', 'DateCreation', 'DateModification', 'IdGroupCreation', 'IdCreation', 'IdModification', ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('idMarketRegime', 'symbol', 'tf', 'price', 'trend', 'rsi14', 'atrPct', 'adx14', 'atrPctRank', 'takerBuyRatio', 'volZscore', 'er20', 'chop14', 'fundingPct', 'fundingRate', 'depthImbalance', 'depthImbalanceAvg', 'dateCreation', 'dateModification', 'idGroupCreation', 'idCreation', 'idModification', ),
+        BasePeer::TYPE_COLNAME => array (MarketRegimePeer::ID_MARKET_REGIME, MarketRegimePeer::SYMBOL, MarketRegimePeer::TF, MarketRegimePeer::PRICE, MarketRegimePeer::TREND, MarketRegimePeer::RSI14, MarketRegimePeer::ATR_PCT, MarketRegimePeer::ADX14, MarketRegimePeer::ATR_PCT_RANK, MarketRegimePeer::TAKER_BUY_RATIO, MarketRegimePeer::VOL_ZSCORE, MarketRegimePeer::ER20, MarketRegimePeer::CHOP14, MarketRegimePeer::FUNDING_PCT, MarketRegimePeer::FUNDING_RATE, MarketRegimePeer::DEPTH_IMBALANCE, MarketRegimePeer::DEPTH_IMBALANCE_AVG, MarketRegimePeer::DATE_CREATION, MarketRegimePeer::DATE_MODIFICATION, MarketRegimePeer::ID_GROUP_CREATION, MarketRegimePeer::ID_CREATION, MarketRegimePeer::ID_MODIFICATION, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID_MARKET_REGIME', 'SYMBOL', 'TF', 'PRICE', 'TREND', 'RSI14', 'ATR_PCT', 'ADX14', 'ATR_PCT_RANK', 'TAKER_BUY_RATIO', 'VOL_ZSCORE', 'ER20', 'CHOP14', 'FUNDING_PCT', 'FUNDING_RATE', 'DEPTH_IMBALANCE', 'DEPTH_IMBALANCE_AVG', 'DATE_CREATION', 'DATE_MODIFICATION', 'ID_GROUP_CREATION', 'ID_CREATION', 'ID_MODIFICATION', ),
+        BasePeer::TYPE_FIELDNAME => array ('id_market_regime', 'symbol', 'tf', 'price', 'trend', 'rsi14', 'atr_pct', 'adx14', 'atr_pct_rank', 'taker_buy_ratio', 'vol_zscore', 'er20', 'chop14', 'funding_pct', 'funding_rate', 'depth_imbalance', 'depth_imbalance_avg', 'date_creation', 'date_modification', 'id_group_creation', 'id_creation', 'id_modification', ),
+        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, )
     );
 
     /**
@@ -144,12 +153,12 @@ abstract class BaseMarketRegimePeer
      * e.g. MarketRegimePeer::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
      */
     protected static $fieldKeys = array (
-        BasePeer::TYPE_PHPNAME => array ('IdMarketRegime' => 0, 'Symbol' => 1, 'Tf' => 2, 'Price' => 3, 'Trend' => 4, 'Rsi14' => 5, 'AtrPct' => 6, 'Adx14' => 7, 'AtrPctRank' => 8, 'TakerBuyRatio' => 9, 'VolZscore' => 10, 'FundingRate' => 11, 'DepthImbalance' => 12, 'DepthImbalanceAvg' => 13, 'DateCreation' => 14, 'DateModification' => 15, 'IdGroupCreation' => 16, 'IdCreation' => 17, 'IdModification' => 18, ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('idMarketRegime' => 0, 'symbol' => 1, 'tf' => 2, 'price' => 3, 'trend' => 4, 'rsi14' => 5, 'atrPct' => 6, 'adx14' => 7, 'atrPctRank' => 8, 'takerBuyRatio' => 9, 'volZscore' => 10, 'fundingRate' => 11, 'depthImbalance' => 12, 'depthImbalanceAvg' => 13, 'dateCreation' => 14, 'dateModification' => 15, 'idGroupCreation' => 16, 'idCreation' => 17, 'idModification' => 18, ),
-        BasePeer::TYPE_COLNAME => array (MarketRegimePeer::ID_MARKET_REGIME => 0, MarketRegimePeer::SYMBOL => 1, MarketRegimePeer::TF => 2, MarketRegimePeer::PRICE => 3, MarketRegimePeer::TREND => 4, MarketRegimePeer::RSI14 => 5, MarketRegimePeer::ATR_PCT => 6, MarketRegimePeer::ADX14 => 7, MarketRegimePeer::ATR_PCT_RANK => 8, MarketRegimePeer::TAKER_BUY_RATIO => 9, MarketRegimePeer::VOL_ZSCORE => 10, MarketRegimePeer::FUNDING_RATE => 11, MarketRegimePeer::DEPTH_IMBALANCE => 12, MarketRegimePeer::DEPTH_IMBALANCE_AVG => 13, MarketRegimePeer::DATE_CREATION => 14, MarketRegimePeer::DATE_MODIFICATION => 15, MarketRegimePeer::ID_GROUP_CREATION => 16, MarketRegimePeer::ID_CREATION => 17, MarketRegimePeer::ID_MODIFICATION => 18, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID_MARKET_REGIME' => 0, 'SYMBOL' => 1, 'TF' => 2, 'PRICE' => 3, 'TREND' => 4, 'RSI14' => 5, 'ATR_PCT' => 6, 'ADX14' => 7, 'ATR_PCT_RANK' => 8, 'TAKER_BUY_RATIO' => 9, 'VOL_ZSCORE' => 10, 'FUNDING_RATE' => 11, 'DEPTH_IMBALANCE' => 12, 'DEPTH_IMBALANCE_AVG' => 13, 'DATE_CREATION' => 14, 'DATE_MODIFICATION' => 15, 'ID_GROUP_CREATION' => 16, 'ID_CREATION' => 17, 'ID_MODIFICATION' => 18, ),
-        BasePeer::TYPE_FIELDNAME => array ('id_market_regime' => 0, 'symbol' => 1, 'tf' => 2, 'price' => 3, 'trend' => 4, 'rsi14' => 5, 'atr_pct' => 6, 'adx14' => 7, 'atr_pct_rank' => 8, 'taker_buy_ratio' => 9, 'vol_zscore' => 10, 'funding_rate' => 11, 'depth_imbalance' => 12, 'depth_imbalance_avg' => 13, 'date_creation' => 14, 'date_modification' => 15, 'id_group_creation' => 16, 'id_creation' => 17, 'id_modification' => 18, ),
-        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, )
+        BasePeer::TYPE_PHPNAME => array ('IdMarketRegime' => 0, 'Symbol' => 1, 'Tf' => 2, 'Price' => 3, 'Trend' => 4, 'Rsi14' => 5, 'AtrPct' => 6, 'Adx14' => 7, 'AtrPctRank' => 8, 'TakerBuyRatio' => 9, 'VolZscore' => 10, 'Er20' => 11, 'Chop14' => 12, 'FundingPct' => 13, 'FundingRate' => 14, 'DepthImbalance' => 15, 'DepthImbalanceAvg' => 16, 'DateCreation' => 17, 'DateModification' => 18, 'IdGroupCreation' => 19, 'IdCreation' => 20, 'IdModification' => 21, ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('idMarketRegime' => 0, 'symbol' => 1, 'tf' => 2, 'price' => 3, 'trend' => 4, 'rsi14' => 5, 'atrPct' => 6, 'adx14' => 7, 'atrPctRank' => 8, 'takerBuyRatio' => 9, 'volZscore' => 10, 'er20' => 11, 'chop14' => 12, 'fundingPct' => 13, 'fundingRate' => 14, 'depthImbalance' => 15, 'depthImbalanceAvg' => 16, 'dateCreation' => 17, 'dateModification' => 18, 'idGroupCreation' => 19, 'idCreation' => 20, 'idModification' => 21, ),
+        BasePeer::TYPE_COLNAME => array (MarketRegimePeer::ID_MARKET_REGIME => 0, MarketRegimePeer::SYMBOL => 1, MarketRegimePeer::TF => 2, MarketRegimePeer::PRICE => 3, MarketRegimePeer::TREND => 4, MarketRegimePeer::RSI14 => 5, MarketRegimePeer::ATR_PCT => 6, MarketRegimePeer::ADX14 => 7, MarketRegimePeer::ATR_PCT_RANK => 8, MarketRegimePeer::TAKER_BUY_RATIO => 9, MarketRegimePeer::VOL_ZSCORE => 10, MarketRegimePeer::ER20 => 11, MarketRegimePeer::CHOP14 => 12, MarketRegimePeer::FUNDING_PCT => 13, MarketRegimePeer::FUNDING_RATE => 14, MarketRegimePeer::DEPTH_IMBALANCE => 15, MarketRegimePeer::DEPTH_IMBALANCE_AVG => 16, MarketRegimePeer::DATE_CREATION => 17, MarketRegimePeer::DATE_MODIFICATION => 18, MarketRegimePeer::ID_GROUP_CREATION => 19, MarketRegimePeer::ID_CREATION => 20, MarketRegimePeer::ID_MODIFICATION => 21, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID_MARKET_REGIME' => 0, 'SYMBOL' => 1, 'TF' => 2, 'PRICE' => 3, 'TREND' => 4, 'RSI14' => 5, 'ATR_PCT' => 6, 'ADX14' => 7, 'ATR_PCT_RANK' => 8, 'TAKER_BUY_RATIO' => 9, 'VOL_ZSCORE' => 10, 'ER20' => 11, 'CHOP14' => 12, 'FUNDING_PCT' => 13, 'FUNDING_RATE' => 14, 'DEPTH_IMBALANCE' => 15, 'DEPTH_IMBALANCE_AVG' => 16, 'DATE_CREATION' => 17, 'DATE_MODIFICATION' => 18, 'ID_GROUP_CREATION' => 19, 'ID_CREATION' => 20, 'ID_MODIFICATION' => 21, ),
+        BasePeer::TYPE_FIELDNAME => array ('id_market_regime' => 0, 'symbol' => 1, 'tf' => 2, 'price' => 3, 'trend' => 4, 'rsi14' => 5, 'atr_pct' => 6, 'adx14' => 7, 'atr_pct_rank' => 8, 'taker_buy_ratio' => 9, 'vol_zscore' => 10, 'er20' => 11, 'chop14' => 12, 'funding_pct' => 13, 'funding_rate' => 14, 'depth_imbalance' => 15, 'depth_imbalance_avg' => 16, 'date_creation' => 17, 'date_modification' => 18, 'id_group_creation' => 19, 'id_creation' => 20, 'id_modification' => 21, ),
+        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, )
     );
 
     /** The enumerated values for this table */
@@ -290,6 +299,9 @@ abstract class BaseMarketRegimePeer
             $criteria->addSelectColumn(MarketRegimePeer::ATR_PCT_RANK);
             $criteria->addSelectColumn(MarketRegimePeer::TAKER_BUY_RATIO);
             $criteria->addSelectColumn(MarketRegimePeer::VOL_ZSCORE);
+            $criteria->addSelectColumn(MarketRegimePeer::ER20);
+            $criteria->addSelectColumn(MarketRegimePeer::CHOP14);
+            $criteria->addSelectColumn(MarketRegimePeer::FUNDING_PCT);
             $criteria->addSelectColumn(MarketRegimePeer::FUNDING_RATE);
             $criteria->addSelectColumn(MarketRegimePeer::DEPTH_IMBALANCE);
             $criteria->addSelectColumn(MarketRegimePeer::DEPTH_IMBALANCE_AVG);
@@ -310,6 +322,9 @@ abstract class BaseMarketRegimePeer
             $criteria->addSelectColumn($alias . '.atr_pct_rank');
             $criteria->addSelectColumn($alias . '.taker_buy_ratio');
             $criteria->addSelectColumn($alias . '.vol_zscore');
+            $criteria->addSelectColumn($alias . '.er20');
+            $criteria->addSelectColumn($alias . '.chop14');
+            $criteria->addSelectColumn($alias . '.funding_pct');
             $criteria->addSelectColumn($alias . '.funding_rate');
             $criteria->addSelectColumn($alias . '.depth_imbalance');
             $criteria->addSelectColumn($alias . '.depth_imbalance_avg');

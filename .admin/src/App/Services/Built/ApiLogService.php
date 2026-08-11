@@ -375,6 +375,7 @@ class ApiLogService
 
 
 
+
         private function pruneOld()
         {
             $allowed = array (

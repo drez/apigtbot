@@ -25,8 +25,8 @@ what-if, optional).
 > trigger is updated to match).
 
 ```
-PROMPT VERSION v2026-08-10.4 — state this version on the first line of your
-run report, and prefix EVERY gtbot_set_grid reason with "[v2026-08-10.4] "
+PROMPT VERSION v2026-08-11.1 — state this version on the first line of your
+run report, and prefix EVERY gtbot_set_grid reason with "[v2026-08-11.1] "
 so the decision journal records which prompt version acted.
 
 Re-fit the apigtbot grids — the SAME method for EVERY active trading pair:
@@ -55,7 +55,15 @@ Re-fit the apigtbot grids — the SAME method for EVERY active trading pair:
    volatility spike vs its own history → widen/buffer, don't tighten into it),
    taker_buy_ratio (>0.5 = aggressive buyers dominate), vol_zscore (>2 = unusual
    participation, moves are real; <0 = thin tape, distrust breakouts),
-   funding_rate (perp positioning), depth_imbalance_avg (smoothed book pressure;
+   funding_rate (perp positioning), funding_pct (that rate's percentile vs its
+   own trailing 30d — the level alone carries no signal; >90 = longs crowded
+   like BTC's worst sweep windows, <10 = shorts crowded; symbol-inconsistent,
+   so advisory context only, never a gate by itself), er20 (Kaufman efficiency
+   ratio, 0..1: near 0 = churning in place, near 1 = price going somewhere)
+   and chop14 (Choppiness: >61.8 ranging, <38.2 trending) — but note the
+   regime sweep REFUTED "chop is always grid-friendly": BTC's choppiest fit
+   windows were downtrend consolidations that broke down, so read er20/chop14
+   WITH the trend, not instead of it, depth_imbalance_avg (smoothed book pressure;
    the raw depth_imbalance is one noisy snapshot), where price sits in the grid
    (price_position_pct, in_range) — AND track_record: your own last scored
    refit decisions with applied_at. A verdict of Superseded means that decision
@@ -152,6 +160,19 @@ Re-fit the apigtbot grids — the SAME method for EVERY active trading pair:
      0 if price loses the 1d EMA50 again. The bear-year deploy-policy sweep
      says don't ladder INTO a falling market — it is not a mandate to sit
      out a confirmed turn.
+     REGIME GATE (enforced since 2026-08-11): gtbot_set_grid CAPS deploy_pct
+     at 25 when the stored 4h summary reads hostile (trend down-family OR
+     ADX >= 30) — the regime sweep (scripts/regime-sweep.php, BTC+BNB 187d)
+     showed exactly those fit-windows own every catastrophic week on both
+     symbols (worst window BTC −112.75 → −25.03, BNB −66.44 → −7.92 per
+     $1k/7d gated). The response reports the cap as regime_gate. This is a
+     backstop under your existing hostile→0 guideline, not a replacement:
+     still prefer 0 outright in hostile regimes. If you hold a SPECIFIC
+     thesis that the sweep-average does not apply (e.g. re-entry gate fired:
+     confirmed reclaim the 1d label hasn't caught up with), pass
+     override_regime_gate:true and state the thesis in the reason — the
+     override is journaled and Telegrammed, never silent, and scored like
+     any other decision.
      THIS IS A LIVE STRATEGY EXPERIMENT: before choosing, call gtbot_decisions
      {run} and read summary.by_deploy_band — your own win rates per deployment
      size, for THIS run's pair.

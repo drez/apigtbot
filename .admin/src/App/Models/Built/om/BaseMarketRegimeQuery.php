@@ -34,6 +34,9 @@ use App\MarketRegimeQuery;
  * @method MarketRegimeQuery orderByAtrPctRank($order = Criteria::ASC) Order by the atr_pct_rank column
  * @method MarketRegimeQuery orderByTakerBuyRatio($order = Criteria::ASC) Order by the taker_buy_ratio column
  * @method MarketRegimeQuery orderByVolZscore($order = Criteria::ASC) Order by the vol_zscore column
+ * @method MarketRegimeQuery orderByEr20($order = Criteria::ASC) Order by the er20 column
+ * @method MarketRegimeQuery orderByChop14($order = Criteria::ASC) Order by the chop14 column
+ * @method MarketRegimeQuery orderByFundingPct($order = Criteria::ASC) Order by the funding_pct column
  * @method MarketRegimeQuery orderByFundingRate($order = Criteria::ASC) Order by the funding_rate column
  * @method MarketRegimeQuery orderByDepthImbalance($order = Criteria::ASC) Order by the depth_imbalance column
  * @method MarketRegimeQuery orderByDepthImbalanceAvg($order = Criteria::ASC) Order by the depth_imbalance_avg column
@@ -54,6 +57,9 @@ use App\MarketRegimeQuery;
  * @method MarketRegimeQuery groupByAtrPctRank() Group by the atr_pct_rank column
  * @method MarketRegimeQuery groupByTakerBuyRatio() Group by the taker_buy_ratio column
  * @method MarketRegimeQuery groupByVolZscore() Group by the vol_zscore column
+ * @method MarketRegimeQuery groupByEr20() Group by the er20 column
+ * @method MarketRegimeQuery groupByChop14() Group by the chop14 column
+ * @method MarketRegimeQuery groupByFundingPct() Group by the funding_pct column
  * @method MarketRegimeQuery groupByFundingRate() Group by the funding_rate column
  * @method MarketRegimeQuery groupByDepthImbalance() Group by the depth_imbalance column
  * @method MarketRegimeQuery groupByDepthImbalanceAvg() Group by the depth_imbalance_avg column
@@ -92,6 +98,9 @@ use App\MarketRegimeQuery;
  * @method MarketRegime findOneByAtrPctRank(string $atr_pct_rank) Return the first MarketRegime filtered by the atr_pct_rank column
  * @method MarketRegime findOneByTakerBuyRatio(string $taker_buy_ratio) Return the first MarketRegime filtered by the taker_buy_ratio column
  * @method MarketRegime findOneByVolZscore(string $vol_zscore) Return the first MarketRegime filtered by the vol_zscore column
+ * @method MarketRegime findOneByEr20(string $er20) Return the first MarketRegime filtered by the er20 column
+ * @method MarketRegime findOneByChop14(string $chop14) Return the first MarketRegime filtered by the chop14 column
+ * @method MarketRegime findOneByFundingPct(string $funding_pct) Return the first MarketRegime filtered by the funding_pct column
  * @method MarketRegime findOneByFundingRate(string $funding_rate) Return the first MarketRegime filtered by the funding_rate column
  * @method MarketRegime findOneByDepthImbalance(string $depth_imbalance) Return the first MarketRegime filtered by the depth_imbalance column
  * @method MarketRegime findOneByDepthImbalanceAvg(string $depth_imbalance_avg) Return the first MarketRegime filtered by the depth_imbalance_avg column
@@ -112,6 +121,9 @@ use App\MarketRegimeQuery;
  * @method array findByAtrPctRank(string $atr_pct_rank) Return MarketRegime objects filtered by the atr_pct_rank column
  * @method array findByTakerBuyRatio(string $taker_buy_ratio) Return MarketRegime objects filtered by the taker_buy_ratio column
  * @method array findByVolZscore(string $vol_zscore) Return MarketRegime objects filtered by the vol_zscore column
+ * @method array findByEr20(string $er20) Return MarketRegime objects filtered by the er20 column
+ * @method array findByChop14(string $chop14) Return MarketRegime objects filtered by the chop14 column
+ * @method array findByFundingPct(string $funding_pct) Return MarketRegime objects filtered by the funding_pct column
  * @method array findByFundingRate(string $funding_rate) Return MarketRegime objects filtered by the funding_rate column
  * @method array findByDepthImbalance(string $depth_imbalance) Return MarketRegime objects filtered by the depth_imbalance column
  * @method array findByDepthImbalanceAvg(string $depth_imbalance_avg) Return MarketRegime objects filtered by the depth_imbalance_avg column
@@ -228,7 +240,7 @@ abstract class BaseMarketRegimeQuery extends ModelCriteria
      */
     protected function findPkSimple($key, $con)
     {
-        $sql = 'SELECT `id_market_regime`, `symbol`, `tf`, `price`, `trend`, `rsi14`, `atr_pct`, `adx14`, `atr_pct_rank`, `taker_buy_ratio`, `vol_zscore`, `funding_rate`, `depth_imbalance`, `depth_imbalance_avg`, `date_creation`, `date_modification`, `id_group_creation`, `id_creation`, `id_modification` FROM `market_regime` WHERE `id_market_regime` = :p0';
+        $sql = 'SELECT `id_market_regime`, `symbol`, `tf`, `price`, `trend`, `rsi14`, `atr_pct`, `adx14`, `atr_pct_rank`, `taker_buy_ratio`, `vol_zscore`, `er20`, `chop14`, `funding_pct`, `funding_rate`, `depth_imbalance`, `depth_imbalance_avg`, `date_creation`, `date_modification`, `id_group_creation`, `id_creation`, `id_modification` FROM `market_regime` WHERE `id_market_regime` = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -739,6 +751,132 @@ abstract class BaseMarketRegimeQuery extends ModelCriteria
         }
 
         return $this->addUsingAlias(MarketRegimePeer::VOL_ZSCORE, $volZscore, $comparison);
+    }
+
+    /**
+     * Filter the query on the er20 column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByEr20(1234); // WHERE er20 = 1234
+     * $query->filterByEr20(array(12, 34)); // WHERE er20 IN (12, 34)
+     * $query->filterByEr20(array('min' => 12)); // WHERE er20 >= 12
+     * $query->filterByEr20(array('max' => 12)); // WHERE er20 <= 12
+     * </code>
+     *
+     * @param     mixed $er20 The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return MarketRegimeQuery The current query, for fluid interface
+     */
+    public function filterByEr20($er20 = null, $comparison = null)
+    {
+        if (is_array($er20)) {
+            $useMinMax = false;
+            if (isset($er20['min'])) {
+                $this->addUsingAlias(MarketRegimePeer::ER20, $er20['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($er20['max'])) {
+                $this->addUsingAlias(MarketRegimePeer::ER20, $er20['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(MarketRegimePeer::ER20, $er20, $comparison);
+    }
+
+    /**
+     * Filter the query on the chop14 column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByChop14(1234); // WHERE chop14 = 1234
+     * $query->filterByChop14(array(12, 34)); // WHERE chop14 IN (12, 34)
+     * $query->filterByChop14(array('min' => 12)); // WHERE chop14 >= 12
+     * $query->filterByChop14(array('max' => 12)); // WHERE chop14 <= 12
+     * </code>
+     *
+     * @param     mixed $chop14 The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return MarketRegimeQuery The current query, for fluid interface
+     */
+    public function filterByChop14($chop14 = null, $comparison = null)
+    {
+        if (is_array($chop14)) {
+            $useMinMax = false;
+            if (isset($chop14['min'])) {
+                $this->addUsingAlias(MarketRegimePeer::CHOP14, $chop14['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($chop14['max'])) {
+                $this->addUsingAlias(MarketRegimePeer::CHOP14, $chop14['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(MarketRegimePeer::CHOP14, $chop14, $comparison);
+    }
+
+    /**
+     * Filter the query on the funding_pct column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByFundingPct(1234); // WHERE funding_pct = 1234
+     * $query->filterByFundingPct(array(12, 34)); // WHERE funding_pct IN (12, 34)
+     * $query->filterByFundingPct(array('min' => 12)); // WHERE funding_pct >= 12
+     * $query->filterByFundingPct(array('max' => 12)); // WHERE funding_pct <= 12
+     * </code>
+     *
+     * @param     mixed $fundingPct The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return MarketRegimeQuery The current query, for fluid interface
+     */
+    public function filterByFundingPct($fundingPct = null, $comparison = null)
+    {
+        if (is_array($fundingPct)) {
+            $useMinMax = false;
+            if (isset($fundingPct['min'])) {
+                $this->addUsingAlias(MarketRegimePeer::FUNDING_PCT, $fundingPct['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($fundingPct['max'])) {
+                $this->addUsingAlias(MarketRegimePeer::FUNDING_PCT, $fundingPct['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(MarketRegimePeer::FUNDING_PCT, $fundingPct, $comparison);
     }
 
     /**

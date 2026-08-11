@@ -60,6 +60,9 @@ class MarketRegimeTableMap extends TableMap
         $this->addColumn('atr_pct_rank', 'AtrPctRank', 'DECIMAL', false, 9, null);
         $this->addColumn('taker_buy_ratio', 'TakerBuyRatio', 'DECIMAL', false, 9, null);
         $this->addColumn('vol_zscore', 'VolZscore', 'DECIMAL', false, 9, null);
+        $this->addColumn('er20', 'Er20', 'DECIMAL', false, 9, null);
+        $this->addColumn('chop14', 'Chop14', 'DECIMAL', false, 9, null);
+        $this->addColumn('funding_pct', 'FundingPct', 'DECIMAL', false, 9, null);
         $this->addColumn('funding_rate', 'FundingRate', 'DECIMAL', false, 12, null);
         $this->addColumn('depth_imbalance', 'DepthImbalance', 'DECIMAL', false, 9, null);
         $this->addColumn('depth_imbalance_avg', 'DepthImbalanceAvg', 'DECIMAL', false, 9, null);
@@ -103,7 +106,7 @@ class MarketRegimeTableMap extends TableMap
   'set_parent_menu' => 'Settings',
   'set_menu_priority' => '6',
   'set_order_list_columns' => '[["date_creation","DESC"]]',
-  'set_readonly_columns' => '["symbol","tf","price","trend","rsi14","atr_pct","adx14","atr_pct_rank","taker_buy_ratio","vol_zscore","funding_rate","depth_imbalance","depth_imbalance_avg"]',
+  'set_readonly_columns' => '["symbol","tf","price","trend","rsi14","atr_pct","adx14","atr_pct_rank","taker_buy_ratio","vol_zscore","funding_rate","depth_imbalance","depth_imbalance_avg","er20","chop14","funding_pct"]',
 ),
             'add_validator' =>  array (
 ),

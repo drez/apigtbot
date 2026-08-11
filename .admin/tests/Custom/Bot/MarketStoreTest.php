@@ -64,6 +64,18 @@ class MarketStoreTest extends TestCase
         $this->assertIsFloat($sums['4h']['ema20']);
     }
 
+    public function testRegimeMetricsAndFundingPctRoundTrip(): void
+    {
+        $candles = $this->candles(120);
+        MarketStore::upsert('BTCUSDT', '4h', Indicators::summary($candles), $candles, [
+            'funding_rate' => 0.0001, 'depth_imbalance' => null, 'funding_pct' => 87.5,
+        ]);
+        $s = MarketStore::summaries('BTCUSDT')['4h'];
+        $this->assertIsFloat($s['er20'], 'Kaufman ER stored and read back');
+        $this->assertIsFloat($s['chop14'], 'Choppiness stored and read back');
+        $this->assertSame(87.5, $s['funding_pct'], '30d funding percentile from extras');
+    }
+
     public function testUpsertIsIdempotentPerSymbolTf(): void
     {
         $c = $this->candles();

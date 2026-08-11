@@ -203,6 +203,7 @@ class AuthyLogService
 
 
 
+
     public function deleteOne()
     {
         $error = [];

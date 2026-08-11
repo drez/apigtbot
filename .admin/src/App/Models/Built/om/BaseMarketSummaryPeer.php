@@ -38,13 +38,13 @@ abstract class BaseMarketSummaryPeer
     const TM_CLASS = 'App\\map\\MarketSummaryTableMap';
 
     /** The total number of columns. */
-    const NUM_COLUMNS = 28;
+    const NUM_COLUMNS = 31;
 
     /** The number of lazy-loaded columns. */
     const NUM_LAZY_LOAD_COLUMNS = 0;
 
     /** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
-    const NUM_HYDRATE_COLUMNS = 28;
+    const NUM_HYDRATE_COLUMNS = 31;
 
     /** the column name for the id_market_summary field */
     const ID_MARKET_SUMMARY = 'market_summary.id_market_summary';
@@ -112,6 +112,15 @@ abstract class BaseMarketSummaryPeer
     /** the column name for the vol_zscore field */
     const VOL_ZSCORE = 'market_summary.vol_zscore';
 
+    /** the column name for the er20 field */
+    const ER20 = 'market_summary.er20';
+
+    /** the column name for the chop14 field */
+    const CHOP14 = 'market_summary.chop14';
+
+    /** the column name for the funding_pct field */
+    const FUNDING_PCT = 'market_summary.funding_pct';
+
     /** the column name for the computed_at field */
     const COMPUTED_AT = 'market_summary.computed_at';
 
@@ -156,12 +165,12 @@ abstract class BaseMarketSummaryPeer
      * e.g. MarketSummaryPeer::$fieldNames[MarketSummaryPeer::TYPE_PHPNAME][0] = 'Id'
      */
     protected static $fieldNames = array (
-        BasePeer::TYPE_PHPNAME => array ('IdMarketSummary', 'Symbol', 'Tf', 'Price', 'Ema20', 'Ema50', 'Ema200', 'Rsi14', 'Atr14', 'AtrPct', 'Trend', 'SwingHigh', 'SwingLow', 'CandlesUsed', 'RecentCandles', 'FundingRate', 'DepthImbalance', 'DepthImbalanceAvg', 'Adx14', 'AtrPctRank', 'TakerBuyRatio', 'VolZscore', 'ComputedAt', 'DateCreation', 'DateModification', 'IdGroupCreation', 'IdCreation', 'IdModification', ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('idMarketSummary', 'symbol', 'tf', 'price', 'ema20', 'ema50', 'ema200', 'rsi14', 'atr14', 'atrPct', 'trend', 'swingHigh', 'swingLow', 'candlesUsed', 'recentCandles', 'fundingRate', 'depthImbalance', 'depthImbalanceAvg', 'adx14', 'atrPctRank', 'takerBuyRatio', 'volZscore', 'computedAt', 'dateCreation', 'dateModification', 'idGroupCreation', 'idCreation', 'idModification', ),
-        BasePeer::TYPE_COLNAME => array (MarketSummaryPeer::ID_MARKET_SUMMARY, MarketSummaryPeer::SYMBOL, MarketSummaryPeer::TF, MarketSummaryPeer::PRICE, MarketSummaryPeer::EMA20, MarketSummaryPeer::EMA50, MarketSummaryPeer::EMA200, MarketSummaryPeer::RSI14, MarketSummaryPeer::ATR14, MarketSummaryPeer::ATR_PCT, MarketSummaryPeer::TREND, MarketSummaryPeer::SWING_HIGH, MarketSummaryPeer::SWING_LOW, MarketSummaryPeer::CANDLES_USED, MarketSummaryPeer::RECENT_CANDLES, MarketSummaryPeer::FUNDING_RATE, MarketSummaryPeer::DEPTH_IMBALANCE, MarketSummaryPeer::DEPTH_IMBALANCE_AVG, MarketSummaryPeer::ADX14, MarketSummaryPeer::ATR_PCT_RANK, MarketSummaryPeer::TAKER_BUY_RATIO, MarketSummaryPeer::VOL_ZSCORE, MarketSummaryPeer::COMPUTED_AT, MarketSummaryPeer::DATE_CREATION, MarketSummaryPeer::DATE_MODIFICATION, MarketSummaryPeer::ID_GROUP_CREATION, MarketSummaryPeer::ID_CREATION, MarketSummaryPeer::ID_MODIFICATION, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID_MARKET_SUMMARY', 'SYMBOL', 'TF', 'PRICE', 'EMA20', 'EMA50', 'EMA200', 'RSI14', 'ATR14', 'ATR_PCT', 'TREND', 'SWING_HIGH', 'SWING_LOW', 'CANDLES_USED', 'RECENT_CANDLES', 'FUNDING_RATE', 'DEPTH_IMBALANCE', 'DEPTH_IMBALANCE_AVG', 'ADX14', 'ATR_PCT_RANK', 'TAKER_BUY_RATIO', 'VOL_ZSCORE', 'COMPUTED_AT', 'DATE_CREATION', 'DATE_MODIFICATION', 'ID_GROUP_CREATION', 'ID_CREATION', 'ID_MODIFICATION', ),
-        BasePeer::TYPE_FIELDNAME => array ('id_market_summary', 'symbol', 'tf', 'price', 'ema20', 'ema50', 'ema200', 'rsi14', 'atr14', 'atr_pct', 'trend', 'swing_high', 'swing_low', 'candles_used', 'recent_candles', 'funding_rate', 'depth_imbalance', 'depth_imbalance_avg', 'adx14', 'atr_pct_rank', 'taker_buy_ratio', 'vol_zscore', 'computed_at', 'date_creation', 'date_modification', 'id_group_creation', 'id_creation', 'id_modification', ),
-        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, )
+        BasePeer::TYPE_PHPNAME => array ('IdMarketSummary', 'Symbol', 'Tf', 'Price', 'Ema20', 'Ema50', 'Ema200', 'Rsi14', 'Atr14', 'AtrPct', 'Trend', 'SwingHigh', 'SwingLow', 'CandlesUsed', 'RecentCandles', 'FundingRate', 'DepthImbalance', 'DepthImbalanceAvg', 'Adx14', 'AtrPctRank', 'TakerBuyRatio', 'VolZscore', 'Er20', 'Chop14', 'FundingPct', 'ComputedAt', 'DateCreation', 'DateModification', 'IdGroupCreation', 'IdCreation', 'IdModification', ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('idMarketSummary', 'symbol', 'tf', 'price', 'ema20', 'ema50', 'ema200', 'rsi14', 'atr14', 'atrPct', 'trend', 'swingHigh', 'swingLow', 'candlesUsed', 'recentCandles', 'fundingRate', 'depthImbalance', 'depthImbalanceAvg', 'adx14', 'atrPctRank', 'takerBuyRatio', 'volZscore', 'er20', 'chop14', 'fundingPct', 'computedAt', 'dateCreation', 'dateModification', 'idGroupCreation', 'idCreation', 'idModification', ),
+        BasePeer::TYPE_COLNAME => array (MarketSummaryPeer::ID_MARKET_SUMMARY, MarketSummaryPeer::SYMBOL, MarketSummaryPeer::TF, MarketSummaryPeer::PRICE, MarketSummaryPeer::EMA20, MarketSummaryPeer::EMA50, MarketSummaryPeer::EMA200, MarketSummaryPeer::RSI14, MarketSummaryPeer::ATR14, MarketSummaryPeer::ATR_PCT, MarketSummaryPeer::TREND, MarketSummaryPeer::SWING_HIGH, MarketSummaryPeer::SWING_LOW, MarketSummaryPeer::CANDLES_USED, MarketSummaryPeer::RECENT_CANDLES, MarketSummaryPeer::FUNDING_RATE, MarketSummaryPeer::DEPTH_IMBALANCE, MarketSummaryPeer::DEPTH_IMBALANCE_AVG, MarketSummaryPeer::ADX14, MarketSummaryPeer::ATR_PCT_RANK, MarketSummaryPeer::TAKER_BUY_RATIO, MarketSummaryPeer::VOL_ZSCORE, MarketSummaryPeer::ER20, MarketSummaryPeer::CHOP14, MarketSummaryPeer::FUNDING_PCT, MarketSummaryPeer::COMPUTED_AT, MarketSummaryPeer::DATE_CREATION, MarketSummaryPeer::DATE_MODIFICATION, MarketSummaryPeer::ID_GROUP_CREATION, MarketSummaryPeer::ID_CREATION, MarketSummaryPeer::ID_MODIFICATION, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID_MARKET_SUMMARY', 'SYMBOL', 'TF', 'PRICE', 'EMA20', 'EMA50', 'EMA200', 'RSI14', 'ATR14', 'ATR_PCT', 'TREND', 'SWING_HIGH', 'SWING_LOW', 'CANDLES_USED', 'RECENT_CANDLES', 'FUNDING_RATE', 'DEPTH_IMBALANCE', 'DEPTH_IMBALANCE_AVG', 'ADX14', 'ATR_PCT_RANK', 'TAKER_BUY_RATIO', 'VOL_ZSCORE', 'ER20', 'CHOP14', 'FUNDING_PCT', 'COMPUTED_AT', 'DATE_CREATION', 'DATE_MODIFICATION', 'ID_GROUP_CREATION', 'ID_CREATION', 'ID_MODIFICATION', ),
+        BasePeer::TYPE_FIELDNAME => array ('id_market_summary', 'symbol', 'tf', 'price', 'ema20', 'ema50', 'ema200', 'rsi14', 'atr14', 'atr_pct', 'trend', 'swing_high', 'swing_low', 'candles_used', 'recent_candles', 'funding_rate', 'depth_imbalance', 'depth_imbalance_avg', 'adx14', 'atr_pct_rank', 'taker_buy_ratio', 'vol_zscore', 'er20', 'chop14', 'funding_pct', 'computed_at', 'date_creation', 'date_modification', 'id_group_creation', 'id_creation', 'id_modification', ),
+        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, )
     );
 
     /**
@@ -171,12 +180,12 @@ abstract class BaseMarketSummaryPeer
      * e.g. MarketSummaryPeer::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
      */
     protected static $fieldKeys = array (
-        BasePeer::TYPE_PHPNAME => array ('IdMarketSummary' => 0, 'Symbol' => 1, 'Tf' => 2, 'Price' => 3, 'Ema20' => 4, 'Ema50' => 5, 'Ema200' => 6, 'Rsi14' => 7, 'Atr14' => 8, 'AtrPct' => 9, 'Trend' => 10, 'SwingHigh' => 11, 'SwingLow' => 12, 'CandlesUsed' => 13, 'RecentCandles' => 14, 'FundingRate' => 15, 'DepthImbalance' => 16, 'DepthImbalanceAvg' => 17, 'Adx14' => 18, 'AtrPctRank' => 19, 'TakerBuyRatio' => 20, 'VolZscore' => 21, 'ComputedAt' => 22, 'DateCreation' => 23, 'DateModification' => 24, 'IdGroupCreation' => 25, 'IdCreation' => 26, 'IdModification' => 27, ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('idMarketSummary' => 0, 'symbol' => 1, 'tf' => 2, 'price' => 3, 'ema20' => 4, 'ema50' => 5, 'ema200' => 6, 'rsi14' => 7, 'atr14' => 8, 'atrPct' => 9, 'trend' => 10, 'swingHigh' => 11, 'swingLow' => 12, 'candlesUsed' => 13, 'recentCandles' => 14, 'fundingRate' => 15, 'depthImbalance' => 16, 'depthImbalanceAvg' => 17, 'adx14' => 18, 'atrPctRank' => 19, 'takerBuyRatio' => 20, 'volZscore' => 21, 'computedAt' => 22, 'dateCreation' => 23, 'dateModification' => 24, 'idGroupCreation' => 25, 'idCreation' => 26, 'idModification' => 27, ),
-        BasePeer::TYPE_COLNAME => array (MarketSummaryPeer::ID_MARKET_SUMMARY => 0, MarketSummaryPeer::SYMBOL => 1, MarketSummaryPeer::TF => 2, MarketSummaryPeer::PRICE => 3, MarketSummaryPeer::EMA20 => 4, MarketSummaryPeer::EMA50 => 5, MarketSummaryPeer::EMA200 => 6, MarketSummaryPeer::RSI14 => 7, MarketSummaryPeer::ATR14 => 8, MarketSummaryPeer::ATR_PCT => 9, MarketSummaryPeer::TREND => 10, MarketSummaryPeer::SWING_HIGH => 11, MarketSummaryPeer::SWING_LOW => 12, MarketSummaryPeer::CANDLES_USED => 13, MarketSummaryPeer::RECENT_CANDLES => 14, MarketSummaryPeer::FUNDING_RATE => 15, MarketSummaryPeer::DEPTH_IMBALANCE => 16, MarketSummaryPeer::DEPTH_IMBALANCE_AVG => 17, MarketSummaryPeer::ADX14 => 18, MarketSummaryPeer::ATR_PCT_RANK => 19, MarketSummaryPeer::TAKER_BUY_RATIO => 20, MarketSummaryPeer::VOL_ZSCORE => 21, MarketSummaryPeer::COMPUTED_AT => 22, MarketSummaryPeer::DATE_CREATION => 23, MarketSummaryPeer::DATE_MODIFICATION => 24, MarketSummaryPeer::ID_GROUP_CREATION => 25, MarketSummaryPeer::ID_CREATION => 26, MarketSummaryPeer::ID_MODIFICATION => 27, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID_MARKET_SUMMARY' => 0, 'SYMBOL' => 1, 'TF' => 2, 'PRICE' => 3, 'EMA20' => 4, 'EMA50' => 5, 'EMA200' => 6, 'RSI14' => 7, 'ATR14' => 8, 'ATR_PCT' => 9, 'TREND' => 10, 'SWING_HIGH' => 11, 'SWING_LOW' => 12, 'CANDLES_USED' => 13, 'RECENT_CANDLES' => 14, 'FUNDING_RATE' => 15, 'DEPTH_IMBALANCE' => 16, 'DEPTH_IMBALANCE_AVG' => 17, 'ADX14' => 18, 'ATR_PCT_RANK' => 19, 'TAKER_BUY_RATIO' => 20, 'VOL_ZSCORE' => 21, 'COMPUTED_AT' => 22, 'DATE_CREATION' => 23, 'DATE_MODIFICATION' => 24, 'ID_GROUP_CREATION' => 25, 'ID_CREATION' => 26, 'ID_MODIFICATION' => 27, ),
-        BasePeer::TYPE_FIELDNAME => array ('id_market_summary' => 0, 'symbol' => 1, 'tf' => 2, 'price' => 3, 'ema20' => 4, 'ema50' => 5, 'ema200' => 6, 'rsi14' => 7, 'atr14' => 8, 'atr_pct' => 9, 'trend' => 10, 'swing_high' => 11, 'swing_low' => 12, 'candles_used' => 13, 'recent_candles' => 14, 'funding_rate' => 15, 'depth_imbalance' => 16, 'depth_imbalance_avg' => 17, 'adx14' => 18, 'atr_pct_rank' => 19, 'taker_buy_ratio' => 20, 'vol_zscore' => 21, 'computed_at' => 22, 'date_creation' => 23, 'date_modification' => 24, 'id_group_creation' => 25, 'id_creation' => 26, 'id_modification' => 27, ),
-        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, )
+        BasePeer::TYPE_PHPNAME => array ('IdMarketSummary' => 0, 'Symbol' => 1, 'Tf' => 2, 'Price' => 3, 'Ema20' => 4, 'Ema50' => 5, 'Ema200' => 6, 'Rsi14' => 7, 'Atr14' => 8, 'AtrPct' => 9, 'Trend' => 10, 'SwingHigh' => 11, 'SwingLow' => 12, 'CandlesUsed' => 13, 'RecentCandles' => 14, 'FundingRate' => 15, 'DepthImbalance' => 16, 'DepthImbalanceAvg' => 17, 'Adx14' => 18, 'AtrPctRank' => 19, 'TakerBuyRatio' => 20, 'VolZscore' => 21, 'Er20' => 22, 'Chop14' => 23, 'FundingPct' => 24, 'ComputedAt' => 25, 'DateCreation' => 26, 'DateModification' => 27, 'IdGroupCreation' => 28, 'IdCreation' => 29, 'IdModification' => 30, ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('idMarketSummary' => 0, 'symbol' => 1, 'tf' => 2, 'price' => 3, 'ema20' => 4, 'ema50' => 5, 'ema200' => 6, 'rsi14' => 7, 'atr14' => 8, 'atrPct' => 9, 'trend' => 10, 'swingHigh' => 11, 'swingLow' => 12, 'candlesUsed' => 13, 'recentCandles' => 14, 'fundingRate' => 15, 'depthImbalance' => 16, 'depthImbalanceAvg' => 17, 'adx14' => 18, 'atrPctRank' => 19, 'takerBuyRatio' => 20, 'volZscore' => 21, 'er20' => 22, 'chop14' => 23, 'fundingPct' => 24, 'computedAt' => 25, 'dateCreation' => 26, 'dateModification' => 27, 'idGroupCreation' => 28, 'idCreation' => 29, 'idModification' => 30, ),
+        BasePeer::TYPE_COLNAME => array (MarketSummaryPeer::ID_MARKET_SUMMARY => 0, MarketSummaryPeer::SYMBOL => 1, MarketSummaryPeer::TF => 2, MarketSummaryPeer::PRICE => 3, MarketSummaryPeer::EMA20 => 4, MarketSummaryPeer::EMA50 => 5, MarketSummaryPeer::EMA200 => 6, MarketSummaryPeer::RSI14 => 7, MarketSummaryPeer::ATR14 => 8, MarketSummaryPeer::ATR_PCT => 9, MarketSummaryPeer::TREND => 10, MarketSummaryPeer::SWING_HIGH => 11, MarketSummaryPeer::SWING_LOW => 12, MarketSummaryPeer::CANDLES_USED => 13, MarketSummaryPeer::RECENT_CANDLES => 14, MarketSummaryPeer::FUNDING_RATE => 15, MarketSummaryPeer::DEPTH_IMBALANCE => 16, MarketSummaryPeer::DEPTH_IMBALANCE_AVG => 17, MarketSummaryPeer::ADX14 => 18, MarketSummaryPeer::ATR_PCT_RANK => 19, MarketSummaryPeer::TAKER_BUY_RATIO => 20, MarketSummaryPeer::VOL_ZSCORE => 21, MarketSummaryPeer::ER20 => 22, MarketSummaryPeer::CHOP14 => 23, MarketSummaryPeer::FUNDING_PCT => 24, MarketSummaryPeer::COMPUTED_AT => 25, MarketSummaryPeer::DATE_CREATION => 26, MarketSummaryPeer::DATE_MODIFICATION => 27, MarketSummaryPeer::ID_GROUP_CREATION => 28, MarketSummaryPeer::ID_CREATION => 29, MarketSummaryPeer::ID_MODIFICATION => 30, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID_MARKET_SUMMARY' => 0, 'SYMBOL' => 1, 'TF' => 2, 'PRICE' => 3, 'EMA20' => 4, 'EMA50' => 5, 'EMA200' => 6, 'RSI14' => 7, 'ATR14' => 8, 'ATR_PCT' => 9, 'TREND' => 10, 'SWING_HIGH' => 11, 'SWING_LOW' => 12, 'CANDLES_USED' => 13, 'RECENT_CANDLES' => 14, 'FUNDING_RATE' => 15, 'DEPTH_IMBALANCE' => 16, 'DEPTH_IMBALANCE_AVG' => 17, 'ADX14' => 18, 'ATR_PCT_RANK' => 19, 'TAKER_BUY_RATIO' => 20, 'VOL_ZSCORE' => 21, 'ER20' => 22, 'CHOP14' => 23, 'FUNDING_PCT' => 24, 'COMPUTED_AT' => 25, 'DATE_CREATION' => 26, 'DATE_MODIFICATION' => 27, 'ID_GROUP_CREATION' => 28, 'ID_CREATION' => 29, 'ID_MODIFICATION' => 30, ),
+        BasePeer::TYPE_FIELDNAME => array ('id_market_summary' => 0, 'symbol' => 1, 'tf' => 2, 'price' => 3, 'ema20' => 4, 'ema50' => 5, 'ema200' => 6, 'rsi14' => 7, 'atr14' => 8, 'atr_pct' => 9, 'trend' => 10, 'swing_high' => 11, 'swing_low' => 12, 'candles_used' => 13, 'recent_candles' => 14, 'funding_rate' => 15, 'depth_imbalance' => 16, 'depth_imbalance_avg' => 17, 'adx14' => 18, 'atr_pct_rank' => 19, 'taker_buy_ratio' => 20, 'vol_zscore' => 21, 'er20' => 22, 'chop14' => 23, 'funding_pct' => 24, 'computed_at' => 25, 'date_creation' => 26, 'date_modification' => 27, 'id_group_creation' => 28, 'id_creation' => 29, 'id_modification' => 30, ),
+        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, )
     );
 
     /** The enumerated values for this table */
@@ -328,6 +337,9 @@ abstract class BaseMarketSummaryPeer
             $criteria->addSelectColumn(MarketSummaryPeer::ATR_PCT_RANK);
             $criteria->addSelectColumn(MarketSummaryPeer::TAKER_BUY_RATIO);
             $criteria->addSelectColumn(MarketSummaryPeer::VOL_ZSCORE);
+            $criteria->addSelectColumn(MarketSummaryPeer::ER20);
+            $criteria->addSelectColumn(MarketSummaryPeer::CHOP14);
+            $criteria->addSelectColumn(MarketSummaryPeer::FUNDING_PCT);
             $criteria->addSelectColumn(MarketSummaryPeer::COMPUTED_AT);
             $criteria->addSelectColumn(MarketSummaryPeer::DATE_CREATION);
             $criteria->addSelectColumn(MarketSummaryPeer::DATE_MODIFICATION);
@@ -357,6 +369,9 @@ abstract class BaseMarketSummaryPeer
             $criteria->addSelectColumn($alias . '.atr_pct_rank');
             $criteria->addSelectColumn($alias . '.taker_buy_ratio');
             $criteria->addSelectColumn($alias . '.vol_zscore');
+            $criteria->addSelectColumn($alias . '.er20');
+            $criteria->addSelectColumn($alias . '.chop14');
+            $criteria->addSelectColumn($alias . '.funding_pct');
             $criteria->addSelectColumn($alias . '.computed_at');
             $criteria->addSelectColumn($alias . '.date_creation');
             $criteria->addSelectColumn($alias . '.date_modification');

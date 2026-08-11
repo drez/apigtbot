@@ -316,6 +316,9 @@ Market Data
 | `atr_pct_rank` | DECIMAL(9) | yes | null | ATR% percentile |
 | `taker_buy_ratio` | DECIMAL(9) | yes | null | Taker buy ratio |
 | `vol_zscore` | DECIMAL(9) | yes | null | Volume z-score |
+| `er20` | DECIMAL(9) | yes | null | Efficiency ratio |
+| `chop14` | DECIMAL(9) | yes | null | Choppiness |
+| `funding_pct` | DECIMAL(9) | yes | null | Funding 30d percentile |
 | `computed_at` | TIMESTAMP | yes | null | Computed at |
 | `date_creation` | TIMESTAMP | yes | null |  |
 | `date_modification` | TIMESTAMP | yes | null |  |
@@ -346,6 +349,9 @@ Regime History
 | `atr_pct_rank` | DECIMAL(9) | yes | null | ATR% percentile |
 | `taker_buy_ratio` | DECIMAL(9) | yes | null | Taker buy ratio |
 | `vol_zscore` | DECIMAL(9) | yes | null | Volume z-score |
+| `er20` | DECIMAL(9) | yes | null | Efficiency ratio |
+| `chop14` | DECIMAL(9) | yes | null | Choppiness |
+| `funding_pct` | DECIMAL(9) | yes | null | Funding 30d percentile |
 | `funding_rate` | DECIMAL(12) | yes | null | Funding rate |
 | `depth_imbalance` | DECIMAL(9) | yes | null | Depth imbalance |
 | `depth_imbalance_avg` | DECIMAL(9) | yes | null | Depth imbalance (smoothed) |

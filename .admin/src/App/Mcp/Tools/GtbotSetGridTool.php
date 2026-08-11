@@ -5,6 +5,8 @@ use ApiGoat\Mcp\ToolError;
 use ApiGoat\Sessions\AuthySession;
 use App\Domains\Bot\Gateway\BinanceGateway;
 use App\Domains\Bot\GridMath;
+use App\Domains\Bot\MarketStore;
+use App\Domains\Bot\RegimeGate;
 use App\Domains\Bot\RiskManager;
 use App\Domains\Bot\TelegramNotifier;
 
@@ -49,7 +51,8 @@ class GtbotSetGridTool extends AbstractGtbotBase
                 'n_levels' => ['type' => 'integer', 'description' => 'Number of grid intervals (≥ 2)'],
                 'spacing' => ['type' => 'string', 'enum' => ['Geometric', 'Arithmetic'], 'description' => 'default Geometric'],
                 'allocation' => ['type' => 'string', 'enum' => ['EqualQuote', 'EqualBase', 'BottomWeighted'], 'description' => 'capital ladder shape; BottomWeighted = 2x quote at the floor tapering to 1x at the top (use when confident in support). Omit to keep current'],
-                'deploy_pct' => ['type' => 'integer', 'description' => 'Percent of the human-set budget the ladder commits (0 or 10-100; 0 = FLAT — no buys placed, working sells/legacy exits keep working). YOUR exposure lever: the walk-forward sweeps showed the sign of a grid week is decided by regime exposure, not spacing, and the deploy-policy sweep showed hostile regimes reward ZERO exposure. Omit to keep current'],
+                'deploy_pct' => ['type' => 'integer', 'description' => 'Percent of the human-set budget the ladder commits (0 or 10-100; 0 = FLAT — no buys placed, working sells/legacy exits keep working). YOUR exposure lever: the walk-forward sweeps showed the sign of a grid week is decided by regime exposure, not spacing, and the deploy-policy sweep showed hostile regimes reward ZERO exposure. NOTE: in a hostile regime (4h trend down-family OR 4h ADX>=30, per the stored market summary) values above 25 are CAPPED to 25 at write time (regime-sweep gate — the response reports it as regime_gate); pass <=25 or 0 yourself to stay in charge of the size. Omit to keep current'],
+                'override_regime_gate' => ['type' => 'boolean', 'description' => 'Bypass the hostile-regime deploy_pct cap for THIS write. Use only with a specific thesis that the sweep-average does not apply (e.g. deploying into a confirmed reversal) and say so in `reason` — the override is journaled and Telegrammed, never silent'],
                 'reason' => ['type' => 'string', 'description' => 'REQUIRED. Your rationale (trend/RSI/ATR/levels) — logged and Telegrammed'],
                 'run' => ['type' => ['integer', 'string'], 'description' => 'id or label; omit for the active run'],
                 'dry_run' => ['type' => 'boolean', 'description' => 'Preview the levels + checks without writing'],
@@ -78,6 +81,22 @@ class GtbotSetGridTool extends AbstractGtbotBase
         $n = (int) ($args['n_levels'] ?? 0);
         $spacing = ($args['spacing'] ?? 'Geometric') === 'Arithmetic' ? 'Arithmetic' : 'Geometric';
         $deployPct = isset($args['deploy_pct']) ? (int) $args['deploy_pct'] : (int) ($run->getDeployPct() ?? 100);
+        // Sweep-validated hostile-regime cap (see RegimeGate): reads the
+        // stored 4h summary; a stale/missing row fails OPEN. An explicit
+        // override keeps the requested size but is reported, not silent —
+        // the hostile read still lands in the journal/Telegram.
+        $gate = ['pct' => $deployPct, 'capped' => false, 'why' => null];
+        $overridden = false;
+        $s4 = MarketStore::summaries((string) $run->getSymbol(), 3600)['4h'] ?? null;
+        if ($s4 !== null && empty($s4['stale'])) {
+            $gate = RegimeGate::capDeployPct($deployPct, $s4['trend'] ?? null, $s4['adx14'] ?? null);
+            if ($gate['capped'] && !empty($args['override_regime_gate'])) {
+                $overridden = true;
+                $gate['why'] = 'regime gate OVERRIDDEN by explicit request — ' . $gate['why'];
+            } else {
+                $deployPct = $gate['pct'];
+            }
+        }
         $price = $this->price((string) $run->getSymbol());
 
         $config = [
@@ -111,7 +130,11 @@ class GtbotSetGridTool extends AbstractGtbotBase
             return $this->ok(['applied' => false, 'errors' => $errors, 'preview' => $preview]);
         }
         if (!empty($args['dry_run'])) {
-            return $this->ok(['applied' => false, 'preview' => $preview, 'note' => 'dry run — nothing written']);
+            $out = ['applied' => false, 'preview' => $preview, 'note' => 'dry run — nothing written'];
+            if ($gate['capped'] || $overridden) {
+                $out['regime_gate'] = $gate['why'];
+            }
+            return $this->ok($out);
         }
 
         // Write geometry → daemon re-anchors within a tick (legacy exits carried).
@@ -130,6 +153,9 @@ class GtbotSetGridTool extends AbstractGtbotBase
         \App\Domains\Bot\DecisionScorer::record($run, 'Claude', $pLow, $pHigh, $n, $reason, $price, $deployPct);
 
         $msg = sprintf('grid set to [%s, %s] × %d (%s) @ %d%% deployed — %s', $pLow, $pHigh, $n, $spacing, $deployPct, $reason);
+        if ($gate['capped'] || $overridden) {
+            $msg .= ' [' . $gate['why'] . ']';
+        }
         $e = new \App\BotEvent();
         $e->setIdGridRun((int) $run->getIdGridRun());
         $e->setLevel('Info');
@@ -141,11 +167,15 @@ class GtbotSetGridTool extends AbstractGtbotBase
             $n2->send('🧠 ' . $msg);
         }
 
-        return $this->ok([
+        $out = [
             'applied' => true,
             'preview' => $preview,
             'note' => 'geometry written; the daemon re-anchors within a tick — open buys re-ladder, working sells are carried as legacy exits.',
-        ]);
+        ];
+        if ($gate['capped'] || $overridden) {
+            $out['regime_gate'] = $gate['why'];
+        }
+        return $this->ok($out);
     }
 
     private function price(string $symbol): ?string

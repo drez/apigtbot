@@ -708,7 +708,7 @@ class BotOrderForm extends BotOrder
         }
         $data['IsLegacy'] = ($data['IsLegacy'] == '')?false:$data['IsLegacy'];
         $data['Simulated'] = ($data['Simulated'] == '')?false:$data['Simulated'];
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
         #
@@ -763,7 +763,7 @@ class BotOrderForm extends BotOrder
         }
         $data['IsLegacy'] = ($data['IsLegacy'] == '')?false:$data['IsLegacy'];
         $data['Simulated'] = ($data['Simulated'] == '')?false:$data['Simulated'];
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
 

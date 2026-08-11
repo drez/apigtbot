@@ -211,6 +211,64 @@ final class Indicators
     }
 
     /**
+     * Kaufman Efficiency Ratio over the last $period bars: |net move| divided
+     * by the sum of bar-to-bar moves (0..1). Near 1 = price went somewhere
+     * (trending); near 0 = it churned in place (grid-friendly chop). Reacts
+     * faster than ADX. Null when too short or the market didn't move at all.
+     */
+    public static function efficiencyRatio(array $closes, int $period = 20): ?float
+    {
+        $closes = array_values(array_map('floatval', $closes));
+        $n = count($closes);
+        if ($n < $period + 1) {
+            return null;
+        }
+        $last = $closes[$n - 1];
+        $first = $closes[$n - 1 - $period];
+        $noise = 0.0;
+        for ($i = $n - $period; $i < $n; $i++) {
+            $noise += abs($closes[$i] - $closes[$i - 1]);
+        }
+        if ($noise <= 0.0) {
+            return null;
+        }
+        return round(abs($last - $first) / $noise, 4);
+    }
+
+    /**
+     * Choppiness Index over the last $period bars:
+     * 100·log10(ΣTR / (maxHigh−minLow)) / log10(period). Bounded ~0..100;
+     * below 38.2 = trending, above 61.8 = ranging. Null when too short or
+     * the high-low range is zero.
+     */
+    public static function choppiness(array $highs, array $lows, array $closes, int $period = 14): ?float
+    {
+        $highs = array_values(array_map('floatval', $highs));
+        $lows = array_values(array_map('floatval', $lows));
+        $closes = array_values(array_map('floatval', $closes));
+        $n = count($closes);
+        if ($n < $period + 1) {
+            return null;
+        }
+        $trSum = 0.0;
+        $hi = -INF;
+        $lo = INF;
+        for ($i = $n - $period; $i < $n; $i++) {
+            $trSum += max(
+                $highs[$i] - $lows[$i],
+                abs($highs[$i] - $closes[$i - 1]),
+                abs($lows[$i] - $closes[$i - 1])
+            );
+            $hi = max($hi, $highs[$i]);
+            $lo = min($lo, $lows[$i]);
+        }
+        if ($hi - $lo <= 0.0 || $trSum <= 0.0) {
+            return null;
+        }
+        return round(100.0 * log10($trSum / ($hi - $lo)) / log10($period), 1);
+    }
+
+    /**
      * Share of traded volume that was taker (aggressive) BUYING over the last
      * $lookback candles — >0.5 means buyers crossing the spread dominate.
      * Null when the candles carry no volume data.
@@ -297,6 +355,8 @@ final class Indicators
             'atr_pct_rank' => self::atrPctRank($highs, $lows, $closes, 14),
             'taker_buy_ratio' => self::takerBuyRatio($candles),
             'vol_zscore' => self::volZscore($candles),
+            'er20' => self::efficiencyRatio($closes, 20),
+            'chop14' => self::choppiness($highs, $lows, $closes, 14),
         ];
     }
 }

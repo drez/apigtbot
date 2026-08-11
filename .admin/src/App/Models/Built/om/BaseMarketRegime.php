@@ -117,6 +117,24 @@ abstract class BaseMarketRegime extends BaseObject implements Persistent
     protected $vol_zscore;
 
     /**
+     * The value for the er20 field.
+     * @var        string
+     */
+    protected $er20;
+
+    /**
+     * The value for the chop14 field.
+     * @var        string
+     */
+    protected $chop14;
+
+    /**
+     * The value for the funding_pct field.
+     * @var        string
+     */
+    protected $funding_pct;
+
+    /**
      * The value for the funding_rate field.
      * @var        string
      */
@@ -358,6 +376,42 @@ abstract class BaseMarketRegime extends BaseObject implements Persistent
     {
 
         return $this->vol_zscore;
+    }
+
+    /**
+     * @Field()
+     * Get the [er20] column value.
+     * Efficiency ratio
+     * @return string
+     */
+    public function getEr20()
+    {
+
+        return $this->er20;
+    }
+
+    /**
+     * @Field()
+     * Get the [chop14] column value.
+     * Choppiness
+     * @return string
+     */
+    public function getChop14()
+    {
+
+        return $this->chop14;
+    }
+
+    /**
+     * @Field()
+     * Get the [funding_pct] column value.
+     * Funding 30d percentile
+     * @return string
+     */
+    public function getFundingPct()
+    {
+
+        return $this->funding_pct;
     }
 
     /**
@@ -751,6 +805,69 @@ abstract class BaseMarketRegime extends BaseObject implements Persistent
     } // setVolZscore()
 
     /**
+     * Set the value of [er20] column.
+     * Efficiency ratio
+     * @param  string $v new value
+     * @return MarketRegime The current object (for fluent API support)
+     */
+    public function setEr20($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (string) $v;
+        }
+
+        if ($this->er20 !== $v) {
+            $this->er20 = $v;
+            $this->modifiedColumns[] = MarketRegimePeer::ER20;
+        }
+
+
+        return $this;
+    } // setEr20()
+
+    /**
+     * Set the value of [chop14] column.
+     * Choppiness
+     * @param  string $v new value
+     * @return MarketRegime The current object (for fluent API support)
+     */
+    public function setChop14($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (string) $v;
+        }
+
+        if ($this->chop14 !== $v) {
+            $this->chop14 = $v;
+            $this->modifiedColumns[] = MarketRegimePeer::CHOP14;
+        }
+
+
+        return $this;
+    } // setChop14()
+
+    /**
+     * Set the value of [funding_pct] column.
+     * Funding 30d percentile
+     * @param  string $v new value
+     * @return MarketRegime The current object (for fluent API support)
+     */
+    public function setFundingPct($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (string) $v;
+        }
+
+        if ($this->funding_pct !== $v) {
+            $this->funding_pct = $v;
+            $this->modifiedColumns[] = MarketRegimePeer::FUNDING_PCT;
+        }
+
+
+        return $this;
+    } // setFundingPct()
+
+    /**
      * Set the value of [funding_rate] column.
      * Funding rate
      * @param  string $v new value
@@ -981,14 +1098,17 @@ abstract class BaseMarketRegime extends BaseObject implements Persistent
             $this->atr_pct_rank = ($row[$startcol + 8] !== null) ? (string) $row[$startcol + 8] : null;
             $this->taker_buy_ratio = ($row[$startcol + 9] !== null) ? (string) $row[$startcol + 9] : null;
             $this->vol_zscore = ($row[$startcol + 10] !== null) ? (string) $row[$startcol + 10] : null;
-            $this->funding_rate = ($row[$startcol + 11] !== null) ? (string) $row[$startcol + 11] : null;
-            $this->depth_imbalance = ($row[$startcol + 12] !== null) ? (string) $row[$startcol + 12] : null;
-            $this->depth_imbalance_avg = ($row[$startcol + 13] !== null) ? (string) $row[$startcol + 13] : null;
-            $this->date_creation = ($row[$startcol + 14] !== null) ? (string) $row[$startcol + 14] : null;
-            $this->date_modification = ($row[$startcol + 15] !== null) ? (string) $row[$startcol + 15] : null;
-            $this->id_group_creation = ($row[$startcol + 16] !== null) ? (int) $row[$startcol + 16] : null;
-            $this->id_creation = ($row[$startcol + 17] !== null) ? (int) $row[$startcol + 17] : null;
-            $this->id_modification = ($row[$startcol + 18] !== null) ? (int) $row[$startcol + 18] : null;
+            $this->er20 = ($row[$startcol + 11] !== null) ? (string) $row[$startcol + 11] : null;
+            $this->chop14 = ($row[$startcol + 12] !== null) ? (string) $row[$startcol + 12] : null;
+            $this->funding_pct = ($row[$startcol + 13] !== null) ? (string) $row[$startcol + 13] : null;
+            $this->funding_rate = ($row[$startcol + 14] !== null) ? (string) $row[$startcol + 14] : null;
+            $this->depth_imbalance = ($row[$startcol + 15] !== null) ? (string) $row[$startcol + 15] : null;
+            $this->depth_imbalance_avg = ($row[$startcol + 16] !== null) ? (string) $row[$startcol + 16] : null;
+            $this->date_creation = ($row[$startcol + 17] !== null) ? (string) $row[$startcol + 17] : null;
+            $this->date_modification = ($row[$startcol + 18] !== null) ? (string) $row[$startcol + 18] : null;
+            $this->id_group_creation = ($row[$startcol + 19] !== null) ? (int) $row[$startcol + 19] : null;
+            $this->id_creation = ($row[$startcol + 20] !== null) ? (int) $row[$startcol + 20] : null;
+            $this->id_modification = ($row[$startcol + 21] !== null) ? (int) $row[$startcol + 21] : null;
             $this->resetModified();
 
             $this->setNew(false);
@@ -998,7 +1118,7 @@ abstract class BaseMarketRegime extends BaseObject implements Persistent
             }
             $this->postHydrate($row, $startcol, $rehydrate);
 
-            return $startcol + 19; // 19 = MarketRegimePeer::NUM_HYDRATE_COLUMNS.
+            return $startcol + 22; // 22 = MarketRegimePeer::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException("Error populating MarketRegime object", $e);
@@ -1311,6 +1431,15 @@ abstract class BaseMarketRegime extends BaseObject implements Persistent
         if ($this->isColumnModified(MarketRegimePeer::VOL_ZSCORE)) {
             $modifiedColumns[':p' . $index++]  = '`vol_zscore`';
         }
+        if ($this->isColumnModified(MarketRegimePeer::ER20)) {
+            $modifiedColumns[':p' . $index++]  = '`er20`';
+        }
+        if ($this->isColumnModified(MarketRegimePeer::CHOP14)) {
+            $modifiedColumns[':p' . $index++]  = '`chop14`';
+        }
+        if ($this->isColumnModified(MarketRegimePeer::FUNDING_PCT)) {
+            $modifiedColumns[':p' . $index++]  = '`funding_pct`';
+        }
         if ($this->isColumnModified(MarketRegimePeer::FUNDING_RATE)) {
             $modifiedColumns[':p' . $index++]  = '`funding_rate`';
         }
@@ -1378,6 +1507,15 @@ abstract class BaseMarketRegime extends BaseObject implements Persistent
                         break;
                     case '`vol_zscore`':
                         $stmt->bindValue($identifier, $this->vol_zscore, PDO::PARAM_STR);
+                        break;
+                    case '`er20`':
+                        $stmt->bindValue($identifier, $this->er20, PDO::PARAM_STR);
+                        break;
+                    case '`chop14`':
+                        $stmt->bindValue($identifier, $this->chop14, PDO::PARAM_STR);
+                        break;
+                    case '`funding_pct`':
+                        $stmt->bindValue($identifier, $this->funding_pct, PDO::PARAM_STR);
                         break;
                     case '`funding_rate`':
                         $stmt->bindValue($identifier, $this->funding_rate, PDO::PARAM_STR);
@@ -1585,14 +1723,17 @@ abstract class BaseMarketRegime extends BaseObject implements Persistent
             $keys[8] => $this->getAtrPctRank(),
             $keys[9] => $this->getTakerBuyRatio(),
             $keys[10] => $this->getVolZscore(),
-            $keys[11] => $this->getFundingRate(),
-            $keys[12] => $this->getDepthImbalance(),
-            $keys[13] => $this->getDepthImbalanceAvg(),
-            $keys[14] => $this->getDateCreation(),
-            $keys[15] => $this->getDateModification(),
-            $keys[16] => $this->getIdGroupCreation(),
-            $keys[17] => $this->getIdCreation(),
-            $keys[18] => $this->getIdModification(),
+            $keys[11] => $this->getEr20(),
+            $keys[12] => $this->getChop14(),
+            $keys[13] => $this->getFundingPct(),
+            $keys[14] => $this->getFundingRate(),
+            $keys[15] => $this->getDepthImbalance(),
+            $keys[16] => $this->getDepthImbalanceAvg(),
+            $keys[17] => $this->getDateCreation(),
+            $keys[18] => $this->getDateModification(),
+            $keys[19] => $this->getIdGroupCreation(),
+            $keys[20] => $this->getIdCreation(),
+            $keys[21] => $this->getIdModification(),
         );
         $virtualColumns = $this->virtualColumns;
         foreach ($virtualColumns as $key => $virtualColumn) {
@@ -1681,27 +1822,36 @@ abstract class BaseMarketRegime extends BaseObject implements Persistent
                 $this->setVolZscore($value);
                 break;
             case 11:
-                $this->setFundingRate($value);
+                $this->setEr20($value);
                 break;
             case 12:
-                $this->setDepthImbalance($value);
+                $this->setChop14($value);
                 break;
             case 13:
-                $this->setDepthImbalanceAvg($value);
+                $this->setFundingPct($value);
                 break;
             case 14:
-                $this->setDateCreation($value);
+                $this->setFundingRate($value);
                 break;
             case 15:
-                $this->setDateModification($value);
+                $this->setDepthImbalance($value);
                 break;
             case 16:
-                $this->setIdGroupCreation($value);
+                $this->setDepthImbalanceAvg($value);
                 break;
             case 17:
-                $this->setIdCreation($value);
+                $this->setDateCreation($value);
                 break;
             case 18:
+                $this->setDateModification($value);
+                break;
+            case 19:
+                $this->setIdGroupCreation($value);
+                break;
+            case 20:
+                $this->setIdCreation($value);
+                break;
+            case 21:
                 $this->setIdModification($value);
                 break;
         } // switch()
@@ -1739,14 +1889,17 @@ abstract class BaseMarketRegime extends BaseObject implements Persistent
         if (array_key_exists($keys[8], $arr)) $this->setAtrPctRank($arr[$keys[8]]);
         if (array_key_exists($keys[9], $arr)) $this->setTakerBuyRatio($arr[$keys[9]]);
         if (array_key_exists($keys[10], $arr)) $this->setVolZscore($arr[$keys[10]]);
-        if (array_key_exists($keys[11], $arr)) $this->setFundingRate($arr[$keys[11]]);
-        if (array_key_exists($keys[12], $arr)) $this->setDepthImbalance($arr[$keys[12]]);
-        if (array_key_exists($keys[13], $arr)) $this->setDepthImbalanceAvg($arr[$keys[13]]);
-        if (array_key_exists($keys[14], $arr)) $this->setDateCreation($arr[$keys[14]]);
-        if (array_key_exists($keys[15], $arr)) $this->setDateModification($arr[$keys[15]]);
-        if (array_key_exists($keys[16], $arr)) $this->setIdGroupCreation($arr[$keys[16]]);
-        if (array_key_exists($keys[17], $arr)) $this->setIdCreation($arr[$keys[17]]);
-        if (array_key_exists($keys[18], $arr)) $this->setIdModification($arr[$keys[18]]);
+        if (array_key_exists($keys[11], $arr)) $this->setEr20($arr[$keys[11]]);
+        if (array_key_exists($keys[12], $arr)) $this->setChop14($arr[$keys[12]]);
+        if (array_key_exists($keys[13], $arr)) $this->setFundingPct($arr[$keys[13]]);
+        if (array_key_exists($keys[14], $arr)) $this->setFundingRate($arr[$keys[14]]);
+        if (array_key_exists($keys[15], $arr)) $this->setDepthImbalance($arr[$keys[15]]);
+        if (array_key_exists($keys[16], $arr)) $this->setDepthImbalanceAvg($arr[$keys[16]]);
+        if (array_key_exists($keys[17], $arr)) $this->setDateCreation($arr[$keys[17]]);
+        if (array_key_exists($keys[18], $arr)) $this->setDateModification($arr[$keys[18]]);
+        if (array_key_exists($keys[19], $arr)) $this->setIdGroupCreation($arr[$keys[19]]);
+        if (array_key_exists($keys[20], $arr)) $this->setIdCreation($arr[$keys[20]]);
+        if (array_key_exists($keys[21], $arr)) $this->setIdModification($arr[$keys[21]]);
     }
 
     /**
@@ -1769,6 +1922,9 @@ abstract class BaseMarketRegime extends BaseObject implements Persistent
         if ($this->isColumnModified(MarketRegimePeer::ATR_PCT_RANK)) $criteria->add(MarketRegimePeer::ATR_PCT_RANK, $this->atr_pct_rank);
         if ($this->isColumnModified(MarketRegimePeer::TAKER_BUY_RATIO)) $criteria->add(MarketRegimePeer::TAKER_BUY_RATIO, $this->taker_buy_ratio);
         if ($this->isColumnModified(MarketRegimePeer::VOL_ZSCORE)) $criteria->add(MarketRegimePeer::VOL_ZSCORE, $this->vol_zscore);
+        if ($this->isColumnModified(MarketRegimePeer::ER20)) $criteria->add(MarketRegimePeer::ER20, $this->er20);
+        if ($this->isColumnModified(MarketRegimePeer::CHOP14)) $criteria->add(MarketRegimePeer::CHOP14, $this->chop14);
+        if ($this->isColumnModified(MarketRegimePeer::FUNDING_PCT)) $criteria->add(MarketRegimePeer::FUNDING_PCT, $this->funding_pct);
         if ($this->isColumnModified(MarketRegimePeer::FUNDING_RATE)) $criteria->add(MarketRegimePeer::FUNDING_RATE, $this->funding_rate);
         if ($this->isColumnModified(MarketRegimePeer::DEPTH_IMBALANCE)) $criteria->add(MarketRegimePeer::DEPTH_IMBALANCE, $this->depth_imbalance);
         if ($this->isColumnModified(MarketRegimePeer::DEPTH_IMBALANCE_AVG)) $criteria->add(MarketRegimePeer::DEPTH_IMBALANCE_AVG, $this->depth_imbalance_avg);
@@ -1850,6 +2006,9 @@ abstract class BaseMarketRegime extends BaseObject implements Persistent
         $copyObj->setAtrPctRank($this->getAtrPctRank());
         $copyObj->setTakerBuyRatio($this->getTakerBuyRatio());
         $copyObj->setVolZscore($this->getVolZscore());
+        $copyObj->setEr20($this->getEr20());
+        $copyObj->setChop14($this->getChop14());
+        $copyObj->setFundingPct($this->getFundingPct());
         $copyObj->setFundingRate($this->getFundingRate());
         $copyObj->setDepthImbalance($this->getDepthImbalance());
         $copyObj->setDepthImbalanceAvg($this->getDepthImbalanceAvg());
@@ -2088,6 +2247,9 @@ abstract class BaseMarketRegime extends BaseObject implements Persistent
         $this->atr_pct_rank = null;
         $this->taker_buy_ratio = null;
         $this->vol_zscore = null;
+        $this->er20 = null;
+        $this->chop14 = null;
+        $this->funding_pct = null;
         $this->funding_rate = null;
         $this->depth_imbalance = null;
         $this->depth_imbalance_avg = null;

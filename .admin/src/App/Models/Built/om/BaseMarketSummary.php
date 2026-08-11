@@ -184,6 +184,24 @@ abstract class BaseMarketSummary extends BaseObject implements Persistent
     protected $vol_zscore;
 
     /**
+     * The value for the er20 field.
+     * @var        string
+     */
+    protected $er20;
+
+    /**
+     * The value for the chop14 field.
+     * @var        string
+     */
+    protected $chop14;
+
+    /**
+     * The value for the funding_pct field.
+     * @var        string
+     */
+    protected $funding_pct;
+
+    /**
      * The value for the computed_at field.
      * @var        string
      */
@@ -546,6 +564,42 @@ abstract class BaseMarketSummary extends BaseObject implements Persistent
     {
 
         return $this->vol_zscore;
+    }
+
+    /**
+     * @Field()
+     * Get the [er20] column value.
+     * Efficiency ratio
+     * @return string
+     */
+    public function getEr20()
+    {
+
+        return $this->er20;
+    }
+
+    /**
+     * @Field()
+     * Get the [chop14] column value.
+     * Choppiness
+     * @return string
+     */
+    public function getChop14()
+    {
+
+        return $this->chop14;
+    }
+
+    /**
+     * @Field()
+     * Get the [funding_pct] column value.
+     * Funding 30d percentile
+     * @return string
+     */
+    public function getFundingPct()
+    {
+
+        return $this->funding_pct;
     }
 
     /**
@@ -1175,6 +1229,69 @@ abstract class BaseMarketSummary extends BaseObject implements Persistent
     } // setVolZscore()
 
     /**
+     * Set the value of [er20] column.
+     * Efficiency ratio
+     * @param  string $v new value
+     * @return MarketSummary The current object (for fluent API support)
+     */
+    public function setEr20($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (string) $v;
+        }
+
+        if ($this->er20 !== $v) {
+            $this->er20 = $v;
+            $this->modifiedColumns[] = MarketSummaryPeer::ER20;
+        }
+
+
+        return $this;
+    } // setEr20()
+
+    /**
+     * Set the value of [chop14] column.
+     * Choppiness
+     * @param  string $v new value
+     * @return MarketSummary The current object (for fluent API support)
+     */
+    public function setChop14($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (string) $v;
+        }
+
+        if ($this->chop14 !== $v) {
+            $this->chop14 = $v;
+            $this->modifiedColumns[] = MarketSummaryPeer::CHOP14;
+        }
+
+
+        return $this;
+    } // setChop14()
+
+    /**
+     * Set the value of [funding_pct] column.
+     * Funding 30d percentile
+     * @param  string $v new value
+     * @return MarketSummary The current object (for fluent API support)
+     */
+    public function setFundingPct($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (string) $v;
+        }
+
+        if ($this->funding_pct !== $v) {
+            $this->funding_pct = $v;
+            $this->modifiedColumns[] = MarketSummaryPeer::FUNDING_PCT;
+        }
+
+
+        return $this;
+    } // setFundingPct()
+
+    /**
      * Sets the value of [computed_at] column to a normalized version of the date/time value specified.
      * Computed at
      * @param mixed $v string, integer (timestamp), or DateTime value.
@@ -1380,12 +1497,15 @@ abstract class BaseMarketSummary extends BaseObject implements Persistent
             $this->atr_pct_rank = ($row[$startcol + 19] !== null) ? (string) $row[$startcol + 19] : null;
             $this->taker_buy_ratio = ($row[$startcol + 20] !== null) ? (string) $row[$startcol + 20] : null;
             $this->vol_zscore = ($row[$startcol + 21] !== null) ? (string) $row[$startcol + 21] : null;
-            $this->computed_at = ($row[$startcol + 22] !== null) ? (string) $row[$startcol + 22] : null;
-            $this->date_creation = ($row[$startcol + 23] !== null) ? (string) $row[$startcol + 23] : null;
-            $this->date_modification = ($row[$startcol + 24] !== null) ? (string) $row[$startcol + 24] : null;
-            $this->id_group_creation = ($row[$startcol + 25] !== null) ? (int) $row[$startcol + 25] : null;
-            $this->id_creation = ($row[$startcol + 26] !== null) ? (int) $row[$startcol + 26] : null;
-            $this->id_modification = ($row[$startcol + 27] !== null) ? (int) $row[$startcol + 27] : null;
+            $this->er20 = ($row[$startcol + 22] !== null) ? (string) $row[$startcol + 22] : null;
+            $this->chop14 = ($row[$startcol + 23] !== null) ? (string) $row[$startcol + 23] : null;
+            $this->funding_pct = ($row[$startcol + 24] !== null) ? (string) $row[$startcol + 24] : null;
+            $this->computed_at = ($row[$startcol + 25] !== null) ? (string) $row[$startcol + 25] : null;
+            $this->date_creation = ($row[$startcol + 26] !== null) ? (string) $row[$startcol + 26] : null;
+            $this->date_modification = ($row[$startcol + 27] !== null) ? (string) $row[$startcol + 27] : null;
+            $this->id_group_creation = ($row[$startcol + 28] !== null) ? (int) $row[$startcol + 28] : null;
+            $this->id_creation = ($row[$startcol + 29] !== null) ? (int) $row[$startcol + 29] : null;
+            $this->id_modification = ($row[$startcol + 30] !== null) ? (int) $row[$startcol + 30] : null;
             $this->resetModified();
 
             $this->setNew(false);
@@ -1395,7 +1515,7 @@ abstract class BaseMarketSummary extends BaseObject implements Persistent
             }
             $this->postHydrate($row, $startcol, $rehydrate);
 
-            return $startcol + 28; // 28 = MarketSummaryPeer::NUM_HYDRATE_COLUMNS.
+            return $startcol + 31; // 31 = MarketSummaryPeer::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException("Error populating MarketSummary object", $e);
@@ -1741,6 +1861,15 @@ abstract class BaseMarketSummary extends BaseObject implements Persistent
         if ($this->isColumnModified(MarketSummaryPeer::VOL_ZSCORE)) {
             $modifiedColumns[':p' . $index++]  = '`vol_zscore`';
         }
+        if ($this->isColumnModified(MarketSummaryPeer::ER20)) {
+            $modifiedColumns[':p' . $index++]  = '`er20`';
+        }
+        if ($this->isColumnModified(MarketSummaryPeer::CHOP14)) {
+            $modifiedColumns[':p' . $index++]  = '`chop14`';
+        }
+        if ($this->isColumnModified(MarketSummaryPeer::FUNDING_PCT)) {
+            $modifiedColumns[':p' . $index++]  = '`funding_pct`';
+        }
         if ($this->isColumnModified(MarketSummaryPeer::COMPUTED_AT)) {
             $modifiedColumns[':p' . $index++]  = '`computed_at`';
         }
@@ -1835,6 +1964,15 @@ abstract class BaseMarketSummary extends BaseObject implements Persistent
                         break;
                     case '`vol_zscore`':
                         $stmt->bindValue($identifier, $this->vol_zscore, PDO::PARAM_STR);
+                        break;
+                    case '`er20`':
+                        $stmt->bindValue($identifier, $this->er20, PDO::PARAM_STR);
+                        break;
+                    case '`chop14`':
+                        $stmt->bindValue($identifier, $this->chop14, PDO::PARAM_STR);
+                        break;
+                    case '`funding_pct`':
+                        $stmt->bindValue($identifier, $this->funding_pct, PDO::PARAM_STR);
                         break;
                     case '`computed_at`':
                         $stmt->bindValue($identifier, $this->computed_at, PDO::PARAM_STR);
@@ -2047,12 +2185,15 @@ abstract class BaseMarketSummary extends BaseObject implements Persistent
             $keys[19] => $this->getAtrPctRank(),
             $keys[20] => $this->getTakerBuyRatio(),
             $keys[21] => $this->getVolZscore(),
-            $keys[22] => $this->getComputedAt(),
-            $keys[23] => $this->getDateCreation(),
-            $keys[24] => $this->getDateModification(),
-            $keys[25] => $this->getIdGroupCreation(),
-            $keys[26] => $this->getIdCreation(),
-            $keys[27] => $this->getIdModification(),
+            $keys[22] => $this->getEr20(),
+            $keys[23] => $this->getChop14(),
+            $keys[24] => $this->getFundingPct(),
+            $keys[25] => $this->getComputedAt(),
+            $keys[26] => $this->getDateCreation(),
+            $keys[27] => $this->getDateModification(),
+            $keys[28] => $this->getIdGroupCreation(),
+            $keys[29] => $this->getIdCreation(),
+            $keys[30] => $this->getIdModification(),
         );
         $virtualColumns = $this->virtualColumns;
         foreach ($virtualColumns as $key => $virtualColumn) {
@@ -2174,21 +2315,30 @@ abstract class BaseMarketSummary extends BaseObject implements Persistent
                 $this->setVolZscore($value);
                 break;
             case 22:
-                $this->setComputedAt($value);
+                $this->setEr20($value);
                 break;
             case 23:
-                $this->setDateCreation($value);
+                $this->setChop14($value);
                 break;
             case 24:
-                $this->setDateModification($value);
+                $this->setFundingPct($value);
                 break;
             case 25:
-                $this->setIdGroupCreation($value);
+                $this->setComputedAt($value);
                 break;
             case 26:
-                $this->setIdCreation($value);
+                $this->setDateCreation($value);
                 break;
             case 27:
+                $this->setDateModification($value);
+                break;
+            case 28:
+                $this->setIdGroupCreation($value);
+                break;
+            case 29:
+                $this->setIdCreation($value);
+                break;
+            case 30:
                 $this->setIdModification($value);
                 break;
         } // switch()
@@ -2237,12 +2387,15 @@ abstract class BaseMarketSummary extends BaseObject implements Persistent
         if (array_key_exists($keys[19], $arr)) $this->setAtrPctRank($arr[$keys[19]]);
         if (array_key_exists($keys[20], $arr)) $this->setTakerBuyRatio($arr[$keys[20]]);
         if (array_key_exists($keys[21], $arr)) $this->setVolZscore($arr[$keys[21]]);
-        if (array_key_exists($keys[22], $arr)) $this->setComputedAt($arr[$keys[22]]);
-        if (array_key_exists($keys[23], $arr)) $this->setDateCreation($arr[$keys[23]]);
-        if (array_key_exists($keys[24], $arr)) $this->setDateModification($arr[$keys[24]]);
-        if (array_key_exists($keys[25], $arr)) $this->setIdGroupCreation($arr[$keys[25]]);
-        if (array_key_exists($keys[26], $arr)) $this->setIdCreation($arr[$keys[26]]);
-        if (array_key_exists($keys[27], $arr)) $this->setIdModification($arr[$keys[27]]);
+        if (array_key_exists($keys[22], $arr)) $this->setEr20($arr[$keys[22]]);
+        if (array_key_exists($keys[23], $arr)) $this->setChop14($arr[$keys[23]]);
+        if (array_key_exists($keys[24], $arr)) $this->setFundingPct($arr[$keys[24]]);
+        if (array_key_exists($keys[25], $arr)) $this->setComputedAt($arr[$keys[25]]);
+        if (array_key_exists($keys[26], $arr)) $this->setDateCreation($arr[$keys[26]]);
+        if (array_key_exists($keys[27], $arr)) $this->setDateModification($arr[$keys[27]]);
+        if (array_key_exists($keys[28], $arr)) $this->setIdGroupCreation($arr[$keys[28]]);
+        if (array_key_exists($keys[29], $arr)) $this->setIdCreation($arr[$keys[29]]);
+        if (array_key_exists($keys[30], $arr)) $this->setIdModification($arr[$keys[30]]);
     }
 
     /**
@@ -2276,6 +2429,9 @@ abstract class BaseMarketSummary extends BaseObject implements Persistent
         if ($this->isColumnModified(MarketSummaryPeer::ATR_PCT_RANK)) $criteria->add(MarketSummaryPeer::ATR_PCT_RANK, $this->atr_pct_rank);
         if ($this->isColumnModified(MarketSummaryPeer::TAKER_BUY_RATIO)) $criteria->add(MarketSummaryPeer::TAKER_BUY_RATIO, $this->taker_buy_ratio);
         if ($this->isColumnModified(MarketSummaryPeer::VOL_ZSCORE)) $criteria->add(MarketSummaryPeer::VOL_ZSCORE, $this->vol_zscore);
+        if ($this->isColumnModified(MarketSummaryPeer::ER20)) $criteria->add(MarketSummaryPeer::ER20, $this->er20);
+        if ($this->isColumnModified(MarketSummaryPeer::CHOP14)) $criteria->add(MarketSummaryPeer::CHOP14, $this->chop14);
+        if ($this->isColumnModified(MarketSummaryPeer::FUNDING_PCT)) $criteria->add(MarketSummaryPeer::FUNDING_PCT, $this->funding_pct);
         if ($this->isColumnModified(MarketSummaryPeer::COMPUTED_AT)) $criteria->add(MarketSummaryPeer::COMPUTED_AT, $this->computed_at);
         if ($this->isColumnModified(MarketSummaryPeer::DATE_CREATION)) $criteria->add(MarketSummaryPeer::DATE_CREATION, $this->date_creation);
         if ($this->isColumnModified(MarketSummaryPeer::DATE_MODIFICATION)) $criteria->add(MarketSummaryPeer::DATE_MODIFICATION, $this->date_modification);
@@ -2366,6 +2522,9 @@ abstract class BaseMarketSummary extends BaseObject implements Persistent
         $copyObj->setAtrPctRank($this->getAtrPctRank());
         $copyObj->setTakerBuyRatio($this->getTakerBuyRatio());
         $copyObj->setVolZscore($this->getVolZscore());
+        $copyObj->setEr20($this->getEr20());
+        $copyObj->setChop14($this->getChop14());
+        $copyObj->setFundingPct($this->getFundingPct());
         $copyObj->setComputedAt($this->getComputedAt());
         $copyObj->setDateCreation($this->getDateCreation());
         $copyObj->setDateModification($this->getDateModification());
@@ -2613,6 +2772,9 @@ abstract class BaseMarketSummary extends BaseObject implements Persistent
         $this->atr_pct_rank = null;
         $this->taker_buy_ratio = null;
         $this->vol_zscore = null;
+        $this->er20 = null;
+        $this->chop14 = null;
+        $this->funding_pct = null;
         $this->computed_at = null;
         $this->date_creation = null;
         $this->date_modification = null;

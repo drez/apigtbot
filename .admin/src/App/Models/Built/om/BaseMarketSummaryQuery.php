@@ -45,6 +45,9 @@ use App\MarketSummaryQuery;
  * @method MarketSummaryQuery orderByAtrPctRank($order = Criteria::ASC) Order by the atr_pct_rank column
  * @method MarketSummaryQuery orderByTakerBuyRatio($order = Criteria::ASC) Order by the taker_buy_ratio column
  * @method MarketSummaryQuery orderByVolZscore($order = Criteria::ASC) Order by the vol_zscore column
+ * @method MarketSummaryQuery orderByEr20($order = Criteria::ASC) Order by the er20 column
+ * @method MarketSummaryQuery orderByChop14($order = Criteria::ASC) Order by the chop14 column
+ * @method MarketSummaryQuery orderByFundingPct($order = Criteria::ASC) Order by the funding_pct column
  * @method MarketSummaryQuery orderByComputedAt($order = Criteria::ASC) Order by the computed_at column
  * @method MarketSummaryQuery orderByDateCreation($order = Criteria::ASC) Order by the date_creation column
  * @method MarketSummaryQuery orderByDateModification($order = Criteria::ASC) Order by the date_modification column
@@ -74,6 +77,9 @@ use App\MarketSummaryQuery;
  * @method MarketSummaryQuery groupByAtrPctRank() Group by the atr_pct_rank column
  * @method MarketSummaryQuery groupByTakerBuyRatio() Group by the taker_buy_ratio column
  * @method MarketSummaryQuery groupByVolZscore() Group by the vol_zscore column
+ * @method MarketSummaryQuery groupByEr20() Group by the er20 column
+ * @method MarketSummaryQuery groupByChop14() Group by the chop14 column
+ * @method MarketSummaryQuery groupByFundingPct() Group by the funding_pct column
  * @method MarketSummaryQuery groupByComputedAt() Group by the computed_at column
  * @method MarketSummaryQuery groupByDateCreation() Group by the date_creation column
  * @method MarketSummaryQuery groupByDateModification() Group by the date_modification column
@@ -121,6 +127,9 @@ use App\MarketSummaryQuery;
  * @method MarketSummary findOneByAtrPctRank(string $atr_pct_rank) Return the first MarketSummary filtered by the atr_pct_rank column
  * @method MarketSummary findOneByTakerBuyRatio(string $taker_buy_ratio) Return the first MarketSummary filtered by the taker_buy_ratio column
  * @method MarketSummary findOneByVolZscore(string $vol_zscore) Return the first MarketSummary filtered by the vol_zscore column
+ * @method MarketSummary findOneByEr20(string $er20) Return the first MarketSummary filtered by the er20 column
+ * @method MarketSummary findOneByChop14(string $chop14) Return the first MarketSummary filtered by the chop14 column
+ * @method MarketSummary findOneByFundingPct(string $funding_pct) Return the first MarketSummary filtered by the funding_pct column
  * @method MarketSummary findOneByComputedAt(string $computed_at) Return the first MarketSummary filtered by the computed_at column
  * @method MarketSummary findOneByDateCreation(string $date_creation) Return the first MarketSummary filtered by the date_creation column
  * @method MarketSummary findOneByDateModification(string $date_modification) Return the first MarketSummary filtered by the date_modification column
@@ -150,6 +159,9 @@ use App\MarketSummaryQuery;
  * @method array findByAtrPctRank(string $atr_pct_rank) Return MarketSummary objects filtered by the atr_pct_rank column
  * @method array findByTakerBuyRatio(string $taker_buy_ratio) Return MarketSummary objects filtered by the taker_buy_ratio column
  * @method array findByVolZscore(string $vol_zscore) Return MarketSummary objects filtered by the vol_zscore column
+ * @method array findByEr20(string $er20) Return MarketSummary objects filtered by the er20 column
+ * @method array findByChop14(string $chop14) Return MarketSummary objects filtered by the chop14 column
+ * @method array findByFundingPct(string $funding_pct) Return MarketSummary objects filtered by the funding_pct column
  * @method array findByComputedAt(string $computed_at) Return MarketSummary objects filtered by the computed_at column
  * @method array findByDateCreation(string $date_creation) Return MarketSummary objects filtered by the date_creation column
  * @method array findByDateModification(string $date_modification) Return MarketSummary objects filtered by the date_modification column
@@ -264,7 +276,7 @@ abstract class BaseMarketSummaryQuery extends ModelCriteria
      */
     protected function findPkSimple($key, $con)
     {
-        $sql = 'SELECT `id_market_summary`, `symbol`, `tf`, `price`, `ema20`, `ema50`, `ema200`, `rsi14`, `atr14`, `atr_pct`, `trend`, `swing_high`, `swing_low`, `candles_used`, `recent_candles`, `funding_rate`, `depth_imbalance`, `depth_imbalance_avg`, `adx14`, `atr_pct_rank`, `taker_buy_ratio`, `vol_zscore`, `computed_at`, `date_creation`, `date_modification`, `id_group_creation`, `id_creation`, `id_modification` FROM `market_summary` WHERE `id_market_summary` = :p0';
+        $sql = 'SELECT `id_market_summary`, `symbol`, `tf`, `price`, `ema20`, `ema50`, `ema200`, `rsi14`, `atr14`, `atr_pct`, `trend`, `swing_high`, `swing_low`, `candles_used`, `recent_candles`, `funding_rate`, `depth_imbalance`, `depth_imbalance_avg`, `adx14`, `atr_pct_rank`, `taker_buy_ratio`, `vol_zscore`, `er20`, `chop14`, `funding_pct`, `computed_at`, `date_creation`, `date_modification`, `id_group_creation`, `id_creation`, `id_modification` FROM `market_summary` WHERE `id_market_summary` = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -1224,6 +1236,132 @@ abstract class BaseMarketSummaryQuery extends ModelCriteria
         }
 
         return $this->addUsingAlias(MarketSummaryPeer::VOL_ZSCORE, $volZscore, $comparison);
+    }
+
+    /**
+     * Filter the query on the er20 column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByEr20(1234); // WHERE er20 = 1234
+     * $query->filterByEr20(array(12, 34)); // WHERE er20 IN (12, 34)
+     * $query->filterByEr20(array('min' => 12)); // WHERE er20 >= 12
+     * $query->filterByEr20(array('max' => 12)); // WHERE er20 <= 12
+     * </code>
+     *
+     * @param     mixed $er20 The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return MarketSummaryQuery The current query, for fluid interface
+     */
+    public function filterByEr20($er20 = null, $comparison = null)
+    {
+        if (is_array($er20)) {
+            $useMinMax = false;
+            if (isset($er20['min'])) {
+                $this->addUsingAlias(MarketSummaryPeer::ER20, $er20['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($er20['max'])) {
+                $this->addUsingAlias(MarketSummaryPeer::ER20, $er20['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(MarketSummaryPeer::ER20, $er20, $comparison);
+    }
+
+    /**
+     * Filter the query on the chop14 column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByChop14(1234); // WHERE chop14 = 1234
+     * $query->filterByChop14(array(12, 34)); // WHERE chop14 IN (12, 34)
+     * $query->filterByChop14(array('min' => 12)); // WHERE chop14 >= 12
+     * $query->filterByChop14(array('max' => 12)); // WHERE chop14 <= 12
+     * </code>
+     *
+     * @param     mixed $chop14 The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return MarketSummaryQuery The current query, for fluid interface
+     */
+    public function filterByChop14($chop14 = null, $comparison = null)
+    {
+        if (is_array($chop14)) {
+            $useMinMax = false;
+            if (isset($chop14['min'])) {
+                $this->addUsingAlias(MarketSummaryPeer::CHOP14, $chop14['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($chop14['max'])) {
+                $this->addUsingAlias(MarketSummaryPeer::CHOP14, $chop14['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(MarketSummaryPeer::CHOP14, $chop14, $comparison);
+    }
+
+    /**
+     * Filter the query on the funding_pct column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByFundingPct(1234); // WHERE funding_pct = 1234
+     * $query->filterByFundingPct(array(12, 34)); // WHERE funding_pct IN (12, 34)
+     * $query->filterByFundingPct(array('min' => 12)); // WHERE funding_pct >= 12
+     * $query->filterByFundingPct(array('max' => 12)); // WHERE funding_pct <= 12
+     * </code>
+     *
+     * @param     mixed $fundingPct The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return MarketSummaryQuery The current query, for fluid interface
+     */
+    public function filterByFundingPct($fundingPct = null, $comparison = null)
+    {
+        if (is_array($fundingPct)) {
+            $useMinMax = false;
+            if (isset($fundingPct['min'])) {
+                $this->addUsingAlias(MarketSummaryPeer::FUNDING_PCT, $fundingPct['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($fundingPct['max'])) {
+                $this->addUsingAlias(MarketSummaryPeer::FUNDING_PCT, $fundingPct['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(MarketSummaryPeer::FUNDING_PCT, $fundingPct, $comparison);
     }
 
     /**

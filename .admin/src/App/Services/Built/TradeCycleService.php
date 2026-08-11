@@ -496,6 +496,7 @@ class TradeCycleService
 
 
 
+
     public function deleteOne()
     {
         $error = [];

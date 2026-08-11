@@ -153,7 +153,7 @@ class MarketSummaryService
     public function getApiResponse()
     {
         $this->body = ['status' => 'failure', 'errors' => ['Unknown method'], 'data' => null, 'messages' => null];
-        $Api = new Api('MarketSummary', $this, ['Symbol', 'Tf', 'Price', 'Ema20', 'Ema50', 'Ema200', 'Rsi14', 'Atr14', 'AtrPct', 'Trend', 'SwingHigh', 'SwingLow', 'CandlesUsed', 'RecentCandles', 'FundingRate', 'DepthImbalance', 'DepthImbalanceAvg', 'Adx14', 'AtrPctRank', 'TakerBuyRatio', 'VolZscore', 'ComputedAt']);
+        $Api = new Api('MarketSummary', $this, ['Symbol', 'Tf', 'Price', 'Ema20', 'Ema50', 'Ema200', 'Rsi14', 'Atr14', 'AtrPct', 'Trend', 'SwingHigh', 'SwingLow', 'CandlesUsed', 'RecentCandles', 'FundingRate', 'DepthImbalance', 'DepthImbalanceAvg', 'Adx14', 'AtrPctRank', 'TakerBuyRatio', 'VolZscore', 'Er20', 'Chop14', 'FundingPct', 'ComputedAt']);
 
         if (isset($this->customActions[$this->request['a']]) && method_exists($this, $this->customActions[$this->request['a']])) {
             $callable = $this->customActions[$this->request['a']];
@@ -189,6 +189,7 @@ class MarketSummaryService
         $ApiResponse = new ApiResponse($this->request, $this->response, $this->body);
         return $ApiResponse->getResponse();
     }
+
 
 
 

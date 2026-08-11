@@ -168,7 +168,7 @@
             set_menu_priority: 5,
             set_order_list_columns: [["computed_at", "DESC"]],
             set_list_hide_columns: ["recent_candles"],
-            set_readonly_columns: ["symbol", "tf", "price", "ema20", "ema50", "ema200", "rsi14", "atr14", "atr_pct", "trend", "swing_high", "swing_low", "candles_used", "recent_candles", "computed_at", "depth_imbalance_avg", "adx14", "atr_pct_rank", "taker_buy_ratio", "vol_zscore"],
+            set_readonly_columns: ["symbol", "tf", "price", "ema20", "ema50", "ema200", "rsi14", "atr14", "atr_pct", "trend", "swing_high", "swing_low", "candles_used", "recent_candles", "computed_at", "depth_imbalance_avg", "adx14", "atr_pct_rank", "taker_buy_ratio", "vol_zscore", "er20", "chop14", "funding_pct"],
             unique: [["symbol", "tf"]],
 
             "id_market_summary()": ["primary()"],
@@ -193,6 +193,9 @@
             "atr_pct_rank('ATR% percentile')": ["decimal(9, 4)", "not-required", "default:null"],
             "taker_buy_ratio('Taker buy ratio')": ["decimal(9, 4)", "not-required", "default:null"],
             "vol_zscore('Volume z-score')": ["decimal(9, 4)", "not-required", "default:null"],
+            "er20('Efficiency ratio')": ["decimal(9, 4)", "not-required", "default:null"],
+            "chop14('Choppiness')": ["decimal(9, 4)", "not-required", "default:null"],
+            "funding_pct('Funding 30d percentile')": ["decimal(9, 4)", "not-required", "default:null"],
             "computed_at('Computed at')": ["timestamp()", "not-required", "default:null"]
         },
 
@@ -200,7 +203,7 @@
             set_parent_menu: "Settings",
             set_menu_priority: 6,
             set_order_list_columns: [["date_creation", "DESC"]],
-            set_readonly_columns: ["symbol", "tf", "price", "trend", "rsi14", "atr_pct", "adx14", "atr_pct_rank", "taker_buy_ratio", "vol_zscore", "funding_rate", "depth_imbalance", "depth_imbalance_avg"],
+            set_readonly_columns: ["symbol", "tf", "price", "trend", "rsi14", "atr_pct", "adx14", "atr_pct_rank", "taker_buy_ratio", "vol_zscore", "funding_rate", "depth_imbalance", "depth_imbalance_avg", "er20", "chop14", "funding_pct"],
 
             "id_market_regime()": ["primary()"],
             "symbol('Symbol')": ["varchar(20)", "required"],
@@ -213,6 +216,9 @@
             "atr_pct_rank('ATR% percentile')": ["decimal(9, 4)", "not-required", "default:null"],
             "taker_buy_ratio('Taker buy ratio')": ["decimal(9, 4)", "not-required", "default:null"],
             "vol_zscore('Volume z-score')": ["decimal(9, 4)", "not-required", "default:null"],
+            "er20('Efficiency ratio')": ["decimal(9, 4)", "not-required", "default:null"],
+            "chop14('Choppiness')": ["decimal(9, 4)", "not-required", "default:null"],
+            "funding_pct('Funding 30d percentile')": ["decimal(9, 4)", "not-required", "default:null"],
             "funding_rate('Funding rate')": ["decimal(12, 8)", "not-required", "default:null"],
             "depth_imbalance('Depth imbalance')": ["decimal(9, 4)", "not-required", "default:null"],
             "depth_imbalance_avg('Depth imbalance (smoothed)')": ["decimal(9, 4)", "not-required", "default:null"]

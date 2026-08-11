@@ -76,6 +76,7 @@ Keys you set under `parameters:`; each has a dedicated
 | `set_summary_cards` | KPI/aggregate cards rendered atop a list — each card is a count/sum/avg/min/max over the table, optionally under a static equality/IN filter, computed serv... | ✓ |
 | `sync_accounting` | Declares how one table maps to the accounting provider (role(s), field map, lines, taxes) and emits the post-save/post-delete service hooks that enqueue sync... |  |
 | `with_accounting_sync` | Database-level: emits the accounting-sync (QuickBooks & friends) storage tables — acct_connection (headless: provider UNIQUE, realm_id, encrypted tokens, s... |  |
+| `with_authy_user` | Provision a linked authy login when a row of the host table is created: injects a unique id_authy FK, adds username/password fields to the edit form, creates... |  |
 | `with_child_tables` | Declare child one-to-many / many-to-many relations rendered as nested lists/tabs. | ✓ |
 | `with_country` | Auto-create a country reference table with locale columns. |  |
 | `with_i18n` | Per-locale sibling columns: for each listed column injects a `<col>_fr` sibling mirroring its type/size (base column stays the en value), emits an ->i18n('<c... |  |
@@ -267,7 +268,7 @@ Parameters actually set on each table's `GoatCheese` behavior
 - `set_parent_menu`: `Settings`
 - `set_menu_priority`: `6`
 - `set_order_list_columns`: `[["date_creation","DESC"]]`
-- `set_readonly_columns`: `["symbol","tf","price","trend","rsi14","atr_pct","adx14","atr_pct_rank","taker_buy_ratio","vol_zscore","funding_rate","depth_imbalance","depth_imbalance_avg"]`
+- `set_readonly_columns`: `["symbol","tf","price","trend","rsi14","atr_pct","adx14","atr_pct_rank","taker_buy_ratio","vol_zscore","funding_rate","depth_imbalance","depth_imbalance_avg","er20","chop14","funding_pct"]`
 
 ### `bot_decision` (BotDecision)
 

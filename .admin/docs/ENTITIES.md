@@ -38,14 +38,14 @@ Paper Wallet
 ### MarketSummary (`market_summary`)
 
 - **Priority:** 5
-- **Columns:** 28, **Foreign keys:** 3
+- **Columns:** 31, **Foreign keys:** 3
 
 Market Data
 
 ### MarketRegime (`market_regime`)
 
 - **Priority:** 6
-- **Columns:** 19, **Foreign keys:** 3
+- **Columns:** 22, **Foreign keys:** 3
 
 Regime History
 

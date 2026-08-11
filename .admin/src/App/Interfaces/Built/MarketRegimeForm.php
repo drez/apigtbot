@@ -200,6 +200,9 @@ class MarketRegimeForm extends MarketRegime
 .th(_("ATR% percentile"), " th='sorted' c='AtrPctRank' title='" . _('ATR% percentile')."' ")
 .th(_("Taker buy ratio"), " th='sorted' c='TakerBuyRatio' title='" . _('Taker buy ratio')."' ")
 .th(_("Volume z-score"), " th='sorted' c='VolZscore' title='" . _('Volume z-score')."' ")
+.th(_("Efficiency ratio"), " th='sorted' c='Er20' title='" . _('Efficiency ratio')."' ")
+.th(_("Choppiness"), " th='sorted' c='Chop14' title='" . _('Choppiness')."' ")
+.th(_("Funding 30d percentile"), " th='sorted' c='FundingPct' title='" . _('Funding 30d percentile')."' ")
 .th(_("Funding rate"), " th='sorted' c='FundingRate' title='" . _('Funding rate')."' ")
 .th(_("Depth imbalance"), " th='sorted' c='DepthImbalance' title='" . _('Depth imbalance')."' ")
 .th(_("Depth imbalance (smoothed)"), " th='sorted' c='DepthImbalanceAvg' title='" . _('Depth imbalance (smoothed)')."' ")
@@ -270,6 +273,9 @@ class MarketRegimeForm extends MarketRegime
   'AtrPctRank' => NULL,
   'TakerBuyRatio' => NULL,
   'VolZscore' => NULL,
+  'Er20' => NULL,
+  'Chop14' => NULL,
+  'FundingPct' => NULL,
   'FundingRate' => NULL,
   'DepthImbalance' => NULL,
   'DepthImbalanceAvg' => NULL,
@@ -434,7 +440,7 @@ class MarketRegimeForm extends MarketRegime
  ''
  . div(
    div('' . span(htmlspecialchars((string)((($altValue['Symbol'] !== null ) ? $altValue['Symbol'] : $data->getSymbol())))." ", "   i='" . $__pkJsonEsc . "' c='Symbol' class=''  j='editMarketRegime'") ,''," class='name' ")
-   . div(''  . span(htmlspecialchars((string)((($altValue['Tf'] !== null ) ? $altValue['Tf'] : $data->getTf())))." ", "   i='" . $__pkJsonEsc . "' c='Tf' class=''  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['Price'] !== null ) ? $altValue['Price'] : str_replace(',', '.', (string)($data->getPrice() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Price' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['Trend'] !== null ) ? $altValue['Trend'] : isntPo($data->getTrend()))))." ", "   i='" . $__pkJsonEsc . "' c='Trend' class='center'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['Rsi14'] !== null ) ? $altValue['Rsi14'] : str_replace(',', '.', (string)($data->getRsi14() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Rsi14' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['AtrPct'] !== null ) ? $altValue['AtrPct'] : str_replace(',', '.', (string)($data->getAtrPct() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='AtrPct' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['Adx14'] !== null ) ? $altValue['Adx14'] : str_replace(',', '.', (string)($data->getAdx14() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Adx14' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['AtrPctRank'] !== null ) ? $altValue['AtrPctRank'] : str_replace(',', '.', (string)($data->getAtrPctRank() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='AtrPctRank' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['TakerBuyRatio'] !== null ) ? $altValue['TakerBuyRatio'] : str_replace(',', '.', (string)($data->getTakerBuyRatio() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='TakerBuyRatio' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['VolZscore'] !== null ) ? $altValue['VolZscore'] : str_replace(',', '.', (string)($data->getVolZscore() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='VolZscore' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['FundingRate'] !== null ) ? $altValue['FundingRate'] : str_replace(',', '.', (string)($data->getFundingRate() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='FundingRate' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['DepthImbalance'] !== null ) ? $altValue['DepthImbalance'] : str_replace(',', '.', (string)($data->getDepthImbalance() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='DepthImbalance' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['DepthImbalanceAvg'] !== null ) ? $altValue['DepthImbalanceAvg'] : str_replace(',', '.', (string)($data->getDepthImbalanceAvg() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='DepthImbalanceAvg' class='right'  j='editMarketRegime'") . $cCmoreCols ,''," class='meta' ")
+   . div(''  . span(htmlspecialchars((string)((($altValue['Tf'] !== null ) ? $altValue['Tf'] : $data->getTf())))." ", "   i='" . $__pkJsonEsc . "' c='Tf' class=''  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['Price'] !== null ) ? $altValue['Price'] : str_replace(',', '.', (string)($data->getPrice() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Price' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['Trend'] !== null ) ? $altValue['Trend'] : isntPo($data->getTrend()))))." ", "   i='" . $__pkJsonEsc . "' c='Trend' class='center'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['Rsi14'] !== null ) ? $altValue['Rsi14'] : str_replace(',', '.', (string)($data->getRsi14() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Rsi14' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['AtrPct'] !== null ) ? $altValue['AtrPct'] : str_replace(',', '.', (string)($data->getAtrPct() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='AtrPct' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['Adx14'] !== null ) ? $altValue['Adx14'] : str_replace(',', '.', (string)($data->getAdx14() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Adx14' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['AtrPctRank'] !== null ) ? $altValue['AtrPctRank'] : str_replace(',', '.', (string)($data->getAtrPctRank() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='AtrPctRank' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['TakerBuyRatio'] !== null ) ? $altValue['TakerBuyRatio'] : str_replace(',', '.', (string)($data->getTakerBuyRatio() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='TakerBuyRatio' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['VolZscore'] !== null ) ? $altValue['VolZscore'] : str_replace(',', '.', (string)($data->getVolZscore() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='VolZscore' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['Er20'] !== null ) ? $altValue['Er20'] : str_replace(',', '.', (string)($data->getEr20() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Er20' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['Chop14'] !== null ) ? $altValue['Chop14'] : str_replace(',', '.', (string)($data->getChop14() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Chop14' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['FundingPct'] !== null ) ? $altValue['FundingPct'] : str_replace(',', '.', (string)($data->getFundingPct() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='FundingPct' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['FundingRate'] !== null ) ? $altValue['FundingRate'] : str_replace(',', '.', (string)($data->getFundingRate() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='FundingRate' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['DepthImbalance'] !== null ) ? $altValue['DepthImbalance'] : str_replace(',', '.', (string)($data->getDepthImbalance() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='DepthImbalance' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['DepthImbalanceAvg'] !== null ) ? $altValue['DepthImbalanceAvg'] : str_replace(',', '.', (string)($data->getDepthImbalanceAvg() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='DepthImbalanceAvg' class='right'  j='editMarketRegime'") . $cCmoreCols ,''," class='meta' ")
  ,'', " class='body' ")
 . div('' . '<i class="ri-arrow-right-s-line chev"></i>',''," class='trail' ")
 . $actionCell
@@ -455,6 +461,9 @@ class MarketRegimeForm extends MarketRegime
                 td(span(htmlspecialchars((string)((($altValue['AtrPctRank'] !== null ) ? $altValue['AtrPctRank'] : str_replace(',', '.', (string)($data->getAtrPctRank() ?? '')))))." "), "  i='" . $__pkJsonEsc . "' c='AtrPctRank' class='right'  j='editMarketRegime'") .
                 td(span(htmlspecialchars((string)((($altValue['TakerBuyRatio'] !== null ) ? $altValue['TakerBuyRatio'] : str_replace(',', '.', (string)($data->getTakerBuyRatio() ?? '')))))." "), "  i='" . $__pkJsonEsc . "' c='TakerBuyRatio' class='right'  j='editMarketRegime'") .
                 td(span(htmlspecialchars((string)((($altValue['VolZscore'] !== null ) ? $altValue['VolZscore'] : str_replace(',', '.', (string)($data->getVolZscore() ?? '')))))." "), "  i='" . $__pkJsonEsc . "' c='VolZscore' class='right'  j='editMarketRegime'") .
+                td(span(htmlspecialchars((string)((($altValue['Er20'] !== null ) ? $altValue['Er20'] : str_replace(',', '.', (string)($data->getEr20() ?? '')))))." "), "  i='" . $__pkJsonEsc . "' c='Er20' class='right'  j='editMarketRegime'") .
+                td(span(htmlspecialchars((string)((($altValue['Chop14'] !== null ) ? $altValue['Chop14'] : str_replace(',', '.', (string)($data->getChop14() ?? '')))))." "), "  i='" . $__pkJsonEsc . "' c='Chop14' class='right'  j='editMarketRegime'") .
+                td(span(htmlspecialchars((string)((($altValue['FundingPct'] !== null ) ? $altValue['FundingPct'] : str_replace(',', '.', (string)($data->getFundingPct() ?? '')))))." "), "  i='" . $__pkJsonEsc . "' c='FundingPct' class='right'  j='editMarketRegime'") .
                 td(span(htmlspecialchars((string)((($altValue['FundingRate'] !== null ) ? $altValue['FundingRate'] : str_replace(',', '.', (string)($data->getFundingRate() ?? '')))))." "), "  i='" . $__pkJsonEsc . "' c='FundingRate' class='right'  j='editMarketRegime'") .
                 td(span(htmlspecialchars((string)((($altValue['DepthImbalance'] !== null ) ? $altValue['DepthImbalance'] : str_replace(',', '.', (string)($data->getDepthImbalance() ?? '')))))." "), "  i='" . $__pkJsonEsc . "' c='DepthImbalance' class='right'  j='editMarketRegime'") .
                 td(span(htmlspecialchars((string)((($altValue['DepthImbalanceAvg'] !== null ) ? $altValue['DepthImbalanceAvg'] : str_replace(',', '.', (string)($data->getDepthImbalanceAvg() ?? '')))))." "), "  i='" . $__pkJsonEsc . "' c='DepthImbalanceAvg' class='right'  j='editMarketRegime'") .  $actionCell, "  rid='".$__pkJsonEsc."' data-iterator='".$pcData->getPosition()."' r='data' class='va-dt-row ".$hook['class']." ' id='MarketRegimeDtRow".$__pkEsc."'");
@@ -521,7 +530,7 @@ class MarketRegimeForm extends MarketRegime
                             span(_('Sort by'), " class='sheet-title' ")
                             .button("<i class='ri-close-line'></i>", " type='button' class='sheet-close va-mob-sortsheet-close' aria-label='"._('Close')."' ")
                         ,''," class='sheet-head' ")
-                        .div("".$gcSortSheetClear . button(_("Symbol"), " type='button' th='sorted' c='Symbol' class='va-mob-sortrow' ") . button(_("Timeframe"), " type='button' th='sorted' c='Tf' class='va-mob-sortrow' ") . button(_("Price"), " type='button' th='sorted' c='Price' class='va-mob-sortrow' ") . button(_("Trend"), " type='button' th='sorted' c='Trend' class='va-mob-sortrow' ") . button(_("RSI14"), " type='button' th='sorted' c='Rsi14' class='va-mob-sortrow' ") . button(_("ATR %"), " type='button' th='sorted' c='AtrPct' class='va-mob-sortrow' ") . button(_("ADX14"), " type='button' th='sorted' c='Adx14' class='va-mob-sortrow' ") . button(_("ATR% percentile"), " type='button' th='sorted' c='AtrPctRank' class='va-mob-sortrow' ") . button(_("Taker buy ratio"), " type='button' th='sorted' c='TakerBuyRatio' class='va-mob-sortrow' ") . button(_("Volume z-score"), " type='button' th='sorted' c='VolZscore' class='va-mob-sortrow' ") . button(_("Funding rate"), " type='button' th='sorted' c='FundingRate' class='va-mob-sortrow' ") . button(_("Depth imbalance"), " type='button' th='sorted' c='DepthImbalance' class='va-mob-sortrow' ") . button(_("Depth imbalance (smoothed)"), " type='button' th='sorted' c='DepthImbalanceAvg' class='va-mob-sortrow' "), '', " class='sheet-body va-mob-sortsheet-body' ")
+                        .div("".$gcSortSheetClear . button(_("Symbol"), " type='button' th='sorted' c='Symbol' class='va-mob-sortrow' ") . button(_("Timeframe"), " type='button' th='sorted' c='Tf' class='va-mob-sortrow' ") . button(_("Price"), " type='button' th='sorted' c='Price' class='va-mob-sortrow' ") . button(_("Trend"), " type='button' th='sorted' c='Trend' class='va-mob-sortrow' ") . button(_("RSI14"), " type='button' th='sorted' c='Rsi14' class='va-mob-sortrow' ") . button(_("ATR %"), " type='button' th='sorted' c='AtrPct' class='va-mob-sortrow' ") . button(_("ADX14"), " type='button' th='sorted' c='Adx14' class='va-mob-sortrow' ") . button(_("ATR% percentile"), " type='button' th='sorted' c='AtrPctRank' class='va-mob-sortrow' ") . button(_("Taker buy ratio"), " type='button' th='sorted' c='TakerBuyRatio' class='va-mob-sortrow' ") . button(_("Volume z-score"), " type='button' th='sorted' c='VolZscore' class='va-mob-sortrow' ") . button(_("Efficiency ratio"), " type='button' th='sorted' c='Er20' class='va-mob-sortrow' ") . button(_("Choppiness"), " type='button' th='sorted' c='Chop14' class='va-mob-sortrow' ") . button(_("Funding 30d percentile"), " type='button' th='sorted' c='FundingPct' class='va-mob-sortrow' ") . button(_("Funding rate"), " type='button' th='sorted' c='FundingRate' class='va-mob-sortrow' ") . button(_("Depth imbalance"), " type='button' th='sorted' c='DepthImbalance' class='va-mob-sortrow' ") . button(_("Depth imbalance (smoothed)"), " type='button' th='sorted' c='DepthImbalanceAvg' class='va-mob-sortrow' "), '', " class='sheet-body va-mob-sortsheet-body' ")
                     ,''," class='va-mob-sortsheet-panel' ")
                 ,''," class='va-mob-sortsheet' ")
                 .input('hidden', 'rowCount', $i, "s='d'")
@@ -579,7 +588,7 @@ class MarketRegimeForm extends MarketRegime
 
 
         if( $data['Trend'] == '' )unset($data['Trend']);
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
         #
@@ -599,6 +608,12 @@ class MarketRegimeForm extends MarketRegime
         $e->setTakerBuyRatio( ($data['TakerBuyRatio'] == '' ) ? null : $data['TakerBuyRatio']);
         //integer not required
         $e->setVolZscore( ($data['VolZscore'] == '' ) ? null : $data['VolZscore']);
+        //integer not required
+        $e->setEr20( ($data['Er20'] == '' ) ? null : $data['Er20']);
+        //integer not required
+        $e->setChop14( ($data['Chop14'] == '' ) ? null : $data['Chop14']);
+        //integer not required
+        $e->setFundingPct( ($data['FundingPct'] == '' ) ? null : $data['FundingPct']);
         //integer not required
         $e->setFundingRate( ($data['FundingRate'] == '' ) ? null : $data['FundingRate']);
         //integer not required
@@ -630,7 +645,7 @@ class MarketRegimeForm extends MarketRegime
 
 
         if( $data['Trend'] == '' )unset($data['Trend']);
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
 
@@ -658,6 +673,15 @@ class MarketRegimeForm extends MarketRegime
         }
         if(isset($data['VolZscore'])){
             $e->setVolZscore( ($data['VolZscore'] == '' ) ? null : $data['VolZscore']);
+        }
+        if(isset($data['Er20'])){
+            $e->setEr20( ($data['Er20'] == '' ) ? null : $data['Er20']);
+        }
+        if(isset($data['Chop14'])){
+            $e->setChop14( ($data['Chop14'] == '' ) ? null : $data['Chop14']);
+        }
+        if(isset($data['FundingPct'])){
+            $e->setFundingPct( ($data['FundingPct'] == '' ) ? null : $data['FundingPct']);
         }
         if(isset($data['FundingRate'])){
             $e->setFundingRate( ($data['FundingRate'] == '' ) ? null : $data['FundingRate']);
@@ -821,12 +845,15 @@ $this->fields['MarketRegime']['Adx14']['html'] = stdFieldRow(_("ADX14"), input('
 $this->fields['MarketRegime']['AtrPctRank']['html'] = stdFieldRow(_("ATR% percentile"), input('number', 'AtrPctRank', $dataObj->getAtrPctRank(), "  placeholder='".str_replace("'","&#39;",_('ATR% percentile'))."'  v='ATR_PCT_RANK' size='5' s='d' class=''"), 'AtrPctRank', "", $this->commentsAtrPctRank, $this->commentsAtrPctRank_css, ' half', ' ', 'no', 'v2');
 $this->fields['MarketRegime']['TakerBuyRatio']['html'] = stdFieldRow(_("Taker buy ratio"), input('number', 'TakerBuyRatio', $dataObj->getTakerBuyRatio(), "  placeholder='".str_replace("'","&#39;",_('Taker buy ratio'))."'  v='TAKER_BUY_RATIO' size='5' s='d' class=''"), 'TakerBuyRatio', "", $this->commentsTakerBuyRatio, $this->commentsTakerBuyRatio_css, ' half', ' ', 'no', 'v2');
 $this->fields['MarketRegime']['VolZscore']['html'] = stdFieldRow(_("Volume z-score"), input('number', 'VolZscore', $dataObj->getVolZscore(), "  placeholder='".str_replace("'","&#39;",_('Volume z-score'))."'  v='VOL_ZSCORE' size='5' s='d' class=''"), 'VolZscore', "", $this->commentsVolZscore, $this->commentsVolZscore_css, ' half', ' ', 'no', 'v2');
+$this->fields['MarketRegime']['Er20']['html'] = stdFieldRow(_("Efficiency ratio"), input('number', 'Er20', $dataObj->getEr20(), "  placeholder='".str_replace("'","&#39;",_('Efficiency ratio'))."'  v='ER20' size='5' s='d' class=''"), 'Er20', "", $this->commentsEr20, $this->commentsEr20_css, ' half', ' ', 'no', 'v2');
+$this->fields['MarketRegime']['Chop14']['html'] = stdFieldRow(_("Choppiness"), input('number', 'Chop14', $dataObj->getChop14(), "  placeholder='".str_replace("'","&#39;",_('Choppiness'))."'  v='CHOP14' size='5' s='d' class=''"), 'Chop14', "", $this->commentsChop14, $this->commentsChop14_css, ' half', ' ', 'no', 'v2');
+$this->fields['MarketRegime']['FundingPct']['html'] = stdFieldRow(_("Funding 30d percentile"), input('number', 'FundingPct', $dataObj->getFundingPct(), "  placeholder='".str_replace("'","&#39;",_('Funding 30d percentile'))."'  v='FUNDING_PCT' size='5' s='d' class=''"), 'FundingPct', "", $this->commentsFundingPct, $this->commentsFundingPct_css, ' half', ' ', 'no', 'v2');
 $this->fields['MarketRegime']['FundingRate']['html'] = stdFieldRow(_("Funding rate"), input('number', 'FundingRate', $dataObj->getFundingRate(), "  placeholder='".str_replace("'","&#39;",_('Funding rate'))."'  v='FUNDING_RATE' size='10' s='d' class=''"), 'FundingRate', "", $this->commentsFundingRate, $this->commentsFundingRate_css, ' half', ' ', 'no', 'v2');
 $this->fields['MarketRegime']['DepthImbalance']['html'] = stdFieldRow(_("Depth imbalance"), input('number', 'DepthImbalance', $dataObj->getDepthImbalance(), "  placeholder='".str_replace("'","&#39;",_('Depth imbalance'))."'  v='DEPTH_IMBALANCE' size='5' s='d' class=''"), 'DepthImbalance', "", $this->commentsDepthImbalance, $this->commentsDepthImbalance_css, ' half', ' ', 'no', 'v2');
 $this->fields['MarketRegime']['DepthImbalanceAvg']['html'] = stdFieldRow(_("Depth imbalance (smoothed)"), input('number', 'DepthImbalanceAvg', $dataObj->getDepthImbalanceAvg(), "  placeholder='".str_replace("'","&#39;",_('Depth imbalance (smoothed)'))."'  v='DEPTH_IMBALANCE_AVG' size='5' s='d' class=''"), 'DepthImbalanceAvg', "", $this->commentsDepthImbalanceAvg, $this->commentsDepthImbalanceAvg_css, ' half', ' ', 'no', 'v2');
 
 
-        $this->lockFormField(array(0=>'Symbol',1=>'Tf',2=>'Price',3=>'Trend',4=>'Rsi14',5=>'AtrPct',6=>'Adx14',7=>'AtrPctRank',8=>'TakerBuyRatio',9=>'VolZscore',10=>'FundingRate',11=>'DepthImbalance',12=>'DepthImbalanceAvg',13=>'IdCreation',14=>'IdModification',15=>'IdGroupCreation',), $dataObj);
+        $this->lockFormField(array(0=>'Symbol',1=>'Tf',2=>'Price',3=>'Trend',4=>'Rsi14',5=>'AtrPct',6=>'Adx14',7=>'AtrPctRank',8=>'TakerBuyRatio',9=>'VolZscore',10=>'FundingRate',11=>'DepthImbalance',12=>'DepthImbalanceAvg',13=>'Er20',14=>'Chop14',15=>'FundingPct',16=>'IdCreation',17=>'IdModification',18=>'IdGroupCreation',), $dataObj);
 
         // Whole form read only
         if($this->setReadOnly == 'all' ) {
@@ -934,6 +961,9 @@ $this->fields['MarketRegime']['Symbol']['html']
 .$this->fields['MarketRegime']['AtrPctRank']['html']
 .$this->fields['MarketRegime']['TakerBuyRatio']['html']
 .$this->fields['MarketRegime']['VolZscore']['html']
+.$this->fields['MarketRegime']['Er20']['html']
+.$this->fields['MarketRegime']['Chop14']['html']
+.$this->fields['MarketRegime']['FundingPct']['html']
 .$this->fields['MarketRegime']['FundingRate']['html']
 .$this->fields['MarketRegime']['DepthImbalance']['html']
 .$this->fields['MarketRegime']['DepthImbalanceAvg']['html'] ."</div>",'',"class='form-card'")
@@ -1016,6 +1046,15 @@ $this->fields['MarketRegime']['Symbol']['html']
 
         $this->fieldsRo['MarketRegime']['VolZscore']['html'] = stdFieldRow(_("Volume z-score"), div( htmlspecialchars((string)($dataObj->getVolZscore()), ENT_QUOTES), 'VolZscore_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'VolZscore', $dataObj->getVolZscore(), "s='d'"), 'VolZscore', "", $this->commentsVolZscore, $this->commentsVolZscore_css, 'readonly half', ' ', 'no', 'v2');
+
+        $this->fieldsRo['MarketRegime']['Er20']['html'] = stdFieldRow(_("Efficiency ratio"), div( htmlspecialchars((string)($dataObj->getEr20()), ENT_QUOTES), 'Er20_label' , "class='readonly ro-value' s='d'")
+                .input('hidden', 'Er20', $dataObj->getEr20(), "s='d'"), 'Er20', "", $this->commentsEr20, $this->commentsEr20_css, 'readonly half', ' ', 'no', 'v2');
+
+        $this->fieldsRo['MarketRegime']['Chop14']['html'] = stdFieldRow(_("Choppiness"), div( htmlspecialchars((string)($dataObj->getChop14()), ENT_QUOTES), 'Chop14_label' , "class='readonly ro-value' s='d'")
+                .input('hidden', 'Chop14', $dataObj->getChop14(), "s='d'"), 'Chop14', "", $this->commentsChop14, $this->commentsChop14_css, 'readonly half', ' ', 'no', 'v2');
+
+        $this->fieldsRo['MarketRegime']['FundingPct']['html'] = stdFieldRow(_("Funding 30d percentile"), div( htmlspecialchars((string)($dataObj->getFundingPct()), ENT_QUOTES), 'FundingPct_label' , "class='readonly ro-value' s='d'")
+                .input('hidden', 'FundingPct', $dataObj->getFundingPct(), "s='d'"), 'FundingPct', "", $this->commentsFundingPct, $this->commentsFundingPct_css, 'readonly half', ' ', 'no', 'v2');
 
         $this->fieldsRo['MarketRegime']['FundingRate']['html'] = stdFieldRow(_("Funding rate"), div( htmlspecialchars((string)($dataObj->getFundingRate()), ENT_QUOTES), 'FundingRate_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'FundingRate', $dataObj->getFundingRate(), "s='d'"), 'FundingRate', "", $this->commentsFundingRate, $this->commentsFundingRate_css, 'readonly half', ' ', 'no', 'v2');

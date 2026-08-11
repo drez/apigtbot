@@ -71,6 +71,9 @@ class MarketSummaryTableMap extends TableMap
         $this->addColumn('atr_pct_rank', 'AtrPctRank', 'DECIMAL', false, 9, null);
         $this->addColumn('taker_buy_ratio', 'TakerBuyRatio', 'DECIMAL', false, 9, null);
         $this->addColumn('vol_zscore', 'VolZscore', 'DECIMAL', false, 9, null);
+        $this->addColumn('er20', 'Er20', 'DECIMAL', false, 9, null);
+        $this->addColumn('chop14', 'Chop14', 'DECIMAL', false, 9, null);
+        $this->addColumn('funding_pct', 'FundingPct', 'DECIMAL', false, 9, null);
         $this->addColumn('computed_at', 'ComputedAt', 'TIMESTAMP', false, null, null);
         $this->addColumn('date_creation', 'DateCreation', 'TIMESTAMP', false, null, null);
         $this->addColumn('date_modification', 'DateModification', 'TIMESTAMP', false, null, null);
@@ -116,7 +119,7 @@ class MarketSummaryTableMap extends TableMap
   'set_menu_priority' => '5',
   'set_order_list_columns' => '[["computed_at","DESC"]]',
   'set_list_hide_columns' => '["recent_candles"]',
-  'set_readonly_columns' => '["symbol","tf","price","ema20","ema50","ema200","rsi14","atr14","atr_pct","trend","swing_high","swing_low","candles_used","recent_candles","computed_at","depth_imbalance_avg","adx14","atr_pct_rank","taker_buy_ratio","vol_zscore"]',
+  'set_readonly_columns' => '["symbol","tf","price","ema20","ema50","ema200","rsi14","atr14","atr_pct","trend","swing_high","swing_low","candles_used","recent_candles","computed_at","depth_imbalance_avg","adx14","atr_pct_rank","taker_buy_ratio","vol_zscore","er20","chop14","funding_pct"]',
 ),
             'add_validator' =>  array (
 ),

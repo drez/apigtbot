@@ -153,7 +153,7 @@ class MarketRegimeService
     public function getApiResponse()
     {
         $this->body = ['status' => 'failure', 'errors' => ['Unknown method'], 'data' => null, 'messages' => null];
-        $Api = new Api('MarketRegime', $this, ['Symbol', 'Tf', 'Price', 'Trend', 'Rsi14', 'AtrPct', 'Adx14', 'AtrPctRank', 'TakerBuyRatio', 'VolZscore', 'FundingRate', 'DepthImbalance', 'DepthImbalanceAvg']);
+        $Api = new Api('MarketRegime', $this, ['Symbol', 'Tf', 'Price', 'Trend', 'Rsi14', 'AtrPct', 'Adx14', 'AtrPctRank', 'TakerBuyRatio', 'VolZscore', 'Er20', 'Chop14', 'FundingPct', 'FundingRate', 'DepthImbalance', 'DepthImbalanceAvg']);
 
         if (isset($this->customActions[$this->request['a']]) && method_exists($this, $this->customActions[$this->request['a']])) {
             $callable = $this->customActions[$this->request['a']];
@@ -189,6 +189,7 @@ class MarketRegimeService
         $ApiResponse = new ApiResponse($this->request, $this->response, $this->body);
         return $ApiResponse->getResponse();
     }
+
 
 
 

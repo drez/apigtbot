@@ -44,6 +44,8 @@ final class MarketStore
         $row->setAtrPctRank(isset($summary['atr_pct_rank']) ? (string) $summary['atr_pct_rank'] : null);
         $row->setTakerBuyRatio(isset($summary['taker_buy_ratio']) ? (string) $summary['taker_buy_ratio'] : null);
         $row->setVolZscore(isset($summary['vol_zscore']) ? (string) $summary['vol_zscore'] : null);
+        $row->setEr20(isset($summary['er20']) ? (string) $summary['er20'] : null);
+        $row->setChop14(isset($summary['chop14']) ? (string) $summary['chop14'] : null);
 
         $compact = array_map(
             static fn ($c) => [(string) $c['high'], (string) $c['low'], (string) $c['close']],
@@ -53,6 +55,7 @@ final class MarketStore
         $row->setRecentCandles(json_encode($compact, JSON_UNESCAPED_SLASHES));
         if ($extras !== null) {
             $row->setFundingRate($extras['funding_rate'] ?? null);
+            $row->setFundingPct(isset($extras['funding_pct']) ? (string) $extras['funding_pct'] : null);
             $di = $extras['depth_imbalance'] ?? null;
             $row->setDepthImbalance($di);
             if ($di !== null) {
@@ -83,6 +86,9 @@ final class MarketStore
             $log->setAtrPctRank(isset($summary['atr_pct_rank']) ? (string) $summary['atr_pct_rank'] : null);
             $log->setTakerBuyRatio(isset($summary['taker_buy_ratio']) ? (string) $summary['taker_buy_ratio'] : null);
             $log->setVolZscore(isset($summary['vol_zscore']) ? (string) $summary['vol_zscore'] : null);
+            $log->setEr20(isset($summary['er20']) ? (string) $summary['er20'] : null);
+            $log->setChop14(isset($summary['chop14']) ? (string) $summary['chop14'] : null);
+            $log->setFundingPct(isset($extras['funding_pct']) ? (string) $extras['funding_pct'] : null);
             $log->setFundingRate($extras['funding_rate'] ?? null);
             $log->setDepthImbalance($extras['depth_imbalance'] ?? null);
             $log->setDepthImbalanceAvg($row->getDepthImbalanceAvg());
@@ -118,6 +124,9 @@ final class MarketStore
                 'atr_pct_rank' => self::num($r->getAtrPctRank()),
                 'taker_buy_ratio' => self::num($r->getTakerBuyRatio()),
                 'vol_zscore' => self::num($r->getVolZscore()),
+                'er20' => self::num($r->getEr20()),
+                'chop14' => self::num($r->getChop14()),
+                'funding_pct' => self::num($r->getFundingPct()),
                 'funding_rate' => $r->getFundingRate() !== null ? (float) $r->getFundingRate() : null,
                 'depth_imbalance' => $r->getDepthImbalance() !== null ? (float) $r->getDepthImbalance() : null,
                 'depth_imbalance_avg' => self::num($r->getDepthImbalanceAvg()),

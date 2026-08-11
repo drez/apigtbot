@@ -371,6 +371,7 @@ class BotCommandService
 
 
 
+
     public function deleteOne()
     {
         $error = [];

@@ -550,6 +550,7 @@ Header set X-Content-Type-Options nosniff
 
 
 
+
     public function deleteOne()
     {
         $error = [];

@@ -10,24 +10,24 @@ INSERT IGNORE INTO `authy_group` (`id_authy_group`, `name`, `desc`, `default_gro
 
             -- API settings
 INSERT INTO `config` (`id_config`, `id_creation`, `id_modification`, `date_creation`, `date_modification`, `category`, `config`, `value`, `system`, `description`, `type`, `id_group_creation`) VALUES
-(1, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 01:25:08', 0, 'app_status', 'prod', 0, 'API gate. prod (default, fail-closed): unknown calls Deny (401). dev: unknown calls auto-create in api_rbac as Allow AND served unauthenticated — LOCAL DEV ONLY, never ship.', 'string', 2),
-(2, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 01:25:08', 0, 'app_name', 'apigtbot', 0, 'Sets the title.', 'string', 2),
-(12, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 01:25:08', 1, 'vendor_logo', '/public/img/icon.png', 0, 'The url of the vendor small logo icon.', 'string', 2),
-(13, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 01:25:08', 1, 'vendor_logo_login', '/public/img/icon.png', 0, 'The url of the vendor logo.', 'string', 2),
-(14, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 01:25:08', 1, 'vendor_url', 'https://apigoat.com', 0, 'The url for the logo link.', 'string', 2),
-(15, NULL, NULL, '2020-08-26 07:56:30', '2026-08-11 01:25:08', 2, 'app_max_per_page', '50', NULL, 'Define the number of item to display per page.', NULL, 2),
-(16, NULL, NULL, '2020-08-26 07:57:01', '2026-08-11 01:25:08', 2, 'app_child_max_per_page', '25', NULL, 'Define the number of item to display per page in Child lists.', NULL, 2);
+(1, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 21:02:07', 0, 'app_status', 'prod', 0, 'API gate. prod (default, fail-closed): unknown calls Deny (401). dev: unknown calls auto-create in api_rbac as Allow AND served unauthenticated — LOCAL DEV ONLY, never ship.', 'string', 2),
+(2, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 21:02:07', 0, 'app_name', 'apigtbot', 0, 'Sets the title.', 'string', 2),
+(12, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 21:02:07', 1, 'vendor_logo', '/public/img/icon.png', 0, 'The url of the vendor small logo icon.', 'string', 2),
+(13, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 21:02:07', 1, 'vendor_logo_login', '/public/img/icon.png', 0, 'The url of the vendor logo.', 'string', 2),
+(14, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 21:02:07', 1, 'vendor_url', 'https://apigoat.com', 0, 'The url for the logo link.', 'string', 2),
+(15, NULL, NULL, '2020-08-26 07:56:30', '2026-08-11 21:02:07', 2, 'app_max_per_page', '50', NULL, 'Define the number of item to display per page.', NULL, 2),
+(16, NULL, NULL, '2020-08-26 07:57:01', '2026-08-11 21:02:07', 2, 'app_child_max_per_page', '25', NULL, 'Define the number of item to display per page in Child lists.', NULL, 2);
 
             -- API settings
 INSERT INTO `config` (`id_config`, `id_creation`, `id_modification`, `date_creation`, `date_modification`, `category`, `config`, `value`, `system`, `description`, `type`, `id_group_creation`) VALUES
-(3, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 01:25:08', 1, 'api_ips', '[\"192.168.0.10\"]', 0, 'Sets the ip address(es) allowed to access the API. Affect the CORS.', 'json_array', 2),
-(4, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 01:25:08', 0, 'email_host', 'localhost', 0, '', 'string', 2),
-(5, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 01:25:08', 0, 'email_username', '', 0, '', 'string', NULL),
-(6, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 01:25:08', 0, 'email_password', '', 0, '', 'string', NULL),
-(7, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 01:25:08', 0, 'email_port', '', 0, '', 'string', 2),
-(8, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 01:25:08', 0, 'email_protocol', 'SMTPS', 0, 'One of \"STARTTLS, SMTPS, SMTP\"', 'string', NULL),
-(9, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 01:25:08', 0, 'email_from', 'goatcheese@apigoat.com', 0, '', 'string', 2),
-(10, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 01:25:08', 1, 'app_gui_url', 'http://localhost:3000/', 0, 'The url where resides you GUI app ending with slash (/).', 'string', 2);
+(3, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 21:02:07', 1, 'api_ips', '[\"192.168.0.10\"]', 0, 'Sets the ip address(es) allowed to access the API. Affect the CORS.', 'json_array', 2),
+(4, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 21:02:07', 0, 'email_host', 'localhost', 0, '', 'string', 2),
+(5, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 21:02:07', 0, 'email_username', '', 0, '', 'string', NULL),
+(6, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 21:02:07', 0, 'email_password', '', 0, '', 'string', NULL),
+(7, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 21:02:07', 0, 'email_port', '', 0, '', 'string', 2),
+(8, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 21:02:07', 0, 'email_protocol', 'SMTPS', 0, 'One of \"STARTTLS, SMTPS, SMTP\"', 'string', NULL),
+(9, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 21:02:07', 0, 'email_from', 'goatcheese@apigoat.com', 0, '', 'string', 2),
+(10, NULL, NULL, '0000-00-00 00:00:00', '2026-08-11 21:02:07', 1, 'app_gui_url', 'http://localhost:3000/', 0, 'The url where resides you GUI app ending with slash (/).', 'string', 2);
 
 -- Base API Rbac rules
 -- SECURITY: the two ApiGoat/sendEmail rows are seeded scope=Public, rule=Deny.

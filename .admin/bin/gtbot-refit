@@ -32,6 +32,7 @@ use App\Domains\Bot\Gateway\BinanceGateway;
 use App\Domains\Bot\Indicators;
 use App\Domains\Bot\RangeFitter;
 use App\Domains\Bot\RefitPlanner;
+use App\Domains\Bot\RegimeGate;
 use App\Domains\Bot\RoutineLiveness;
 use App\Domains\Bot\TelegramNotifier;
 
@@ -128,6 +129,12 @@ if ($decision['action'] !== 'refit') {
 
 $c = $decision['candidate'];
 
+// Sweep-validated hostile-regime cap (RegimeGate): a refit written into a 4h
+// down-family trend or ADX>=30 tape deploys at most 25% — computed from the
+// same fresh mainnet candles the fit used, so no staleness question here.
+$adx4h = Indicators::adx(array_column($candles, 'high'), array_column($candles, 'low'), array_column($candles, 'close'));
+$gate = RegimeGate::capDeployPct((int) ($run->getDeployPct() ?? 100), Indicators::trend(array_column($candles, 'close')), $adx4h);
+
 // sanity: backtest the candidate over the window; skip if it wouldn't have traded
 $bt = Backtester::run([
     'p_low' => $c['p_low'], 'p_high' => $c['p_high'], 'n_levels' => (int) $c['n_levels'],
@@ -155,6 +162,9 @@ $summary = sprintf(
     $bt['cycles'],
     (float) $bt['realized_pnl']
 );
+if ($gate['capped']) {
+    $summary .= "\n⚠️ " . $gate['why'];
+}
 
 if ($dry) {
     echo $summary . "\n(dry run — nothing written)\n";
@@ -167,9 +177,12 @@ $run->setPLow($c['p_low']);
 $run->setPHigh($c['p_high']);
 $run->setNLevels((int) $c['n_levels']);
 $run->setSpacing('Geometric');
+if ($gate['capped']) {
+    $run->setDeployPct($gate['pct']);
+}
 $run->save();
 
-DecisionScorer::record($run, 'Cron', $c['p_low'], $c['p_high'], (int) $c['n_levels'], $decision['reason'], $price, (int) ($run->getDeployPct() ?? 100));
+DecisionScorer::record($run, 'Cron', $c['p_low'], $c['p_high'], (int) $c['n_levels'], $decision['reason'] . ($gate['capped'] ? ' [' . $gate['why'] . ']' : ''), $price, (int) ($run->getDeployPct() ?? 100));
 
 $e = new \App\BotEvent();
 $e->setIdGridRun((int) $run->getIdGridRun());

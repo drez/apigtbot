@@ -203,6 +203,7 @@ class AuthyGroupService
 
 
 
+
     public function deleteOne()
     {
         $error = [];

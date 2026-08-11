@@ -40,12 +40,14 @@ final class MarketCollector
 
     /**
      * Regime extras beyond candles: perp funding rate (futures premium index —
-     * crowd positioning) and spot order-book depth imbalance (buy/sell
-     * pressure). Both public; failures leave nulls.
+     * crowd positioning), its 30d percentile (the level carries no signal on
+     * its own — the regime sweep showed the PERCENTILE is what separated
+     * BTC's worst windows), and spot order-book depth imbalance (buy/sell
+     * pressure). All public; failures leave nulls.
      */
     private static function extras(string $symbol, BinanceGateway $gw): array
     {
-        $extras = ['funding_rate' => null, 'depth_imbalance' => null];
+        $extras = ['funding_rate' => null, 'funding_pct' => null, 'depth_imbalance' => null];
         try {
             $extras['depth_imbalance'] = $gw->depthImbalance($symbol);
         } catch (\Throwable) {
@@ -56,9 +58,33 @@ final class MarketCollector
             if (isset($pi['lastFundingRate'])) {
                 $extras['funding_rate'] = (float) $pi['lastFundingRate'];
             }
+            // trailing 30d of 8h prints; the premiumIndex rate above is the
+            // in-force one — the history endpoint lags it by up to 8h, so
+            // rank the freshest value we have within the historical prints
+            $hist = $fut->publicGet('/fapi/v1/fundingRate', ['symbol' => $symbol, 'limit' => 90]);
+            $rates = array_map(static fn ($r) => (float) $r['fundingRate'], array_filter((array) $hist, static fn ($r) => isset($r['fundingRate'])));
+            if ($extras['funding_rate'] !== null) {
+                $rates[] = $extras['funding_rate'];
+            }
+            $extras['funding_pct'] = self::fundingPercentile($rates);
         } catch (\Throwable) {
         }
         return $extras;
+    }
+
+    /**
+     * Percentile (0..100) of the LAST rate vs the whole series (trailing 30d
+     * of 8h prints). Null under 30 prints — a thin series ranks noise.
+     */
+    public static function fundingPercentile(array $rates): ?float
+    {
+        $n = count($rates);
+        if ($n < 30) {
+            return null;
+        }
+        $cur = (float) end($rates);
+        $le = count(array_filter($rates, static fn ($r) => (float) $r <= $cur + 1e-12));
+        return round($le / $n * 100, 1);
     }
 
     /**
