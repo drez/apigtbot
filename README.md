@@ -128,6 +128,33 @@ A run's own `simulated` switch (default **on**) is the paper-mode gate; the
 env flags above only matter once it is off, and mismatched combinations are
 refused at daemon boot.
 
+## Telegram notifications (optional)
+
+The daemons fan important events out to Telegram: **alerts immediately**
+(kills, breakout halts, drawdown stop, stranded inventory, algo switches),
+**closed trade cycles the moment they book** (with realized P/L), and other
+trade activity (fills, refits, start/stop) coalesced into per-tick digests
+so a burst of fills arrives as one message instead of ten. Alerts respect a
+throttle window so an incident can't flood your phone, and every line ends
+with a unique `[#event-id]` tag so a genuine repeat is distinguishable from
+a transport double-send.
+
+Setup (two env values):
+
+1. Create a bot with [@BotFather](https://t.me/BotFather) → copy the token.
+2. Send your new bot any message, then get your chat id — e.g. open
+   `https://api.telegram.org/bot<TOKEN>/getUpdates` and read
+   `message.chat.id` (for a group, add the bot to the group and use the
+   negative group id).
+3. In `.env`:
+   ```bash
+   GTBOT_TELEGRAM_BOT_TOKEN="123456:ABC-your-token"
+   GTBOT_TELEGRAM_CHAT_ID="123456789"
+   ```
+4. Restart the daemons (dashboard ⟳ Reload per run, or just wait — the
+   watchdog relaunches them). Every event still lands in the `bot_event`
+   feed and the dashboard regardless, so Telegram is purely additive.
+
 ## AI-assisted refits (optional)
 
 The grid geometry doesn't have to be tuned by hand. The repo ships a
