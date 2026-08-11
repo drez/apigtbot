@@ -1,0 +1,68 @@
+/* gcLocationField — address search dropdown, resolved-address line and the
+ * Leaflet map container. Theme-aware via the shared v2 tokens (the reference
+ * an earlier implementation hardcoded hex colors inline). */
+@use 'tokensv2' as *;
+
+.address-search-container {
+    position: relative;
+    width: 100%;
+}
+
+.address-search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: $surface;
+    border: 1px solid $line;
+    border-top: none;
+    border-radius: 0 0 $radius $radius;
+    max-height: 300px;
+    overflow-y: auto;
+    /* Above Leaflet's control corners (.leaflet-top/.leaflet-bottom are
+     * z-index 1000 in the same stacking context, and the map div sits later
+     * in the DOM — a tie paints the +/- zoom controls over the dropdown). */
+    z-index: 1100;
+    box-shadow: $shadow-md;
+}
+
+.address-search-item {
+    padding: 10px;
+    border-bottom: 1px solid $line-soft;
+    cursor: pointer;
+    font-size: 0.85em;
+    line-height: 1.35;
+    color: $text;
+    transition: background 0.15s ease;
+
+    &:hover { background: $row-hover; }
+    &:last-child { border-bottom: none; }
+
+    strong { color: $ink; }
+}
+
+.address-search-empty {
+    padding: 8px;
+    color: $text-mute;
+    font-size: 0.85em;
+}
+
+.address-search-resolved {
+    margin-top: 4px;
+    font-size: 0.85em;
+    color: $text-mid;
+    line-height: 1.3;
+
+    .address-search-resolved-use {
+        margin-left: 6px;
+        color: $mint-600;
+        cursor: pointer;
+    }
+}
+
+.gc-location-map {
+    height: 200px;
+    margin-top: 8px;
+    border-radius: $radius;
+    border: 1px solid $line;
+}

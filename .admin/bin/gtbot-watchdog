@@ -1,0 +1,181 @@
+#!/usr/bin/env php
+<?php
+/**
+ * gtbot-watchdog — heartbeat monitor that runs OUTSIDE the daemon, so a dead
+ * bot holding inventory still alerts. Cron it every minute:
+ *
+ *   * * * * * php <project>/.admin/bin/gtbot-watchdog   (prod-setup.sh installs this)
+ *
+ * Modes:
+ *   (none)      check active runs; SPAWN a daemon for any active run whose
+ *               heartbeat is stale (the watchdog IS the supervisor — new runs
+ *               created via MCP start trading within a minute, no root or
+ *               systemd needed; a concurrent systemd unit is harmless, the
+ *               per-run MySQL GET_LOCK makes the loser exit). Crash-loop
+ *               guard: after 3 spawns in 15 min it stops spawning and
+ *               Telegram-alerts instead (rate-limited to one per run / 30 min)
+ *   --test      send a test message to the configured chat and exit
+ *   --discover  list chat ids seen by the bot (message the bot first)
+ */
+
+$admin = dirname(__DIR__);
+require $admin . '/vendor/autoload.php';
+(new \Ahc\Env\Loader())->load($admin . '/.env');
+
+use App\Domains\Bot\TelegramNotifier;
+
+$opts = getopt('', ['test', 'discover']);
+$token = (string) env('GTBOT_TELEGRAM_BOT_TOKEN', '');
+if ($token === '') {
+    fwrite(STDERR, "gtbot-watchdog: GTBOT_TELEGRAM_BOT_TOKEN is not set in .admin/.env\n");
+    exit(1);
+}
+
+if (isset($opts['discover'])) {
+    $n = new TelegramNotifier($token, '0');
+    $seen = [];
+    foreach ($n->getUpdates() as $u) {
+        $chat = $u['message']['chat'] ?? $u['my_chat_member']['chat'] ?? null;
+        if ($chat && !isset($seen[$chat['id']])) {
+            $seen[$chat['id']] = true;
+            printf("chat_id=%s  type=%s  name=%s\n", $chat['id'], $chat['type'],
+                $chat['title'] ?? trim(($chat['first_name'] ?? '') . ' ' . ($chat['last_name'] ?? '')) ?: ($chat['username'] ?? '?'));
+        }
+    }
+    if (!$seen) {
+        echo "no chats seen yet — send your bot any message, then re-run --discover\n";
+    }
+    exit(0);
+}
+
+$notifier = TelegramNotifier::fromEnv();
+if (!$notifier) {
+    fwrite(STDERR, "gtbot-watchdog: GTBOT_TELEGRAM_CHAT_ID is not set — run --discover after messaging the bot\n");
+    exit(1);
+}
+
+if (isset($opts['test'])) {
+    $ok = $notifier->send('✅ gtbot watchdog test — Telegram alerting is wired up.');
+    echo $ok ? "test message sent\n" : "test message FAILED (check token/chat id)\n";
+    exit($ok ? 0 : 1);
+}
+
+require $admin . '/config/Built/config.php';
+require $admin . '/config/Built/propel.php';
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
+$_SESSION[_AUTH_VAR] = new \ApiGoat\Sessions\AuthySession();
+
+$staleAfter = max(30, (int) env('GTBOT_HEARTBEAT_STALE', '60'));      // seconds
+$realertAfter = 30 * 60;                                              // per-run alert throttle
+
+$runs = \App\GridRunQuery::create()
+    ->filterByStatus(['Testnet', 'Live'], \Criteria::IN)
+    ->find();
+foreach ($runs as $run) {
+    $runId = (int) $run->getIdGridRun();
+    $last = $run->getLastTickAt('U');
+    $age = $last ? (time() - (int) $last) : null;
+    if ($age !== null && $age <= $staleAfter) {
+        continue;
+    }
+    if ((bool) $run->getKillSwitch() && $age !== null && $age > $staleAfter) {
+        continue; // killed on purpose; silence is expected
+    }
+
+    // Supervisor: spawn the missing daemon before considering an alert. Safe
+    // to be naive — the per-run GET_LOCK makes a double-spawn exit instantly.
+    $spawnWindow = 15 * 60;
+    $spawnAttempts = \App\BotEventQuery::create()
+        ->filterByIdGridRun($runId)
+        ->filterByKind('daemon_spawned')
+        ->filterByDateCreation(['min' => date('Y-m-d H:i:s', time() - $spawnWindow)])
+        ->count();
+    if ($spawnAttempts < 3) {
+        $php = PHP_BINARY;
+        foreach (['php8.4', 'php8.3'] as $c) { // vendor needs >= 8.4; cron may run an older cli
+            $p = trim((string) @shell_exec('command -v ' . escapeshellarg($c) . ' 2>/dev/null'));
+            if ($p !== '') {
+                $php = $p;
+                break;
+            }
+        }
+        @mkdir($admin . '/tmp/logs', 0775, true);
+        $cmd = sprintf(
+            'setsid nohup %s %s --run=%d --interval=5 >> %s 2>&1 < /dev/null &',
+            escapeshellarg($php),
+            escapeshellarg($admin . '/bin/gtbot'),
+            $runId,
+            escapeshellarg($admin . '/tmp/logs/gtbot-run' . $runId . '.log')
+        );
+        @shell_exec($cmd);
+        $log = new \App\Domains\Bot\EventLog($runId, false, $notifier);
+        $log->write('Info', 'daemon_spawned', sprintf(
+            'watchdog spawned daemon for run %d (%s) — heartbeat was %s (attempt %d/3 in 15 min)',
+            $runId,
+            $run->getLabel(),
+            $age === null ? 'never seen' : 'stale ' . $age . 's',
+            $spawnAttempts + 1
+        ));
+        echo "spawned: run $runId\n";
+        continue; // next pass verifies the heartbeat; alert only if spawns stop sticking
+    }
+
+    // throttle: skip if we alerted for this run in the last 30 minutes
+    $recent = \App\BotEventQuery::create()
+        ->filterByIdGridRun($runId)
+        ->filterByKind('watchdog_stale')
+        ->filterByDateCreation(['min' => date('Y-m-d H:i:s', time() - $realertAfter)])
+        ->count();
+    if ($recent > 0) {
+        continue;
+    }
+    // Escalate when systemd itself has given up (crash-loop tripped
+    // StartLimitBurst → unit failed/inactive), which needs a human, not just
+    // a "stale heartbeat" note.
+    $unit = trim((string) @shell_exec('systemctl is-active gtbot@' . $runId . ' 2>/dev/null'));
+    $unitNote = in_array($unit, ['active', ''], true)
+        ? ''
+        : sprintf(' — systemd unit is %s (crash-loop guard may have tripped; restart with: systemctl restart gtbot@%d)', $unit, $runId);
+
+    $msg = sprintf(
+        'heartbeat stale for run %d (%s): last tick %s — daemon down while status=%s; '
+        . 'watchdog spawn guard tripped (3 spawns in 15 min did not stick — crash loop, human needed)%s',
+        $runId,
+        $run->getLabel(),
+        $age === null ? 'never' : $age . 's ago',
+        $run->getStatus(),
+        $unitNote
+    );
+    $log = new \App\Domains\Bot\EventLog($runId, false, $notifier);
+    $log->write('Alert', 'watchdog_stale', $msg);
+    echo "alerted: $msg\n";
+}
+
+// Routine liveness: the refit brain calls gtbot_* MCP tools on every pass
+// even when it holds — prolonged api_log silence means the routine/MCP link
+// is down and the server cron is the only refit brain. Alert (one per
+// silence window) so a human knows; the risk rails never depended on MCP.
+$silenceAfter = max(600, (int) env('GTBOT_ROUTINE_SILENCE_ALERT', '7200')); // default 2h
+if (count($runs) > 0 && \App\Domains\Bot\RoutineLiveness::isSilent($silenceAfter)) {
+    $firstRun = null;
+    foreach ($runs as $r) {
+        $firstRun = $r;
+        break;
+    }
+    $already = \App\BotEventQuery::create()
+        ->filterByIdGridRun((int) $firstRun->getIdGridRun())
+        ->filterByKind('routine_silent')
+        ->filterByDateCreation(['min' => date('Y-m-d H:i:s', time() - $silenceAfter)])
+        ->count();
+    if ($already === 0) {
+        $log = new \App\Domains\Bot\EventLog((int) $firstRun->getIdGridRun(), false, $notifier);
+        $log->write('Alert', 'routine_silent', sprintf(
+            'no gtbot MCP activity for over %d min — the refit routine looks offline (MCP disconnected?). '
+            . 'Server cron fallback is driving refits; risk rails are unaffected. Re-authorize the MCP connector.',
+            (int) ($silenceAfter / 60)
+        ));
+        echo "alerted: routine silent\n";
+    }
+}

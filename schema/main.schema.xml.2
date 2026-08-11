@@ -1,0 +1,249 @@
+<database name="apigtbot" defaultIdMethod="native" namespace="App" >
+	<table name="grid_run" description="Grid Run" >
+		<behavior name="GoatCheese" >
+			<parameter name="set_menu_icon" value="ri-line-chart-line" />
+			<parameter name="set_parent_menu" value="Trading" />
+			<parameter name="with_child_tables" value='[&quot;bot_order&quot;,&quot;trade_cycle&quot;,&quot;bot_event&quot;,&quot;bot_command&quot;]' />
+			<parameter name="add_total" value='{&quot;trade_cycle&quot;:[[&quot;realized_pnl&quot;,&quot;$&quot;],[&quot;fees_total&quot;,&quot;$&quot;]]}' />
+			<parameter name="set_order_list_columns" value='[[&quot;date_creation&quot;,&quot;DESC&quot;]]' />
+			<parameter name="set_list_hide_columns" value='[&quot;run_uid&quot;,&quot;breakout_buffer_pct&quot;,&quot;max_open_orders&quot;,&quot;last_tick_at&quot;,&quot;sim_bal_base&quot;,&quot;sim_bal_quote&quot;,&quot;engine_state&quot;]' />
+			<parameter name="set_readonly_columns" value='[&quot;daily_loss_limit_quote&quot;,&quot;max_unrealized_loss_quote&quot;,&quot;max_position_quote&quot;,&quot;max_order_quote&quot;,&quot;breakout_policy&quot;,&quot;atr_stop_mult&quot;,&quot;atr_initial_mult&quot;,&quot;reentry_cooldown&quot;]' />
+			<parameter name="add_tab_columns" value='{&quot;Grid + budget&quot;:&quot;p_low&quot;,&quot;Risk limits&quot;:&quot;max_position_quote&quot;,&quot;Trend settings&quot;:&quot;trend_tf&quot;,&quot;Telemetry&quot;:&quot;last_tick_at&quot;}' />
+		</behavior>
+		<column name="id_grid_run" description="" type="INTEGER" size="11" required="true" primaryKey="true" autoIncrement="true" />
+		<column name="label" description="Label" type="VARCHAR" size="100" required="true" />
+		<column name="symbol" description="Symbol" type="VARCHAR" size="20" required="true" defaultValue="BTCUSDT" />
+		<column name="status" description="Status" type="ENUM" valueSet="Draft, DryRun, Testnet, Live, Halted, Done" required="true" defaultValue="Draft" />
+		<column name="kill_switch" description="Kill switch" type="BOOLEAN" size="10" defaultValue="0" />
+		<column name="profile" description="Risk profile" type="ENUM" valueSet="NoLoss, Cautious, Balanced, Aggressive, Max" required="true" defaultValue="Balanced" />
+		<column name="algo" description="Algorithm" type="ENUM" valueSet="Grid, Trend" required="true" defaultValue="Grid" />
+		<column name="simulated" description="Simulated" type="BOOLEAN" size="10" defaultValue="1" />
+		<column name="p_low" description="Range low" type="DECIMAL" size="18" scale=" 8" required="true" />
+		<column name="p_high" description="Range high" type="DECIMAL" size="18" scale=" 8" required="true" />
+		<column name="n_levels" description="Grid lines" type="INTEGER" size="10" required="true" defaultValue="20" />
+		<column name="spacing" description="Spacing" type="ENUM" valueSet="Geometric, Arithmetic" required="true" defaultValue="Geometric" />
+		<column name="allocation" description="Allocation" type="ENUM" valueSet="EqualQuote, EqualBase, BottomWeighted" required="true" defaultValue="EqualQuote" />
+		<column name="budget_quote" description="Budget (USDT)" type="DECIMAL" size="18" scale=" 8" required="true" />
+		<column name="deploy_pct" description="Deployed budget %" type="INTEGER" size="10" defaultValue="100" />
+		<column name="fee_pct" description="Fee per side" type="DECIMAL" size="9" scale=" 6" required="true" defaultValue="0.001" />
+		<column name="max_position_quote" description="Max position (USDT)" type="DECIMAL" size="18" scale=" 8" required="true" />
+		<column name="max_order_quote" description="Max per-order (USDT)" type="DECIMAL" size="18" scale=" 8" required="true" />
+		<column name="daily_loss_limit_quote" description="Daily loss limit" type="DECIMAL" size="18" scale=" 8" required="true" />
+		<column name="max_unrealized_loss_quote" description="Max unrealized loss" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
+		<column name="breakout_buffer_pct" description="Breakout buffer" type="DECIMAL" size="9" scale=" 6" required="false" defaultValue="0.02" />
+		<column name="breakout_policy" description="On breakout" type="ENUM" valueSet="HaltAndHold, Flatten" required="true" defaultValue="HaltAndHold" />
+		<column name="max_open_orders" description="Max open orders" type="INTEGER" size="10" defaultValue="60" />
+		<column name="max_buy_levels_below" description="Active buy levels below price (0 = all)" type="INTEGER" size="10" required="false" defaultValue="null" />
+		<column name="trend_tf" description="Signal timeframe" type="ENUM" valueSet="1h, 4h" required="true" defaultValue="1h" />
+		<column name="donchian_period" description="Breakout period" type="INTEGER" size="10" defaultValue="20" />
+		<column name="trend_ema_fast" description="Trend EMA fast" type="INTEGER" size="10" defaultValue="20" />
+		<column name="trend_ema_slow" description="Trend EMA slow" type="INTEGER" size="10" defaultValue="50" />
+		<column name="atr_period" description="ATR period" type="INTEGER" size="10" defaultValue="14" />
+		<column name="atr_stop_mult" description="Trail stop x ATR" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="atr_initial_mult" description="Initial stop x ATR" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="reentry_cooldown" description="Re-entry cooldown (bars)" type="INTEGER" size="10" required="false" defaultValue="null" />
+		<column name="engine_state" description="Engine state (daemon-managed)" type="LONGVARCHAR" required="false" size="1023" />
+		<column name="last_tick_at" description="Last tick" type="TIMESTAMP" required="false" defaultValue="null" />
+		<column name="last_price" description="Last price" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
+		<column name="bal_base" description="Wallet base" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
+		<column name="bal_quote" description="Wallet quote" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
+		<column name="sim_bal_base" description="Paper wallet base (daemon-managed)" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
+		<column name="sim_bal_quote" description="Paper wallet quote (daemon-managed)" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
+		<column name="run_uid" description="Run UID" type="VARCHAR" size="20" required="false" defaultValue="null" />
+		<column name="applied_geometry" description="Applied geometry (daemon-managed)" type="LONGVARCHAR" required="false" size="1023" />
+		<column name="ledger_reset_at" description="Ledger rebased at (daemon-managed)" type="TIMESTAMP" required="false" defaultValue="null" />
+		<validator column="label" >
+			<rule name="required" message="grid_run_label_required" />
+		</validator>
+		<validator column="p_low" >
+			<rule name="required" message="grid_run_p_low_required" />
+		</validator>
+		<validator column="p_high" >
+			<rule name="required" message="grid_run_p_high_required" />
+		</validator>
+		<validator column="budget_quote" >
+			<rule name="required" message="grid_run_budget_required" />
+		</validator>
+	</table>
+	<table name="bot_order" description="Order" >
+		<behavior name="GoatCheese" >
+			<parameter name="set_parent_table" value="grid_run" />
+			<parameter name="set_child_colunms" value='{&quot;id_grid_run&quot;:[&quot;label&quot;]}' />
+			<parameter name="set_summary_cards" value='[{&quot;label&quot;:&quot;Open buys&quot;,&quot;agg&quot;:&quot;count&quot;,&quot;filter&quot;:{&quot;state&quot;:&quot;BUY_OPEN&quot;}},{&quot;label&quot;:&quot;Open sells&quot;,&quot;agg&quot;:&quot;count&quot;,&quot;filter&quot;:{&quot;state&quot;:&quot;SELL_OPEN&quot;}},{&quot;label&quot;:&quot;Vetoed&quot;,&quot;agg&quot;:&quot;count&quot;,&quot;filter&quot;:{&quot;state&quot;:&quot;Vetoed&quot;}}]' />
+			<parameter name="set_order_child_list_columns" value='[[&quot;date_modification&quot;,&quot;DESC&quot;]]' />
+			<parameter name="add_search_columns" value='{&quot;Client order id&quot;:[[&quot;client_order_id&quot;,&quot;%val&quot;]],&quot;Side&quot;:[[&quot;side&quot;,&quot;%val&quot;,&quot;multiple&quot;]],&quot;State&quot;:[[&quot;state&quot;,&quot;%val&quot;,&quot;multiple&quot;]],&quot;Simulated&quot;:[[&quot;simulated&quot;,&quot;val&quot;]]}' />
+			<parameter name="set_readonly_columns" value='[&quot;client_order_id&quot;,&quot;exchange_order_id&quot;,&quot;filled_qty&quot;,&quot;fee_paid&quot;,&quot;simulated&quot;]' />
+		</behavior>
+		<column name="id_bot_order" description="" type="INTEGER" size="11" required="true" primaryKey="true" autoIncrement="true" />
+		<column name="id_grid_run" description="Run" type="INTEGER" size="11" required="true" />
+		<foreign-key foreignTable="grid_run" onDelete="cascade" onUpdate="restrict" >
+			<reference local="id_grid_run" foreign="id_grid_run" />
+		</foreign-key>
+		<column name="client_order_id" description="Client order id" type="VARCHAR" size="36" required="true" />
+		<column name="exchange_order_id" description="Exchange id" type="VARCHAR" size="32" required="false" defaultValue="null" />
+		<column name="level_idx" description="Level" type="INTEGER" size="10" required="true" />
+		<column name="side" description="Side" type="ENUM" valueSet="Buy, Sell" required="true" />
+		<column name="state" description="State" type="ENUM" valueSet="Intended, Vetoed, BUY_OPEN, SELL_OPEN, Filled, PartFilled, Canceled, Rejected, Lost" required="true" defaultValue="Intended" />
+		<column name="price" description="Price" type="DECIMAL" size="18" scale=" 8" required="true" />
+		<column name="qty" description="Qty" type="DECIMAL" size="18" scale=" 8" required="true" />
+		<column name="filled_qty" description="Filled qty" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="0" />
+		<column name="fee_paid" description="Fee paid" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="0" />
+		<column name="fee_asset" description="Fee asset" type="VARCHAR" size="10" required="false" defaultValue="null" />
+		<column name="is_legacy" description="Legacy exit" type="BOOLEAN" size="10" defaultValue="0" />
+		<column name="simulated" description="Simulated" type="BOOLEAN" size="10" defaultValue="0" />
+		<unique >
+			<unique-column name="client_order_id" />
+		</unique>
+	</table>
+	<table name="trade_cycle" description="Trade Cycle" >
+		<behavior name="GoatCheese" >
+			<parameter name="set_parent_table" value="grid_run" />
+			<parameter name="set_child_colunms" value='{&quot;id_grid_run&quot;:[&quot;label&quot;]}' />
+			<parameter name="set_summary_cards" value='[{&quot;label&quot;:&quot;PnL (sim)&quot;,&quot;agg&quot;:&quot;sum&quot;,&quot;col&quot;:&quot;realized_pnl&quot;,&quot;format&quot;:&quot;money&quot;,&quot;filter&quot;:{&quot;simulated&quot;:1}},{&quot;label&quot;:&quot;PnL (real)&quot;,&quot;agg&quot;:&quot;sum&quot;,&quot;col&quot;:&quot;realized_pnl&quot;,&quot;format&quot;:&quot;money&quot;,&quot;filter&quot;:{&quot;simulated&quot;:0}},{&quot;label&quot;:&quot;Fees (sim)&quot;,&quot;agg&quot;:&quot;sum&quot;,&quot;col&quot;:&quot;fees_total&quot;,&quot;format&quot;:&quot;money&quot;,&quot;filter&quot;:{&quot;simulated&quot;:1}},{&quot;label&quot;:&quot;Fees (real)&quot;,&quot;agg&quot;:&quot;sum&quot;,&quot;col&quot;:&quot;fees_total&quot;,&quot;format&quot;:&quot;money&quot;,&quot;filter&quot;:{&quot;simulated&quot;:0}},{&quot;label&quot;:&quot;Cycles (sim)&quot;,&quot;agg&quot;:&quot;count&quot;,&quot;filter&quot;:{&quot;simulated&quot;:1}},{&quot;label&quot;:&quot;Cycles (real)&quot;,&quot;agg&quot;:&quot;count&quot;,&quot;filter&quot;:{&quot;simulated&quot;:0}}]' />
+			<parameter name="add_search_columns" value='{&quot;Simulated&quot;:[[&quot;simulated&quot;,&quot;val&quot;]]}' />
+			<parameter name="set_order_child_list_columns" value='[[&quot;date_creation&quot;,&quot;DESC&quot;]]' />
+		</behavior>
+		<column name="id_trade_cycle" description="" type="INTEGER" size="11" required="true" primaryKey="true" autoIncrement="true" />
+		<column name="id_grid_run" description="Run" type="INTEGER" size="11" required="true" />
+		<foreign-key foreignTable="grid_run" onDelete="cascade" onUpdate="restrict" >
+			<reference local="id_grid_run" foreign="id_grid_run" />
+		</foreign-key>
+		<column name="level_idx" description="Level" type="INTEGER" size="10" required="true" />
+		<column name="buy_price" description="Buy price" type="DECIMAL" size="18" scale=" 8" required="true" />
+		<column name="sell_price" description="Sell price" type="DECIMAL" size="18" scale=" 8" required="true" />
+		<column name="qty" description="Qty" type="DECIMAL" size="18" scale=" 8" required="true" />
+		<column name="realized_pnl" description="Realized PnL" type="DECIMAL" size="18" scale=" 8" required="true" />
+		<column name="fees_total" description="Fees" type="DECIMAL" size="18" scale=" 8" required="true" />
+		<column name="simulated" description="Simulated" type="BOOLEAN" size="10" defaultValue="0" />
+	</table>
+	<table name="bot_event" description="Event" >
+		<behavior name="GoatCheese" >
+			<parameter name="set_parent_table" value="grid_run" />
+			<parameter name="set_child_colunms" value='{&quot;id_grid_run&quot;:[&quot;label&quot;]}' />
+			<parameter name="set_order_child_list_columns" value='[[&quot;date_creation&quot;,&quot;DESC&quot;]]' />
+			<parameter name="add_search_columns" value='{&quot;Level&quot;:[[&quot;level&quot;,&quot;%val&quot;,&quot;multiple&quot;]],&quot;Kind&quot;:[[&quot;kind&quot;,&quot;%val&quot;]]}' />
+		</behavior>
+		<column name="id_bot_event" description="" type="INTEGER" size="11" required="true" primaryKey="true" autoIncrement="true" />
+		<column name="id_grid_run" description="Run" type="INTEGER" size="11" required="true" />
+		<foreign-key foreignTable="grid_run" onDelete="cascade" onUpdate="restrict" >
+			<reference local="id_grid_run" foreign="id_grid_run" />
+		</foreign-key>
+		<column name="level" description="Level" type="ENUM" valueSet="Info, Warn, Error, Alert" required="true" defaultValue="Info" />
+		<column name="kind" description="Kind" type="VARCHAR" size="50" required="true" />
+		<column name="message" description="Message" type="VARCHAR" size="500" required="true" />
+		<column name="payload" description="Payload" type="LONGVARCHAR" required="false" size="1023" />
+	</table>
+	<table name="bot_command" description="Command" >
+		<behavior name="GoatCheese" >
+			<parameter name="set_parent_table" value="grid_run" />
+			<parameter name="set_child_colunms" value='{&quot;id_grid_run&quot;:[&quot;label&quot;]}' />
+		</behavior>
+		<column name="id_bot_command" description="" type="INTEGER" size="11" required="true" primaryKey="true" autoIncrement="true" />
+		<column name="id_grid_run" description="Run" type="INTEGER" size="11" required="true" />
+		<foreign-key foreignTable="grid_run" onDelete="cascade" onUpdate="restrict" >
+			<reference local="id_grid_run" foreign="id_grid_run" />
+		</foreign-key>
+		<column name="command" description="Command" type="ENUM" valueSet="Start, Pause, Resume, Kill, Flatten, CancelBuys, Reload" required="true" />
+		<column name="cmd_status" description="Status" type="ENUM" valueSet="Pending, Acked, Done, Failed" required="true" defaultValue="Pending" />
+		<column name="note" description="Note" type="VARCHAR" size="255" required="false" defaultValue="null" />
+	</table>
+	<table name="sim_wallet" description="Paper Wallet" >
+		<behavior name="GoatCheese" >
+			<parameter name="set_parent_menu" value="Settings" />
+			<parameter name="set_menu_priority" value="6" />
+			<parameter name="set_readonly_columns" value='[&quot;asset&quot;,&quot;qty&quot;]' />
+		</behavior>
+		<column name="id_sim_wallet" description="" type="INTEGER" size="11" required="true" primaryKey="true" autoIncrement="true" />
+		<column name="asset" description="Asset" type="VARCHAR" size="10" required="true" />
+		<column name="qty" description="Quantity" type="DECIMAL" size="18" scale=" 8" required="true" defaultValue="0" />
+		<unique >
+			<unique-column name="asset" />
+		</unique>
+	</table>
+	<table name="market_summary" description="Market Data" >
+		<behavior name="GoatCheese" >
+			<parameter name="set_parent_menu" value="Settings" />
+			<parameter name="set_menu_priority" value="5" />
+			<parameter name="set_order_list_columns" value='[[&quot;computed_at&quot;,&quot;DESC&quot;]]' />
+			<parameter name="set_list_hide_columns" value='[&quot;recent_candles&quot;]' />
+			<parameter name="set_readonly_columns" value='[&quot;symbol&quot;,&quot;tf&quot;,&quot;price&quot;,&quot;ema20&quot;,&quot;ema50&quot;,&quot;ema200&quot;,&quot;rsi14&quot;,&quot;atr14&quot;,&quot;atr_pct&quot;,&quot;trend&quot;,&quot;swing_high&quot;,&quot;swing_low&quot;,&quot;candles_used&quot;,&quot;recent_candles&quot;,&quot;computed_at&quot;,&quot;depth_imbalance_avg&quot;,&quot;adx14&quot;,&quot;atr_pct_rank&quot;,&quot;taker_buy_ratio&quot;,&quot;vol_zscore&quot;]' />
+		</behavior>
+		<column name="id_market_summary" description="" type="INTEGER" size="11" required="true" primaryKey="true" autoIncrement="true" />
+		<column name="symbol" description="Symbol" type="VARCHAR" size="20" required="true" />
+		<column name="tf" description="Timeframe" type="VARCHAR" size="5" required="true" />
+		<column name="price" description="Price" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
+		<column name="ema20" description="EMA20" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
+		<column name="ema50" description="EMA50" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
+		<column name="ema200" description="EMA200" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
+		<column name="rsi14" description="RSI14" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="atr14" description="ATR14" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
+		<column name="atr_pct" description="ATR %" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="trend" description="Trend" type="ENUM" valueSet="strong_up, up, sideways, down, strong_down" required="false" defaultValue="sideways" />
+		<column name="swing_high" description="Swing high" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
+		<column name="swing_low" description="Swing low" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
+		<column name="candles_used" description="Candles" type="INTEGER" size="10" defaultValue="0" />
+		<column name="recent_candles" description="Candles JSON" type="LONGVARCHAR" required="false" size="1023" />
+		<column name="funding_rate" description="Funding rate" type="DECIMAL" size="12" scale=" 8" required="false" defaultValue="null" />
+		<column name="depth_imbalance" description="Depth imbalance" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="depth_imbalance_avg" description="Depth imbalance (smoothed)" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="adx14" description="ADX14" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="atr_pct_rank" description="ATR% percentile" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="taker_buy_ratio" description="Taker buy ratio" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="vol_zscore" description="Volume z-score" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="computed_at" description="Computed at" type="TIMESTAMP" required="false" defaultValue="null" />
+		<unique >
+			<unique-column name="symbol" />
+			<unique-column name="tf" />
+		</unique>
+	</table>
+	<table name="market_regime" description="Regime History" >
+		<behavior name="GoatCheese" >
+			<parameter name="set_parent_menu" value="Settings" />
+			<parameter name="set_menu_priority" value="6" />
+			<parameter name="set_order_list_columns" value='[[&quot;date_creation&quot;,&quot;DESC&quot;]]' />
+			<parameter name="set_readonly_columns" value='[&quot;symbol&quot;,&quot;tf&quot;,&quot;price&quot;,&quot;trend&quot;,&quot;rsi14&quot;,&quot;atr_pct&quot;,&quot;adx14&quot;,&quot;atr_pct_rank&quot;,&quot;taker_buy_ratio&quot;,&quot;vol_zscore&quot;,&quot;funding_rate&quot;,&quot;depth_imbalance&quot;,&quot;depth_imbalance_avg&quot;]' />
+		</behavior>
+		<column name="id_market_regime" description="" type="INTEGER" size="11" required="true" primaryKey="true" autoIncrement="true" />
+		<column name="symbol" description="Symbol" type="VARCHAR" size="20" required="true" />
+		<column name="tf" description="Timeframe" type="VARCHAR" size="5" required="true" />
+		<column name="price" description="Price" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
+		<column name="trend" description="Trend" type="ENUM" valueSet="strong_up, up, sideways, down, strong_down" required="false" defaultValue="sideways" />
+		<column name="rsi14" description="RSI14" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="atr_pct" description="ATR %" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="adx14" description="ADX14" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="atr_pct_rank" description="ATR% percentile" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="taker_buy_ratio" description="Taker buy ratio" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="vol_zscore" description="Volume z-score" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="funding_rate" description="Funding rate" type="DECIMAL" size="12" scale=" 8" required="false" defaultValue="null" />
+		<column name="depth_imbalance" description="Depth imbalance" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="depth_imbalance_avg" description="Depth imbalance (smoothed)" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+	</table>
+	<table name="bot_decision" description="Refit Decision" >
+		<behavior name="GoatCheese" >
+			<parameter name="set_parent_table" value="grid_run" />
+			<parameter name="set_child_colunms" value='{&quot;id_grid_run&quot;:[&quot;label&quot;]}' />
+			<parameter name="set_order_child_list_columns" value='[[&quot;date_creation&quot;,&quot;DESC&quot;]]' />
+			<parameter name="set_readonly_columns" value='[&quot;source&quot;,&quot;p_low&quot;,&quot;p_high&quot;,&quot;n_levels&quot;,&quot;reason&quot;,&quot;price_at&quot;,&quot;realized_before&quot;,&quot;eval_status&quot;,&quot;eval_at&quot;,&quot;applied_at&quot;,&quot;cycles_delta&quot;,&quot;realized_delta&quot;,&quot;price_move_pct&quot;,&quot;verdict&quot;]' />
+		</behavior>
+		<column name="id_bot_decision" description="" type="INTEGER" size="11" required="true" primaryKey="true" autoIncrement="true" />
+		<column name="id_grid_run" description="Run" type="INTEGER" size="11" required="true" />
+		<foreign-key foreignTable="grid_run" onDelete="cascade" onUpdate="restrict" >
+			<reference local="id_grid_run" foreign="id_grid_run" />
+		</foreign-key>
+		<column name="source" description="Source" type="ENUM" valueSet="Claude, Cron, Manual" required="true" defaultValue="Claude" />
+		<column name="p_low" description="Range low" type="DECIMAL" size="18" scale=" 8" required="true" />
+		<column name="p_high" description="Range high" type="DECIMAL" size="18" scale=" 8" required="true" />
+		<column name="n_levels" description="Levels" type="INTEGER" size="10" required="true" />
+		<column name="deploy_pct" description="Deployed budget %" type="INTEGER" size="10" required="false" defaultValue="null" />
+		<column name="reason" description="Reason" type="VARCHAR" size="500" required="false" defaultValue="null" />
+		<column name="price_at" description="Price at decision" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
+		<column name="realized_before" description="Realized before" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="0" />
+		<column name="eval_status" description="Eval" type="ENUM" valueSet="Pending, Scored" required="true" defaultValue="Pending" />
+		<column name="eval_at" description="Scored at" type="TIMESTAMP" required="false" defaultValue="null" />
+		<column name="applied_at" description="Applied at" type="TIMESTAMP" required="false" defaultValue="null" />
+		<column name="cycles_delta" description="Cycles after" type="INTEGER" size="10" required="false" defaultValue="null" />
+		<column name="realized_delta" description="P/L after" type="DECIMAL" size="18" scale=" 8" required="false" defaultValue="null" />
+		<column name="price_move_pct" description="Price move %" type="DECIMAL" size="9" scale=" 4" required="false" defaultValue="null" />
+		<column name="verdict" description="Verdict" type="ENUM" valueSet="Win, Flat, Loss, Superseded" required="false" defaultValue="null" />
+	</table>
+</database>

@@ -1,0 +1,98 @@
+@use 'themes' as *;
+
+/* gcPdfMenu — the with_pdf nav-title dropdown (public/js/app/pdfmenu.js).
+ * Sits in the form header row before the Save button (.nav-pdf order slots
+ * between nav-title (0) and nav-save (4); margin-left:auto claims the free
+ * space so pdf + save + close pack to the right edge). */
+.sw-drawer.proto-form > .sw-header > .form-nav > .gc-pdf-menu {
+  order: 3;
+  margin-left: auto;
+  align-self: center;
+  position: relative;
+}
+/* When the menu is present it owns the auto-push; Save then packs beside it. */
+.sw-drawer.proto-form > .sw-header > .form-nav > .gc-pdf-menu ~ .nav-save {
+  margin-left: 4px;
+}
+
+.gc-pdf-menu {
+  position: relative;
+  display: inline-flex;
+
+  .gc-pdf-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 10px;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    white-space: nowrap;
+
+    &:hover {
+      background: var(--row-hover);
+    }
+
+    .gc-pdf-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .gc-pdf-caret {
+      font-size: 14px;
+      opacity: 0.6;
+    }
+  }
+
+  .gc-pdf-dd {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 200px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow-md);
+    padding: 6px;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+
+    // The JS toggles the `hidden` attribute to open/close; the display:flex
+    // above would otherwise override the UA [hidden]{display:none} (class
+    // specificity wins), leaving the menu permanently open.
+    &[hidden] {
+      display: none;
+    }
+
+    .gc-pdf-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 9px 10px;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font-size: 13px;
+      text-align: left;
+      border-radius: 7px;
+      cursor: pointer;
+      white-space: nowrap;
+
+      i {
+        font-size: 16px;
+        flex-shrink: 0;
+        opacity: 0.75;
+      }
+
+      &:hover {
+        background: var(--row-hover);
+      }
+    }
+  }
+}

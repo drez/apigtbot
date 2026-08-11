@@ -1,0 +1,166 @@
+#!/usr/bin/env php
+<?php
+/**
+ * gtbot — grid bot daemon for this project.
+ *
+ *   php bin/gtbot --run=<id_grid_run> [--ticks=N] [--interval=SECONDS]
+ *
+ * Safety model:
+ *  - GTBOT_DRY_RUN (default 1): compute + log intended orders, send nothing.
+ *  - GTBOT_USE_TESTNET (default 1): testnet base URL; a run whose status says
+ *    Testnet/DryRun is refused against mainnet keys and vice versa.
+ *  - grid_run.simulated (default 1): paper mode — mainnet public data, fills
+ *    simulated locally, no keys needed; env flags apply only when the switch
+ *    is OFF.
+ *  - Single instance per run via MySQL GET_LOCK (dies with the connection).
+ *  - SIGTERM/SIGINT finish the current tick, then exit 0.
+ */
+
+$admin = dirname(__DIR__);
+require $admin . '/vendor/autoload.php';
+(new \Ahc\Env\Loader())->load($admin . '/.env');
+require $admin . '/config/Built/config.php';
+require $admin . '/config/Built/propel.php';
+
+// CLI context: the add_tablestamp behavior expects a session object (rows
+// stamped with id_creation=null under CLI) — same convention as AuthyTestCase.
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
+$_SESSION[_AUTH_VAR] = new \ApiGoat\Sessions\AuthySession();
+
+$opts = getopt('', ['run:', 'ticks::', 'interval::']);
+$runId = (int) ($opts['run'] ?? 0);
+$maxTicks = (int) ($opts['ticks'] ?? 0);       // 0 = run forever
+$interval = max(1, (int) ($opts['interval'] ?? 5));
+
+$fail = function (string $msg): never {
+    fwrite(STDERR, "gtbot: $msg\n");
+    exit(1);
+};
+
+if ($runId <= 0) {
+    $fail('--run=<id_grid_run> is required');
+}
+$run = \App\GridRunQuery::create()->findPk($runId);
+if (!$run) {
+    $fail("grid_run $runId not found");
+}
+
+$useTestnet = env('GTBOT_USE_TESTNET', '1') !== '0';
+$dryRun = env('GTBOT_DRY_RUN', '1') !== '0';
+$apiKey = (string) env('GTBOT_API_KEY', '');
+$apiSecret = (string) env('GTBOT_API_SECRET', '');
+$simulated = (bool) $run->getSimulated();
+
+// Ed25519 (registered-public-key) keys take precedence over HMAC secrets.
+$signer = null;
+$privKeyPath = (string) env('GTBOT_API_PRIVATE_KEY', '');
+if ($privKeyPath !== '' && !$simulated) {
+    $path = str_starts_with($privKeyPath, '/') ? $privKeyPath : $admin . '/' . $privKeyPath;
+    try {
+        $signer = \App\Domains\Bot\Gateway\Ed25519Signer::fromPemFile($path);
+    } catch (\InvalidArgumentException $e) {
+        $fail('GTBOT_API_PRIVATE_KEY: ' . $e->getMessage());
+    }
+}
+
+$status = (string) $run->getStatus();
+if (!in_array($status, ['DryRun', 'Testnet', 'Live'], true)) {
+    $fail("run $runId status is $status — set it to DryRun/Testnet/Live to start");
+}
+if (!$simulated) {
+    // REAL mode cross-checks: a Live run must never talk to testnet and a
+    // Testnet/DryRun run must never touch mainnet. Flipping the simulated
+    // switch OFF is the deliberate act — it stays double-gated by env.
+    if ($status === 'Live' && ($useTestnet || $dryRun)) {
+        $fail("run $runId has status Live but GTBOT_USE_TESTNET/GTBOT_DRY_RUN are on — flip them explicitly to go live");
+    }
+    if ($status !== 'Live' && !$useTestnet) {
+        $fail("run $runId has status $status but GTBOT_USE_TESTNET=0 points at mainnet — refusing");
+    }
+    if ($apiKey === '' && $signer === null) {
+        $fail("run $runId is in REAL mode but no credentials are set — provide GTBOT_API_KEY/GTBOT_API_SECRET or GTBOT_API_PRIVATE_KEY");
+    }
+}
+
+// Single instance per run: the lock dies with this DB connection.
+$con = \Propel::getConnection();
+$lock = $con->query("SELECT GET_LOCK('gtbot-run-$runId', 0)")->fetchColumn();
+if ((int) $lock !== 1) {
+    $fail("another gtbot instance already holds the lock for run $runId");
+}
+
+// Trades, applied refits and lifecycle events (algo deploys, start/stop/
+// restart) fan out to Telegram (in addition to Alert/Error).
+// Closed-cycle results are IMMEDIATE: no buffer, exempt from the 5-min throttle.
+// Constructed BEFORE the gateway: the paper gateway's alert sink below closes
+// over $log.
+$log = new \App\Domains\Bot\EventLog(
+    $runId,
+    true,
+    \App\Domains\Bot\TelegramNotifier::fromEnv(),
+    ['buy_fill', 'refit_applied', 'algo_update', 'bot_start', 'bot_stop', 'bot_restart'],
+    ['cycle_closed']
+);
+
+if ($simulated) {
+    // Paper mode: mainnet public data, locally simulated fills. No keys,
+    // env flags irrelevant; status DryRun still means "place nothing".
+    $gateway = new \App\Domains\Bot\Gateway\PaperGateway(
+        new \App\Domains\Bot\Gateway\BinanceGateway('https://api.binance.com', '', ''),
+        $run,
+        (string) $run->getFeePct(),
+        function (string $kind, string $message) use ($log): void {
+            $log->write('Alert', $kind, $message);
+        }
+    );
+    $dryRun = ($status === 'DryRun');
+} else {
+    $baseUrl = $useTestnet ? 'https://testnet.binance.vision' : 'https://api.binance.com';
+    $gateway = new \App\Domains\Bot\Gateway\BinanceGateway($baseUrl, $apiKey, $apiSecret, null, null, $signer);
+}
+$daemon = new \App\Domains\Bot\Daemon($run, $gateway, $dryRun, $log);
+
+$stop = false;
+if (function_exists('pcntl_signal')) {
+    pcntl_async_signals(true);
+    foreach ([SIGTERM, SIGINT] as $sig) {
+        pcntl_signal($sig, function () use (&$stop): void {
+            $stop = true;
+        });
+    }
+}
+
+try {
+    $daemon->boot();
+} catch (\Throwable $e) {
+    // Back off before exiting so a bad config (e.g. an invalid geometry on
+    // the run row) can't hammer a ~10s systemd restart loop. systemd still
+    // relaunches and auto-recovers once the config is fixed.
+    fwrite(STDERR, "gtbot: boot failed: " . $e->getMessage() . " — backing off 60s\n");
+    sleep(60);
+    exit(1);
+}
+
+$ticks = 0;
+while (!$stop) {
+    try {
+        if (!$daemon->tick()) {
+            break;
+        }
+    } catch (\App\Domains\Bot\Gateway\BinanceApiError $e) {
+        $log->write('Error', 'api_error', $e->getMessage() . ' (http ' . $e->httpStatus . ')');
+        $delay = $e->retryAfter ?? $interval * 3;
+        sleep(min($delay, 300));
+    }
+    $ticks++;
+    if ($maxTicks > 0 && $ticks >= $maxTicks) {
+        break;
+    }
+    if (!$stop) {
+        sleep($interval);
+    }
+}
+
+fwrite(STDOUT, "gtbot: stopped after $ticks tick(s)\n");

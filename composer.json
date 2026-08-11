@@ -1,0 +1,21 @@
+{
+    "name": "apigoat/billboy",
+    "description": "Simple billing for freelancer",
+    "homepage": "https://apigoat.com/billboy",
+    "authors": [{
+        "name": "Frederic Vezina",
+        "homepage": "https://apigoat.com/"
+    }],
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": ">=8"
+    },
+    "post-install-cmd": "deploy",
+    "scripts": {
+        "deploy": [
+            "composer install -d ./.admin",
+            "php ./.admin/scripts/deploy.php 2>&1"
+        ]
+    }
+}

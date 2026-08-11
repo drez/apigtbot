@@ -1,0 +1,13 @@
+.admin/vendor/*
+.admin/.build/*
+.admin/tmp/*
+.env
+composer.lock
+/gc
+.admin/auth.json
+.admin/public/css/*.min.css
+.admin/public/js/*.min.js
+mobile/node_modules
+.admin/config/gtbot-ed25519-priv.pem
+.admin/.phpunit.cache
+.playwright-mcp/

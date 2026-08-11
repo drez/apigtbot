@@ -1,0 +1,174 @@
+/* Do not edit - this file is generated/managed by the template */
+@use 'themes' as *;
+
+/* Selectbox */
+
+.select-label {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    font-family: arial;
+    margin-right: 7px
+}
+
+.select-label[disabled] {
+    opacity: 0.6;
+    cursor: default
+}
+
+.select-label[disabled] .select-label-span {
+    cursor: default;
+    background: none
+}
+
+.select-label[disabled] .select-label-span:focus {
+    border-color: $colorBorder
+}
+
+.select-label * {
+    list-style: none
+}
+
+.select-label *:focus, .select-label *:active {
+    outline: none;
+    border-color: $colorBlue;
+}
+
+.select-label .mobile-header {
+    background: $colorBorderMid;
+    left: 0;
+    margin-top: -48px;
+    opacity: 0;
+    padding: 11px 15px;
+    position: fixed;
+    right: 0;
+    text-align: right;
+    top: 55%;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 1000000;
+}
+
+.select-label .mobile-header .select-close-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: $colorHoverBg;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    font-size: 0;
+    &::before {
+        font-family: 'remixicon';
+        content: "\eb99";
+        font-size: 20px;
+        color: $colorTextDark;
+        line-height: 1;
+    }
+}
+
+.select-label.mobile {
+    position: static
+}
+
+#body .select-label.mobile.show .mobile-header {
+    opacity: 1;
+    visibility: visible
+}
+
+#body .select-label.mobile ul.scrollable.select-element {
+    bottom: 0 !important;
+    max-height: 100%;
+    top: 55% !important;
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important
+}
+
+.select-label.mobile ul li,
+.select-label.mobile ul li:first-child {
+    font-size: 20px;
+    padding: 15px 25px;
+    position: relative
+}
+
+.select-label.mobile[multiple] li:before {
+    content: "";
+    background: $colorLight;
+    border: 1px solid $colorBorder;
+    height:29px;width:29px;position:absolute;right:25px;top:15px
+}
+
+.select-label.mobile[multiple] li:after{
+    content:"✓";color:$colorPrimary;font-size:22px;font-weight:bold;line-height:29px;text-align:center;height:29px;width:29px;opacity:0;position:absolute;right:25px;top:15px;z-index:999;transition:opacity 0.3s;background:none
+}
+
+.select-label.mobile[multiple] li.selected:after{
+    opacity:1
+}
+
+.select-label.show ul{
+    opacity:1;visibility:visible
+}
+.select-label.show-top ul{
+    bottom:35px
+}
+
+.select-label ul{
+    position:fixed;border:1px solid $colorBorder;cursor:pointer;opacity:0;padding:0;margin:0;margin-top:-3px;visibility:hidden;left:0;right:0;background:$colorLight;
+    max-height:330px;overflow-y:scroll;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;
+    z-index:999999;transition:opacity 0.2s,visibility 0.2s
+}
+.select-label ul li{
+    display:block;list-style:none;overflow:hidden;padding:10px 15px;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;
+    user-select:none;transition:color 0.2s,background 0.2s}.select-label ul li.default{color:$colorTextLighter
+}
+.select-label ul li:first-child{
+    padding:10px 15px
+}
+.select-label ul li strong{
+    font-weight:normal;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none
+}
+.select-label ul li i{font-style:normal;background:$colorWarning}
+.select-label ul li:hover,.select-label ul li.hovered{background:$colorBorderMid}
+.select-label ul li.selected{color:$colorLight;background:$colorPrimary}
+.select-label ul li.selected.hovered{background:color-mix(in srgb, #fff 35%, $colorPrimary)}
+.select-label-span{
+    background:$colorLight url(../img/selectbox-arrow.png) no-repeat right 10px center;
+    border:1px solid $colorBorder;font-size:0.875em;color:$colorTextBlack;display:inline-block;cursor:pointer;
+    font-weight:lighter;padding:9px 10px 8px;width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;
+    -moz-user-select:none;-ms-user-select:none;user-select:none
+}
+.select-label-span.selected i{
+	font-style:normal;
+	background:$colorPrimary;
+	color:$colorLight;
+}
+.select-label-span.default{
+	color:$colorTextLighter;
+}
+
+.select-label.js-select-label.mobile {
+    position: initial;
+}
+
+.select-label-span {
+	box-sizing: border-box;
+	height: 40px;
+	width: 100%;
+	padding: 0 10px;
+	line-height: 40px;
+	border-radius: 4px;
+	text-align: left;
+}
+
+.select-label.js-select-label {
+	position: relative;
+	ul.scrollable.select-element {
+		position: absolute;
+		top: 100%;
+		width: 100%;
+		left: 0;
+	}
+}

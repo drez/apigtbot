@@ -1,0 +1,787 @@
+/* _desktopv2.scss — desktop responsive layer (>=720px).
+ *
+ * Re-skins the SAME builder-emitted mobile markup into the guideline
+ * desktop shell (tmp/GoatCheese theme guideline/new/desktop.css). No new
+ * markup, no .dt-* classes emitted, same vanilla JS client. Everything
+ * is inside the media query, so mobile (<720px) is byte-for-byte
+ * unchanged. Ported metrics: 248px sidebar, 48px topbar (desktop.css
+ * .dt-side / .dt-topbar / .dt-main). */
+
+@use 'tokensv2' as *;
+
+@media (min-width: 720px) {
+
+  /* ---- Sidebar: the off-canvas mobile drawer, pinned permanent.
+   * Width tightened from the original 248px → 200px to match the
+   * design guideline's denser rail (target ~165–180px). 200px keeps
+   * room for the count badge and longer entity labels. ---- */
+  #appDrawer.proto-drawer {
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    width: 240px;
+    transform: none !important;
+    transition: none;
+    box-shadow: none;
+    border-right: 1px solid $line;
+    z-index: 40;
+  }
+  #appDrawer.proto-drawer .dr-head {
+    border-bottom: 1px solid $line-soft;
+    padding: 12px 14px;
+  }
+  /* A permanent rail can't be dismissed. */
+  #appDrawer.proto-drawer .dr-close { display: none; }
+  #appDrawer.proto-drawer .dr-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 8px 10px;
+    scrollbar-width: none;
+  }
+  #appDrawer.proto-drawer .dr-scroll::-webkit-scrollbar { display: none; }
+  /* Compact rail items so all 24 entities fit without scrolling. */
+  #appDrawer.proto-drawer .ac-nav,
+  #appDrawer.proto-drawer .ac-menu { padding: 0; margin: 0; }
+  #appDrawer.proto-drawer .ac-menu > li { margin: 0; padding: 0; }
+  /* Exclude the section-header dashboard shortcut (.dr-section-dash): it is
+     an <a> under .ac-menu but must stay icon-sized, not stretch to full
+     width — otherwise it eats the row and collapses the .dr-section-label. */
+  #appDrawer.proto-drawer .ac-menu a:not(.dr-section-dash) {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 3px 9px !important;
+    margin: 0 !important;
+    font-size: 12.5px !important;
+    gap: 8px !important;
+    border-radius: 5px;
+    line-height: 1.35;
+  }
+  #appDrawer.proto-drawer .ac-menu a i { font-size: 15px; width: 18px; }
+  #appDrawer.proto-drawer .ac-menu a .ac-alert-count {
+    font-size: 10px;
+    padding: 0 5px;
+    margin-left: auto;
+    margin-right: 4px;
+  }
+  #appDrawer.proto-drawer .menu-subtitle {
+    padding: 6px 10px 0 !important;
+    margin: 0 !important;
+    font-size: 9.5px !important;
+    letter-spacing: .07em;
+    line-height: 1.2;
+  }
+  /* Sub-menu nested level: collapse the indent + side bar to a
+   * subtle 6px inset so it doesn't waste horizontal room. */
+  #appDrawer.proto-drawer .sub-menu {
+    margin: 0 0 0 6px !important;
+    padding: 0 0 0 6px !important;
+    border-left-color: $line-soft !important;
+  }
+  #appDrawer.proto-drawer .sub-menu a {
+    padding: 2px 8px !important;
+    font-size: 12px !important;
+  }
+  #appDrawer.proto-drawer .dr-head { padding: 10px 12px; }
+
+  /* No backdrop on desktop — the rail is always present. */
+  #appDim.proto-dim { display: none !important; }
+
+  /* ---- Main column, offset by the rail ---- */
+  /* Legacy makes .center-panel position:fixed with no width, so it
+   * shrink-wraps to the card width. Pin it to fill the viewport minus
+   * the rail (works whether legacy sets fixed or not). */
+  .center-panel {
+    position: fixed !important;
+    left: 240px !important;
+    right: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    margin: 0 !important;
+    width: auto !important;
+    transform: none !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: $bg;
+  }
+
+  /* ---- Topbar: 48px, always shown on desktop (override the
+   * list-page :has() hide); the hamburger is redundant beside a
+   * permanent rail. ---- */
+  body:has(.va-mob.proto-app[data-model]) .app-topbar,
+  .app-topbar {
+    display: flex;
+    align-items: center;
+    height: 48px;
+    padding: 0 22px;
+    background: $surface;
+    border-bottom: 1px solid $line;
+    flex-shrink: 0;
+  }
+  /* No hamburgers on desktop: the rail is permanent. Hide the topbar
+   * opener AND the per-list in-header one + its stray search glyph. */
+  .app-topbar .menu-btn,
+  .va-mob .va-mob-row1 .menu-btn,
+  .va-mob .va-mob-search > i { display: none; }
+  .app-topbar .app-topbar-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: $text-mid;
+  }
+  /* Breadcrumb chevron before the entity crumb. */
+  .app-topbar .app-topbar-title::before {
+    content: 'Home  ›  ';
+    color: $text-faint;
+    font-weight: 500;
+  }
+
+  /* Base .content-wrapper carries a 70px top pad for the fixed mobile
+   * topbar; on desktop the topbar is in-flow so kill it (higher
+   * specificity than the base single-class rule). */
+  .center-panel .content-wrapper {
+    flex: 1;
+    overflow: auto;
+    min-height: 0;
+    padding-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  .center-panel .content-wrapper #tabsContain { padding-top: 0 !important; }
+
+  /* ---- List flows inside the content column (not a full overlay).
+   * No extra top gap above the page-head. ---- */
+  .content-wrapper .va-mob.proto-app,
+  .proto-screen .va-mob.proto-app {
+    position: relative;
+    inset: auto;
+    height: auto;
+    min-height: 0;
+    padding: 0;
+    overflow: visible;
+  }
+  /* The child-list .va-mob inside a nested .proto-screen must flow
+   * BELOW the screen's toolbar/sw-header, not absolutely overlap it. */
+  .proto-screen > .va-mob.proto-app,
+  .proto-screen .childListWrapper {
+    position: relative;
+    inset: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  /* Legacy controls bar is mobile-only chrome; never on desktop. */
+  .va-mob .sw-header { display: none; }
+
+  /* Inline (full-page) edit form: the mobile push-screen sticky nav
+   * would pin to the page scroll and float OVER the child section
+   * below. On desktop the inline edit nav is a static card header.
+   * (The .proto-screen drawer case re-asserts sticky in D3.) */
+  .proto-form .form-nav {
+    position: static;
+    border-radius: 9px 9px 0 0;
+  }
+}
+
+/* ===== D2 — real desktop .dt-* table (P4) =====
+ * The emitter now emits a true columnar <table.va-dt-table> sibling of
+ * the mobile card list (reusing the same listTd cells + #formMs +
+ * [th='sorted'] sort + pager, so the vanilla client drives both). On
+ * desktop the card list is hidden and the table shown; on mobile the
+ * table is hidden. Ported literally from
+ * tmp/GoatCheese theme guideline/directions/desktop.css (.dt-card /
+ * .dt-table / .dt-page-head / .dt-toolbar / .dt-table-foot). */
+
+/* The desktop table never shows on mobile. */
+.va-dt-only { display: none; }
+
+@media (min-width: 720px) {
+
+  /* Header -> page-head + toolbar (reuse the single emitted header so
+   * #formMs is not duplicated — contract-safe). */
+  .va-mob .va-mob-header {
+    background: transparent;
+    border-bottom: none;
+    padding: 22px 28px 14px;
+  }
+  .va-mob .va-mob-row1 { height: auto; gap: 14px; align-items: center; }
+  .va-mob .va-mob-row1 .title { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+  .va-mob .va-mob-row1 .add-btn { height: 34px; padding: 0 14px; border-radius: 7px; font-size: 13px; }
+  /* Desktop sorts via clickable column headers — the mobile sort-sheet
+   * button + its bottom sheet are redundant chrome here. */
+  .va-mob .va-mob-row1 .va-mob-sort-btn,
+  .va-mob .va-mob-sortsheet { display: none; }
+  // Search input + Filters + chips share ONE row on desktop. The
+  // chip strip is a SIBLING of .va-mob-header, not a child — so
+  // promote header's children with display:contents and let .va-mob
+  // itself be the flex-wrap row container. Other .va-mob children
+  // (.content, .va-mob-pager) flex 0 0 100% to keep their own rows.
+  .va-mob.proto-app {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .va-mob > .va-mob-header { display: contents; }
+  .va-mob .va-mob-row1 {
+    flex: 0 0 100%;
+    padding: 22px 28px 0;
+  }
+  .va-mob .va-mob-search {
+    flex: 0 0 auto;
+    margin: 0 0 14px 28px;
+    width: 320px;
+    max-width: 320px;
+  }
+  // The actual input + filter button sit inside <form.va-mob-searchform>.
+  // Make THAT the flex row so they sit side by side on desktop.
+  .va-mob .va-mob-search .va-mob-searchform {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .va-mob .va-mob-search .va-mob-searchform input {
+    flex: 1 1 auto;
+  }
+  // The leading search icon is hidden on desktop (> i display:none above) and
+  // the filter button is a flex sibling, not an overlay — so _listv2's 38px
+  // icon gutter + 40px button gutter on .va-mob-search-inline input are both
+  // dead space. Match that selector (equal specificity, later source) to reset
+  // to a normal 12px.
+  .va-mob .va-mob-search .va-mob-searchform .va-mob-search-inline input {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .va-mob .va-mob-chips {
+    flex: 1 1 auto;
+    align-self: center;   // vertically center the chips on the search/filter row
+    margin: 0 28px 14px 4px;
+    padding: 0;
+    background: transparent;
+    border-bottom: none;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  /* Clear-sort strip: on desktop the mobile toolbar-band treatment
+   * (surface bg + border) reads as a floating white card under the
+   * actions — neutralize it like .va-mob-chips above and flow the
+   * pill inline on the search/filter row (right after the chips)
+   * instead of orphaning it on its own full-width row. */
+  .va-mob .va-mob-sortclear {
+    flex: 0 1 auto;
+    align-self: center;
+    padding: 0;
+    margin: 0 28px 14px 4px;
+    background: transparent;
+    border-bottom: none;
+  }
+  .va-mob > .ac-list-form-header-child,
+  .va-mob > .content,
+  .va-mob > .va-mob-pager,
+  .va-mob > .va-mob-sortsheet,
+  .va-mob > .ac-list,
+  .va-mob > .tablesorter { flex: 0 0 100%; min-width: 0; }
+  /* The list card wrapper that holds the dt-table on desktop —
+   * collapse its height to content so there's no white air
+   * between the last row and the pager. */
+  .va-mob > .ac-list {
+    display: block;
+    height: auto !important;
+    min-height: 0 !important;
+    background: transparent;
+  }
+  .va-mob > .ac-list > .content {
+    width: auto;
+    /* Legacy `.content` is a white card with rounded corners, 1px
+     * border, box-shadow, 100px padding-bottom. The dt-card inside
+     * already provides the card surface, so neutralize the legacy
+     * wrapper (no bg, no border, no shadow, no padding). */
+    padding-bottom: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  /* Pager card sits directly on the dt-card (no top margin), same
+   * horizontal inset so they read as one composed surface. */
+  .va-mob > .va-mob-pager { margin-top: 0 !important; }
+
+  /* Hide the card list, show the real table card — TOP-LEVEL lists
+   * only. Child lists (.va-mob.proto-app[data-parent]) have no .dt-*
+   * table, so they keep their card list on desktop (guideline child
+   * lists are compact card rows inside the edit drawer). */
+  .va-mob.proto-app:not([data-parent]) .content > .va-mob-list { display: none; }
+  .va-mob:not([data-parent]) .content > .va-dt-only { display: block; margin: 0 28px 0; }
+
+  .va-mob .dt-card {
+    background: $surface;
+    border: 1px solid $line;
+    border-radius: 9px 9px 0 0;
+    border-bottom: none;
+    /* When a child/list table carries too many columns to fit, scroll
+     * horizontally instead of clipping the action column out of sight.
+     * The .actionrow td below is sticky-right so the delete icon stays
+     * on-screen regardless of scroll position. */
+    overflow-x: auto;
+    overflow-y: hidden;
+    box-shadow: 0 1px 2px rgba(10, 37, 64, 0.05);
+  }
+  table.va-dt-table { width: 100%; border-collapse: collapse; }
+  /* Per-cell truncation: text cells with long content collapse to an
+   * ellipsis instead of pushing the row past the container edge. The
+   * action cell (sticky below) opts out of clipping. */
+  table.va-dt-table tbody td:not(.actionrow) {
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  table.va-dt-table thead th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $text-mute;
+    padding: 11px 16px;
+    background: $bg-warm;
+    border-bottom: 1px solid $line;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  table.va-dt-table thead th:hover { color: $text; }
+  table.va-dt-table thead th[sens] { color: $ink; }
+  table.va-dt-table thead th[sens]::after {
+    font-family: 'remixicon'; content: '\ea4e';   // ri-arrow-down-s-line (desc)
+    margin-left: 4px; color: $mint-700; font-size: 14px;
+    vertical-align: middle; -webkit-font-smoothing: antialiased;
+  }
+  table.va-dt-table thead th[sens='asc']::after { content: '\ea78'; } // ri-arrow-up-s-line
+  table.va-dt-table tbody tr {
+    border-bottom: 1px solid $line-soft;
+    cursor: pointer;
+    transition: background 0.07s;
+  }
+  table.va-dt-table tbody tr:hover { background: $row-hover; }
+  table.va-dt-table tbody tr:last-child { border-bottom: none; }
+  table.va-dt-table tbody td {
+    padding: 11px 16px;
+    font-size: 13px;
+    vertical-align: middle;
+    color: $text;
+  }
+  table.va-dt-table tbody td:first-child { font-weight: 600; color: $ink; }
+  /* P3 list_pill / list_tag in the desktop cell. Layout only here —
+   * the colour comes from the shared .cl-status-<v> / .cl-type-<v>
+   * map in _clientv2 so desktop matches the Clients screenshot
+   * (Won=green, Lead=blue, Qualified=purple, …) with a visible dot. */
+  table.va-dt-table tbody td .cl-status {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 9px 3px 7px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; line-height: 1.4;
+    white-space: nowrap;
+  }
+  table.va-dt-table tbody td .cl-status .cl-status-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    flex-shrink: 0; background: currentColor;
+  }
+  table.va-dt-table tbody td .cl-type {
+    display: inline-block; padding: 1px 7px; border-radius: 3px;
+    font-size: 9.5px; font-weight: 700; letter-spacing: .07em;
+    text-transform: uppercase; white-space: nowrap;
+  }
+  table.va-dt-table tbody td .cl-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: $on-accent; font-size: 10px; font-weight: 700;
+    margin-right: 8px; vertical-align: -7px;
+  }
+  /* Sticky-right action cell: pinned to the visible right edge of the
+   * scrollable .dt-card, so the delete icon stays reachable even when
+   * the column overflow forces a horizontal scroll. Background is
+   * opaque to occlude any data cell that scrolls underneath. */
+  table.va-dt-table td.actionrow {
+    width: 60px;
+    min-width: 60px;
+    text-align: right;
+    white-space: nowrap;
+    position: sticky;
+    right: 0;
+    background: $surface;
+    z-index: 1;
+    box-shadow: -6px 0 8px -6px rgba(10, 37, 64, 0.08);
+  }
+  table.va-dt-table tbody tr:hover td.actionrow { background: $row-hover; }
+  table.va-dt-table td.actionrow a,
+  table.va-dt-table td.actionrow .ac-delete-link {
+    opacity: 0;
+    transition: opacity 0.1s;
+    color: $text-mute;
+    font-size: 15px;
+  }
+  table.va-dt-table tbody tr:hover td.actionrow a,
+  table.va-dt-table tbody tr:hover td.actionrow .ac-delete-link { opacity: 1; }
+
+  /* Pager = the card's attached footer (one unit with the table).
+   * Card-style framing (28px gutter + border + rounded corners) only
+   * applies to the main list. Child lists sit flush inside the drawer
+   * panel, so [data-parent] strips the margin/border. */
+  .va-mob:not([data-parent]) .va-mob-pager {
+    margin: 0 28px 28px;
+    background: $surface;
+    border: 1px solid $line;
+    border-radius: 0 0 9px 9px;
+    padding: 9px 16px;
+    font-size: 12px;
+    color: $text-mute;
+    box-shadow: 0 1px 2px rgba(10, 37, 64, 0.05);
+  }
+  .va-mob[data-parent] .va-mob-pager {
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 9px 16px;
+    font-size: 12px;
+    color: $text-mute;
+  }
+  .va-mob .va-mob-pager .pgr button {
+    width: 26px; height: 26px; border-radius: 5px;
+    border: 1px solid $line; background: $surface; color: $text-mid;
+  }
+  .va-mob .va-mob-pager .pgr button.disabled { opacity: .4; }
+
+  /* Totals strip sits above the footer, right-aligned & muted. */
+  .va-mob .bottomPagerRow .totalLine,
+  .va-mob .totalLine {
+    display: inline-block;
+    margin-left: 16px;
+    font-size: 12px;
+    color: $text-mid;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ===== D3 — edit as a right-side drawer (38vw, min 560px) =====
+ * The .proto-screen push-stack is full-screen on mobile; on desktop
+ * re-skin it to a right-side drawer + backdrop. screens.js is
+ * unchanged (it sets body.screen-open on push / clears it on the last
+ * pop) — pure SCSS. Close stays Back-button / Escape (mobile parity);
+ * the backdrop is visual only (pointer-events:none) so it never
+ * silently swallows clicks. */
+@media (min-width: 720px) {
+
+  body.screen-open::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 37, 64, 0.32);
+    z-index: 90;
+    pointer-events: none;
+  }
+
+  .proto-screen {
+    position: fixed !important;
+    inset: auto !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    left: auto !important;
+    width: 38vw !important;
+    min-width: 560px;
+    max-width: 92vw;
+    box-shadow: -8px 0 32px rgba(10, 37, 64, 0.18);
+    /* screens.js sets inline z-index:30; override so the open
+     * drawer sits ABOVE the body::after dim overlay (z:90). */
+    z-index: 110 !important;
+  }
+  /* Stacked drawers sit directly on top of each other (same
+   * footprint) — drop the mobile -20% peek of the layer beneath. */
+  .proto-screen.under { transform: none; }
+  .proto-screen.enter,
+  .proto-screen.exit { transform: translateX(100%); }
+
+  /* Inside the drawer the nav IS the drawer head and must stay pinned
+   * while the body scrolls (overrides the inline static rule above —
+   * higher specificity). */
+  .proto-screen .proto-form .form-nav {
+    position: sticky;
+    top: 0;
+    border-radius: 0;
+  }
+}
+
+/* ===== D3b — narrow-desktop edit = full-cover =====
+ * The 520px side-drawer only works when the viewport can show
+ * rail(248) + a usable content band + drawer(520) — i.e. ~1080px+.
+ * Below that (720–1080: tablet / split-screen) the open drawer would
+ * obscure the list down to a ~30px sliver. There the edit becomes a
+ * full-cover panel over the rail (focus mode); the backdrop is then
+ * redundant. Pure SCSS, screens.js unchanged. */
+@media (min-width: 720px) and (max-width: 1080px) {
+  .proto-screen {
+    width: 100vw;
+    max-width: 100vw;
+    left: 0;
+    right: 0;
+  }
+  body.screen-open::after { display: none; }
+}
+
+/* ===== D3c — child-list drawers are wider =====
+ * A child-list drawer (pushed when a child tab is opened) carries a
+ * data table — entity columns plus the add_child_search_columns filter
+ * — so it needs more room than a single-record edit form. Only on wide
+ * desktop, where the side-drawer (not the D3b full-cover) is active.
+ * Targeted via the child-list marker (.proto-app[data-parent]); a
+ * record-edit drawer has no [data-parent] list and keeps the 38vw width.
+ * Specificity (0,4,0) + !important beats the base .proto-screen width. */
+@media (min-width: 1081px) {
+  .proto-screen:has(.va-mob.proto-app[data-parent]) {
+    width: 60vw !important;
+    min-width: 720px;
+    max-width: 880px;
+  }
+}
+
+/* ===== Region 4 — advanced-filter surface, desktop ===== *
+ * Same builder-emitted markup; re-skinned from bottom sheet to an
+ * anchored popover. filter.js sets inline top/left from the filter
+ * button's rect; CSS owns size/elevation/radius and the block grid.
+ * Pure SCSS — the markup is identical to mobile. */
+@media (min-width: 720px) {
+
+  /* The desktop "Filters" trigger IS .va-mob-filter-btn (icon-only on
+   * mobile) — give it a label + box here. It sits in .va-mob-search. */
+  .va-mob .va-mob-search .va-mob-filter-btn {
+    position: static;
+    width: auto; height: 32px;
+    padding: 0 12px 0 10px;
+    border: 1px solid $line-hard;
+    background: $surface; color: $text-mid;
+    border-radius: 6px;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 600;
+  }
+  .va-mob .va-mob-search .va-mob-filter-btn::after {
+    content: 'Filters';
+  }
+  .va-mob .va-mob-search .va-mob-filter-btn:hover { background: $bg; }
+  /* Active-filter count badge pinned on the funnel button (drawn by
+   * list.js syncFilterBtn when any filter is set). */
+  .va-mob .va-mob-search .va-mob-filter-btn {
+    position: relative;
+    top: 0;   // clear the mobile `top:4px` (_listv2) so it centers on the row
+  }
+  .va-mob .va-mob-search .va-mob-filter-btn .filter-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: $mint;
+    color: $on-accent;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 16px;
+    text-align: center;
+    pointer-events: none;
+    box-shadow: 0 1px 2px rgba(0, 209, 178, .35);
+  }
+
+  /* Active-filters chip strip — replaces the .va-mob-chips presets
+   * row when any filter is set. Each .cl-active-filter is a pill
+   * with label:value and a × on the right; Clear all is appended. */
+  .va-mob-chips.active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .cl-active-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 4px 0 10px;
+    border-radius: 999px;
+    border: 1px solid $line;
+    background: $surface;
+    color: $text-mid;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    line-height: 1;
+    transition: background .12s, border-color .12s, color .12s;
+  }
+  .cl-active-filter:hover { background: $bg; }
+  .cl-active-filter-label { color: $text-mute; font-weight: 600; }
+  .cl-active-filter-val { color: $ink; }
+  .cl-active-filter-x {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: $bg;
+    color: $text-mute;
+    font-size: 14px;
+    line-height: 1;
+    margin-left: 2px;
+    transition: background .12s, color .12s;
+  }
+  .cl-active-filter:hover .cl-active-filter-x {
+    background: $danger;
+    color: #fff;
+  }
+  /* Status chip variants — colour-tinted to match the followup
+   * state's pill (won/lost/qualified/lead/negotiation/on-hold). */
+  .cl-active-filter--status.pill-won         { background: #dcfce7; border-color: #bbf7d0; color: #166534; }
+  .cl-active-filter--status.pill-lost        { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
+  .cl-active-filter--status.pill-qualified   { background: #dbeafe; border-color: #bfdbfe; color: #1e40af; }
+  .cl-active-filter--status.pill-lead        { background: #fef3c7; border-color: #fde68a; color: #92400e; }
+  .cl-active-filter--status.pill-negotiation { background: #ede9fe; border-color: #ddd6fe; color: #5b21b6; }
+  .cl-active-filter--status.pill-on-hold     { background: #f3e8ff; border-color: #e9d5ff; color: #6b21a8; }
+  .cl-active-filter--status .cl-active-filter-label,
+  .cl-active-filter--status .cl-active-filter-val { color: inherit; }
+  .cl-active-filter--status .cl-active-filter-x {
+    background: rgba(255, 255, 255, .6);
+    color: inherit;
+  }
+
+  .cl-active-filter-clear {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: $danger;
+    font-size: 12px;
+    font-weight: 600;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: 4px;
+  }
+  .cl-active-filter-clear:hover { background: rgba(226, 89, 80, .08); }
+
+  /* Backdrop: a faint full-viewport scrim (popover stays anchored). */
+  .va-filter-surface .va-filter-dim { background: rgba(10, 37, 64, 0.18); }
+
+  /* Bottom sheet → anchored fixed-width card. filter.js sets top/left
+   * (anchored mode) or adds .va-filter-centered (fallback modal). */
+  .va-filter-panel {
+    position: fixed;
+    left: auto; right: auto; bottom: auto;
+    width: 680px; max-width: calc(100vw - 32px);
+    max-height: 78vh;
+    border-radius: 12px;
+    transform: translateY(-8px);
+    opacity: 0;
+    transition: opacity .16s ease, transform .16s ease;
+    box-shadow: 0 16px 48px rgba(10, 37, 64, .24);
+  }
+  .va-filter-surface.open .va-filter-panel {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  /* Narrow-desktop fallback: centered modal (filter.js decides). */
+  .va-filter-panel.va-filter-centered {
+    left: 50%; top: 50%;
+    transform: translate(-50%, -46%);
+  }
+  .va-filter-surface.open .va-filter-panel.va-filter-centered {
+    transform: translate(-50%, -50%);
+  }
+  /* No drag handle on desktop (sortsheet does the same). */
+  .va-filter-panel .sheet-handle { display: none; }
+
+  /* Denser block grid: segmented blocks pair up 2-across; the Any
+   * selects sit 3-across; SEARCH / SEARCH-IN / multi stay full-width. */
+  .va-filter-panel .sheet-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px 18px;
+    padding: 18px 22px;
+  }
+  .va-filter-panel .sheet-body > .va-fblock[data-block="search"],
+  .va-filter-panel .sheet-body > .va-fblock[data-block="searchin"],
+  .va-filter-panel .sheet-body > .va-fblock[data-block="multi"],
+  .va-filter-panel .sheet-body > .va-fgroup-cap {
+    grid-column: 1 / -1;
+  }
+  .va-filter-panel .sheet-body > .va-fblock[data-block="seg"] {
+    grid-column: span 1;
+  }
+  .va-filter-panel .sheet-body > .va-fblock[data-block="select"] {
+    grid-column: span 1;
+  }
+  .va-filter-foot { border-radius: 0 0 12px 12px; }
+}
+
+// .sw-drawer is now emitted INSIDE .proto-screen by Form.php; the
+// outer drawer geometry (position:fixed, width, transform) lives on
+// .proto-screen (D3 above). .sw-drawer itself is just the flex-column
+// container — those rules are in the Edit-drawer fidelity block below.
+
+// child-tabs styling now lives in _formv2.scss (scoped to
+// .proto-screen .sw-drawer > .sw-header .child-tab) so mobile +
+// desktop share one source of truth. The old standalone
+// @media (min-width: 1024px) block here was overriding it.
+
+// ============================================================
+// Edit-drawer fidelity (≥720px). The emitter now produces the
+// spec scaffold (docs/superpowers/specs/2026-05-19-edit-drawer-
+// fidelity-design.md): .sw-drawer > .sw-header + .sw-identity
+// + .sw-tabnav + .sw-body + .sw-footer. This block:
+//   (1) drawer flex-column: header/identity/tabnav/footer pin,
+//       .sw-body is the single scroll area.
+//   (2) docked (non-modal) drawer — kill the body::after dim
+//       so the list reads at full saturation.
+//   (3) stacked label-above-input rows inside .sw-group.
+//   (4) .sw-grid 2-col with minmax(0,1fr) (input size=35 was
+//       forcing 445px tracks in a 432px container).
+//   (5) .sw-tabnav — 3 form tabs fit; drop mobile overflow-x.
+//   (6) .child-tabs styled for in-header position (.sw-header
+//       child) — no more display:contents/order reorder hack.
+// All inside the desktop media query; mobile is untouched.
+// ============================================================
+@media (min-width: 720px) {
+
+  // (1) Drawer flex chain lives in _formv2.scss base (applies on
+  // mobile + desktop). This block just adds desktop-only tweaks
+  // (proto-screen overflow:hidden so the docked drawer clips) and
+  // the sw-tabnav flex-shrink that desktop needs.
+  .proto-screen { overflow: hidden; }
+  .proto-screen .sw-drawer > .sw-tabnav {
+    flex-shrink: 0;
+  }
+  .proto-screen .sw-drawer > .sw-body {
+    padding-bottom: 48px;
+  }
+
+  // (2) Page-level dim overlay when the drawer is open — restored
+  // per target. _formv2.scss + the D3 block above set up the
+  // overlay; we keep it on by NOT overriding it here.
+
+  // (3) Form row layout (stacked label-above-input, borderless
+  // inputs) lives in _formv2.scss scoped to .sw-drawer .sw-body.
+  // No box-input rules here so the borderless rules win.
+
+  // (4) .sw-grid: minmax(0,1fr) prevents input size=35 from
+  // dictating track width; min-width:0 on cells lets long values
+  // truncate cleanly instead of pushing the grid wider.
+  .proto-screen .sw-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .proto-screen .sw-grid > .form-row { min-width: 0; }
+
+  // (5) 3 form tabs fit easily in 520px; drop the mobile
+  // scroll-affordance on desktop.
+  .proto-screen .sw-tabnav { overflow-x: visible; }
+
+  // (6) .child-tabs inside the drawer header — base + active
+  // styling lives in _formv2.scss so mobile and desktop share
+  // one source of truth.
+}

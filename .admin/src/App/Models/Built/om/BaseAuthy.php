@@ -1,0 +1,20420 @@
+<?php
+
+namespace App\om;
+
+use \BaseObject;
+use \BasePeer;
+use \Criteria;
+use \DateTime;
+use \Exception;
+use \PDO;
+use \Persistent;
+use \Propel;
+use \PropelCollection;
+use \PropelDateTime;
+use \PropelException;
+use \PropelObjectCollection;
+use \PropelPDO;
+use App\ApiLog;
+use App\ApiLogQuery;
+use App\ApiRbac;
+use App\ApiRbacQuery;
+use App\Authy;
+use App\AuthyGroup;
+use App\AuthyGroupQuery;
+use App\AuthyGroupX;
+use App\AuthyGroupXQuery;
+use App\AuthyLog;
+use App\AuthyLogQuery;
+use App\AuthyPeer;
+use App\AuthyQuery;
+use App\AuthyRefreshToken;
+use App\AuthyRefreshTokenQuery;
+use App\BotCommand;
+use App\BotCommandQuery;
+use App\BotDecision;
+use App\BotDecisionQuery;
+use App\BotEvent;
+use App\BotEventQuery;
+use App\BotOrder;
+use App\BotOrderQuery;
+use App\Config;
+use App\ConfigQuery;
+use App\Country;
+use App\CountryQuery;
+use App\GridRun;
+use App\GridRunQuery;
+use App\MarketRegime;
+use App\MarketRegimeQuery;
+use App\MarketSummary;
+use App\MarketSummaryQuery;
+use App\MessageI18n;
+use App\MessageI18nQuery;
+use App\OauthAccessToken;
+use App\OauthAccessTokenQuery;
+use App\OauthAuthCode;
+use App\OauthAuthCodeQuery;
+use App\OauthClient;
+use App\OauthClientQuery;
+use App\OauthRefreshToken;
+use App\OauthRefreshTokenQuery;
+use App\PushDevice;
+use App\PushDeviceQuery;
+use App\SimWallet;
+use App\SimWalletQuery;
+use App\Template;
+use App\TemplateFile;
+use App\TemplateFileQuery;
+use App\TemplateQuery;
+use App\TradeCycle;
+use App\TradeCycleQuery;
+
+/**
+ * Base class that represents a row from the 'authy' table.
+ *
+ * User
+ *
+ * @package    propel.generator..om
+ */
+abstract class BaseAuthy extends BaseObject implements Persistent
+{
+    /**
+     * Peer class name
+     */
+    const PEER = 'App\\AuthyPeer';
+
+    /**
+     * The Peer class.
+     * Instance provides a convenient way of calling static methods on a class
+     * that calling code may not be able to identify.
+     * @var        AuthyPeer
+     */
+    protected static $peer;
+
+    /**
+     * The flag var to prevent infinite loop in deep copy
+     * @var       boolean
+     */
+    protected $startCopy = false;
+
+    /**
+     * The value for the id_authy field.
+     * @var        int
+     */
+    protected $id_authy;
+
+    /**
+     * The value for the validation_key field.
+     * @var        string
+     */
+    protected $validation_key;
+
+    /**
+     * The value for the username field.
+     * @var        string
+     */
+    protected $username;
+
+    /**
+     * The value for the fullname field.
+     * @var        string
+     */
+    protected $fullname;
+
+    /**
+     * The value for the email field.
+     * @var        string
+     */
+    protected $email;
+
+    /**
+     * The value for the passwd_hash field.
+     * @var        string
+     */
+    protected $passwd_hash;
+
+    /**
+     * The value for the expire field.
+     * Note: this column has a database default value of: NULL
+     * @var        string
+     */
+    protected $expire;
+
+    /**
+     * The value for the deactivate field.
+     * Note: this column has a database default value of: 1
+     * @var        int
+     */
+    protected $deactivate;
+
+    /**
+     * The value for the language field.
+     * Note: this column has a database default value of: 0
+     * @var        int
+     */
+    protected $language;
+
+    /**
+     * The value for the theme field.
+     * Note: this column has a database default value of: 0
+     * @var        int
+     */
+    protected $theme;
+
+    /**
+     * The value for the google_sub field.
+     * @var        string
+     */
+    protected $google_sub;
+
+    /**
+     * The value for the google_email field.
+     * @var        string
+     */
+    protected $google_email;
+
+    /**
+     * The value for the reset_token_hash field.
+     * @var        string
+     */
+    protected $reset_token_hash;
+
+    /**
+     * The value for the reset_token_expires field.
+     * @var        int
+     */
+    protected $reset_token_expires;
+
+    /**
+     * The value for the id_tenant field.
+     * Note: this column has a database default value of: 1
+     * @var        int
+     */
+    protected $id_tenant;
+
+    /**
+     * The value for the location_address field.
+     * @var        string
+     */
+    protected $location_address;
+
+    /**
+     * The value for the location_lat field.
+     * @var        string
+     */
+    protected $location_lat;
+
+    /**
+     * The value for the location_lng field.
+     * @var        string
+     */
+    protected $location_lng;
+
+    /**
+     * The value for the is_root field.
+     * Note: this column has a database default value of: 1
+     * @var        int
+     */
+    protected $is_root;
+
+    /**
+     * The value for the id_authy_group field.
+     * Note: this column has a database default value of: 1
+     * @var        int
+     */
+    protected $id_authy_group;
+
+    /**
+     * The value for the is_system field.
+     * Note: this column has a database default value of: 1
+     * @var        int
+     */
+    protected $is_system;
+
+    /**
+     * The value for the rights_all field.
+     * @var        string
+     */
+    protected $rights_all;
+
+    /**
+     * The value for the rights_group field.
+     * @var        string
+     */
+    protected $rights_group;
+
+    /**
+     * The value for the rights_owner field.
+     * @var        string
+     */
+    protected $rights_owner;
+
+    /**
+     * The value for the onglet field.
+     * @var        string
+     */
+    protected $onglet;
+
+    /**
+     * The value for the date_creation field.
+     * @var        string
+     */
+    protected $date_creation;
+
+    /**
+     * The value for the date_modification field.
+     * @var        string
+     */
+    protected $date_modification;
+
+    /**
+     * The value for the id_group_creation field.
+     * @var        int
+     */
+    protected $id_group_creation;
+
+    /**
+     * The value for the id_creation field.
+     * @var        int
+     */
+    protected $id_creation;
+
+    /**
+     * The value for the id_modification field.
+     * @var        int
+     */
+    protected $id_modification;
+
+    /**
+     * @var        AuthyGroup
+     */
+    protected $aAuthyGroupRelatedByIdAuthyGroup;
+
+    /**
+     * @var        AuthyGroup
+     */
+    protected $aAuthyGroupRelatedByIdGroupCreation;
+
+    /**
+     * @var        Authy
+     */
+    protected $aAuthyRelatedByIdCreation;
+
+    /**
+     * @var        Authy
+     */
+    protected $aAuthyRelatedByIdModification;
+
+    /**
+     * @var        PropelObjectCollection|PushDevice[] Collection to store aggregation of PushDevice objects.
+     */
+    protected $collPushDevicesRelatedByIdAuthy;
+    protected $collPushDevicesRelatedByIdAuthyPartial;
+
+    /**
+     * @var        PropelObjectCollection|AuthyGroupX[] Collection to store aggregation of AuthyGroupX objects.
+     */
+    protected $collAuthyGroupxesRelatedByIdAuthy;
+    protected $collAuthyGroupxesRelatedByIdAuthyPartial;
+
+    /**
+     * @var        PropelObjectCollection|AuthyLog[] Collection to store aggregation of AuthyLog objects.
+     */
+    protected $collAuthyLogs;
+    protected $collAuthyLogsPartial;
+
+    /**
+     * @var        PropelObjectCollection|Authy[] Collection to store aggregation of Authy objects.
+     */
+    protected $collAuthiesRelatedByIdAuthy0;
+    protected $collAuthiesRelatedByIdAuthy0Partial;
+
+    /**
+     * @var        PropelObjectCollection|Authy[] Collection to store aggregation of Authy objects.
+     */
+    protected $collAuthiesRelatedByIdAuthy1;
+    protected $collAuthiesRelatedByIdAuthy1Partial;
+
+    /**
+     * @var        PropelObjectCollection|PushDevice[] Collection to store aggregation of PushDevice objects.
+     */
+    protected $collPushDevicesRelatedByIdCreation;
+    protected $collPushDevicesRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|PushDevice[] Collection to store aggregation of PushDevice objects.
+     */
+    protected $collPushDevicesRelatedByIdModification;
+    protected $collPushDevicesRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|Country[] Collection to store aggregation of Country objects.
+     */
+    protected $collCountriesRelatedByIdCreation;
+    protected $collCountriesRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|Country[] Collection to store aggregation of Country objects.
+     */
+    protected $collCountriesRelatedByIdModification;
+    protected $collCountriesRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|GridRun[] Collection to store aggregation of GridRun objects.
+     */
+    protected $collGridRunsRelatedByIdCreation;
+    protected $collGridRunsRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|GridRun[] Collection to store aggregation of GridRun objects.
+     */
+    protected $collGridRunsRelatedByIdModification;
+    protected $collGridRunsRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|BotOrder[] Collection to store aggregation of BotOrder objects.
+     */
+    protected $collBotOrdersRelatedByIdCreation;
+    protected $collBotOrdersRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|BotOrder[] Collection to store aggregation of BotOrder objects.
+     */
+    protected $collBotOrdersRelatedByIdModification;
+    protected $collBotOrdersRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|TradeCycle[] Collection to store aggregation of TradeCycle objects.
+     */
+    protected $collTradeCyclesRelatedByIdCreation;
+    protected $collTradeCyclesRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|TradeCycle[] Collection to store aggregation of TradeCycle objects.
+     */
+    protected $collTradeCyclesRelatedByIdModification;
+    protected $collTradeCyclesRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|BotEvent[] Collection to store aggregation of BotEvent objects.
+     */
+    protected $collBotEventsRelatedByIdCreation;
+    protected $collBotEventsRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|BotEvent[] Collection to store aggregation of BotEvent objects.
+     */
+    protected $collBotEventsRelatedByIdModification;
+    protected $collBotEventsRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|BotCommand[] Collection to store aggregation of BotCommand objects.
+     */
+    protected $collBotCommandsRelatedByIdCreation;
+    protected $collBotCommandsRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|BotCommand[] Collection to store aggregation of BotCommand objects.
+     */
+    protected $collBotCommandsRelatedByIdModification;
+    protected $collBotCommandsRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|SimWallet[] Collection to store aggregation of SimWallet objects.
+     */
+    protected $collSimWalletsRelatedByIdCreation;
+    protected $collSimWalletsRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|SimWallet[] Collection to store aggregation of SimWallet objects.
+     */
+    protected $collSimWalletsRelatedByIdModification;
+    protected $collSimWalletsRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|MarketSummary[] Collection to store aggregation of MarketSummary objects.
+     */
+    protected $collMarketSummariesRelatedByIdCreation;
+    protected $collMarketSummariesRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|MarketSummary[] Collection to store aggregation of MarketSummary objects.
+     */
+    protected $collMarketSummariesRelatedByIdModification;
+    protected $collMarketSummariesRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|MarketRegime[] Collection to store aggregation of MarketRegime objects.
+     */
+    protected $collMarketRegimesRelatedByIdCreation;
+    protected $collMarketRegimesRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|MarketRegime[] Collection to store aggregation of MarketRegime objects.
+     */
+    protected $collMarketRegimesRelatedByIdModification;
+    protected $collMarketRegimesRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|BotDecision[] Collection to store aggregation of BotDecision objects.
+     */
+    protected $collBotDecisionsRelatedByIdCreation;
+    protected $collBotDecisionsRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|BotDecision[] Collection to store aggregation of BotDecision objects.
+     */
+    protected $collBotDecisionsRelatedByIdModification;
+    protected $collBotDecisionsRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|AuthyGroup[] Collection to store aggregation of AuthyGroup objects.
+     */
+    protected $collAuthyGroupsRelatedByIdCreation;
+    protected $collAuthyGroupsRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|AuthyGroup[] Collection to store aggregation of AuthyGroup objects.
+     */
+    protected $collAuthyGroupsRelatedByIdModification;
+    protected $collAuthyGroupsRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|AuthyGroupX[] Collection to store aggregation of AuthyGroupX objects.
+     */
+    protected $collAuthyGroupxesRelatedByIdCreation;
+    protected $collAuthyGroupxesRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|AuthyGroupX[] Collection to store aggregation of AuthyGroupX objects.
+     */
+    protected $collAuthyGroupxesRelatedByIdModification;
+    protected $collAuthyGroupxesRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|Config[] Collection to store aggregation of Config objects.
+     */
+    protected $collConfigsRelatedByIdCreation;
+    protected $collConfigsRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|Config[] Collection to store aggregation of Config objects.
+     */
+    protected $collConfigsRelatedByIdModification;
+    protected $collConfigsRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|ApiRbac[] Collection to store aggregation of ApiRbac objects.
+     */
+    protected $collApiRbacsRelatedByIdCreation;
+    protected $collApiRbacsRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|ApiRbac[] Collection to store aggregation of ApiRbac objects.
+     */
+    protected $collApiRbacsRelatedByIdModification;
+    protected $collApiRbacsRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|ApiLog[] Collection to store aggregation of ApiLog objects.
+     */
+    protected $collApiLogs;
+    protected $collApiLogsPartial;
+
+    /**
+     * @var        PropelObjectCollection|Template[] Collection to store aggregation of Template objects.
+     */
+    protected $collTemplatesRelatedByIdCreation;
+    protected $collTemplatesRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|Template[] Collection to store aggregation of Template objects.
+     */
+    protected $collTemplatesRelatedByIdModification;
+    protected $collTemplatesRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|TemplateFile[] Collection to store aggregation of TemplateFile objects.
+     */
+    protected $collTemplateFilesRelatedByIdCreation;
+    protected $collTemplateFilesRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|TemplateFile[] Collection to store aggregation of TemplateFile objects.
+     */
+    protected $collTemplateFilesRelatedByIdModification;
+    protected $collTemplateFilesRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|AuthyRefreshToken[] Collection to store aggregation of AuthyRefreshToken objects.
+     */
+    protected $collAuthyRefreshTokensRelatedByIdAuthy;
+    protected $collAuthyRefreshTokensRelatedByIdAuthyPartial;
+
+    /**
+     * @var        PropelObjectCollection|AuthyRefreshToken[] Collection to store aggregation of AuthyRefreshToken objects.
+     */
+    protected $collAuthyRefreshTokensRelatedByIdCreation;
+    protected $collAuthyRefreshTokensRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|AuthyRefreshToken[] Collection to store aggregation of AuthyRefreshToken objects.
+     */
+    protected $collAuthyRefreshTokensRelatedByIdModification;
+    protected $collAuthyRefreshTokensRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|OauthClient[] Collection to store aggregation of OauthClient objects.
+     */
+    protected $collOauthClientsRelatedByIdCreation;
+    protected $collOauthClientsRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|OauthClient[] Collection to store aggregation of OauthClient objects.
+     */
+    protected $collOauthClientsRelatedByIdModification;
+    protected $collOauthClientsRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|OauthAuthCode[] Collection to store aggregation of OauthAuthCode objects.
+     */
+    protected $collOauthAuthCodesRelatedByIdAuthy;
+    protected $collOauthAuthCodesRelatedByIdAuthyPartial;
+
+    /**
+     * @var        PropelObjectCollection|OauthAuthCode[] Collection to store aggregation of OauthAuthCode objects.
+     */
+    protected $collOauthAuthCodesRelatedByIdCreation;
+    protected $collOauthAuthCodesRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|OauthAuthCode[] Collection to store aggregation of OauthAuthCode objects.
+     */
+    protected $collOauthAuthCodesRelatedByIdModification;
+    protected $collOauthAuthCodesRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|OauthAccessToken[] Collection to store aggregation of OauthAccessToken objects.
+     */
+    protected $collOauthAccessTokensRelatedByIdAuthy;
+    protected $collOauthAccessTokensRelatedByIdAuthyPartial;
+
+    /**
+     * @var        PropelObjectCollection|OauthAccessToken[] Collection to store aggregation of OauthAccessToken objects.
+     */
+    protected $collOauthAccessTokensRelatedByIdCreation;
+    protected $collOauthAccessTokensRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|OauthAccessToken[] Collection to store aggregation of OauthAccessToken objects.
+     */
+    protected $collOauthAccessTokensRelatedByIdModification;
+    protected $collOauthAccessTokensRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|OauthRefreshToken[] Collection to store aggregation of OauthRefreshToken objects.
+     */
+    protected $collOauthRefreshTokensRelatedByIdAuthy;
+    protected $collOauthRefreshTokensRelatedByIdAuthyPartial;
+
+    /**
+     * @var        PropelObjectCollection|OauthRefreshToken[] Collection to store aggregation of OauthRefreshToken objects.
+     */
+    protected $collOauthRefreshTokensRelatedByIdCreation;
+    protected $collOauthRefreshTokensRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|OauthRefreshToken[] Collection to store aggregation of OauthRefreshToken objects.
+     */
+    protected $collOauthRefreshTokensRelatedByIdModification;
+    protected $collOauthRefreshTokensRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|MessageI18n[] Collection to store aggregation of MessageI18n objects.
+     */
+    protected $collMessageI18nsRelatedByIdCreation;
+    protected $collMessageI18nsRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|MessageI18n[] Collection to store aggregation of MessageI18n objects.
+     */
+    protected $collMessageI18nsRelatedByIdModification;
+    protected $collMessageI18nsRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|AuthyGroup[] Collection to store aggregation of AuthyGroup objects.
+     */
+    protected $collAuthyGroupsRelatedByIdAuthyGroup;
+
+    /**
+     * @var        PropelObjectCollection|AuthyGroup[] Collection to store aggregation of AuthyGroup objects.
+     */
+    protected $collAuthyGroupsRelatedByIdGroupCreation;
+
+    /**
+     * @var        PropelObjectCollection|Authy[] Collection to store aggregation of Authy objects.
+     */
+    protected $collAuthiesRelatedByIdCreation;
+
+    /**
+     * @var        PropelObjectCollection|Authy[] Collection to store aggregation of Authy objects.
+     */
+    protected $collAuthiesRelatedByIdModification;
+
+    /**
+     * @var        PropelObjectCollection|Authy[] Collection to store aggregation of Authy objects.
+     */
+    protected $collAuthiesRelatedByIdAuthy;
+
+    /**
+     * Flag to prevent endless save loop, if this object is referenced
+     * by another object which falls in this transaction.
+     * @var        boolean
+     */
+    protected $alreadyInSave = false;
+
+    /**
+     * Flag to prevent endless validation loop, if this object is referenced
+     * by another object which falls in this transaction.
+     * @var        boolean
+     */
+    protected $alreadyInValidation = false;
+
+    /**
+     * Flag to prevent endless clearAllReferences($deep=true) loop, if this object is referenced
+     * @var        boolean
+     */
+    protected $alreadyInClearAllReferencesDeep = false;
+
+    // GoatCheese behavior
+    
+        /** Additive-rights trigger flag: set in preSave, consumed in postSave. */
+        public $gcRecomputeRights = false;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $authyGroupsRelatedByIdAuthyGroupScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $authyGroupsRelatedByIdGroupCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $authiesRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $authiesRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $authiesRelatedByIdAuthyScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $pushDevicesRelatedByIdAuthyScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $authyGroupxesRelatedByIdAuthyScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $authyLogsScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $authiesRelatedByIdAuthy0ScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $authiesRelatedByIdAuthy1ScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $pushDevicesRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $pushDevicesRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $countriesRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $countriesRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $gridRunsRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $gridRunsRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $botOrdersRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $botOrdersRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $tradeCyclesRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $tradeCyclesRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $botEventsRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $botEventsRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $botCommandsRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $botCommandsRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $simWalletsRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $simWalletsRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $marketSummariesRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $marketSummariesRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $marketRegimesRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $marketRegimesRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $botDecisionsRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $botDecisionsRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $authyGroupsRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $authyGroupsRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $authyGroupxesRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $authyGroupxesRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $configsRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $configsRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $apiRbacsRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $apiRbacsRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $apiLogsScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $templatesRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $templatesRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $templateFilesRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $templateFilesRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $authyRefreshTokensRelatedByIdAuthyScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $authyRefreshTokensRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $authyRefreshTokensRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $oauthClientsRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $oauthClientsRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $oauthAuthCodesRelatedByIdAuthyScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $oauthAuthCodesRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $oauthAuthCodesRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $oauthAccessTokensRelatedByIdAuthyScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $oauthAccessTokensRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $oauthAccessTokensRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $oauthRefreshTokensRelatedByIdAuthyScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $oauthRefreshTokensRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $oauthRefreshTokensRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $messageI18nsRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $messageI18nsRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * Applies default values to this object.
+     * This method should be called from the object's constructor (or
+     * equivalent initialization method).
+     * @see        __construct()
+     */
+    public function applyDefaultValues()
+    {
+        $this->expire = NULL;
+        $this->deactivate = 1;
+        $this->language = 0;
+        $this->theme = 0;
+        $this->id_tenant = 1;
+        $this->is_root = 1;
+        $this->id_authy_group = 1;
+        $this->is_system = 1;
+    }
+
+    /**
+     * Initializes internal state of BaseAuthy object.
+     * @see        applyDefaults()
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        $this->applyDefaultValues();
+    }
+
+    /**
+     * @Field()
+     * Get the [id_authy] column value.
+     *
+     * @return int
+     */
+    public function getIdAuthy()
+    {
+
+        return $this->id_authy;
+    }
+
+    /**
+     * @Field()
+     * Get the [validation_key] column value.
+     *
+     * @return string
+     */
+    public function getValidationKey()
+    {
+
+        return $this->validation_key;
+    }
+
+    /**
+     * @Field()
+     * Get the [username] column value.
+     * Username
+     * @return string
+     */
+    public function getUsername()
+    {
+
+        return $this->username;
+    }
+
+    /**
+     * @Field()
+     * Get the [fullname] column value.
+     * Fullname
+     * @return string
+     */
+    public function getFullname()
+    {
+
+        return $this->fullname;
+    }
+
+    /**
+     * @Field()
+     * Get the [email] column value.
+     * Email
+     * @return string
+     */
+    public function getEmail()
+    {
+
+        return $this->email;
+    }
+
+    /**
+     * @Field()
+     * Get the [passwd_hash] column value.
+     * Password
+     * @return string
+     */
+    public function getPasswdHash()
+    {
+
+        return $this->passwd_hash;
+    }
+
+    /**
+     * @Field()
+     * Get the [optionally formatted] temporal [expire] column value.
+     * Expiration
+     *
+     * @param string $format The date/time format string (either date()-style or strftime()-style).
+     *				 If format is null, then the raw DateTime object will be returned.
+     * @return mixed Formatted date/time value as string or DateTime object (if format is null), null if column is null, and 0 if column value is 0000-00-00
+     * @throws PropelException - if unable to parse/validate the date/time value.
+     */
+    public function getExpire($format = 'Y-m-d')
+    {
+        if ($this->expire === null) {
+            return null;
+        }
+
+        if ($this->expire === '0000-00-00') {
+            // while technically this is not a default value of null,
+            // this seems to be closest in meaning.
+            return null;
+        }
+
+        try {
+            $dt = new DateTime($this->expire);
+        } catch (Exception $x) {
+            throw new PropelException("Internally stored date/time/timestamp value could not be converted to DateTime: " . var_export($this->expire, true), $x);
+        }
+
+        if ($format === null) {
+            // Because propel.useDateTimeClass is true, we return a DateTime object.
+            return $dt;
+        }
+
+        if (strpos($format, '%') !== false) {
+            return strftime($format, $dt->format('U'));
+        }
+
+        return $dt->format($format);
+
+    }
+
+    /**
+     * @Field()
+     * Get the [deactivate] column value.
+     * Deactivated
+     * @return int
+     * @throws PropelException - if the stored enum key is unknown.
+     */
+    public function getDeactivate()
+    {
+        if (null === $this->deactivate) {
+            return null;
+        }
+        $valueSet = AuthyPeer::getValueSet(AuthyPeer::DEACTIVATE);
+        if (!isset($valueSet[$this->deactivate])) {
+            throw new PropelException('Unknown stored enum key: ' . $this->deactivate);
+        }
+
+        return $valueSet[$this->deactivate];
+    }
+
+    /**
+     * @Field()
+     * Get the [language] column value.
+     * Language
+     * @return int
+     * @throws PropelException - if the stored enum key is unknown.
+     */
+    public function getLanguage()
+    {
+        if (null === $this->language) {
+            return null;
+        }
+        $valueSet = AuthyPeer::getValueSet(AuthyPeer::LANGUAGE);
+        if (!isset($valueSet[$this->language])) {
+            throw new PropelException('Unknown stored enum key: ' . $this->language);
+        }
+
+        return $valueSet[$this->language];
+    }
+
+    /**
+     * @Field()
+     * Get the [theme] column value.
+     * Theme
+     * @return int
+     * @throws PropelException - if the stored enum key is unknown.
+     */
+    public function getTheme()
+    {
+        if (null === $this->theme) {
+            return null;
+        }
+        $valueSet = AuthyPeer::getValueSet(AuthyPeer::THEME);
+        if (!isset($valueSet[$this->theme])) {
+            throw new PropelException('Unknown stored enum key: ' . $this->theme);
+        }
+
+        return $valueSet[$this->theme];
+    }
+
+    /**
+     * @Field()
+     * Get the [google_sub] column value.
+     * Google sub
+     * @return string
+     */
+    public function getGoogleSub()
+    {
+
+        return $this->google_sub;
+    }
+
+    /**
+     * @Field()
+     * Get the [google_email] column value.
+     * Google email
+     * @return string
+     */
+    public function getGoogleEmail()
+    {
+
+        return $this->google_email;
+    }
+
+    /**
+     * @Field()
+     * Get the [reset_token_hash] column value.
+     * Reset token
+     * @return string
+     */
+    public function getResetTokenHash()
+    {
+
+        return $this->reset_token_hash;
+    }
+
+    /**
+     * @Field()
+     * Get the [reset_token_expires] column value.
+     * Reset expires
+     * @return int
+     */
+    public function getResetTokenExpires()
+    {
+
+        return $this->reset_token_expires;
+    }
+
+    /**
+     * @Field()
+     * Get the [id_tenant] column value.
+     * Tenant
+     * @return int
+     */
+    public function getIdTenant()
+    {
+
+        return $this->id_tenant;
+    }
+
+    /**
+     * @Field()
+     * Get the [location_address] column value.
+     * Location Address
+     * @return string
+     */
+    public function getLocationAddress()
+    {
+
+        return $this->location_address;
+    }
+
+    /**
+     * @Field()
+     * Get the [location_lat] column value.
+     *
+     * @return string
+     */
+    public function getLocationLat()
+    {
+
+        return $this->location_lat;
+    }
+
+    /**
+     * @Field()
+     * Get the [location_lng] column value.
+     *
+     * @return string
+     */
+    public function getLocationLng()
+    {
+
+        return $this->location_lng;
+    }
+
+    /**
+     * @Field()
+     * Get the [is_root] column value.
+     * Root
+     * @return int
+     * @throws PropelException - if the stored enum key is unknown.
+     */
+    public function getIsRoot()
+    {
+        if (null === $this->is_root) {
+            return null;
+        }
+        $valueSet = AuthyPeer::getValueSet(AuthyPeer::IS_ROOT);
+        if (!isset($valueSet[$this->is_root])) {
+            throw new PropelException('Unknown stored enum key: ' . $this->is_root);
+        }
+
+        return $valueSet[$this->is_root];
+    }
+
+    /**
+     * @Field()
+     * Get the [id_authy_group] column value.
+     * Primary group
+     * @return int
+     */
+    public function getIdAuthyGroup()
+    {
+
+        return $this->id_authy_group;
+    }
+
+    /**
+     * @Field()
+     * Get the [is_system] column value.
+     *
+     * @return int
+     * @throws PropelException - if the stored enum key is unknown.
+     */
+    public function getIsSystem()
+    {
+        if (null === $this->is_system) {
+            return null;
+        }
+        $valueSet = AuthyPeer::getValueSet(AuthyPeer::IS_SYSTEM);
+        if (!isset($valueSet[$this->is_system])) {
+            throw new PropelException('Unknown stored enum key: ' . $this->is_system);
+        }
+
+        return $valueSet[$this->is_system];
+    }
+
+    /**
+     * @Field()
+     * Get the [rights_all] column value.
+     * Rights
+     * @return string
+     */
+    public function getRightsAll()
+    {
+
+        return $this->rights_all;
+    }
+
+    /**
+     * @Field()
+     * Get the [rights_group] column value.
+     * Rights (group records)
+     * @return string
+     */
+    public function getRightsGroup()
+    {
+
+        return $this->rights_group;
+    }
+
+    /**
+     * @Field()
+     * Get the [rights_owner] column value.
+     * Rights (own records)
+     * @return string
+     */
+    public function getRightsOwner()
+    {
+
+        return $this->rights_owner;
+    }
+
+    /**
+     * @Field()
+     * Get the [onglet] column value.
+     *
+     * @return string
+     */
+    public function getOnglet()
+    {
+
+        return $this->onglet;
+    }
+
+    /**
+     * @Field()
+     * Get the [optionally formatted] temporal [date_creation] column value.
+     *
+     *
+     * @param string $format The date/time format string (either date()-style or strftime()-style).
+     *				 If format is null, then the raw DateTime object will be returned.
+     * @return mixed Formatted date/time value as string or DateTime object (if format is null), null if column is null, and 0 if column value is 0000-00-00 00:00:00
+     * @throws PropelException - if unable to parse/validate the date/time value.
+     */
+    public function getDateCreation($format = 'Y-m-d H:i:s')
+    {
+        if ($this->date_creation === null) {
+            return null;
+        }
+
+        if ($this->date_creation === '0000-00-00 00:00:00') {
+            // while technically this is not a default value of null,
+            // this seems to be closest in meaning.
+            return null;
+        }
+
+        try {
+            $dt = new DateTime($this->date_creation);
+        } catch (Exception $x) {
+            throw new PropelException("Internally stored date/time/timestamp value could not be converted to DateTime: " . var_export($this->date_creation, true), $x);
+        }
+
+        if ($format === null) {
+            // Because propel.useDateTimeClass is true, we return a DateTime object.
+            return $dt;
+        }
+
+        if (strpos($format, '%') !== false) {
+            return strftime($format, $dt->format('U'));
+        }
+
+        return $dt->format($format);
+
+    }
+
+    /**
+     * @Field()
+     * Get the [optionally formatted] temporal [date_modification] column value.
+     *
+     *
+     * @param string $format The date/time format string (either date()-style or strftime()-style).
+     *				 If format is null, then the raw DateTime object will be returned.
+     * @return mixed Formatted date/time value as string or DateTime object (if format is null), null if column is null, and 0 if column value is 0000-00-00 00:00:00
+     * @throws PropelException - if unable to parse/validate the date/time value.
+     */
+    public function getDateModification($format = 'Y-m-d H:i:s')
+    {
+        if ($this->date_modification === null) {
+            return null;
+        }
+
+        if ($this->date_modification === '0000-00-00 00:00:00') {
+            // while technically this is not a default value of null,
+            // this seems to be closest in meaning.
+            return null;
+        }
+
+        try {
+            $dt = new DateTime($this->date_modification);
+        } catch (Exception $x) {
+            throw new PropelException("Internally stored date/time/timestamp value could not be converted to DateTime: " . var_export($this->date_modification, true), $x);
+        }
+
+        if ($format === null) {
+            // Because propel.useDateTimeClass is true, we return a DateTime object.
+            return $dt;
+        }
+
+        if (strpos($format, '%') !== false) {
+            return strftime($format, $dt->format('U'));
+        }
+
+        return $dt->format($format);
+
+    }
+
+    /**
+     * @Field()
+     * Get the [id_group_creation] column value.
+     *
+     * @return int
+     */
+    public function getIdGroupCreation()
+    {
+
+        return $this->id_group_creation;
+    }
+
+    /**
+     * @Field()
+     * Get the [id_creation] column value.
+     *
+     * @return int
+     */
+    public function getIdCreation()
+    {
+
+        return $this->id_creation;
+    }
+
+    /**
+     * @Field()
+     * Get the [id_modification] column value.
+     *
+     * @return int
+     */
+    public function getIdModification()
+    {
+
+        return $this->id_modification;
+    }
+
+    /**
+     * Set the value of [id_authy] column.
+     *
+     * @param  int $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setIdAuthy($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (int) $v;
+        }
+
+        if ($this->id_authy !== $v) {
+            $this->id_authy = $v;
+            $this->modifiedColumns[] = AuthyPeer::ID_AUTHY;
+        }
+
+
+        return $this;
+    } // setIdAuthy()
+
+    /**
+     * Set the value of [validation_key] column.
+     *
+     * @param  string $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setValidationKey($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->validation_key !== $v) {
+            $this->validation_key = $v;
+            $this->modifiedColumns[] = AuthyPeer::VALIDATION_KEY;
+        }
+
+
+        return $this;
+    } // setValidationKey()
+
+    /**
+     * Set the value of [username] column.
+     * Username
+     * @param  string $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setUsername($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->username !== $v) {
+            $this->username = $v;
+            $this->modifiedColumns[] = AuthyPeer::USERNAME;
+        }
+
+
+        return $this;
+    } // setUsername()
+
+    /**
+     * Set the value of [fullname] column.
+     * Fullname
+     * @param  string $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setFullname($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->fullname !== $v) {
+            $this->fullname = $v;
+            $this->modifiedColumns[] = AuthyPeer::FULLNAME;
+        }
+
+
+        return $this;
+    } // setFullname()
+
+    /**
+     * Set the value of [email] column.
+     * Email
+     * @param  string $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setEmail($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->email !== $v) {
+            $this->email = $v;
+            $this->modifiedColumns[] = AuthyPeer::EMAIL;
+        }
+
+
+        return $this;
+    } // setEmail()
+
+    /**
+     * Set the value of [passwd_hash] column.
+     * Password
+     * @param  string $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setPasswdHash($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->passwd_hash !== $v) {
+            $this->passwd_hash = $v;
+            $this->modifiedColumns[] = AuthyPeer::PASSWD_HASH;
+        }
+
+
+        return $this;
+    } // setPasswdHash()
+
+    /**
+     * Sets the value of [expire] column to a normalized version of the date/time value specified.
+     * Expiration
+     * @param mixed $v string, integer (timestamp), or DateTime value.
+     *               Empty strings are treated as null.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setExpire($v)
+    {
+        $dt = PropelDateTime::newInstance($v, null, 'DateTime');
+        if ($this->expire !== null || $dt !== null) {
+            $currentDateAsString = ($this->expire !== null && $tmpDt = new DateTime($this->expire)) ? $tmpDt->format('Y-m-d') : null;
+            $newDateAsString = $dt ? $dt->format('Y-m-d') : null;
+            if ( ($currentDateAsString !== $newDateAsString) // normalized values don't match
+                || ($dt->format('Y-m-d') === NULL) // or the entered value matches the default
+                 ) {
+                $this->expire = $newDateAsString;
+                $this->modifiedColumns[] = AuthyPeer::EXPIRE;
+            }
+        } // if either are not null
+
+
+        return $this;
+    } // setExpire()
+
+    /**
+     * Set the value of [deactivate] column.
+     * Deactivated
+     * @param  int $v new value
+     * @return Authy The current object (for fluent API support)
+     * @throws PropelException - if the value is not accepted by this enum.
+     */
+    public function setDeactivate($v)
+    {
+        if ($v !== null) {
+            $valueSet = AuthyPeer::getValueSet(AuthyPeer::DEACTIVATE);
+            if (!in_array($v, $valueSet)) {
+                throw new PropelException(sprintf('Value "%s" is not accepted in this enumerated column', $v));
+            }
+            $v = array_search($v, $valueSet);
+        }
+
+        if ($this->deactivate !== $v) {
+            $this->deactivate = $v;
+            $this->modifiedColumns[] = AuthyPeer::DEACTIVATE;
+        }
+
+
+        return $this;
+    } // setDeactivate()
+
+    /**
+     * Set the value of [language] column.
+     * Language
+     * @param  int $v new value
+     * @return Authy The current object (for fluent API support)
+     * @throws PropelException - if the value is not accepted by this enum.
+     */
+    public function setLanguage($v)
+    {
+        if ($v !== null) {
+            $valueSet = AuthyPeer::getValueSet(AuthyPeer::LANGUAGE);
+            if (!in_array($v, $valueSet)) {
+                throw new PropelException(sprintf('Value "%s" is not accepted in this enumerated column', $v));
+            }
+            $v = array_search($v, $valueSet);
+        }
+
+        if ($this->language !== $v) {
+            $this->language = $v;
+            $this->modifiedColumns[] = AuthyPeer::LANGUAGE;
+        }
+
+
+        return $this;
+    } // setLanguage()
+
+    /**
+     * Set the value of [theme] column.
+     * Theme
+     * @param  int $v new value
+     * @return Authy The current object (for fluent API support)
+     * @throws PropelException - if the value is not accepted by this enum.
+     */
+    public function setTheme($v)
+    {
+        if ($v !== null) {
+            $valueSet = AuthyPeer::getValueSet(AuthyPeer::THEME);
+            if (!in_array($v, $valueSet)) {
+                throw new PropelException(sprintf('Value "%s" is not accepted in this enumerated column', $v));
+            }
+            $v = array_search($v, $valueSet);
+        }
+
+        if ($this->theme !== $v) {
+            $this->theme = $v;
+            $this->modifiedColumns[] = AuthyPeer::THEME;
+        }
+
+
+        return $this;
+    } // setTheme()
+
+    /**
+     * Set the value of [google_sub] column.
+     * Google sub
+     * @param  string $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setGoogleSub($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->google_sub !== $v) {
+            $this->google_sub = $v;
+            $this->modifiedColumns[] = AuthyPeer::GOOGLE_SUB;
+        }
+
+
+        return $this;
+    } // setGoogleSub()
+
+    /**
+     * Set the value of [google_email] column.
+     * Google email
+     * @param  string $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setGoogleEmail($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->google_email !== $v) {
+            $this->google_email = $v;
+            $this->modifiedColumns[] = AuthyPeer::GOOGLE_EMAIL;
+        }
+
+
+        return $this;
+    } // setGoogleEmail()
+
+    /**
+     * Set the value of [reset_token_hash] column.
+     * Reset token
+     * @param  string $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setResetTokenHash($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->reset_token_hash !== $v) {
+            $this->reset_token_hash = $v;
+            $this->modifiedColumns[] = AuthyPeer::RESET_TOKEN_HASH;
+        }
+
+
+        return $this;
+    } // setResetTokenHash()
+
+    /**
+     * Set the value of [reset_token_expires] column.
+     * Reset expires
+     * @param  int $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setResetTokenExpires($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (int) $v;
+        }
+
+        if ($this->reset_token_expires !== $v) {
+            $this->reset_token_expires = $v;
+            $this->modifiedColumns[] = AuthyPeer::RESET_TOKEN_EXPIRES;
+        }
+
+
+        return $this;
+    } // setResetTokenExpires()
+
+    /**
+     * Set the value of [id_tenant] column.
+     * Tenant
+     * @param  int $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setIdTenant($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (int) $v;
+        }
+
+        if ($this->id_tenant !== $v) {
+            $this->id_tenant = $v;
+            $this->modifiedColumns[] = AuthyPeer::ID_TENANT;
+        }
+
+
+        return $this;
+    } // setIdTenant()
+
+    /**
+     * Set the value of [location_address] column.
+     * Location Address
+     * @param  string $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setLocationAddress($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->location_address !== $v) {
+            $this->location_address = $v;
+            $this->modifiedColumns[] = AuthyPeer::LOCATION_ADDRESS;
+        }
+
+
+        return $this;
+    } // setLocationAddress()
+
+    /**
+     * Set the value of [location_lat] column.
+     *
+     * @param  string $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setLocationLat($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (string) $v;
+        }
+
+        if ($this->location_lat !== $v) {
+            $this->location_lat = $v;
+            $this->modifiedColumns[] = AuthyPeer::LOCATION_LAT;
+        }
+
+
+        return $this;
+    } // setLocationLat()
+
+    /**
+     * Set the value of [location_lng] column.
+     *
+     * @param  string $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setLocationLng($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (string) $v;
+        }
+
+        if ($this->location_lng !== $v) {
+            $this->location_lng = $v;
+            $this->modifiedColumns[] = AuthyPeer::LOCATION_LNG;
+        }
+
+
+        return $this;
+    } // setLocationLng()
+
+    /**
+     * Set the value of [is_root] column.
+     * Root
+     * @param  int $v new value
+     * @return Authy The current object (for fluent API support)
+     * @throws PropelException - if the value is not accepted by this enum.
+     */
+    public function setIsRoot($v)
+    {
+        if ($v !== null) {
+            $valueSet = AuthyPeer::getValueSet(AuthyPeer::IS_ROOT);
+            if (!in_array($v, $valueSet)) {
+                throw new PropelException(sprintf('Value "%s" is not accepted in this enumerated column', $v));
+            }
+            $v = array_search($v, $valueSet);
+        }
+
+        if ($this->is_root !== $v) {
+            $this->is_root = $v;
+            $this->modifiedColumns[] = AuthyPeer::IS_ROOT;
+        }
+
+
+        return $this;
+    } // setIsRoot()
+
+    /**
+     * Set the value of [id_authy_group] column.
+     * Primary group
+     * @param  int $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setIdAuthyGroup($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (int) $v;
+        }
+
+        if ($this->id_authy_group !== $v) {
+            $this->id_authy_group = $v;
+            $this->modifiedColumns[] = AuthyPeer::ID_AUTHY_GROUP;
+        }
+
+        if ($this->aAuthyGroupRelatedByIdAuthyGroup !== null && $this->aAuthyGroupRelatedByIdAuthyGroup->getIdAuthyGroup() !== $v) {
+            $this->aAuthyGroupRelatedByIdAuthyGroup = null;
+        }
+
+
+        return $this;
+    } // setIdAuthyGroup()
+
+    /**
+     * Set the value of [is_system] column.
+     *
+     * @param  int $v new value
+     * @return Authy The current object (for fluent API support)
+     * @throws PropelException - if the value is not accepted by this enum.
+     */
+    public function setIsSystem($v)
+    {
+        if ($v !== null) {
+            $valueSet = AuthyPeer::getValueSet(AuthyPeer::IS_SYSTEM);
+            if (!in_array($v, $valueSet)) {
+                throw new PropelException(sprintf('Value "%s" is not accepted in this enumerated column', $v));
+            }
+            $v = array_search($v, $valueSet);
+        }
+
+        if ($this->is_system !== $v) {
+            $this->is_system = $v;
+            $this->modifiedColumns[] = AuthyPeer::IS_SYSTEM;
+        }
+
+
+        return $this;
+    } // setIsSystem()
+
+    /**
+     * Set the value of [rights_all] column.
+     * Rights
+     * @param  string $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setRightsAll($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->rights_all !== $v) {
+            $this->rights_all = $v;
+            $this->modifiedColumns[] = AuthyPeer::RIGHTS_ALL;
+        }
+
+
+        return $this;
+    } // setRightsAll()
+
+    /**
+     * Set the value of [rights_group] column.
+     * Rights (group records)
+     * @param  string $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setRightsGroup($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->rights_group !== $v) {
+            $this->rights_group = $v;
+            $this->modifiedColumns[] = AuthyPeer::RIGHTS_GROUP;
+        }
+
+
+        return $this;
+    } // setRightsGroup()
+
+    /**
+     * Set the value of [rights_owner] column.
+     * Rights (own records)
+     * @param  string $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setRightsOwner($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->rights_owner !== $v) {
+            $this->rights_owner = $v;
+            $this->modifiedColumns[] = AuthyPeer::RIGHTS_OWNER;
+        }
+
+
+        return $this;
+    } // setRightsOwner()
+
+    /**
+     * Set the value of [onglet] column.
+     *
+     * @param  string $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setOnglet($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->onglet !== $v) {
+            $this->onglet = $v;
+            $this->modifiedColumns[] = AuthyPeer::ONGLET;
+        }
+
+
+        return $this;
+    } // setOnglet()
+
+    /**
+     * Sets the value of [date_creation] column to a normalized version of the date/time value specified.
+     *
+     * @param mixed $v string, integer (timestamp), or DateTime value.
+     *               Empty strings are treated as null.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setDateCreation($v)
+    {
+        $dt = PropelDateTime::newInstance($v, null, 'DateTime');
+        if ($this->date_creation !== null || $dt !== null) {
+            $currentDateAsString = ($this->date_creation !== null && $tmpDt = new DateTime($this->date_creation)) ? $tmpDt->format('Y-m-d H:i:s') : null;
+            $newDateAsString = $dt ? $dt->format('Y-m-d H:i:s') : null;
+            if ($currentDateAsString !== $newDateAsString) {
+                $this->date_creation = $newDateAsString;
+                $this->modifiedColumns[] = AuthyPeer::DATE_CREATION;
+            }
+        } // if either are not null
+
+
+        return $this;
+    } // setDateCreation()
+
+    /**
+     * Sets the value of [date_modification] column to a normalized version of the date/time value specified.
+     *
+     * @param mixed $v string, integer (timestamp), or DateTime value.
+     *               Empty strings are treated as null.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setDateModification($v)
+    {
+        $dt = PropelDateTime::newInstance($v, null, 'DateTime');
+        if ($this->date_modification !== null || $dt !== null) {
+            $currentDateAsString = ($this->date_modification !== null && $tmpDt = new DateTime($this->date_modification)) ? $tmpDt->format('Y-m-d H:i:s') : null;
+            $newDateAsString = $dt ? $dt->format('Y-m-d H:i:s') : null;
+            if ($currentDateAsString !== $newDateAsString) {
+                $this->date_modification = $newDateAsString;
+                $this->modifiedColumns[] = AuthyPeer::DATE_MODIFICATION;
+            }
+        } // if either are not null
+
+
+        return $this;
+    } // setDateModification()
+
+    /**
+     * Set the value of [id_group_creation] column.
+     *
+     * @param  int $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setIdGroupCreation($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (int) $v;
+        }
+
+        if ($this->id_group_creation !== $v) {
+            $this->id_group_creation = $v;
+            $this->modifiedColumns[] = AuthyPeer::ID_GROUP_CREATION;
+        }
+
+        if ($this->aAuthyGroupRelatedByIdGroupCreation !== null && $this->aAuthyGroupRelatedByIdGroupCreation->getIdAuthyGroup() !== $v) {
+            $this->aAuthyGroupRelatedByIdGroupCreation = null;
+        }
+
+
+        return $this;
+    } // setIdGroupCreation()
+
+    /**
+     * Set the value of [id_creation] column.
+     *
+     * @param  int $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setIdCreation($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (int) $v;
+        }
+
+        if ($this->id_creation !== $v) {
+            $this->id_creation = $v;
+            $this->modifiedColumns[] = AuthyPeer::ID_CREATION;
+        }
+
+        if ($this->aAuthyRelatedByIdCreation !== null && $this->aAuthyRelatedByIdCreation->getIdAuthy() !== $v) {
+            $this->aAuthyRelatedByIdCreation = null;
+        }
+
+
+        return $this;
+    } // setIdCreation()
+
+    /**
+     * Set the value of [id_modification] column.
+     *
+     * @param  int $v new value
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setIdModification($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (int) $v;
+        }
+
+        if ($this->id_modification !== $v) {
+            $this->id_modification = $v;
+            $this->modifiedColumns[] = AuthyPeer::ID_MODIFICATION;
+        }
+
+        if ($this->aAuthyRelatedByIdModification !== null && $this->aAuthyRelatedByIdModification->getIdAuthy() !== $v) {
+            $this->aAuthyRelatedByIdModification = null;
+        }
+
+
+        return $this;
+    } // setIdModification()
+
+    /**
+     * Indicates whether the columns in this object are only set to default values.
+     *
+     * This method can be used in conjunction with isModified() to indicate whether an object is both
+     * modified _and_ has some values set which are non-default.
+     *
+     * @return boolean Whether the columns in this object are only been set with default values.
+     */
+    public function hasOnlyDefaultValues()
+    {
+            if ($this->expire !== NULL) {
+                return false;
+            }
+
+            if ($this->deactivate !== 1) {
+                return false;
+            }
+
+            if ($this->language !== 0) {
+                return false;
+            }
+
+            if ($this->theme !== 0) {
+                return false;
+            }
+
+            if ($this->id_tenant !== 1) {
+                return false;
+            }
+
+            if ($this->is_root !== 1) {
+                return false;
+            }
+
+            if ($this->id_authy_group !== 1) {
+                return false;
+            }
+
+            if ($this->is_system !== 1) {
+                return false;
+            }
+
+        // otherwise, everything was equal, so return true
+        return true;
+    } // hasOnlyDefaultValues()
+
+    /**
+     * Hydrates (populates) the object variables with values from the database resultset.
+     *
+     * An offset (0-based "start column") is specified so that objects can be hydrated
+     * with a subset of the columns in the resultset rows.  This is needed, for example,
+     * for results of JOIN queries where the resultset row includes columns from two or
+     * more tables.
+     *
+     * @param array $row The row returned by PDOStatement->fetch(PDO::FETCH_NUM)
+     * @param int $startcol 0-based offset column which indicates which resultset column to start with.
+     * @param boolean $rehydrate Whether this object is being re-hydrated from the database.
+     * @return int             next starting column
+     * @throws PropelException - Any caught Exception will be rewrapped as a PropelException.
+     */
+    public function hydrate($row, $startcol = 0, $rehydrate = false)
+    {
+        try {
+
+            $this->id_authy = ($row[$startcol + 0] !== null) ? (int) $row[$startcol + 0] : null;
+            $this->validation_key = ($row[$startcol + 1] !== null) ? (string) $row[$startcol + 1] : null;
+            $this->username = ($row[$startcol + 2] !== null) ? (string) $row[$startcol + 2] : null;
+            $this->fullname = ($row[$startcol + 3] !== null) ? (string) $row[$startcol + 3] : null;
+            $this->email = ($row[$startcol + 4] !== null) ? (string) $row[$startcol + 4] : null;
+            $this->passwd_hash = ($row[$startcol + 5] !== null) ? (string) $row[$startcol + 5] : null;
+            $this->expire = ($row[$startcol + 6] !== null) ? (string) $row[$startcol + 6] : null;
+            $this->deactivate = ($row[$startcol + 7] !== null) ? (int) $row[$startcol + 7] : null;
+            $this->language = ($row[$startcol + 8] !== null) ? (int) $row[$startcol + 8] : null;
+            $this->theme = ($row[$startcol + 9] !== null) ? (int) $row[$startcol + 9] : null;
+            $this->google_sub = ($row[$startcol + 10] !== null) ? (string) $row[$startcol + 10] : null;
+            $this->google_email = ($row[$startcol + 11] !== null) ? (string) $row[$startcol + 11] : null;
+            $this->reset_token_hash = ($row[$startcol + 12] !== null) ? (string) $row[$startcol + 12] : null;
+            $this->reset_token_expires = ($row[$startcol + 13] !== null) ? (int) $row[$startcol + 13] : null;
+            $this->id_tenant = ($row[$startcol + 14] !== null) ? (int) $row[$startcol + 14] : null;
+            $this->location_address = ($row[$startcol + 15] !== null) ? (string) $row[$startcol + 15] : null;
+            $this->location_lat = ($row[$startcol + 16] !== null) ? (string) $row[$startcol + 16] : null;
+            $this->location_lng = ($row[$startcol + 17] !== null) ? (string) $row[$startcol + 17] : null;
+            $this->is_root = ($row[$startcol + 18] !== null) ? (int) $row[$startcol + 18] : null;
+            $this->id_authy_group = ($row[$startcol + 19] !== null) ? (int) $row[$startcol + 19] : null;
+            $this->is_system = ($row[$startcol + 20] !== null) ? (int) $row[$startcol + 20] : null;
+            $this->rights_all = ($row[$startcol + 21] !== null) ? (string) $row[$startcol + 21] : null;
+            $this->rights_group = ($row[$startcol + 22] !== null) ? (string) $row[$startcol + 22] : null;
+            $this->rights_owner = ($row[$startcol + 23] !== null) ? (string) $row[$startcol + 23] : null;
+            $this->onglet = ($row[$startcol + 24] !== null) ? (string) $row[$startcol + 24] : null;
+            $this->date_creation = ($row[$startcol + 25] !== null) ? (string) $row[$startcol + 25] : null;
+            $this->date_modification = ($row[$startcol + 26] !== null) ? (string) $row[$startcol + 26] : null;
+            $this->id_group_creation = ($row[$startcol + 27] !== null) ? (int) $row[$startcol + 27] : null;
+            $this->id_creation = ($row[$startcol + 28] !== null) ? (int) $row[$startcol + 28] : null;
+            $this->id_modification = ($row[$startcol + 29] !== null) ? (int) $row[$startcol + 29] : null;
+            $this->resetModified();
+
+            $this->setNew(false);
+
+            if ($rehydrate) {
+                $this->ensureConsistency();
+            }
+            $this->postHydrate($row, $startcol, $rehydrate);
+
+            return $startcol + 30; // 30 = AuthyPeer::NUM_HYDRATE_COLUMNS.
+
+        } catch (Exception $e) {
+            throw new PropelException("Error populating Authy object", $e);
+        }
+    }
+
+    /**
+     * Checks and repairs the internal consistency of the object.
+     *
+     * This method is executed after an already-instantiated object is re-hydrated
+     * from the database.  It exists to check any foreign keys to make sure that
+     * the objects related to the current object are correct based on foreign key.
+     *
+     * You can override this method in the stub class, but you should always invoke
+     * the base method from the overridden method (i.e. parent::ensureConsistency()),
+     * in case your model changes.
+     *
+     * @throws PropelException
+     */
+    public function ensureConsistency()
+    {
+
+        if ($this->aAuthyGroupRelatedByIdAuthyGroup !== null && $this->id_authy_group !== $this->aAuthyGroupRelatedByIdAuthyGroup->getIdAuthyGroup()) {
+            $this->aAuthyGroupRelatedByIdAuthyGroup = null;
+        }
+        if ($this->aAuthyGroupRelatedByIdGroupCreation !== null && $this->id_group_creation !== $this->aAuthyGroupRelatedByIdGroupCreation->getIdAuthyGroup()) {
+            $this->aAuthyGroupRelatedByIdGroupCreation = null;
+        }
+        if ($this->aAuthyRelatedByIdCreation !== null && $this->id_creation !== $this->aAuthyRelatedByIdCreation->getIdAuthy()) {
+            $this->aAuthyRelatedByIdCreation = null;
+        }
+        if ($this->aAuthyRelatedByIdModification !== null && $this->id_modification !== $this->aAuthyRelatedByIdModification->getIdAuthy()) {
+            $this->aAuthyRelatedByIdModification = null;
+        }
+    } // ensureConsistency
+
+    /**
+     * Reloads this object from datastore based on primary key and (optionally) resets all associated objects.
+     *
+     * This will only work if the object has been saved and has a valid primary key set.
+     *
+     * @param boolean $deep (optional) Whether to also de-associated any related objects.
+     * @param PropelPDO $con (optional) The PropelPDO connection to use.
+     * @return void
+     * @throws PropelException - if this object is deleted, unsaved or doesn't have pk match in db
+     */
+    public function reload($deep = false, ?PropelPDO $con = null)
+    {
+        if ($this->isDeleted()) {
+            throw new PropelException("Cannot reload a deleted object.");
+        }
+
+        if ($this->isNew()) {
+            throw new PropelException("Cannot reload an unsaved object.");
+        }
+
+        if ($con === null) {
+            $con = Propel::getConnection(AuthyPeer::DATABASE_NAME, Propel::CONNECTION_READ);
+        }
+
+        // We don't need to alter the object instance pool; we're just modifying this instance
+        // already in the pool.
+
+        $stmt = AuthyPeer::doSelectStmt($this->buildPkeyCriteria(), $con);
+        $row = $stmt->fetch(PDO::FETCH_NUM);
+        $stmt->closeCursor();
+        if (!$row) {
+            throw new PropelException('Cannot find matching row in the database to reload object values.');
+        }
+        $this->hydrate($row, 0, true); // rehydrate
+
+        if ($deep) {  // also de-associate any related objects?
+
+            $this->aAuthyGroupRelatedByIdAuthyGroup = null;
+            $this->aAuthyGroupRelatedByIdGroupCreation = null;
+            $this->aAuthyRelatedByIdCreation = null;
+            $this->aAuthyRelatedByIdModification = null;
+            $this->collPushDevicesRelatedByIdAuthy = null;
+
+            $this->collAuthyGroupxesRelatedByIdAuthy = null;
+
+            $this->collAuthyLogs = null;
+
+            $this->collAuthiesRelatedByIdAuthy0 = null;
+
+            $this->collAuthiesRelatedByIdAuthy1 = null;
+
+            $this->collPushDevicesRelatedByIdCreation = null;
+
+            $this->collPushDevicesRelatedByIdModification = null;
+
+            $this->collCountriesRelatedByIdCreation = null;
+
+            $this->collCountriesRelatedByIdModification = null;
+
+            $this->collGridRunsRelatedByIdCreation = null;
+
+            $this->collGridRunsRelatedByIdModification = null;
+
+            $this->collBotOrdersRelatedByIdCreation = null;
+
+            $this->collBotOrdersRelatedByIdModification = null;
+
+            $this->collTradeCyclesRelatedByIdCreation = null;
+
+            $this->collTradeCyclesRelatedByIdModification = null;
+
+            $this->collBotEventsRelatedByIdCreation = null;
+
+            $this->collBotEventsRelatedByIdModification = null;
+
+            $this->collBotCommandsRelatedByIdCreation = null;
+
+            $this->collBotCommandsRelatedByIdModification = null;
+
+            $this->collSimWalletsRelatedByIdCreation = null;
+
+            $this->collSimWalletsRelatedByIdModification = null;
+
+            $this->collMarketSummariesRelatedByIdCreation = null;
+
+            $this->collMarketSummariesRelatedByIdModification = null;
+
+            $this->collMarketRegimesRelatedByIdCreation = null;
+
+            $this->collMarketRegimesRelatedByIdModification = null;
+
+            $this->collBotDecisionsRelatedByIdCreation = null;
+
+            $this->collBotDecisionsRelatedByIdModification = null;
+
+            $this->collAuthyGroupsRelatedByIdCreation = null;
+
+            $this->collAuthyGroupsRelatedByIdModification = null;
+
+            $this->collAuthyGroupxesRelatedByIdCreation = null;
+
+            $this->collAuthyGroupxesRelatedByIdModification = null;
+
+            $this->collConfigsRelatedByIdCreation = null;
+
+            $this->collConfigsRelatedByIdModification = null;
+
+            $this->collApiRbacsRelatedByIdCreation = null;
+
+            $this->collApiRbacsRelatedByIdModification = null;
+
+            $this->collApiLogs = null;
+
+            $this->collTemplatesRelatedByIdCreation = null;
+
+            $this->collTemplatesRelatedByIdModification = null;
+
+            $this->collTemplateFilesRelatedByIdCreation = null;
+
+            $this->collTemplateFilesRelatedByIdModification = null;
+
+            $this->collAuthyRefreshTokensRelatedByIdAuthy = null;
+
+            $this->collAuthyRefreshTokensRelatedByIdCreation = null;
+
+            $this->collAuthyRefreshTokensRelatedByIdModification = null;
+
+            $this->collOauthClientsRelatedByIdCreation = null;
+
+            $this->collOauthClientsRelatedByIdModification = null;
+
+            $this->collOauthAuthCodesRelatedByIdAuthy = null;
+
+            $this->collOauthAuthCodesRelatedByIdCreation = null;
+
+            $this->collOauthAuthCodesRelatedByIdModification = null;
+
+            $this->collOauthAccessTokensRelatedByIdAuthy = null;
+
+            $this->collOauthAccessTokensRelatedByIdCreation = null;
+
+            $this->collOauthAccessTokensRelatedByIdModification = null;
+
+            $this->collOauthRefreshTokensRelatedByIdAuthy = null;
+
+            $this->collOauthRefreshTokensRelatedByIdCreation = null;
+
+            $this->collOauthRefreshTokensRelatedByIdModification = null;
+
+            $this->collMessageI18nsRelatedByIdCreation = null;
+
+            $this->collMessageI18nsRelatedByIdModification = null;
+
+        } // if (deep)
+    }
+
+    /**
+     * Removes this object from datastore and sets delete attribute.
+     *
+     * @param PropelPDO $con
+     * @return void
+     * @throws PropelException
+     * @throws Exception
+     * @see        BaseObject::setDeleted()
+     * @see        BaseObject::isDeleted()
+     */
+    public function delete(?PropelPDO $con = null)
+    {
+        if ($this->isDeleted()) {
+            throw new PropelException("This object has already been deleted.");
+        }
+
+        if ($con === null) {
+            $con = Propel::getConnection(AuthyPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
+        }
+
+        $con->beginTransaction();
+        try {
+            $deleteQuery = AuthyQuery::create()
+                ->filterByPrimaryKey($this->getPrimaryKey());
+            $ret = $this->preDelete($con);
+            if ($ret) {
+                $deleteQuery->delete($con);
+                $this->postDelete($con);
+                // GoatCheese behavior
+                
+                            if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
+                                \ApiGoat\Utility\TableVersion::bump('authy');
+                            }
+                $con->commit();
+                $this->setDeleted(true);
+            } else {
+                $con->commit();
+            }
+        } catch (Exception $e) {
+            $con->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Persists this object to the database.
+     *
+     * If the object is new, it inserts it; otherwise an update is performed.
+     * All modified related objects will also be persisted in the doSave()
+     * method.  This method wraps all precipitate database operations in a
+     * single transaction.
+     *
+     * @param PropelPDO $con
+     * @return int             The number of rows affected by this insert/update and any referring fk objects' save() operations.
+     * @throws PropelException
+     * @throws Exception
+     * @see        doSave()
+     */
+    public function save(?PropelPDO $con = null)
+    {
+        if ($this->isDeleted()) {
+            throw new PropelException("You cannot save an object that has been deleted.");
+        }
+
+        if ($con === null) {
+            $con = Propel::getConnection(AuthyPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
+        }
+
+        $con->beginTransaction();
+        $isInsert = $this->isNew();
+        try {
+            $ret = $this->preSave($con);
+            // GoatCheese behavior
+
+            // Group rights are the sole source of truth: a user's stored rights_all/owner/
+            // group are ALWAYS the union of the rights of every group they belong to
+            // (primary group + authy_group_x memberships). Flag a recompute on EVERY save,
+            // not just a primary-group change. The edit form, API and bulk paths all
+            // re-serialize the rights_* columns from posted data; on a save that only
+            // changed a membership (primary group unchanged) a narrow trigger would let
+            // that stale posted value overwrite the freshly recomputed union — i.e. saving
+            // the user after setting group membership clobbers the membership-derived
+            // rights. We only set the flag here (modifiedColumns is still populated, and on
+            // insert the PK is not set until doSave); the recompute runs from the postSave
+            // trigger. recomputeRightsFromGroups() rebuilds rights_* purely from group
+            // state (ignoring whatever was posted), writes only rights_*, sets no flag on
+            // the rows it saves, and is $busy-guarded against re-entry — so an
+            // unconditional recompute is safe and terminates.
+            $this->gcRecomputeRights = true;
+            if(method_exists($this, 'getEmail')){
+                $this->setEmail(strtolower($this->getEmail()));
+            }
+
+            if ($isInsert) {
+                $ret = $ret && $this->preInsert($con);
+                // GoatCheese behavior
+                
+                        if (defined('_AUTH_VAR') && isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR])
+                            && method_exists($_SESSION[_AUTH_VAR], 'get')
+                            && $_SESSION[_AUTH_VAR]->get('connected') == 'YES'
+                            && ! $_SESSION[_AUTH_VAR]->get('isRoot')
+                            && $_SESSION[_AUTH_VAR]->get('id_tenant')) {
+                            $this->setIdTenant($_SESSION[_AUTH_VAR]->get('id_tenant'));
+                        }
+                // add_tablestamp behavior
+
+                    $this->setDateCreation(time());
+                    $this->setDateModification(time());
+                    $this->setIdGroupCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
+                    if(!$this->getIdCreation())
+                        $this->setIdCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                    if(!$this->getIdModification())
+                        $this->setIdModification( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+
+            } else {
+                $ret = $ret && $this->preUpdate($con);
+                // add_tablestamp behavior
+                if ($this->isModified() ) {
+                    $this->setDateCreation( $this->getDateCreation() );
+                    $this->setDateModification(time());
+                    $this->setIdGroupCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
+                    if(!$this->getIdCreation())
+                        $this->setIdCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                    if(!$this->getIdModification())
+                        $this->setIdModification( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                }
+            }
+            if ($ret) {
+                $affectedRows = $this->doSave($con);
+                if ($isInsert) {
+                    $this->postInsert($con);
+                } else {
+                    $this->postUpdate($con);
+                }
+                $this->postSave($con);
+                // GoatCheese behavior
+                
+                            if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
+                                \ApiGoat\Utility\TableVersion::bump('authy');
+                            }
+                            if (!empty($this->gcRecomputeRights)) {
+                                $this->gcRecomputeRights = false;
+                                \ApiGoat\Model\Authy::recomputeRightsFromGroups($this->getIdAuthy());
+                            }
+                AuthyPeer::addInstanceToPool($this);
+            } else {
+                $affectedRows = 0;
+            }
+            $con->commit();
+
+            return $affectedRows;
+        } catch (Exception $e) {
+            $con->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Performs the work of inserting or updating the row in the database.
+     *
+     * If the object is new, it inserts it; otherwise an update is performed.
+     * All related objects are also updated in this method.
+     *
+     * @param PropelPDO $con
+     * @return int             The number of rows affected by this insert/update and any referring fk objects' save() operations.
+     * @throws PropelException
+     * @see        save()
+     */
+    protected function doSave(PropelPDO $con)
+    {
+        $affectedRows = 0; // initialize var to track total num of affected rows
+        if (!$this->alreadyInSave) {
+            $this->alreadyInSave = true;
+
+            // We call the save method on the following object(s) if they
+            // were passed to this object by their corresponding set
+            // method.  This object relates to these object(s) by a
+            // foreign key reference.
+
+            if ($this->aAuthyGroupRelatedByIdAuthyGroup !== null) {
+                if ($this->aAuthyGroupRelatedByIdAuthyGroup->isModified() || $this->aAuthyGroupRelatedByIdAuthyGroup->isNew()) {
+                    $affectedRows += $this->aAuthyGroupRelatedByIdAuthyGroup->save($con);
+                }
+                $this->setAuthyGroupRelatedByIdAuthyGroup($this->aAuthyGroupRelatedByIdAuthyGroup);
+            }
+
+            if ($this->aAuthyGroupRelatedByIdGroupCreation !== null) {
+                if ($this->aAuthyGroupRelatedByIdGroupCreation->isModified() || $this->aAuthyGroupRelatedByIdGroupCreation->isNew()) {
+                    $affectedRows += $this->aAuthyGroupRelatedByIdGroupCreation->save($con);
+                }
+                $this->setAuthyGroupRelatedByIdGroupCreation($this->aAuthyGroupRelatedByIdGroupCreation);
+            }
+
+            if ($this->aAuthyRelatedByIdCreation !== null) {
+                if ($this->aAuthyRelatedByIdCreation->isModified() || $this->aAuthyRelatedByIdCreation->isNew()) {
+                    $affectedRows += $this->aAuthyRelatedByIdCreation->save($con);
+                }
+                $this->setAuthyRelatedByIdCreation($this->aAuthyRelatedByIdCreation);
+            }
+
+            if ($this->aAuthyRelatedByIdModification !== null) {
+                if ($this->aAuthyRelatedByIdModification->isModified() || $this->aAuthyRelatedByIdModification->isNew()) {
+                    $affectedRows += $this->aAuthyRelatedByIdModification->save($con);
+                }
+                $this->setAuthyRelatedByIdModification($this->aAuthyRelatedByIdModification);
+            }
+
+            if ($this->isNew() || $this->isModified()) {
+                // persist changes
+                if ($this->isNew()) {
+                    $this->doInsert($con);
+                } else {
+                    $this->doUpdate($con);
+                }
+                $affectedRows += 1;
+                $this->resetModified();
+            }
+
+            if ($this->pushDevicesRelatedByIdAuthyScheduledForDeletion !== null) {
+                if (!$this->pushDevicesRelatedByIdAuthyScheduledForDeletion->isEmpty()) {
+                    PushDeviceQuery::create()
+                        ->filterByPrimaryKeys($this->pushDevicesRelatedByIdAuthyScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->pushDevicesRelatedByIdAuthyScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collPushDevicesRelatedByIdAuthy !== null) {
+                foreach ($this->collPushDevicesRelatedByIdAuthy as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->authyGroupxesRelatedByIdAuthyScheduledForDeletion !== null) {
+                if (!$this->authyGroupxesRelatedByIdAuthyScheduledForDeletion->isEmpty()) {
+                    AuthyGroupXQuery::create()
+                        ->filterByPrimaryKeys($this->authyGroupxesRelatedByIdAuthyScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->authyGroupxesRelatedByIdAuthyScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collAuthyGroupxesRelatedByIdAuthy !== null) {
+                foreach ($this->collAuthyGroupxesRelatedByIdAuthy as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->authyLogsScheduledForDeletion !== null) {
+                if (!$this->authyLogsScheduledForDeletion->isEmpty()) {
+                    foreach ($this->authyLogsScheduledForDeletion as $authyLog) {
+                        // need to save related object because we set the relation to null
+                        $authyLog->save($con);
+                    }
+                    $this->authyLogsScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collAuthyLogs !== null) {
+                foreach ($this->collAuthyLogs as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->authiesRelatedByIdAuthy0ScheduledForDeletion !== null) {
+                if (!$this->authiesRelatedByIdAuthy0ScheduledForDeletion->isEmpty()) {
+                    foreach ($this->authiesRelatedByIdAuthy0ScheduledForDeletion as $authyRelatedByIdAuthy0) {
+                        // need to save related object because we set the relation to null
+                        $authyRelatedByIdAuthy0->save($con);
+                    }
+                    $this->authiesRelatedByIdAuthy0ScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collAuthiesRelatedByIdAuthy0 !== null) {
+                foreach ($this->collAuthiesRelatedByIdAuthy0 as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->authiesRelatedByIdAuthy1ScheduledForDeletion !== null) {
+                if (!$this->authiesRelatedByIdAuthy1ScheduledForDeletion->isEmpty()) {
+                    foreach ($this->authiesRelatedByIdAuthy1ScheduledForDeletion as $authyRelatedByIdAuthy1) {
+                        // need to save related object because we set the relation to null
+                        $authyRelatedByIdAuthy1->save($con);
+                    }
+                    $this->authiesRelatedByIdAuthy1ScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collAuthiesRelatedByIdAuthy1 !== null) {
+                foreach ($this->collAuthiesRelatedByIdAuthy1 as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->pushDevicesRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->pushDevicesRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->pushDevicesRelatedByIdCreationScheduledForDeletion as $pushDeviceRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $pushDeviceRelatedByIdCreation->save($con);
+                    }
+                    $this->pushDevicesRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collPushDevicesRelatedByIdCreation !== null) {
+                foreach ($this->collPushDevicesRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->pushDevicesRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->pushDevicesRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->pushDevicesRelatedByIdModificationScheduledForDeletion as $pushDeviceRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $pushDeviceRelatedByIdModification->save($con);
+                    }
+                    $this->pushDevicesRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collPushDevicesRelatedByIdModification !== null) {
+                foreach ($this->collPushDevicesRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->countriesRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->countriesRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->countriesRelatedByIdCreationScheduledForDeletion as $countryRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $countryRelatedByIdCreation->save($con);
+                    }
+                    $this->countriesRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collCountriesRelatedByIdCreation !== null) {
+                foreach ($this->collCountriesRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->countriesRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->countriesRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->countriesRelatedByIdModificationScheduledForDeletion as $countryRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $countryRelatedByIdModification->save($con);
+                    }
+                    $this->countriesRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collCountriesRelatedByIdModification !== null) {
+                foreach ($this->collCountriesRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->gridRunsRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->gridRunsRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->gridRunsRelatedByIdCreationScheduledForDeletion as $gridRunRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $gridRunRelatedByIdCreation->save($con);
+                    }
+                    $this->gridRunsRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collGridRunsRelatedByIdCreation !== null) {
+                foreach ($this->collGridRunsRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->gridRunsRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->gridRunsRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->gridRunsRelatedByIdModificationScheduledForDeletion as $gridRunRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $gridRunRelatedByIdModification->save($con);
+                    }
+                    $this->gridRunsRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collGridRunsRelatedByIdModification !== null) {
+                foreach ($this->collGridRunsRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->botOrdersRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->botOrdersRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->botOrdersRelatedByIdCreationScheduledForDeletion as $botOrderRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $botOrderRelatedByIdCreation->save($con);
+                    }
+                    $this->botOrdersRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collBotOrdersRelatedByIdCreation !== null) {
+                foreach ($this->collBotOrdersRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->botOrdersRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->botOrdersRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->botOrdersRelatedByIdModificationScheduledForDeletion as $botOrderRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $botOrderRelatedByIdModification->save($con);
+                    }
+                    $this->botOrdersRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collBotOrdersRelatedByIdModification !== null) {
+                foreach ($this->collBotOrdersRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->tradeCyclesRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->tradeCyclesRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->tradeCyclesRelatedByIdCreationScheduledForDeletion as $tradeCycleRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $tradeCycleRelatedByIdCreation->save($con);
+                    }
+                    $this->tradeCyclesRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collTradeCyclesRelatedByIdCreation !== null) {
+                foreach ($this->collTradeCyclesRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->tradeCyclesRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->tradeCyclesRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->tradeCyclesRelatedByIdModificationScheduledForDeletion as $tradeCycleRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $tradeCycleRelatedByIdModification->save($con);
+                    }
+                    $this->tradeCyclesRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collTradeCyclesRelatedByIdModification !== null) {
+                foreach ($this->collTradeCyclesRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->botEventsRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->botEventsRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->botEventsRelatedByIdCreationScheduledForDeletion as $botEventRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $botEventRelatedByIdCreation->save($con);
+                    }
+                    $this->botEventsRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collBotEventsRelatedByIdCreation !== null) {
+                foreach ($this->collBotEventsRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->botEventsRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->botEventsRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->botEventsRelatedByIdModificationScheduledForDeletion as $botEventRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $botEventRelatedByIdModification->save($con);
+                    }
+                    $this->botEventsRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collBotEventsRelatedByIdModification !== null) {
+                foreach ($this->collBotEventsRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->botCommandsRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->botCommandsRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->botCommandsRelatedByIdCreationScheduledForDeletion as $botCommandRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $botCommandRelatedByIdCreation->save($con);
+                    }
+                    $this->botCommandsRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collBotCommandsRelatedByIdCreation !== null) {
+                foreach ($this->collBotCommandsRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->botCommandsRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->botCommandsRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->botCommandsRelatedByIdModificationScheduledForDeletion as $botCommandRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $botCommandRelatedByIdModification->save($con);
+                    }
+                    $this->botCommandsRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collBotCommandsRelatedByIdModification !== null) {
+                foreach ($this->collBotCommandsRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->simWalletsRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->simWalletsRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->simWalletsRelatedByIdCreationScheduledForDeletion as $simWalletRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $simWalletRelatedByIdCreation->save($con);
+                    }
+                    $this->simWalletsRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collSimWalletsRelatedByIdCreation !== null) {
+                foreach ($this->collSimWalletsRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->simWalletsRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->simWalletsRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->simWalletsRelatedByIdModificationScheduledForDeletion as $simWalletRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $simWalletRelatedByIdModification->save($con);
+                    }
+                    $this->simWalletsRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collSimWalletsRelatedByIdModification !== null) {
+                foreach ($this->collSimWalletsRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->marketSummariesRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->marketSummariesRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->marketSummariesRelatedByIdCreationScheduledForDeletion as $marketSummaryRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $marketSummaryRelatedByIdCreation->save($con);
+                    }
+                    $this->marketSummariesRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collMarketSummariesRelatedByIdCreation !== null) {
+                foreach ($this->collMarketSummariesRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->marketSummariesRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->marketSummariesRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->marketSummariesRelatedByIdModificationScheduledForDeletion as $marketSummaryRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $marketSummaryRelatedByIdModification->save($con);
+                    }
+                    $this->marketSummariesRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collMarketSummariesRelatedByIdModification !== null) {
+                foreach ($this->collMarketSummariesRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->marketRegimesRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->marketRegimesRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->marketRegimesRelatedByIdCreationScheduledForDeletion as $marketRegimeRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $marketRegimeRelatedByIdCreation->save($con);
+                    }
+                    $this->marketRegimesRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collMarketRegimesRelatedByIdCreation !== null) {
+                foreach ($this->collMarketRegimesRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->marketRegimesRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->marketRegimesRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->marketRegimesRelatedByIdModificationScheduledForDeletion as $marketRegimeRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $marketRegimeRelatedByIdModification->save($con);
+                    }
+                    $this->marketRegimesRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collMarketRegimesRelatedByIdModification !== null) {
+                foreach ($this->collMarketRegimesRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->botDecisionsRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->botDecisionsRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->botDecisionsRelatedByIdCreationScheduledForDeletion as $botDecisionRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $botDecisionRelatedByIdCreation->save($con);
+                    }
+                    $this->botDecisionsRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collBotDecisionsRelatedByIdCreation !== null) {
+                foreach ($this->collBotDecisionsRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->botDecisionsRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->botDecisionsRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->botDecisionsRelatedByIdModificationScheduledForDeletion as $botDecisionRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $botDecisionRelatedByIdModification->save($con);
+                    }
+                    $this->botDecisionsRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collBotDecisionsRelatedByIdModification !== null) {
+                foreach ($this->collBotDecisionsRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->authyGroupsRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->authyGroupsRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->authyGroupsRelatedByIdCreationScheduledForDeletion as $authyGroupRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $authyGroupRelatedByIdCreation->save($con);
+                    }
+                    $this->authyGroupsRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collAuthyGroupsRelatedByIdCreation !== null) {
+                foreach ($this->collAuthyGroupsRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->authyGroupsRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->authyGroupsRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->authyGroupsRelatedByIdModificationScheduledForDeletion as $authyGroupRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $authyGroupRelatedByIdModification->save($con);
+                    }
+                    $this->authyGroupsRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collAuthyGroupsRelatedByIdModification !== null) {
+                foreach ($this->collAuthyGroupsRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->authyGroupxesRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->authyGroupxesRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->authyGroupxesRelatedByIdCreationScheduledForDeletion as $authyGroupXRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $authyGroupXRelatedByIdCreation->save($con);
+                    }
+                    $this->authyGroupxesRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collAuthyGroupxesRelatedByIdCreation !== null) {
+                foreach ($this->collAuthyGroupxesRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->authyGroupxesRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->authyGroupxesRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->authyGroupxesRelatedByIdModificationScheduledForDeletion as $authyGroupXRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $authyGroupXRelatedByIdModification->save($con);
+                    }
+                    $this->authyGroupxesRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collAuthyGroupxesRelatedByIdModification !== null) {
+                foreach ($this->collAuthyGroupxesRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->configsRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->configsRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->configsRelatedByIdCreationScheduledForDeletion as $configRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $configRelatedByIdCreation->save($con);
+                    }
+                    $this->configsRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collConfigsRelatedByIdCreation !== null) {
+                foreach ($this->collConfigsRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->configsRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->configsRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->configsRelatedByIdModificationScheduledForDeletion as $configRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $configRelatedByIdModification->save($con);
+                    }
+                    $this->configsRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collConfigsRelatedByIdModification !== null) {
+                foreach ($this->collConfigsRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->apiRbacsRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->apiRbacsRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->apiRbacsRelatedByIdCreationScheduledForDeletion as $apiRbacRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $apiRbacRelatedByIdCreation->save($con);
+                    }
+                    $this->apiRbacsRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collApiRbacsRelatedByIdCreation !== null) {
+                foreach ($this->collApiRbacsRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->apiRbacsRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->apiRbacsRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->apiRbacsRelatedByIdModificationScheduledForDeletion as $apiRbacRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $apiRbacRelatedByIdModification->save($con);
+                    }
+                    $this->apiRbacsRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collApiRbacsRelatedByIdModification !== null) {
+                foreach ($this->collApiRbacsRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->apiLogsScheduledForDeletion !== null) {
+                if (!$this->apiLogsScheduledForDeletion->isEmpty()) {
+                    ApiLogQuery::create()
+                        ->filterByPrimaryKeys($this->apiLogsScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->apiLogsScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collApiLogs !== null) {
+                foreach ($this->collApiLogs as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->templatesRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->templatesRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->templatesRelatedByIdCreationScheduledForDeletion as $templateRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $templateRelatedByIdCreation->save($con);
+                    }
+                    $this->templatesRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collTemplatesRelatedByIdCreation !== null) {
+                foreach ($this->collTemplatesRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->templatesRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->templatesRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->templatesRelatedByIdModificationScheduledForDeletion as $templateRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $templateRelatedByIdModification->save($con);
+                    }
+                    $this->templatesRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collTemplatesRelatedByIdModification !== null) {
+                foreach ($this->collTemplatesRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->templateFilesRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->templateFilesRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->templateFilesRelatedByIdCreationScheduledForDeletion as $templateFileRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $templateFileRelatedByIdCreation->save($con);
+                    }
+                    $this->templateFilesRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collTemplateFilesRelatedByIdCreation !== null) {
+                foreach ($this->collTemplateFilesRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->templateFilesRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->templateFilesRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->templateFilesRelatedByIdModificationScheduledForDeletion as $templateFileRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $templateFileRelatedByIdModification->save($con);
+                    }
+                    $this->templateFilesRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collTemplateFilesRelatedByIdModification !== null) {
+                foreach ($this->collTemplateFilesRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->authyRefreshTokensRelatedByIdAuthyScheduledForDeletion !== null) {
+                if (!$this->authyRefreshTokensRelatedByIdAuthyScheduledForDeletion->isEmpty()) {
+                    AuthyRefreshTokenQuery::create()
+                        ->filterByPrimaryKeys($this->authyRefreshTokensRelatedByIdAuthyScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->authyRefreshTokensRelatedByIdAuthyScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collAuthyRefreshTokensRelatedByIdAuthy !== null) {
+                foreach ($this->collAuthyRefreshTokensRelatedByIdAuthy as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->authyRefreshTokensRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->authyRefreshTokensRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->authyRefreshTokensRelatedByIdCreationScheduledForDeletion as $authyRefreshTokenRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $authyRefreshTokenRelatedByIdCreation->save($con);
+                    }
+                    $this->authyRefreshTokensRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collAuthyRefreshTokensRelatedByIdCreation !== null) {
+                foreach ($this->collAuthyRefreshTokensRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->authyRefreshTokensRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->authyRefreshTokensRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->authyRefreshTokensRelatedByIdModificationScheduledForDeletion as $authyRefreshTokenRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $authyRefreshTokenRelatedByIdModification->save($con);
+                    }
+                    $this->authyRefreshTokensRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collAuthyRefreshTokensRelatedByIdModification !== null) {
+                foreach ($this->collAuthyRefreshTokensRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->oauthClientsRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->oauthClientsRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->oauthClientsRelatedByIdCreationScheduledForDeletion as $oauthClientRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $oauthClientRelatedByIdCreation->save($con);
+                    }
+                    $this->oauthClientsRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collOauthClientsRelatedByIdCreation !== null) {
+                foreach ($this->collOauthClientsRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->oauthClientsRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->oauthClientsRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->oauthClientsRelatedByIdModificationScheduledForDeletion as $oauthClientRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $oauthClientRelatedByIdModification->save($con);
+                    }
+                    $this->oauthClientsRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collOauthClientsRelatedByIdModification !== null) {
+                foreach ($this->collOauthClientsRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->oauthAuthCodesRelatedByIdAuthyScheduledForDeletion !== null) {
+                if (!$this->oauthAuthCodesRelatedByIdAuthyScheduledForDeletion->isEmpty()) {
+                    OauthAuthCodeQuery::create()
+                        ->filterByPrimaryKeys($this->oauthAuthCodesRelatedByIdAuthyScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->oauthAuthCodesRelatedByIdAuthyScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collOauthAuthCodesRelatedByIdAuthy !== null) {
+                foreach ($this->collOauthAuthCodesRelatedByIdAuthy as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->oauthAuthCodesRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->oauthAuthCodesRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->oauthAuthCodesRelatedByIdCreationScheduledForDeletion as $oauthAuthCodeRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $oauthAuthCodeRelatedByIdCreation->save($con);
+                    }
+                    $this->oauthAuthCodesRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collOauthAuthCodesRelatedByIdCreation !== null) {
+                foreach ($this->collOauthAuthCodesRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->oauthAuthCodesRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->oauthAuthCodesRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->oauthAuthCodesRelatedByIdModificationScheduledForDeletion as $oauthAuthCodeRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $oauthAuthCodeRelatedByIdModification->save($con);
+                    }
+                    $this->oauthAuthCodesRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collOauthAuthCodesRelatedByIdModification !== null) {
+                foreach ($this->collOauthAuthCodesRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->oauthAccessTokensRelatedByIdAuthyScheduledForDeletion !== null) {
+                if (!$this->oauthAccessTokensRelatedByIdAuthyScheduledForDeletion->isEmpty()) {
+                    OauthAccessTokenQuery::create()
+                        ->filterByPrimaryKeys($this->oauthAccessTokensRelatedByIdAuthyScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->oauthAccessTokensRelatedByIdAuthyScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collOauthAccessTokensRelatedByIdAuthy !== null) {
+                foreach ($this->collOauthAccessTokensRelatedByIdAuthy as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->oauthAccessTokensRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->oauthAccessTokensRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->oauthAccessTokensRelatedByIdCreationScheduledForDeletion as $oauthAccessTokenRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $oauthAccessTokenRelatedByIdCreation->save($con);
+                    }
+                    $this->oauthAccessTokensRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collOauthAccessTokensRelatedByIdCreation !== null) {
+                foreach ($this->collOauthAccessTokensRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->oauthAccessTokensRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->oauthAccessTokensRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->oauthAccessTokensRelatedByIdModificationScheduledForDeletion as $oauthAccessTokenRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $oauthAccessTokenRelatedByIdModification->save($con);
+                    }
+                    $this->oauthAccessTokensRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collOauthAccessTokensRelatedByIdModification !== null) {
+                foreach ($this->collOauthAccessTokensRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->oauthRefreshTokensRelatedByIdAuthyScheduledForDeletion !== null) {
+                if (!$this->oauthRefreshTokensRelatedByIdAuthyScheduledForDeletion->isEmpty()) {
+                    OauthRefreshTokenQuery::create()
+                        ->filterByPrimaryKeys($this->oauthRefreshTokensRelatedByIdAuthyScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->oauthRefreshTokensRelatedByIdAuthyScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collOauthRefreshTokensRelatedByIdAuthy !== null) {
+                foreach ($this->collOauthRefreshTokensRelatedByIdAuthy as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->oauthRefreshTokensRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->oauthRefreshTokensRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->oauthRefreshTokensRelatedByIdCreationScheduledForDeletion as $oauthRefreshTokenRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $oauthRefreshTokenRelatedByIdCreation->save($con);
+                    }
+                    $this->oauthRefreshTokensRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collOauthRefreshTokensRelatedByIdCreation !== null) {
+                foreach ($this->collOauthRefreshTokensRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->oauthRefreshTokensRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->oauthRefreshTokensRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->oauthRefreshTokensRelatedByIdModificationScheduledForDeletion as $oauthRefreshTokenRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $oauthRefreshTokenRelatedByIdModification->save($con);
+                    }
+                    $this->oauthRefreshTokensRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collOauthRefreshTokensRelatedByIdModification !== null) {
+                foreach ($this->collOauthRefreshTokensRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->messageI18nsRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->messageI18nsRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->messageI18nsRelatedByIdCreationScheduledForDeletion as $messageI18nRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $messageI18nRelatedByIdCreation->save($con);
+                    }
+                    $this->messageI18nsRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collMessageI18nsRelatedByIdCreation !== null) {
+                foreach ($this->collMessageI18nsRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->messageI18nsRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->messageI18nsRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->messageI18nsRelatedByIdModificationScheduledForDeletion as $messageI18nRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $messageI18nRelatedByIdModification->save($con);
+                    }
+                    $this->messageI18nsRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collMessageI18nsRelatedByIdModification !== null) {
+                foreach ($this->collMessageI18nsRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            $this->alreadyInSave = false;
+
+        }
+
+        return $affectedRows;
+    } // doSave()
+
+    /**
+     * Insert the row in the database.
+     *
+     * @param PropelPDO $con
+     *
+     * @throws PropelException
+     * @see        doSave()
+     */
+    protected function doInsert(PropelPDO $con)
+    {
+        $modifiedColumns = array();
+        $index = 0;
+
+        $this->modifiedColumns[] = AuthyPeer::ID_AUTHY;
+        if (null !== $this->id_authy) {
+            throw new PropelException('Cannot insert a value for auto-increment primary key (' . AuthyPeer::ID_AUTHY . ')');
+        }
+
+         // check the columns in natural order for more readable SQL queries
+        if ($this->isColumnModified(AuthyPeer::ID_AUTHY)) {
+            $modifiedColumns[':p' . $index++]  = '`id_authy`';
+        }
+        if ($this->isColumnModified(AuthyPeer::VALIDATION_KEY)) {
+            $modifiedColumns[':p' . $index++]  = '`validation_key`';
+        }
+        if ($this->isColumnModified(AuthyPeer::USERNAME)) {
+            $modifiedColumns[':p' . $index++]  = '`username`';
+        }
+        if ($this->isColumnModified(AuthyPeer::FULLNAME)) {
+            $modifiedColumns[':p' . $index++]  = '`fullname`';
+        }
+        if ($this->isColumnModified(AuthyPeer::EMAIL)) {
+            $modifiedColumns[':p' . $index++]  = '`email`';
+        }
+        if ($this->isColumnModified(AuthyPeer::PASSWD_HASH)) {
+            $modifiedColumns[':p' . $index++]  = '`passwd_hash`';
+        }
+        if ($this->isColumnModified(AuthyPeer::EXPIRE)) {
+            $modifiedColumns[':p' . $index++]  = '`expire`';
+        }
+        if ($this->isColumnModified(AuthyPeer::DEACTIVATE)) {
+            $modifiedColumns[':p' . $index++]  = '`deactivate`';
+        }
+        if ($this->isColumnModified(AuthyPeer::LANGUAGE)) {
+            $modifiedColumns[':p' . $index++]  = '`language`';
+        }
+        if ($this->isColumnModified(AuthyPeer::THEME)) {
+            $modifiedColumns[':p' . $index++]  = '`theme`';
+        }
+        if ($this->isColumnModified(AuthyPeer::GOOGLE_SUB)) {
+            $modifiedColumns[':p' . $index++]  = '`google_sub`';
+        }
+        if ($this->isColumnModified(AuthyPeer::GOOGLE_EMAIL)) {
+            $modifiedColumns[':p' . $index++]  = '`google_email`';
+        }
+        if ($this->isColumnModified(AuthyPeer::RESET_TOKEN_HASH)) {
+            $modifiedColumns[':p' . $index++]  = '`reset_token_hash`';
+        }
+        if ($this->isColumnModified(AuthyPeer::RESET_TOKEN_EXPIRES)) {
+            $modifiedColumns[':p' . $index++]  = '`reset_token_expires`';
+        }
+        if ($this->isColumnModified(AuthyPeer::ID_TENANT)) {
+            $modifiedColumns[':p' . $index++]  = '`id_tenant`';
+        }
+        if ($this->isColumnModified(AuthyPeer::LOCATION_ADDRESS)) {
+            $modifiedColumns[':p' . $index++]  = '`location_address`';
+        }
+        if ($this->isColumnModified(AuthyPeer::LOCATION_LAT)) {
+            $modifiedColumns[':p' . $index++]  = '`location_lat`';
+        }
+        if ($this->isColumnModified(AuthyPeer::LOCATION_LNG)) {
+            $modifiedColumns[':p' . $index++]  = '`location_lng`';
+        }
+        if ($this->isColumnModified(AuthyPeer::IS_ROOT)) {
+            $modifiedColumns[':p' . $index++]  = '`is_root`';
+        }
+        if ($this->isColumnModified(AuthyPeer::ID_AUTHY_GROUP)) {
+            $modifiedColumns[':p' . $index++]  = '`id_authy_group`';
+        }
+        if ($this->isColumnModified(AuthyPeer::IS_SYSTEM)) {
+            $modifiedColumns[':p' . $index++]  = '`is_system`';
+        }
+        if ($this->isColumnModified(AuthyPeer::RIGHTS_ALL)) {
+            $modifiedColumns[':p' . $index++]  = '`rights_all`';
+        }
+        if ($this->isColumnModified(AuthyPeer::RIGHTS_GROUP)) {
+            $modifiedColumns[':p' . $index++]  = '`rights_group`';
+        }
+        if ($this->isColumnModified(AuthyPeer::RIGHTS_OWNER)) {
+            $modifiedColumns[':p' . $index++]  = '`rights_owner`';
+        }
+        if ($this->isColumnModified(AuthyPeer::ONGLET)) {
+            $modifiedColumns[':p' . $index++]  = '`onglet`';
+        }
+        if ($this->isColumnModified(AuthyPeer::DATE_CREATION)) {
+            $modifiedColumns[':p' . $index++]  = '`date_creation`';
+        }
+        if ($this->isColumnModified(AuthyPeer::DATE_MODIFICATION)) {
+            $modifiedColumns[':p' . $index++]  = '`date_modification`';
+        }
+        if ($this->isColumnModified(AuthyPeer::ID_GROUP_CREATION)) {
+            $modifiedColumns[':p' . $index++]  = '`id_group_creation`';
+        }
+        if ($this->isColumnModified(AuthyPeer::ID_CREATION)) {
+            $modifiedColumns[':p' . $index++]  = '`id_creation`';
+        }
+        if ($this->isColumnModified(AuthyPeer::ID_MODIFICATION)) {
+            $modifiedColumns[':p' . $index++]  = '`id_modification`';
+        }
+
+        $sql = sprintf(
+            'INSERT INTO `authy` (%s) VALUES (%s)',
+            implode(', ', $modifiedColumns),
+            implode(', ', array_keys($modifiedColumns))
+        );
+
+        try {
+            $stmt = $con->prepare($sql);
+            foreach ($modifiedColumns as $identifier => $columnName) {
+                switch ($columnName) {
+                    case '`id_authy`':
+                        $stmt->bindValue($identifier, $this->id_authy, PDO::PARAM_INT);
+                        break;
+                    case '`validation_key`':
+                        $stmt->bindValue($identifier, $this->validation_key, PDO::PARAM_STR);
+                        break;
+                    case '`username`':
+                        $stmt->bindValue($identifier, $this->username, PDO::PARAM_STR);
+                        break;
+                    case '`fullname`':
+                        $stmt->bindValue($identifier, $this->fullname, PDO::PARAM_STR);
+                        break;
+                    case '`email`':
+                        $stmt->bindValue($identifier, $this->email, PDO::PARAM_STR);
+                        break;
+                    case '`passwd_hash`':
+                        $stmt->bindValue($identifier, $this->passwd_hash, PDO::PARAM_STR);
+                        break;
+                    case '`expire`':
+                        $stmt->bindValue($identifier, $this->expire, PDO::PARAM_STR);
+                        break;
+                    case '`deactivate`':
+                        $stmt->bindValue($identifier, $this->deactivate, PDO::PARAM_INT);
+                        break;
+                    case '`language`':
+                        $stmt->bindValue($identifier, $this->language, PDO::PARAM_INT);
+                        break;
+                    case '`theme`':
+                        $stmt->bindValue($identifier, $this->theme, PDO::PARAM_INT);
+                        break;
+                    case '`google_sub`':
+                        $stmt->bindValue($identifier, $this->google_sub, PDO::PARAM_STR);
+                        break;
+                    case '`google_email`':
+                        $stmt->bindValue($identifier, $this->google_email, PDO::PARAM_STR);
+                        break;
+                    case '`reset_token_hash`':
+                        $stmt->bindValue($identifier, $this->reset_token_hash, PDO::PARAM_STR);
+                        break;
+                    case '`reset_token_expires`':
+                        $stmt->bindValue($identifier, $this->reset_token_expires, PDO::PARAM_INT);
+                        break;
+                    case '`id_tenant`':
+                        $stmt->bindValue($identifier, $this->id_tenant, PDO::PARAM_INT);
+                        break;
+                    case '`location_address`':
+                        $stmt->bindValue($identifier, $this->location_address, PDO::PARAM_STR);
+                        break;
+                    case '`location_lat`':
+                        $stmt->bindValue($identifier, $this->location_lat, PDO::PARAM_STR);
+                        break;
+                    case '`location_lng`':
+                        $stmt->bindValue($identifier, $this->location_lng, PDO::PARAM_STR);
+                        break;
+                    case '`is_root`':
+                        $stmt->bindValue($identifier, $this->is_root, PDO::PARAM_INT);
+                        break;
+                    case '`id_authy_group`':
+                        $stmt->bindValue($identifier, $this->id_authy_group, PDO::PARAM_INT);
+                        break;
+                    case '`is_system`':
+                        $stmt->bindValue($identifier, $this->is_system, PDO::PARAM_INT);
+                        break;
+                    case '`rights_all`':
+                        $stmt->bindValue($identifier, $this->rights_all, PDO::PARAM_STR);
+                        break;
+                    case '`rights_group`':
+                        $stmt->bindValue($identifier, $this->rights_group, PDO::PARAM_STR);
+                        break;
+                    case '`rights_owner`':
+                        $stmt->bindValue($identifier, $this->rights_owner, PDO::PARAM_STR);
+                        break;
+                    case '`onglet`':
+                        $stmt->bindValue($identifier, $this->onglet, PDO::PARAM_STR);
+                        break;
+                    case '`date_creation`':
+                        $stmt->bindValue($identifier, $this->date_creation, PDO::PARAM_STR);
+                        break;
+                    case '`date_modification`':
+                        $stmt->bindValue($identifier, $this->date_modification, PDO::PARAM_STR);
+                        break;
+                    case '`id_group_creation`':
+                        $stmt->bindValue($identifier, $this->id_group_creation, PDO::PARAM_INT);
+                        break;
+                    case '`id_creation`':
+                        $stmt->bindValue($identifier, $this->id_creation, PDO::PARAM_INT);
+                        break;
+                    case '`id_modification`':
+                        $stmt->bindValue($identifier, $this->id_modification, PDO::PARAM_INT);
+                        break;
+                }
+            }
+            $stmt->execute();
+        } catch (Exception $e) {
+            Propel::log($e->getMessage(), Propel::LOG_ERR);
+            throw new PropelException(sprintf('Unable to execute INSERT statement [%s]', $sql), $e);
+        }
+
+        try {
+            $pk = $con->lastInsertId();
+        } catch (Exception $e) {
+            throw new PropelException('Unable to get autoincrement id.', $e);
+        }
+        $this->setIdAuthy($pk);
+
+        $this->setNew(false);
+    }
+
+    /**
+     * Update the row in the database.
+     *
+     * @param PropelPDO $con
+     *
+     * @see        doSave()
+     */
+    protected function doUpdate(PropelPDO $con)
+    {
+        $selectCriteria = $this->buildPkeyCriteria();
+        $valuesCriteria = $this->buildCriteria();
+        BasePeer::doUpdate($selectCriteria, $valuesCriteria, $con);
+    }
+
+    /**
+     * Array of ValidationFailed objects.
+     * @var        array ValidationFailed[]
+     */
+    protected $validationFailures = array();
+
+    /**
+     * Gets any ValidationFailed objects that resulted from last call to validate().
+     *
+     *
+     * @return array ValidationFailed[]
+     * @see        validate()
+     */
+    public function getValidationFailures()
+    {
+        return $this->validationFailures;
+    }
+
+    /**
+     * Validates the objects modified field values and all objects related to this table.
+     *
+     * If $columns is either a column name or an array of column names
+     * only those columns are validated.
+     *
+     * @param mixed $columns Column name or an array of column names.
+     * @return boolean Whether all columns pass validation.
+     * @see        doValidate()
+     * @see        getValidationFailures()
+     */
+    public function validate($columns = null)
+    {
+        $res = $this->doValidate($columns);
+        if ($res === true) {
+            $this->validationFailures = array();
+
+            return true;
+        }
+
+        $this->validationFailures = $res;
+
+        return false;
+    }
+
+    /**
+     * This function performs the validation work for complex object models.
+     *
+     * In addition to checking the current object, all related objects will
+     * also be validated.  If all pass then <code>true</code> is returned; otherwise
+     * an aggregated array of ValidationFailed objects will be returned.
+     *
+     * @param array $columns Array of column names to validate.
+     * @return mixed <code>true</code> if all validations pass; array of <code>ValidationFailed</code> objects otherwise.
+     */
+    protected function doValidate($columns = null)
+    {
+        if (!$this->alreadyInValidation) {
+            $this->alreadyInValidation = true;
+            $retval = null;
+
+            $failureMap = array();
+
+
+            // We call the validate method on the following object(s) if they
+            // were passed to this object by their corresponding set
+            // method.  This object relates to these object(s) by a
+            // foreign key reference.
+
+            if ($this->aAuthyGroupRelatedByIdAuthyGroup !== null) {
+                if (!$this->aAuthyGroupRelatedByIdAuthyGroup->validate($columns)) {
+                    $failureMap = array_merge($failureMap, $this->aAuthyGroupRelatedByIdAuthyGroup->getValidationFailures());
+                }
+            }
+
+            if ($this->aAuthyGroupRelatedByIdGroupCreation !== null) {
+                if (!$this->aAuthyGroupRelatedByIdGroupCreation->validate($columns)) {
+                    $failureMap = array_merge($failureMap, $this->aAuthyGroupRelatedByIdGroupCreation->getValidationFailures());
+                }
+            }
+
+            if ($this->aAuthyRelatedByIdCreation !== null) {
+                if (!$this->aAuthyRelatedByIdCreation->validate($columns)) {
+                    $failureMap = array_merge($failureMap, $this->aAuthyRelatedByIdCreation->getValidationFailures());
+                }
+            }
+
+            if ($this->aAuthyRelatedByIdModification !== null) {
+                if (!$this->aAuthyRelatedByIdModification->validate($columns)) {
+                    $failureMap = array_merge($failureMap, $this->aAuthyRelatedByIdModification->getValidationFailures());
+                }
+            }
+
+
+            if (($retval = AuthyPeer::doValidate($this, $columns)) !== true) {
+                $failureMap = array_merge($failureMap, $retval);
+            }
+
+
+                if ($this->collPushDevicesRelatedByIdAuthy !== null) {
+                    foreach ($this->collPushDevicesRelatedByIdAuthy as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collAuthyGroupxesRelatedByIdAuthy !== null) {
+                    foreach ($this->collAuthyGroupxesRelatedByIdAuthy as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collAuthyLogs !== null) {
+                    foreach ($this->collAuthyLogs as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collAuthiesRelatedByIdAuthy0 !== null) {
+                    foreach ($this->collAuthiesRelatedByIdAuthy0 as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collAuthiesRelatedByIdAuthy1 !== null) {
+                    foreach ($this->collAuthiesRelatedByIdAuthy1 as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collPushDevicesRelatedByIdCreation !== null) {
+                    foreach ($this->collPushDevicesRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collPushDevicesRelatedByIdModification !== null) {
+                    foreach ($this->collPushDevicesRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collCountriesRelatedByIdCreation !== null) {
+                    foreach ($this->collCountriesRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collCountriesRelatedByIdModification !== null) {
+                    foreach ($this->collCountriesRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collGridRunsRelatedByIdCreation !== null) {
+                    foreach ($this->collGridRunsRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collGridRunsRelatedByIdModification !== null) {
+                    foreach ($this->collGridRunsRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collBotOrdersRelatedByIdCreation !== null) {
+                    foreach ($this->collBotOrdersRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collBotOrdersRelatedByIdModification !== null) {
+                    foreach ($this->collBotOrdersRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collTradeCyclesRelatedByIdCreation !== null) {
+                    foreach ($this->collTradeCyclesRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collTradeCyclesRelatedByIdModification !== null) {
+                    foreach ($this->collTradeCyclesRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collBotEventsRelatedByIdCreation !== null) {
+                    foreach ($this->collBotEventsRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collBotEventsRelatedByIdModification !== null) {
+                    foreach ($this->collBotEventsRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collBotCommandsRelatedByIdCreation !== null) {
+                    foreach ($this->collBotCommandsRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collBotCommandsRelatedByIdModification !== null) {
+                    foreach ($this->collBotCommandsRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collSimWalletsRelatedByIdCreation !== null) {
+                    foreach ($this->collSimWalletsRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collSimWalletsRelatedByIdModification !== null) {
+                    foreach ($this->collSimWalletsRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collMarketSummariesRelatedByIdCreation !== null) {
+                    foreach ($this->collMarketSummariesRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collMarketSummariesRelatedByIdModification !== null) {
+                    foreach ($this->collMarketSummariesRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collMarketRegimesRelatedByIdCreation !== null) {
+                    foreach ($this->collMarketRegimesRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collMarketRegimesRelatedByIdModification !== null) {
+                    foreach ($this->collMarketRegimesRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collBotDecisionsRelatedByIdCreation !== null) {
+                    foreach ($this->collBotDecisionsRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collBotDecisionsRelatedByIdModification !== null) {
+                    foreach ($this->collBotDecisionsRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collAuthyGroupsRelatedByIdCreation !== null) {
+                    foreach ($this->collAuthyGroupsRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collAuthyGroupsRelatedByIdModification !== null) {
+                    foreach ($this->collAuthyGroupsRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collAuthyGroupxesRelatedByIdCreation !== null) {
+                    foreach ($this->collAuthyGroupxesRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collAuthyGroupxesRelatedByIdModification !== null) {
+                    foreach ($this->collAuthyGroupxesRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collConfigsRelatedByIdCreation !== null) {
+                    foreach ($this->collConfigsRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collConfigsRelatedByIdModification !== null) {
+                    foreach ($this->collConfigsRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collApiRbacsRelatedByIdCreation !== null) {
+                    foreach ($this->collApiRbacsRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collApiRbacsRelatedByIdModification !== null) {
+                    foreach ($this->collApiRbacsRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collApiLogs !== null) {
+                    foreach ($this->collApiLogs as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collTemplatesRelatedByIdCreation !== null) {
+                    foreach ($this->collTemplatesRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collTemplatesRelatedByIdModification !== null) {
+                    foreach ($this->collTemplatesRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collTemplateFilesRelatedByIdCreation !== null) {
+                    foreach ($this->collTemplateFilesRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collTemplateFilesRelatedByIdModification !== null) {
+                    foreach ($this->collTemplateFilesRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collAuthyRefreshTokensRelatedByIdAuthy !== null) {
+                    foreach ($this->collAuthyRefreshTokensRelatedByIdAuthy as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collAuthyRefreshTokensRelatedByIdCreation !== null) {
+                    foreach ($this->collAuthyRefreshTokensRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collAuthyRefreshTokensRelatedByIdModification !== null) {
+                    foreach ($this->collAuthyRefreshTokensRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collOauthClientsRelatedByIdCreation !== null) {
+                    foreach ($this->collOauthClientsRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collOauthClientsRelatedByIdModification !== null) {
+                    foreach ($this->collOauthClientsRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collOauthAuthCodesRelatedByIdAuthy !== null) {
+                    foreach ($this->collOauthAuthCodesRelatedByIdAuthy as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collOauthAuthCodesRelatedByIdCreation !== null) {
+                    foreach ($this->collOauthAuthCodesRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collOauthAuthCodesRelatedByIdModification !== null) {
+                    foreach ($this->collOauthAuthCodesRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collOauthAccessTokensRelatedByIdAuthy !== null) {
+                    foreach ($this->collOauthAccessTokensRelatedByIdAuthy as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collOauthAccessTokensRelatedByIdCreation !== null) {
+                    foreach ($this->collOauthAccessTokensRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collOauthAccessTokensRelatedByIdModification !== null) {
+                    foreach ($this->collOauthAccessTokensRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collOauthRefreshTokensRelatedByIdAuthy !== null) {
+                    foreach ($this->collOauthRefreshTokensRelatedByIdAuthy as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collOauthRefreshTokensRelatedByIdCreation !== null) {
+                    foreach ($this->collOauthRefreshTokensRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collOauthRefreshTokensRelatedByIdModification !== null) {
+                    foreach ($this->collOauthRefreshTokensRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collMessageI18nsRelatedByIdCreation !== null) {
+                    foreach ($this->collMessageI18nsRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collMessageI18nsRelatedByIdModification !== null) {
+                    foreach ($this->collMessageI18nsRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+
+            $this->alreadyInValidation = false;
+        }
+
+        return (!empty($failureMap) ? $failureMap : true);
+    }
+
+    /**
+     * Retrieves a field from the object by name passed in as a string.
+     *
+     * @param string $name name
+     * @param string $type The type of fieldname the $name is of:
+     *               one of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME
+     *               BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
+     *               Defaults to BasePeer::TYPE_PHPNAME
+     * @return mixed Value of field.
+     */
+    public function getByName($name, $type = BasePeer::TYPE_PHPNAME)
+    {
+        $pos = AuthyPeer::translateFieldName($name, $type, BasePeer::TYPE_NUM);
+        $field = $this->getByPosition($pos);
+
+        return $field;
+    }
+
+    /**
+     * Exports the object as an array.
+     *
+     * You can specify the key type of the array by passing one of the class
+     * type constants.
+     *
+     * @param     string  $keyType (optional) One of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME,
+     *                    BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
+     *                    Defaults to BasePeer::TYPE_PHPNAME.
+     * @param     boolean $includeLazyLoadColumns (optional) Whether to include lazy loaded columns. Defaults to true.
+     * @param     array $alreadyDumpedObjects List of objects to skip to avoid recursion
+     * @param     boolean $includeForeignObjects (optional) Whether to include hydrated related objects. Default to FALSE.
+     *
+     * @return array an associative array containing the field names (as keys) and field values
+     */
+    public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true, $alreadyDumpedObjects = array(), $includeForeignObjects = false)
+    {
+        if (isset($alreadyDumpedObjects['Authy'][$this->getPrimaryKey()])) {
+            return '*RECURSION*';
+        }
+        $alreadyDumpedObjects['Authy'][$this->getPrimaryKey()] = true;
+        $keys = AuthyPeer::getFieldNames($keyType);
+        $result = array(
+            $keys[0] => $this->getIdAuthy(),
+            $keys[1] => $this->getValidationKey(),
+            $keys[2] => $this->getUsername(),
+            $keys[3] => $this->getFullname(),
+            $keys[4] => $this->getEmail(),
+            $keys[5] => $this->getPasswdHash(),
+            $keys[6] => $this->getExpire(),
+            $keys[7] => $this->getDeactivate(),
+            $keys[8] => $this->getLanguage(),
+            $keys[9] => $this->getTheme(),
+            $keys[10] => $this->getGoogleSub(),
+            $keys[11] => $this->getGoogleEmail(),
+            $keys[12] => $this->getResetTokenHash(),
+            $keys[13] => $this->getResetTokenExpires(),
+            $keys[14] => $this->getIdTenant(),
+            $keys[15] => $this->getLocationAddress(),
+            $keys[16] => $this->getLocationLat(),
+            $keys[17] => $this->getLocationLng(),
+            $keys[18] => $this->getIsRoot(),
+            $keys[19] => $this->getIdAuthyGroup(),
+            $keys[20] => $this->getIsSystem(),
+            $keys[21] => $this->getRightsAll(),
+            $keys[22] => $this->getRightsGroup(),
+            $keys[23] => $this->getRightsOwner(),
+            $keys[24] => $this->getOnglet(),
+            $keys[25] => $this->getDateCreation(),
+            $keys[26] => $this->getDateModification(),
+            $keys[27] => $this->getIdGroupCreation(),
+            $keys[28] => $this->getIdCreation(),
+            $keys[29] => $this->getIdModification(),
+        );
+        $virtualColumns = $this->virtualColumns;
+        foreach ($virtualColumns as $key => $virtualColumn) {
+            $result[$key] = $virtualColumn;
+        }
+
+        if ($includeForeignObjects) {
+            if (null !== $this->aAuthyGroupRelatedByIdAuthyGroup) {
+                $result['AuthyGroupRelatedByIdAuthyGroup'] = $this->aAuthyGroupRelatedByIdAuthyGroup->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
+            }
+            if (null !== $this->aAuthyGroupRelatedByIdGroupCreation) {
+                $result['AuthyGroupRelatedByIdGroupCreation'] = $this->aAuthyGroupRelatedByIdGroupCreation->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
+            }
+            if (null !== $this->aAuthyRelatedByIdCreation) {
+                $result['AuthyRelatedByIdCreation'] = $this->aAuthyRelatedByIdCreation->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
+            }
+            if (null !== $this->aAuthyRelatedByIdModification) {
+                $result['AuthyRelatedByIdModification'] = $this->aAuthyRelatedByIdModification->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
+            }
+            if (null !== $this->collPushDevicesRelatedByIdAuthy) {
+                $result['PushDevicesRelatedByIdAuthy'] = $this->collPushDevicesRelatedByIdAuthy->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collAuthyGroupxesRelatedByIdAuthy) {
+                $result['AuthyGroupxesRelatedByIdAuthy'] = $this->collAuthyGroupxesRelatedByIdAuthy->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collAuthyLogs) {
+                $result['AuthyLogs'] = $this->collAuthyLogs->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collAuthiesRelatedByIdAuthy0) {
+                $result['AuthiesRelatedByIdAuthy0'] = $this->collAuthiesRelatedByIdAuthy0->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collAuthiesRelatedByIdAuthy1) {
+                $result['AuthiesRelatedByIdAuthy1'] = $this->collAuthiesRelatedByIdAuthy1->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collPushDevicesRelatedByIdCreation) {
+                $result['PushDevicesRelatedByIdCreation'] = $this->collPushDevicesRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collPushDevicesRelatedByIdModification) {
+                $result['PushDevicesRelatedByIdModification'] = $this->collPushDevicesRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collCountriesRelatedByIdCreation) {
+                $result['CountriesRelatedByIdCreation'] = $this->collCountriesRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collCountriesRelatedByIdModification) {
+                $result['CountriesRelatedByIdModification'] = $this->collCountriesRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collGridRunsRelatedByIdCreation) {
+                $result['GridRunsRelatedByIdCreation'] = $this->collGridRunsRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collGridRunsRelatedByIdModification) {
+                $result['GridRunsRelatedByIdModification'] = $this->collGridRunsRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collBotOrdersRelatedByIdCreation) {
+                $result['BotOrdersRelatedByIdCreation'] = $this->collBotOrdersRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collBotOrdersRelatedByIdModification) {
+                $result['BotOrdersRelatedByIdModification'] = $this->collBotOrdersRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collTradeCyclesRelatedByIdCreation) {
+                $result['TradeCyclesRelatedByIdCreation'] = $this->collTradeCyclesRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collTradeCyclesRelatedByIdModification) {
+                $result['TradeCyclesRelatedByIdModification'] = $this->collTradeCyclesRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collBotEventsRelatedByIdCreation) {
+                $result['BotEventsRelatedByIdCreation'] = $this->collBotEventsRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collBotEventsRelatedByIdModification) {
+                $result['BotEventsRelatedByIdModification'] = $this->collBotEventsRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collBotCommandsRelatedByIdCreation) {
+                $result['BotCommandsRelatedByIdCreation'] = $this->collBotCommandsRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collBotCommandsRelatedByIdModification) {
+                $result['BotCommandsRelatedByIdModification'] = $this->collBotCommandsRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collSimWalletsRelatedByIdCreation) {
+                $result['SimWalletsRelatedByIdCreation'] = $this->collSimWalletsRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collSimWalletsRelatedByIdModification) {
+                $result['SimWalletsRelatedByIdModification'] = $this->collSimWalletsRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collMarketSummariesRelatedByIdCreation) {
+                $result['MarketSummariesRelatedByIdCreation'] = $this->collMarketSummariesRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collMarketSummariesRelatedByIdModification) {
+                $result['MarketSummariesRelatedByIdModification'] = $this->collMarketSummariesRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collMarketRegimesRelatedByIdCreation) {
+                $result['MarketRegimesRelatedByIdCreation'] = $this->collMarketRegimesRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collMarketRegimesRelatedByIdModification) {
+                $result['MarketRegimesRelatedByIdModification'] = $this->collMarketRegimesRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collBotDecisionsRelatedByIdCreation) {
+                $result['BotDecisionsRelatedByIdCreation'] = $this->collBotDecisionsRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collBotDecisionsRelatedByIdModification) {
+                $result['BotDecisionsRelatedByIdModification'] = $this->collBotDecisionsRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collAuthyGroupsRelatedByIdCreation) {
+                $result['AuthyGroupsRelatedByIdCreation'] = $this->collAuthyGroupsRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collAuthyGroupsRelatedByIdModification) {
+                $result['AuthyGroupsRelatedByIdModification'] = $this->collAuthyGroupsRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collAuthyGroupxesRelatedByIdCreation) {
+                $result['AuthyGroupxesRelatedByIdCreation'] = $this->collAuthyGroupxesRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collAuthyGroupxesRelatedByIdModification) {
+                $result['AuthyGroupxesRelatedByIdModification'] = $this->collAuthyGroupxesRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collConfigsRelatedByIdCreation) {
+                $result['ConfigsRelatedByIdCreation'] = $this->collConfigsRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collConfigsRelatedByIdModification) {
+                $result['ConfigsRelatedByIdModification'] = $this->collConfigsRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collApiRbacsRelatedByIdCreation) {
+                $result['ApiRbacsRelatedByIdCreation'] = $this->collApiRbacsRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collApiRbacsRelatedByIdModification) {
+                $result['ApiRbacsRelatedByIdModification'] = $this->collApiRbacsRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collApiLogs) {
+                $result['ApiLogs'] = $this->collApiLogs->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collTemplatesRelatedByIdCreation) {
+                $result['TemplatesRelatedByIdCreation'] = $this->collTemplatesRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collTemplatesRelatedByIdModification) {
+                $result['TemplatesRelatedByIdModification'] = $this->collTemplatesRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collTemplateFilesRelatedByIdCreation) {
+                $result['TemplateFilesRelatedByIdCreation'] = $this->collTemplateFilesRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collTemplateFilesRelatedByIdModification) {
+                $result['TemplateFilesRelatedByIdModification'] = $this->collTemplateFilesRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collAuthyRefreshTokensRelatedByIdAuthy) {
+                $result['AuthyRefreshTokensRelatedByIdAuthy'] = $this->collAuthyRefreshTokensRelatedByIdAuthy->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collAuthyRefreshTokensRelatedByIdCreation) {
+                $result['AuthyRefreshTokensRelatedByIdCreation'] = $this->collAuthyRefreshTokensRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collAuthyRefreshTokensRelatedByIdModification) {
+                $result['AuthyRefreshTokensRelatedByIdModification'] = $this->collAuthyRefreshTokensRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collOauthClientsRelatedByIdCreation) {
+                $result['OauthClientsRelatedByIdCreation'] = $this->collOauthClientsRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collOauthClientsRelatedByIdModification) {
+                $result['OauthClientsRelatedByIdModification'] = $this->collOauthClientsRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collOauthAuthCodesRelatedByIdAuthy) {
+                $result['OauthAuthCodesRelatedByIdAuthy'] = $this->collOauthAuthCodesRelatedByIdAuthy->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collOauthAuthCodesRelatedByIdCreation) {
+                $result['OauthAuthCodesRelatedByIdCreation'] = $this->collOauthAuthCodesRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collOauthAuthCodesRelatedByIdModification) {
+                $result['OauthAuthCodesRelatedByIdModification'] = $this->collOauthAuthCodesRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collOauthAccessTokensRelatedByIdAuthy) {
+                $result['OauthAccessTokensRelatedByIdAuthy'] = $this->collOauthAccessTokensRelatedByIdAuthy->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collOauthAccessTokensRelatedByIdCreation) {
+                $result['OauthAccessTokensRelatedByIdCreation'] = $this->collOauthAccessTokensRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collOauthAccessTokensRelatedByIdModification) {
+                $result['OauthAccessTokensRelatedByIdModification'] = $this->collOauthAccessTokensRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collOauthRefreshTokensRelatedByIdAuthy) {
+                $result['OauthRefreshTokensRelatedByIdAuthy'] = $this->collOauthRefreshTokensRelatedByIdAuthy->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collOauthRefreshTokensRelatedByIdCreation) {
+                $result['OauthRefreshTokensRelatedByIdCreation'] = $this->collOauthRefreshTokensRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collOauthRefreshTokensRelatedByIdModification) {
+                $result['OauthRefreshTokensRelatedByIdModification'] = $this->collOauthRefreshTokensRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collMessageI18nsRelatedByIdCreation) {
+                $result['MessageI18nsRelatedByIdCreation'] = $this->collMessageI18nsRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collMessageI18nsRelatedByIdModification) {
+                $result['MessageI18nsRelatedByIdModification'] = $this->collMessageI18nsRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Sets a field from the object by name passed in as a string.
+     *
+     * @param string $name peer name
+     * @param mixed $value field value
+     * @param string $type The type of fieldname the $name is of:
+     *                     one of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME
+     *                     BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
+     *                     Defaults to BasePeer::TYPE_PHPNAME
+     * @return void
+     */
+    public function setByName($name, $value, $type = BasePeer::TYPE_PHPNAME)
+    {
+        $pos = AuthyPeer::translateFieldName($name, $type, BasePeer::TYPE_NUM);
+
+        $this->setByPosition($pos, $value);
+    }
+
+    /**
+     * Sets a field from the object by Position as specified in the xml schema.
+     * Zero-based.
+     *
+     * @param int $pos position in xml schema
+     * @param mixed $value field value
+     * @return void
+     */
+    public function setByPosition($pos, $value)
+    {
+        switch ($pos) {
+            case 0:
+                $this->setIdAuthy($value);
+                break;
+            case 1:
+                $this->setValidationKey($value);
+                break;
+            case 2:
+                $this->setUsername($value);
+                break;
+            case 3:
+                $this->setFullname($value);
+                break;
+            case 4:
+                $this->setEmail($value);
+                break;
+            case 5:
+                $this->setPasswdHash($value);
+                break;
+            case 6:
+                $this->setExpire($value);
+                break;
+            case 7:
+                $valueSet = AuthyPeer::getValueSet(AuthyPeer::DEACTIVATE);
+                if (isset($valueSet[$value])) {
+                    $value = $valueSet[$value];
+                }
+                $this->setDeactivate($value);
+                break;
+            case 8:
+                $valueSet = AuthyPeer::getValueSet(AuthyPeer::LANGUAGE);
+                if (isset($valueSet[$value])) {
+                    $value = $valueSet[$value];
+                }
+                $this->setLanguage($value);
+                break;
+            case 9:
+                $valueSet = AuthyPeer::getValueSet(AuthyPeer::THEME);
+                if (isset($valueSet[$value])) {
+                    $value = $valueSet[$value];
+                }
+                $this->setTheme($value);
+                break;
+            case 10:
+                $this->setGoogleSub($value);
+                break;
+            case 11:
+                $this->setGoogleEmail($value);
+                break;
+            case 12:
+                $this->setResetTokenHash($value);
+                break;
+            case 13:
+                $this->setResetTokenExpires($value);
+                break;
+            case 14:
+                $this->setIdTenant($value);
+                break;
+            case 15:
+                $this->setLocationAddress($value);
+                break;
+            case 16:
+                $this->setLocationLat($value);
+                break;
+            case 17:
+                $this->setLocationLng($value);
+                break;
+            case 18:
+                $valueSet = AuthyPeer::getValueSet(AuthyPeer::IS_ROOT);
+                if (isset($valueSet[$value])) {
+                    $value = $valueSet[$value];
+                }
+                $this->setIsRoot($value);
+                break;
+            case 19:
+                $this->setIdAuthyGroup($value);
+                break;
+            case 20:
+                $valueSet = AuthyPeer::getValueSet(AuthyPeer::IS_SYSTEM);
+                if (isset($valueSet[$value])) {
+                    $value = $valueSet[$value];
+                }
+                $this->setIsSystem($value);
+                break;
+            case 21:
+                $this->setRightsAll($value);
+                break;
+            case 22:
+                $this->setRightsGroup($value);
+                break;
+            case 23:
+                $this->setRightsOwner($value);
+                break;
+            case 24:
+                $this->setOnglet($value);
+                break;
+            case 25:
+                $this->setDateCreation($value);
+                break;
+            case 26:
+                $this->setDateModification($value);
+                break;
+            case 27:
+                $this->setIdGroupCreation($value);
+                break;
+            case 28:
+                $this->setIdCreation($value);
+                break;
+            case 29:
+                $this->setIdModification($value);
+                break;
+        } // switch()
+    }
+
+    /**
+     * Populates the object using an array.
+     *
+     * This is particularly useful when populating an object from one of the
+     * request arrays (e.g. $_POST).  This method goes through the column
+     * names, checking to see whether a matching key exists in populated
+     * array. If so the setByName() method is called for that column.
+     *
+     * You can specify the key type of the array by additionally passing one
+     * of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME,
+     * BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
+     * The default key type is the column's BasePeer::TYPE_PHPNAME
+     *
+     * @param array  $arr     An array to populate the object from.
+     * @param string $keyType The type of keys the array uses.
+     * @return void
+     */
+    public function fromArray($arr, $keyType = BasePeer::TYPE_PHPNAME)
+    {
+        $keys = AuthyPeer::getFieldNames($keyType);
+
+        if (array_key_exists($keys[0], $arr)) $this->setIdAuthy($arr[$keys[0]]);
+        if (array_key_exists($keys[1], $arr)) $this->setValidationKey($arr[$keys[1]]);
+        if (array_key_exists($keys[2], $arr)) $this->setUsername($arr[$keys[2]]);
+        if (array_key_exists($keys[3], $arr)) $this->setFullname($arr[$keys[3]]);
+        if (array_key_exists($keys[4], $arr)) $this->setEmail($arr[$keys[4]]);
+        if (array_key_exists($keys[5], $arr)) $this->setPasswdHash($arr[$keys[5]]);
+        if (array_key_exists($keys[6], $arr)) $this->setExpire($arr[$keys[6]]);
+        if (array_key_exists($keys[7], $arr)) $this->setDeactivate($arr[$keys[7]]);
+        if (array_key_exists($keys[8], $arr)) $this->setLanguage($arr[$keys[8]]);
+        if (array_key_exists($keys[9], $arr)) $this->setTheme($arr[$keys[9]]);
+        if (array_key_exists($keys[10], $arr)) $this->setGoogleSub($arr[$keys[10]]);
+        if (array_key_exists($keys[11], $arr)) $this->setGoogleEmail($arr[$keys[11]]);
+        if (array_key_exists($keys[12], $arr)) $this->setResetTokenHash($arr[$keys[12]]);
+        if (array_key_exists($keys[13], $arr)) $this->setResetTokenExpires($arr[$keys[13]]);
+        if (array_key_exists($keys[14], $arr)) $this->setIdTenant($arr[$keys[14]]);
+        if (array_key_exists($keys[15], $arr)) $this->setLocationAddress($arr[$keys[15]]);
+        if (array_key_exists($keys[16], $arr)) $this->setLocationLat($arr[$keys[16]]);
+        if (array_key_exists($keys[17], $arr)) $this->setLocationLng($arr[$keys[17]]);
+        if (array_key_exists($keys[18], $arr)) $this->setIsRoot($arr[$keys[18]]);
+        if (array_key_exists($keys[19], $arr)) $this->setIdAuthyGroup($arr[$keys[19]]);
+        if (array_key_exists($keys[20], $arr)) $this->setIsSystem($arr[$keys[20]]);
+        if (array_key_exists($keys[21], $arr)) $this->setRightsAll($arr[$keys[21]]);
+        if (array_key_exists($keys[22], $arr)) $this->setRightsGroup($arr[$keys[22]]);
+        if (array_key_exists($keys[23], $arr)) $this->setRightsOwner($arr[$keys[23]]);
+        if (array_key_exists($keys[24], $arr)) $this->setOnglet($arr[$keys[24]]);
+        if (array_key_exists($keys[25], $arr)) $this->setDateCreation($arr[$keys[25]]);
+        if (array_key_exists($keys[26], $arr)) $this->setDateModification($arr[$keys[26]]);
+        if (array_key_exists($keys[27], $arr)) $this->setIdGroupCreation($arr[$keys[27]]);
+        if (array_key_exists($keys[28], $arr)) $this->setIdCreation($arr[$keys[28]]);
+        if (array_key_exists($keys[29], $arr)) $this->setIdModification($arr[$keys[29]]);
+    }
+
+    /**
+     * Build a Criteria object containing the values of all modified columns in this object.
+     *
+     * @return Criteria The Criteria object containing all modified values.
+     */
+    public function buildCriteria()
+    {
+        $criteria = new Criteria(AuthyPeer::DATABASE_NAME);
+
+        if ($this->isColumnModified(AuthyPeer::ID_AUTHY)) $criteria->add(AuthyPeer::ID_AUTHY, $this->id_authy);
+        if ($this->isColumnModified(AuthyPeer::VALIDATION_KEY)) $criteria->add(AuthyPeer::VALIDATION_KEY, $this->validation_key);
+        if ($this->isColumnModified(AuthyPeer::USERNAME)) $criteria->add(AuthyPeer::USERNAME, $this->username);
+        if ($this->isColumnModified(AuthyPeer::FULLNAME)) $criteria->add(AuthyPeer::FULLNAME, $this->fullname);
+        if ($this->isColumnModified(AuthyPeer::EMAIL)) $criteria->add(AuthyPeer::EMAIL, $this->email);
+        if ($this->isColumnModified(AuthyPeer::PASSWD_HASH)) $criteria->add(AuthyPeer::PASSWD_HASH, $this->passwd_hash);
+        if ($this->isColumnModified(AuthyPeer::EXPIRE)) $criteria->add(AuthyPeer::EXPIRE, $this->expire);
+        if ($this->isColumnModified(AuthyPeer::DEACTIVATE)) $criteria->add(AuthyPeer::DEACTIVATE, $this->deactivate);
+        if ($this->isColumnModified(AuthyPeer::LANGUAGE)) $criteria->add(AuthyPeer::LANGUAGE, $this->language);
+        if ($this->isColumnModified(AuthyPeer::THEME)) $criteria->add(AuthyPeer::THEME, $this->theme);
+        if ($this->isColumnModified(AuthyPeer::GOOGLE_SUB)) $criteria->add(AuthyPeer::GOOGLE_SUB, $this->google_sub);
+        if ($this->isColumnModified(AuthyPeer::GOOGLE_EMAIL)) $criteria->add(AuthyPeer::GOOGLE_EMAIL, $this->google_email);
+        if ($this->isColumnModified(AuthyPeer::RESET_TOKEN_HASH)) $criteria->add(AuthyPeer::RESET_TOKEN_HASH, $this->reset_token_hash);
+        if ($this->isColumnModified(AuthyPeer::RESET_TOKEN_EXPIRES)) $criteria->add(AuthyPeer::RESET_TOKEN_EXPIRES, $this->reset_token_expires);
+        if ($this->isColumnModified(AuthyPeer::ID_TENANT)) $criteria->add(AuthyPeer::ID_TENANT, $this->id_tenant);
+        if ($this->isColumnModified(AuthyPeer::LOCATION_ADDRESS)) $criteria->add(AuthyPeer::LOCATION_ADDRESS, $this->location_address);
+        if ($this->isColumnModified(AuthyPeer::LOCATION_LAT)) $criteria->add(AuthyPeer::LOCATION_LAT, $this->location_lat);
+        if ($this->isColumnModified(AuthyPeer::LOCATION_LNG)) $criteria->add(AuthyPeer::LOCATION_LNG, $this->location_lng);
+        if ($this->isColumnModified(AuthyPeer::IS_ROOT)) $criteria->add(AuthyPeer::IS_ROOT, $this->is_root);
+        if ($this->isColumnModified(AuthyPeer::ID_AUTHY_GROUP)) $criteria->add(AuthyPeer::ID_AUTHY_GROUP, $this->id_authy_group);
+        if ($this->isColumnModified(AuthyPeer::IS_SYSTEM)) $criteria->add(AuthyPeer::IS_SYSTEM, $this->is_system);
+        if ($this->isColumnModified(AuthyPeer::RIGHTS_ALL)) $criteria->add(AuthyPeer::RIGHTS_ALL, $this->rights_all);
+        if ($this->isColumnModified(AuthyPeer::RIGHTS_GROUP)) $criteria->add(AuthyPeer::RIGHTS_GROUP, $this->rights_group);
+        if ($this->isColumnModified(AuthyPeer::RIGHTS_OWNER)) $criteria->add(AuthyPeer::RIGHTS_OWNER, $this->rights_owner);
+        if ($this->isColumnModified(AuthyPeer::ONGLET)) $criteria->add(AuthyPeer::ONGLET, $this->onglet);
+        if ($this->isColumnModified(AuthyPeer::DATE_CREATION)) $criteria->add(AuthyPeer::DATE_CREATION, $this->date_creation);
+        if ($this->isColumnModified(AuthyPeer::DATE_MODIFICATION)) $criteria->add(AuthyPeer::DATE_MODIFICATION, $this->date_modification);
+        if ($this->isColumnModified(AuthyPeer::ID_GROUP_CREATION)) $criteria->add(AuthyPeer::ID_GROUP_CREATION, $this->id_group_creation);
+        if ($this->isColumnModified(AuthyPeer::ID_CREATION)) $criteria->add(AuthyPeer::ID_CREATION, $this->id_creation);
+        if ($this->isColumnModified(AuthyPeer::ID_MODIFICATION)) $criteria->add(AuthyPeer::ID_MODIFICATION, $this->id_modification);
+
+        return $criteria;
+    }
+
+    /**
+     * Builds a Criteria object containing the primary key for this object.
+     *
+     * Unlike buildCriteria() this method includes the primary key values regardless
+     * of whether or not they have been modified.
+     *
+     * @return Criteria The Criteria object containing value(s) for primary key(s).
+     */
+    public function buildPkeyCriteria()
+    {
+        $criteria = new Criteria(AuthyPeer::DATABASE_NAME);
+        $criteria->add(AuthyPeer::ID_AUTHY, $this->id_authy);
+
+        return $criteria;
+    }
+
+    /**
+     * Returns the primary key for this object (row).
+     * @return int
+     */
+    public function getPrimaryKey()
+    {
+        return $this->getIdAuthy();
+    }
+
+    /**
+     * Generic method to set the primary key (id_authy column).
+     *
+     * @param  int $key Primary key.
+     * @return void
+     */
+    public function setPrimaryKey($key)
+    {
+        $this->setIdAuthy($key);
+    }
+
+    /**
+     * Returns true if the primary key for this object is null.
+     * @return boolean
+     */
+    public function isPrimaryKeyNull()
+    {
+
+        return null === $this->getIdAuthy();
+    }
+
+    /**
+     * Sets contents of passed object to values from current object.
+     *
+     * If desired, this method can also make copies of all associated (fkey referrers)
+     * objects.
+     *
+     * @param object $copyObj An object of Authy (or compatible) type.
+     * @param boolean $deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
+     * @param boolean $makeNew Whether to reset autoincrement PKs and make the object new.
+     * @throws PropelException
+     */
+    public function copyInto($copyObj, $deepCopy = false, $makeNew = true)
+    {
+        $copyObj->setValidationKey($this->getValidationKey());
+        $copyObj->setUsername($this->getUsername());
+        $copyObj->setFullname($this->getFullname());
+        $copyObj->setEmail($this->getEmail());
+        $copyObj->setPasswdHash($this->getPasswdHash());
+        $copyObj->setExpire($this->getExpire());
+        $copyObj->setDeactivate($this->getDeactivate());
+        $copyObj->setLanguage($this->getLanguage());
+        $copyObj->setTheme($this->getTheme());
+        $copyObj->setGoogleSub($this->getGoogleSub());
+        $copyObj->setGoogleEmail($this->getGoogleEmail());
+        $copyObj->setResetTokenHash($this->getResetTokenHash());
+        $copyObj->setResetTokenExpires($this->getResetTokenExpires());
+        $copyObj->setIdTenant($this->getIdTenant());
+        $copyObj->setLocationAddress($this->getLocationAddress());
+        $copyObj->setLocationLat($this->getLocationLat());
+        $copyObj->setLocationLng($this->getLocationLng());
+        $copyObj->setIsRoot($this->getIsRoot());
+        $copyObj->setIdAuthyGroup($this->getIdAuthyGroup());
+        $copyObj->setIsSystem($this->getIsSystem());
+        $copyObj->setRightsAll($this->getRightsAll());
+        $copyObj->setRightsGroup($this->getRightsGroup());
+        $copyObj->setRightsOwner($this->getRightsOwner());
+        $copyObj->setOnglet($this->getOnglet());
+        $copyObj->setDateCreation($this->getDateCreation());
+        $copyObj->setDateModification($this->getDateModification());
+        $copyObj->setIdGroupCreation($this->getIdGroupCreation());
+        $copyObj->setIdCreation($this->getIdCreation());
+        $copyObj->setIdModification($this->getIdModification());
+
+        if ($deepCopy && !$this->startCopy) {
+            // important: temporarily setNew(false) because this affects the behavior of
+            // the getter/setter methods for fkey referrer objects.
+            $copyObj->setNew(false);
+            // store object hash to prevent cycle
+            $this->startCopy = true;
+
+            foreach ($this->getPushDevicesRelatedByIdAuthy() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addPushDeviceRelatedByIdAuthy($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getAuthyGroupxesRelatedByIdAuthy() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addAuthyGroupXRelatedByIdAuthy($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getAuthyLogs() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addAuthyLog($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getAuthiesRelatedByIdAuthy0() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addAuthyRelatedByIdAuthy0($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getAuthiesRelatedByIdAuthy1() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addAuthyRelatedByIdAuthy1($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getPushDevicesRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addPushDeviceRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getPushDevicesRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addPushDeviceRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getCountriesRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addCountryRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getCountriesRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addCountryRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getGridRunsRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addGridRunRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getGridRunsRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addGridRunRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getBotOrdersRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addBotOrderRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getBotOrdersRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addBotOrderRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getTradeCyclesRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addTradeCycleRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getTradeCyclesRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addTradeCycleRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getBotEventsRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addBotEventRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getBotEventsRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addBotEventRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getBotCommandsRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addBotCommandRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getBotCommandsRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addBotCommandRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getSimWalletsRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addSimWalletRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getSimWalletsRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addSimWalletRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getMarketSummariesRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addMarketSummaryRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getMarketSummariesRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addMarketSummaryRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getMarketRegimesRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addMarketRegimeRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getMarketRegimesRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addMarketRegimeRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getBotDecisionsRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addBotDecisionRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getBotDecisionsRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addBotDecisionRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getAuthyGroupsRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addAuthyGroupRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getAuthyGroupsRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addAuthyGroupRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getAuthyGroupxesRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addAuthyGroupXRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getAuthyGroupxesRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addAuthyGroupXRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getConfigsRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addConfigRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getConfigsRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addConfigRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getApiRbacsRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addApiRbacRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getApiRbacsRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addApiRbacRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getApiLogs() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addApiLog($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getTemplatesRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addTemplateRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getTemplatesRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addTemplateRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getTemplateFilesRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addTemplateFileRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getTemplateFilesRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addTemplateFileRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getAuthyRefreshTokensRelatedByIdAuthy() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addAuthyRefreshTokenRelatedByIdAuthy($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getAuthyRefreshTokensRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addAuthyRefreshTokenRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getAuthyRefreshTokensRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addAuthyRefreshTokenRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getOauthClientsRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addOauthClientRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getOauthClientsRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addOauthClientRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getOauthAuthCodesRelatedByIdAuthy() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addOauthAuthCodeRelatedByIdAuthy($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getOauthAuthCodesRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addOauthAuthCodeRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getOauthAuthCodesRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addOauthAuthCodeRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getOauthAccessTokensRelatedByIdAuthy() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addOauthAccessTokenRelatedByIdAuthy($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getOauthAccessTokensRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addOauthAccessTokenRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getOauthAccessTokensRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addOauthAccessTokenRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getOauthRefreshTokensRelatedByIdAuthy() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addOauthRefreshTokenRelatedByIdAuthy($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getOauthRefreshTokensRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addOauthRefreshTokenRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getOauthRefreshTokensRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addOauthRefreshTokenRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getMessageI18nsRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addMessageI18nRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getMessageI18nsRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addMessageI18nRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            //unflag object copy
+            $this->startCopy = false;
+        } // if ($deepCopy)
+
+        if ($makeNew) {
+            $copyObj->setNew(true);
+            $copyObj->setIdAuthy(NULL); // this is a auto-increment column, so set to default value
+        }
+    }
+
+    /**
+     * Makes a copy of this object that will be inserted as a new row in table when saved.
+     * It creates a new object filling in the simple attributes, but skipping any primary
+     * keys that are defined for the table.
+     *
+     * If desired, this method can also make copies of all associated (fkey referrers)
+     * objects.
+     *
+     * @param boolean $deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
+     * @return Authy Clone of current object.
+     * @throws PropelException
+     */
+    public function copy($deepCopy = false)
+    {
+        // we use get_class(), because this might be a subclass
+        $clazz = get_class($this);
+        $copyObj = new $clazz();
+        $this->copyInto($copyObj, $deepCopy);
+
+        return $copyObj;
+    }
+
+    /**
+     * Returns a peer instance associated with this om.
+     *
+     * Since Peer classes are not to have any instance attributes, this method returns the
+     * same instance for all member of this class. The method could therefore
+     * be static, but this would prevent one from overriding the behavior.
+     *
+     * @return AuthyPeer
+     */
+    public function getPeer()
+    {
+        if (self::$peer === null) {
+            self::$peer = new AuthyPeer();
+        }
+
+        return self::$peer;
+    }
+
+    /**
+     * Declares an association between this object and a AuthyGroup object.
+     *
+     * @param                  AuthyGroup $v
+     * @return Authy The current object (for fluent API support)
+     * @throws PropelException
+     */
+    public function setAuthyGroupRelatedByIdAuthyGroup(?AuthyGroup $v = null)
+    {
+        if ($v === null) {
+            $this->setIdAuthyGroup(1);
+        } else {
+            $this->setIdAuthyGroup($v->getIdAuthyGroup());
+        }
+
+        $this->aAuthyGroupRelatedByIdAuthyGroup = $v;
+
+        // Add binding for other direction of this n:n relationship.
+        // If this object has already been added to the AuthyGroup object, it will not be re-added.
+        if ($v !== null) {
+            $v->addAuthyRelatedByIdAuthyGroup($this);
+        }
+
+
+        return $this;
+    }
+
+
+    /**
+     * Get the associated AuthyGroup object
+     *
+     * @param PropelPDO $con Optional Connection object.
+     * @param $doQuery Executes a query to get the object if required
+     * @return AuthyGroup The associated AuthyGroup object.
+     * @throws PropelException
+     */
+    public function getAuthyGroupRelatedByIdAuthyGroup(?PropelPDO $con = null, $doQuery = true)
+    {
+        if ($this->aAuthyGroupRelatedByIdAuthyGroup === null && ($this->id_authy_group !== null) && $doQuery) {
+            $this->aAuthyGroupRelatedByIdAuthyGroup = AuthyGroupQuery::create()->findPk($this->id_authy_group, $con);
+            /* The following can be used additionally to
+                guarantee the related object contains a reference
+                to this object.  This level of coupling may, however, be
+                undesirable since it could result in an only partially populated collection
+                in the referenced object.
+                $this->aAuthyGroupRelatedByIdAuthyGroup->addAuthiesRelatedByIdAuthyGroup($this);
+             */
+        }
+
+        return $this->aAuthyGroupRelatedByIdAuthyGroup;
+    }
+
+    /**
+     * Declares an association between this object and a AuthyGroup object.
+     *
+     * @param                  AuthyGroup $v
+     * @return Authy The current object (for fluent API support)
+     * @throws PropelException
+     */
+    public function setAuthyGroupRelatedByIdGroupCreation(?AuthyGroup $v = null)
+    {
+        if ($v === null) {
+            $this->setIdGroupCreation(NULL);
+        } else {
+            $this->setIdGroupCreation($v->getIdAuthyGroup());
+        }
+
+        $this->aAuthyGroupRelatedByIdGroupCreation = $v;
+
+        // Add binding for other direction of this n:n relationship.
+        // If this object has already been added to the AuthyGroup object, it will not be re-added.
+        if ($v !== null) {
+            $v->addAuthyRelatedByIdGroupCreation($this);
+        }
+
+
+        return $this;
+    }
+
+
+    /**
+     * Get the associated AuthyGroup object
+     *
+     * @param PropelPDO $con Optional Connection object.
+     * @param $doQuery Executes a query to get the object if required
+     * @return AuthyGroup The associated AuthyGroup object.
+     * @throws PropelException
+     */
+    public function getAuthyGroupRelatedByIdGroupCreation(?PropelPDO $con = null, $doQuery = true)
+    {
+        if ($this->aAuthyGroupRelatedByIdGroupCreation === null && ($this->id_group_creation !== null) && $doQuery) {
+            $this->aAuthyGroupRelatedByIdGroupCreation = AuthyGroupQuery::create()->findPk($this->id_group_creation, $con);
+            /* The following can be used additionally to
+                guarantee the related object contains a reference
+                to this object.  This level of coupling may, however, be
+                undesirable since it could result in an only partially populated collection
+                in the referenced object.
+                $this->aAuthyGroupRelatedByIdGroupCreation->addAuthiesRelatedByIdGroupCreation($this);
+             */
+        }
+
+        return $this->aAuthyGroupRelatedByIdGroupCreation;
+    }
+
+    /**
+     * Declares an association between this object and a Authy object.
+     *
+     * @param                  Authy $v
+     * @return Authy The current object (for fluent API support)
+     * @throws PropelException
+     */
+    public function setAuthyRelatedByIdCreation(?Authy $v = null)
+    {
+        if ($v === null) {
+            $this->setIdCreation(NULL);
+        } else {
+            $this->setIdCreation($v->getIdAuthy());
+        }
+
+        $this->aAuthyRelatedByIdCreation = $v;
+
+        // Add binding for other direction of this n:n relationship.
+        // If this object has already been added to the Authy object, it will not be re-added.
+        if ($v !== null) {
+            $v->addAuthyRelatedByIdAuthy0($this);
+        }
+
+
+        return $this;
+    }
+
+
+    /**
+     * Get the associated Authy object
+     *
+     * @param PropelPDO $con Optional Connection object.
+     * @param $doQuery Executes a query to get the object if required
+     * @return Authy The associated Authy object.
+     * @throws PropelException
+     */
+    public function getAuthyRelatedByIdCreation(?PropelPDO $con = null, $doQuery = true)
+    {
+        if ($this->aAuthyRelatedByIdCreation === null && ($this->id_creation !== null) && $doQuery) {
+            $this->aAuthyRelatedByIdCreation = AuthyQuery::create()->findPk($this->id_creation, $con);
+            /* The following can be used additionally to
+                guarantee the related object contains a reference
+                to this object.  This level of coupling may, however, be
+                undesirable since it could result in an only partially populated collection
+                in the referenced object.
+                $this->aAuthyRelatedByIdCreation->addAuthiesRelatedByIdAuthy0($this);
+             */
+        }
+
+        return $this->aAuthyRelatedByIdCreation;
+    }
+
+    /**
+     * Declares an association between this object and a Authy object.
+     *
+     * @param                  Authy $v
+     * @return Authy The current object (for fluent API support)
+     * @throws PropelException
+     */
+    public function setAuthyRelatedByIdModification(?Authy $v = null)
+    {
+        if ($v === null) {
+            $this->setIdModification(NULL);
+        } else {
+            $this->setIdModification($v->getIdAuthy());
+        }
+
+        $this->aAuthyRelatedByIdModification = $v;
+
+        // Add binding for other direction of this n:n relationship.
+        // If this object has already been added to the Authy object, it will not be re-added.
+        if ($v !== null) {
+            $v->addAuthyRelatedByIdAuthy1($this);
+        }
+
+
+        return $this;
+    }
+
+
+    /**
+     * Get the associated Authy object
+     *
+     * @param PropelPDO $con Optional Connection object.
+     * @param $doQuery Executes a query to get the object if required
+     * @return Authy The associated Authy object.
+     * @throws PropelException
+     */
+    public function getAuthyRelatedByIdModification(?PropelPDO $con = null, $doQuery = true)
+    {
+        if ($this->aAuthyRelatedByIdModification === null && ($this->id_modification !== null) && $doQuery) {
+            $this->aAuthyRelatedByIdModification = AuthyQuery::create()->findPk($this->id_modification, $con);
+            /* The following can be used additionally to
+                guarantee the related object contains a reference
+                to this object.  This level of coupling may, however, be
+                undesirable since it could result in an only partially populated collection
+                in the referenced object.
+                $this->aAuthyRelatedByIdModification->addAuthiesRelatedByIdAuthy1($this);
+             */
+        }
+
+        return $this->aAuthyRelatedByIdModification;
+    }
+
+
+    /**
+     * Initializes a collection based on the name of a relation.
+     * Avoids crafting an 'init[$relationName]s' method name
+     * that wouldn't work when StandardEnglishPluralizer is used.
+     *
+     * @param string $relationName The name of the relation to initialize
+     * @return void
+     */
+    public function initRelation($relationName)
+    {
+        if ('PushDeviceRelatedByIdAuthy' == $relationName) {
+            $this->initPushDevicesRelatedByIdAuthy();
+        }
+        if ('AuthyGroupXRelatedByIdAuthy' == $relationName) {
+            $this->initAuthyGroupxesRelatedByIdAuthy();
+        }
+        if ('AuthyLog' == $relationName) {
+            $this->initAuthyLogs();
+        }
+        if ('AuthyRelatedByIdAuthy0' == $relationName) {
+            $this->initAuthiesRelatedByIdAuthy0();
+        }
+        if ('AuthyRelatedByIdAuthy1' == $relationName) {
+            $this->initAuthiesRelatedByIdAuthy1();
+        }
+        if ('PushDeviceRelatedByIdCreation' == $relationName) {
+            $this->initPushDevicesRelatedByIdCreation();
+        }
+        if ('PushDeviceRelatedByIdModification' == $relationName) {
+            $this->initPushDevicesRelatedByIdModification();
+        }
+        if ('CountryRelatedByIdCreation' == $relationName) {
+            $this->initCountriesRelatedByIdCreation();
+        }
+        if ('CountryRelatedByIdModification' == $relationName) {
+            $this->initCountriesRelatedByIdModification();
+        }
+        if ('GridRunRelatedByIdCreation' == $relationName) {
+            $this->initGridRunsRelatedByIdCreation();
+        }
+        if ('GridRunRelatedByIdModification' == $relationName) {
+            $this->initGridRunsRelatedByIdModification();
+        }
+        if ('BotOrderRelatedByIdCreation' == $relationName) {
+            $this->initBotOrdersRelatedByIdCreation();
+        }
+        if ('BotOrderRelatedByIdModification' == $relationName) {
+            $this->initBotOrdersRelatedByIdModification();
+        }
+        if ('TradeCycleRelatedByIdCreation' == $relationName) {
+            $this->initTradeCyclesRelatedByIdCreation();
+        }
+        if ('TradeCycleRelatedByIdModification' == $relationName) {
+            $this->initTradeCyclesRelatedByIdModification();
+        }
+        if ('BotEventRelatedByIdCreation' == $relationName) {
+            $this->initBotEventsRelatedByIdCreation();
+        }
+        if ('BotEventRelatedByIdModification' == $relationName) {
+            $this->initBotEventsRelatedByIdModification();
+        }
+        if ('BotCommandRelatedByIdCreation' == $relationName) {
+            $this->initBotCommandsRelatedByIdCreation();
+        }
+        if ('BotCommandRelatedByIdModification' == $relationName) {
+            $this->initBotCommandsRelatedByIdModification();
+        }
+        if ('SimWalletRelatedByIdCreation' == $relationName) {
+            $this->initSimWalletsRelatedByIdCreation();
+        }
+        if ('SimWalletRelatedByIdModification' == $relationName) {
+            $this->initSimWalletsRelatedByIdModification();
+        }
+        if ('MarketSummaryRelatedByIdCreation' == $relationName) {
+            $this->initMarketSummariesRelatedByIdCreation();
+        }
+        if ('MarketSummaryRelatedByIdModification' == $relationName) {
+            $this->initMarketSummariesRelatedByIdModification();
+        }
+        if ('MarketRegimeRelatedByIdCreation' == $relationName) {
+            $this->initMarketRegimesRelatedByIdCreation();
+        }
+        if ('MarketRegimeRelatedByIdModification' == $relationName) {
+            $this->initMarketRegimesRelatedByIdModification();
+        }
+        if ('BotDecisionRelatedByIdCreation' == $relationName) {
+            $this->initBotDecisionsRelatedByIdCreation();
+        }
+        if ('BotDecisionRelatedByIdModification' == $relationName) {
+            $this->initBotDecisionsRelatedByIdModification();
+        }
+        if ('AuthyGroupRelatedByIdCreation' == $relationName) {
+            $this->initAuthyGroupsRelatedByIdCreation();
+        }
+        if ('AuthyGroupRelatedByIdModification' == $relationName) {
+            $this->initAuthyGroupsRelatedByIdModification();
+        }
+        if ('AuthyGroupXRelatedByIdCreation' == $relationName) {
+            $this->initAuthyGroupxesRelatedByIdCreation();
+        }
+        if ('AuthyGroupXRelatedByIdModification' == $relationName) {
+            $this->initAuthyGroupxesRelatedByIdModification();
+        }
+        if ('ConfigRelatedByIdCreation' == $relationName) {
+            $this->initConfigsRelatedByIdCreation();
+        }
+        if ('ConfigRelatedByIdModification' == $relationName) {
+            $this->initConfigsRelatedByIdModification();
+        }
+        if ('ApiRbacRelatedByIdCreation' == $relationName) {
+            $this->initApiRbacsRelatedByIdCreation();
+        }
+        if ('ApiRbacRelatedByIdModification' == $relationName) {
+            $this->initApiRbacsRelatedByIdModification();
+        }
+        if ('ApiLog' == $relationName) {
+            $this->initApiLogs();
+        }
+        if ('TemplateRelatedByIdCreation' == $relationName) {
+            $this->initTemplatesRelatedByIdCreation();
+        }
+        if ('TemplateRelatedByIdModification' == $relationName) {
+            $this->initTemplatesRelatedByIdModification();
+        }
+        if ('TemplateFileRelatedByIdCreation' == $relationName) {
+            $this->initTemplateFilesRelatedByIdCreation();
+        }
+        if ('TemplateFileRelatedByIdModification' == $relationName) {
+            $this->initTemplateFilesRelatedByIdModification();
+        }
+        if ('AuthyRefreshTokenRelatedByIdAuthy' == $relationName) {
+            $this->initAuthyRefreshTokensRelatedByIdAuthy();
+        }
+        if ('AuthyRefreshTokenRelatedByIdCreation' == $relationName) {
+            $this->initAuthyRefreshTokensRelatedByIdCreation();
+        }
+        if ('AuthyRefreshTokenRelatedByIdModification' == $relationName) {
+            $this->initAuthyRefreshTokensRelatedByIdModification();
+        }
+        if ('OauthClientRelatedByIdCreation' == $relationName) {
+            $this->initOauthClientsRelatedByIdCreation();
+        }
+        if ('OauthClientRelatedByIdModification' == $relationName) {
+            $this->initOauthClientsRelatedByIdModification();
+        }
+        if ('OauthAuthCodeRelatedByIdAuthy' == $relationName) {
+            $this->initOauthAuthCodesRelatedByIdAuthy();
+        }
+        if ('OauthAuthCodeRelatedByIdCreation' == $relationName) {
+            $this->initOauthAuthCodesRelatedByIdCreation();
+        }
+        if ('OauthAuthCodeRelatedByIdModification' == $relationName) {
+            $this->initOauthAuthCodesRelatedByIdModification();
+        }
+        if ('OauthAccessTokenRelatedByIdAuthy' == $relationName) {
+            $this->initOauthAccessTokensRelatedByIdAuthy();
+        }
+        if ('OauthAccessTokenRelatedByIdCreation' == $relationName) {
+            $this->initOauthAccessTokensRelatedByIdCreation();
+        }
+        if ('OauthAccessTokenRelatedByIdModification' == $relationName) {
+            $this->initOauthAccessTokensRelatedByIdModification();
+        }
+        if ('OauthRefreshTokenRelatedByIdAuthy' == $relationName) {
+            $this->initOauthRefreshTokensRelatedByIdAuthy();
+        }
+        if ('OauthRefreshTokenRelatedByIdCreation' == $relationName) {
+            $this->initOauthRefreshTokensRelatedByIdCreation();
+        }
+        if ('OauthRefreshTokenRelatedByIdModification' == $relationName) {
+            $this->initOauthRefreshTokensRelatedByIdModification();
+        }
+        if ('MessageI18nRelatedByIdCreation' == $relationName) {
+            $this->initMessageI18nsRelatedByIdCreation();
+        }
+        if ('MessageI18nRelatedByIdModification' == $relationName) {
+            $this->initMessageI18nsRelatedByIdModification();
+        }
+    }
+
+    /**
+     * Clears out the collPushDevicesRelatedByIdAuthy collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addPushDevicesRelatedByIdAuthy()
+     */
+    public function clearPushDevicesRelatedByIdAuthy()
+    {
+        $this->collPushDevicesRelatedByIdAuthy = null; // important to set this to null since that means it is uninitialized
+        $this->collPushDevicesRelatedByIdAuthyPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collPushDevicesRelatedByIdAuthy collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialPushDevicesRelatedByIdAuthy($v = true)
+    {
+        $this->collPushDevicesRelatedByIdAuthyPartial = $v;
+    }
+
+    /**
+     * Initializes the collPushDevicesRelatedByIdAuthy collection.
+     *
+     * By default this just sets the collPushDevicesRelatedByIdAuthy collection to an empty array (like clearcollPushDevicesRelatedByIdAuthy());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initPushDevicesRelatedByIdAuthy($overrideExisting = true)
+    {
+        if (null !== $this->collPushDevicesRelatedByIdAuthy && !$overrideExisting) {
+            return;
+        }
+        $this->collPushDevicesRelatedByIdAuthy = new PropelObjectCollection();
+        $this->collPushDevicesRelatedByIdAuthy->setModel('PushDevice');
+    }
+
+    /**
+     * Gets an array of PushDevice objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|PushDevice[] List of PushDevice objects
+     * @throws PropelException
+     */
+    public function getPushDevicesRelatedByIdAuthy($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collPushDevicesRelatedByIdAuthyPartial && !$this->isNew();
+        if (null === $this->collPushDevicesRelatedByIdAuthy || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collPushDevicesRelatedByIdAuthy) {
+                // return empty collection
+                $this->initPushDevicesRelatedByIdAuthy();
+            } else {
+                $collPushDevicesRelatedByIdAuthy = PushDeviceQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdAuthy($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collPushDevicesRelatedByIdAuthyPartial && count($collPushDevicesRelatedByIdAuthy)) {
+                      $this->initPushDevicesRelatedByIdAuthy(false);
+
+                      foreach ($collPushDevicesRelatedByIdAuthy as $obj) {
+                        if (false == $this->collPushDevicesRelatedByIdAuthy->contains($obj)) {
+                          $this->collPushDevicesRelatedByIdAuthy->append($obj);
+                        }
+                      }
+
+                      $this->collPushDevicesRelatedByIdAuthyPartial = true;
+                    }
+
+                    $collPushDevicesRelatedByIdAuthy->getInternalIterator()->rewind();
+
+                    return $collPushDevicesRelatedByIdAuthy;
+                }
+
+                if ($partial && $this->collPushDevicesRelatedByIdAuthy) {
+                    foreach ($this->collPushDevicesRelatedByIdAuthy as $obj) {
+                        if ($obj->isNew()) {
+                            $collPushDevicesRelatedByIdAuthy[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collPushDevicesRelatedByIdAuthy = $collPushDevicesRelatedByIdAuthy;
+                $this->collPushDevicesRelatedByIdAuthyPartial = false;
+            }
+        }
+
+        return $this->collPushDevicesRelatedByIdAuthy;
+    }
+
+    /**
+     * Sets a collection of PushDeviceRelatedByIdAuthy objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $pushDevicesRelatedByIdAuthy A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setPushDevicesRelatedByIdAuthy(PropelCollection $pushDevicesRelatedByIdAuthy, ?PropelPDO $con = null)
+    {
+        $pushDevicesRelatedByIdAuthyToDelete = $this->getPushDevicesRelatedByIdAuthy(new Criteria(), $con)->diff($pushDevicesRelatedByIdAuthy);
+
+
+        $this->pushDevicesRelatedByIdAuthyScheduledForDeletion = $pushDevicesRelatedByIdAuthyToDelete;
+
+        foreach ($pushDevicesRelatedByIdAuthyToDelete as $pushDeviceRelatedByIdAuthyRemoved) {
+            $pushDeviceRelatedByIdAuthyRemoved->setAuthyRelatedByIdAuthy(null);
+        }
+
+        $this->collPushDevicesRelatedByIdAuthy = null;
+        foreach ($pushDevicesRelatedByIdAuthy as $pushDeviceRelatedByIdAuthy) {
+            $this->addPushDeviceRelatedByIdAuthy($pushDeviceRelatedByIdAuthy);
+        }
+
+        $this->collPushDevicesRelatedByIdAuthy = $pushDevicesRelatedByIdAuthy;
+        $this->collPushDevicesRelatedByIdAuthyPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related PushDevice objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related PushDevice objects.
+     * @throws PropelException
+     */
+    public function countPushDevicesRelatedByIdAuthy(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collPushDevicesRelatedByIdAuthyPartial && !$this->isNew();
+        if (null === $this->collPushDevicesRelatedByIdAuthy || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collPushDevicesRelatedByIdAuthy) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getPushDevicesRelatedByIdAuthy());
+            }
+            $query = PushDeviceQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdAuthy($this)
+                ->count($con);
+        }
+
+        return count($this->collPushDevicesRelatedByIdAuthy);
+    }
+
+    /**
+     * Method called to associate a PushDevice object to this object
+     * through the PushDevice foreign key attribute.
+     *
+     * @param    PushDevice $l PushDevice
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addPushDeviceRelatedByIdAuthy(PushDevice $l)
+    {
+        if ($this->collPushDevicesRelatedByIdAuthy === null) {
+            $this->initPushDevicesRelatedByIdAuthy();
+            $this->collPushDevicesRelatedByIdAuthyPartial = true;
+        }
+
+        if (!in_array($l, $this->collPushDevicesRelatedByIdAuthy->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddPushDeviceRelatedByIdAuthy($l);
+
+            if ($this->pushDevicesRelatedByIdAuthyScheduledForDeletion and $this->pushDevicesRelatedByIdAuthyScheduledForDeletion->contains($l)) {
+                $this->pushDevicesRelatedByIdAuthyScheduledForDeletion->remove($this->pushDevicesRelatedByIdAuthyScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	PushDeviceRelatedByIdAuthy $pushDeviceRelatedByIdAuthy The pushDeviceRelatedByIdAuthy object to add.
+     */
+    protected function doAddPushDeviceRelatedByIdAuthy($pushDeviceRelatedByIdAuthy)
+    {
+        $this->collPushDevicesRelatedByIdAuthy[]= $pushDeviceRelatedByIdAuthy;
+        $pushDeviceRelatedByIdAuthy->setAuthyRelatedByIdAuthy($this);
+    }
+
+    /**
+     * @param	PushDeviceRelatedByIdAuthy $pushDeviceRelatedByIdAuthy The pushDeviceRelatedByIdAuthy object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removePushDeviceRelatedByIdAuthy($pushDeviceRelatedByIdAuthy)
+    {
+        if ($this->getPushDevicesRelatedByIdAuthy()->contains($pushDeviceRelatedByIdAuthy)) {
+            $this->collPushDevicesRelatedByIdAuthy->remove($this->collPushDevicesRelatedByIdAuthy->search($pushDeviceRelatedByIdAuthy));
+            if (null === $this->pushDevicesRelatedByIdAuthyScheduledForDeletion) {
+                $this->pushDevicesRelatedByIdAuthyScheduledForDeletion = clone $this->collPushDevicesRelatedByIdAuthy;
+                $this->pushDevicesRelatedByIdAuthyScheduledForDeletion->clear();
+            }
+            $this->pushDevicesRelatedByIdAuthyScheduledForDeletion[]= clone $pushDeviceRelatedByIdAuthy;
+            $pushDeviceRelatedByIdAuthy->setAuthyRelatedByIdAuthy(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|PushDevice[] List of PushDevice objects
+     */
+    public function getPushDevicesRelatedByIdAuthyJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = PushDeviceQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getPushDevicesRelatedByIdAuthy($query, $con);
+    }
+
+    /**
+     * Clears out the collAuthyGroupxesRelatedByIdAuthy collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addAuthyGroupxesRelatedByIdAuthy()
+     */
+    public function clearAuthyGroupxesRelatedByIdAuthy()
+    {
+        $this->collAuthyGroupxesRelatedByIdAuthy = null; // important to set this to null since that means it is uninitialized
+        $this->collAuthyGroupxesRelatedByIdAuthyPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collAuthyGroupxesRelatedByIdAuthy collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialAuthyGroupxesRelatedByIdAuthy($v = true)
+    {
+        $this->collAuthyGroupxesRelatedByIdAuthyPartial = $v;
+    }
+
+    /**
+     * Initializes the collAuthyGroupxesRelatedByIdAuthy collection.
+     *
+     * By default this just sets the collAuthyGroupxesRelatedByIdAuthy collection to an empty array (like clearcollAuthyGroupxesRelatedByIdAuthy());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initAuthyGroupxesRelatedByIdAuthy($overrideExisting = true)
+    {
+        if (null !== $this->collAuthyGroupxesRelatedByIdAuthy && !$overrideExisting) {
+            return;
+        }
+        $this->collAuthyGroupxesRelatedByIdAuthy = new PropelObjectCollection();
+        $this->collAuthyGroupxesRelatedByIdAuthy->setModel('AuthyGroupX');
+    }
+
+    /**
+     * Gets an array of AuthyGroupX objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|AuthyGroupX[] List of AuthyGroupX objects
+     * @throws PropelException
+     */
+    public function getAuthyGroupxesRelatedByIdAuthy($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyGroupxesRelatedByIdAuthyPartial && !$this->isNew();
+        if (null === $this->collAuthyGroupxesRelatedByIdAuthy || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collAuthyGroupxesRelatedByIdAuthy) {
+                // return empty collection
+                $this->initAuthyGroupxesRelatedByIdAuthy();
+            } else {
+                $collAuthyGroupxesRelatedByIdAuthy = AuthyGroupXQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdAuthy($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collAuthyGroupxesRelatedByIdAuthyPartial && count($collAuthyGroupxesRelatedByIdAuthy)) {
+                      $this->initAuthyGroupxesRelatedByIdAuthy(false);
+
+                      foreach ($collAuthyGroupxesRelatedByIdAuthy as $obj) {
+                        if (false == $this->collAuthyGroupxesRelatedByIdAuthy->contains($obj)) {
+                          $this->collAuthyGroupxesRelatedByIdAuthy->append($obj);
+                        }
+                      }
+
+                      $this->collAuthyGroupxesRelatedByIdAuthyPartial = true;
+                    }
+
+                    $collAuthyGroupxesRelatedByIdAuthy->getInternalIterator()->rewind();
+
+                    return $collAuthyGroupxesRelatedByIdAuthy;
+                }
+
+                if ($partial && $this->collAuthyGroupxesRelatedByIdAuthy) {
+                    foreach ($this->collAuthyGroupxesRelatedByIdAuthy as $obj) {
+                        if ($obj->isNew()) {
+                            $collAuthyGroupxesRelatedByIdAuthy[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collAuthyGroupxesRelatedByIdAuthy = $collAuthyGroupxesRelatedByIdAuthy;
+                $this->collAuthyGroupxesRelatedByIdAuthyPartial = false;
+            }
+        }
+
+        return $this->collAuthyGroupxesRelatedByIdAuthy;
+    }
+
+    /**
+     * Sets a collection of AuthyGroupXRelatedByIdAuthy objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $authyGroupxesRelatedByIdAuthy A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setAuthyGroupxesRelatedByIdAuthy(PropelCollection $authyGroupxesRelatedByIdAuthy, ?PropelPDO $con = null)
+    {
+        $authyGroupxesRelatedByIdAuthyToDelete = $this->getAuthyGroupxesRelatedByIdAuthy(new Criteria(), $con)->diff($authyGroupxesRelatedByIdAuthy);
+
+
+        //since at least one column in the foreign key is at the same time a PK
+        //we can not just set a PK to NULL in the lines below. We have to store
+        //a backup of all values, so we are able to manipulate these items based on the onDelete value later.
+        $this->authyGroupxesRelatedByIdAuthyScheduledForDeletion = clone $authyGroupxesRelatedByIdAuthyToDelete;
+
+        foreach ($authyGroupxesRelatedByIdAuthyToDelete as $authyGroupXRelatedByIdAuthyRemoved) {
+            $authyGroupXRelatedByIdAuthyRemoved->setAuthyRelatedByIdAuthy(null);
+        }
+
+        $this->collAuthyGroupxesRelatedByIdAuthy = null;
+        foreach ($authyGroupxesRelatedByIdAuthy as $authyGroupXRelatedByIdAuthy) {
+            $this->addAuthyGroupXRelatedByIdAuthy($authyGroupXRelatedByIdAuthy);
+        }
+
+        $this->collAuthyGroupxesRelatedByIdAuthy = $authyGroupxesRelatedByIdAuthy;
+        $this->collAuthyGroupxesRelatedByIdAuthyPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related AuthyGroupX objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related AuthyGroupX objects.
+     * @throws PropelException
+     */
+    public function countAuthyGroupxesRelatedByIdAuthy(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyGroupxesRelatedByIdAuthyPartial && !$this->isNew();
+        if (null === $this->collAuthyGroupxesRelatedByIdAuthy || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collAuthyGroupxesRelatedByIdAuthy) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getAuthyGroupxesRelatedByIdAuthy());
+            }
+            $query = AuthyGroupXQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdAuthy($this)
+                ->count($con);
+        }
+
+        return count($this->collAuthyGroupxesRelatedByIdAuthy);
+    }
+
+    /**
+     * Method called to associate a AuthyGroupX object to this object
+     * through the AuthyGroupX foreign key attribute.
+     *
+     * @param    AuthyGroupX $l AuthyGroupX
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addAuthyGroupXRelatedByIdAuthy(AuthyGroupX $l)
+    {
+        if ($this->collAuthyGroupxesRelatedByIdAuthy === null) {
+            $this->initAuthyGroupxesRelatedByIdAuthy();
+            $this->collAuthyGroupxesRelatedByIdAuthyPartial = true;
+        }
+
+        if (!in_array($l, $this->collAuthyGroupxesRelatedByIdAuthy->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddAuthyGroupXRelatedByIdAuthy($l);
+
+            if ($this->authyGroupxesRelatedByIdAuthyScheduledForDeletion and $this->authyGroupxesRelatedByIdAuthyScheduledForDeletion->contains($l)) {
+                $this->authyGroupxesRelatedByIdAuthyScheduledForDeletion->remove($this->authyGroupxesRelatedByIdAuthyScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	AuthyGroupXRelatedByIdAuthy $authyGroupXRelatedByIdAuthy The authyGroupXRelatedByIdAuthy object to add.
+     */
+    protected function doAddAuthyGroupXRelatedByIdAuthy($authyGroupXRelatedByIdAuthy)
+    {
+        $this->collAuthyGroupxesRelatedByIdAuthy[]= $authyGroupXRelatedByIdAuthy;
+        $authyGroupXRelatedByIdAuthy->setAuthyRelatedByIdAuthy($this);
+    }
+
+    /**
+     * @param	AuthyGroupXRelatedByIdAuthy $authyGroupXRelatedByIdAuthy The authyGroupXRelatedByIdAuthy object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeAuthyGroupXRelatedByIdAuthy($authyGroupXRelatedByIdAuthy)
+    {
+        if ($this->getAuthyGroupxesRelatedByIdAuthy()->contains($authyGroupXRelatedByIdAuthy)) {
+            $this->collAuthyGroupxesRelatedByIdAuthy->remove($this->collAuthyGroupxesRelatedByIdAuthy->search($authyGroupXRelatedByIdAuthy));
+            if (null === $this->authyGroupxesRelatedByIdAuthyScheduledForDeletion) {
+                $this->authyGroupxesRelatedByIdAuthyScheduledForDeletion = clone $this->collAuthyGroupxesRelatedByIdAuthy;
+                $this->authyGroupxesRelatedByIdAuthyScheduledForDeletion->clear();
+            }
+            $this->authyGroupxesRelatedByIdAuthyScheduledForDeletion[]= clone $authyGroupXRelatedByIdAuthy;
+            $authyGroupXRelatedByIdAuthy->setAuthyRelatedByIdAuthy(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|AuthyGroupX[] List of AuthyGroupX objects
+     */
+    public function getAuthyGroupxesRelatedByIdAuthyJoinAuthyGroupRelatedByIdAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = AuthyGroupXQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroupRelatedByIdAuthyGroup', $join_behavior);
+
+        return $this->getAuthyGroupxesRelatedByIdAuthy($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|AuthyGroupX[] List of AuthyGroupX objects
+     */
+    public function getAuthyGroupxesRelatedByIdAuthyJoinAuthyGroupRelatedByIdGroupCreation($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = AuthyGroupXQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroupRelatedByIdGroupCreation', $join_behavior);
+
+        return $this->getAuthyGroupxesRelatedByIdAuthy($query, $con);
+    }
+
+    /**
+     * Clears out the collAuthyLogs collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addAuthyLogs()
+     */
+    public function clearAuthyLogs()
+    {
+        $this->collAuthyLogs = null; // important to set this to null since that means it is uninitialized
+        $this->collAuthyLogsPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collAuthyLogs collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialAuthyLogs($v = true)
+    {
+        $this->collAuthyLogsPartial = $v;
+    }
+
+    /**
+     * Initializes the collAuthyLogs collection.
+     *
+     * By default this just sets the collAuthyLogs collection to an empty array (like clearcollAuthyLogs());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initAuthyLogs($overrideExisting = true)
+    {
+        if (null !== $this->collAuthyLogs && !$overrideExisting) {
+            return;
+        }
+        $this->collAuthyLogs = new PropelObjectCollection();
+        $this->collAuthyLogs->setModel('AuthyLog');
+    }
+
+    /**
+     * Gets an array of AuthyLog objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|AuthyLog[] List of AuthyLog objects
+     * @throws PropelException
+     */
+    public function getAuthyLogs($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyLogsPartial && !$this->isNew();
+        if (null === $this->collAuthyLogs || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collAuthyLogs) {
+                // return empty collection
+                $this->initAuthyLogs();
+            } else {
+                $collAuthyLogs = AuthyLogQuery::create(null, $criteria)
+                    ->filterByAuthy($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collAuthyLogsPartial && count($collAuthyLogs)) {
+                      $this->initAuthyLogs(false);
+
+                      foreach ($collAuthyLogs as $obj) {
+                        if (false == $this->collAuthyLogs->contains($obj)) {
+                          $this->collAuthyLogs->append($obj);
+                        }
+                      }
+
+                      $this->collAuthyLogsPartial = true;
+                    }
+
+                    $collAuthyLogs->getInternalIterator()->rewind();
+
+                    return $collAuthyLogs;
+                }
+
+                if ($partial && $this->collAuthyLogs) {
+                    foreach ($this->collAuthyLogs as $obj) {
+                        if ($obj->isNew()) {
+                            $collAuthyLogs[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collAuthyLogs = $collAuthyLogs;
+                $this->collAuthyLogsPartial = false;
+            }
+        }
+
+        return $this->collAuthyLogs;
+    }
+
+    /**
+     * Sets a collection of AuthyLog objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $authyLogs A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setAuthyLogs(PropelCollection $authyLogs, ?PropelPDO $con = null)
+    {
+        $authyLogsToDelete = $this->getAuthyLogs(new Criteria(), $con)->diff($authyLogs);
+
+
+        $this->authyLogsScheduledForDeletion = $authyLogsToDelete;
+
+        foreach ($authyLogsToDelete as $authyLogRemoved) {
+            $authyLogRemoved->setAuthy(null);
+        }
+
+        $this->collAuthyLogs = null;
+        foreach ($authyLogs as $authyLog) {
+            $this->addAuthyLog($authyLog);
+        }
+
+        $this->collAuthyLogs = $authyLogs;
+        $this->collAuthyLogsPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related AuthyLog objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related AuthyLog objects.
+     * @throws PropelException
+     */
+    public function countAuthyLogs(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyLogsPartial && !$this->isNew();
+        if (null === $this->collAuthyLogs || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collAuthyLogs) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getAuthyLogs());
+            }
+            $query = AuthyLogQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthy($this)
+                ->count($con);
+        }
+
+        return count($this->collAuthyLogs);
+    }
+
+    /**
+     * Method called to associate a AuthyLog object to this object
+     * through the AuthyLog foreign key attribute.
+     *
+     * @param    AuthyLog $l AuthyLog
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addAuthyLog(AuthyLog $l)
+    {
+        if ($this->collAuthyLogs === null) {
+            $this->initAuthyLogs();
+            $this->collAuthyLogsPartial = true;
+        }
+
+        if (!in_array($l, $this->collAuthyLogs->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddAuthyLog($l);
+
+            if ($this->authyLogsScheduledForDeletion and $this->authyLogsScheduledForDeletion->contains($l)) {
+                $this->authyLogsScheduledForDeletion->remove($this->authyLogsScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	AuthyLog $authyLog The authyLog object to add.
+     */
+    protected function doAddAuthyLog($authyLog)
+    {
+        $this->collAuthyLogs[]= $authyLog;
+        $authyLog->setAuthy($this);
+    }
+
+    /**
+     * @param	AuthyLog $authyLog The authyLog object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeAuthyLog($authyLog)
+    {
+        if ($this->getAuthyLogs()->contains($authyLog)) {
+            $this->collAuthyLogs->remove($this->collAuthyLogs->search($authyLog));
+            if (null === $this->authyLogsScheduledForDeletion) {
+                $this->authyLogsScheduledForDeletion = clone $this->collAuthyLogs;
+                $this->authyLogsScheduledForDeletion->clear();
+            }
+            $this->authyLogsScheduledForDeletion[]= $authyLog;
+            $authyLog->setAuthy(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Clears out the collAuthiesRelatedByIdAuthy0 collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addAuthiesRelatedByIdAuthy0()
+     */
+    public function clearAuthiesRelatedByIdAuthy0()
+    {
+        $this->collAuthiesRelatedByIdAuthy0 = null; // important to set this to null since that means it is uninitialized
+        $this->collAuthiesRelatedByIdAuthy0Partial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collAuthiesRelatedByIdAuthy0 collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialAuthiesRelatedByIdAuthy0($v = true)
+    {
+        $this->collAuthiesRelatedByIdAuthy0Partial = $v;
+    }
+
+    /**
+     * Initializes the collAuthiesRelatedByIdAuthy0 collection.
+     *
+     * By default this just sets the collAuthiesRelatedByIdAuthy0 collection to an empty array (like clearcollAuthiesRelatedByIdAuthy0());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initAuthiesRelatedByIdAuthy0($overrideExisting = true)
+    {
+        if (null !== $this->collAuthiesRelatedByIdAuthy0 && !$overrideExisting) {
+            return;
+        }
+        $this->collAuthiesRelatedByIdAuthy0 = new PropelObjectCollection();
+        $this->collAuthiesRelatedByIdAuthy0->setModel('Authy');
+    }
+
+    /**
+     * Gets an array of Authy objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|Authy[] List of Authy objects
+     * @throws PropelException
+     */
+    public function getAuthiesRelatedByIdAuthy0($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthiesRelatedByIdAuthy0Partial && !$this->isNew();
+        if (null === $this->collAuthiesRelatedByIdAuthy0 || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collAuthiesRelatedByIdAuthy0) {
+                // return empty collection
+                $this->initAuthiesRelatedByIdAuthy0();
+            } else {
+                $collAuthiesRelatedByIdAuthy0 = AuthyQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collAuthiesRelatedByIdAuthy0Partial && count($collAuthiesRelatedByIdAuthy0)) {
+                      $this->initAuthiesRelatedByIdAuthy0(false);
+
+                      foreach ($collAuthiesRelatedByIdAuthy0 as $obj) {
+                        if (false == $this->collAuthiesRelatedByIdAuthy0->contains($obj)) {
+                          $this->collAuthiesRelatedByIdAuthy0->append($obj);
+                        }
+                      }
+
+                      $this->collAuthiesRelatedByIdAuthy0Partial = true;
+                    }
+
+                    $collAuthiesRelatedByIdAuthy0->getInternalIterator()->rewind();
+
+                    return $collAuthiesRelatedByIdAuthy0;
+                }
+
+                if ($partial && $this->collAuthiesRelatedByIdAuthy0) {
+                    foreach ($this->collAuthiesRelatedByIdAuthy0 as $obj) {
+                        if ($obj->isNew()) {
+                            $collAuthiesRelatedByIdAuthy0[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collAuthiesRelatedByIdAuthy0 = $collAuthiesRelatedByIdAuthy0;
+                $this->collAuthiesRelatedByIdAuthy0Partial = false;
+            }
+        }
+
+        return $this->collAuthiesRelatedByIdAuthy0;
+    }
+
+    /**
+     * Sets a collection of AuthyRelatedByIdAuthy0 objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $authiesRelatedByIdAuthy0 A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setAuthiesRelatedByIdAuthy0(PropelCollection $authiesRelatedByIdAuthy0, ?PropelPDO $con = null)
+    {
+        $authiesRelatedByIdAuthy0ToDelete = $this->getAuthiesRelatedByIdAuthy0(new Criteria(), $con)->diff($authiesRelatedByIdAuthy0);
+
+
+        $this->authiesRelatedByIdAuthy0ScheduledForDeletion = $authiesRelatedByIdAuthy0ToDelete;
+
+        foreach ($authiesRelatedByIdAuthy0ToDelete as $authyRelatedByIdAuthy0Removed) {
+            $authyRelatedByIdAuthy0Removed->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collAuthiesRelatedByIdAuthy0 = null;
+        foreach ($authiesRelatedByIdAuthy0 as $authyRelatedByIdAuthy0) {
+            $this->addAuthyRelatedByIdAuthy0($authyRelatedByIdAuthy0);
+        }
+
+        $this->collAuthiesRelatedByIdAuthy0 = $authiesRelatedByIdAuthy0;
+        $this->collAuthiesRelatedByIdAuthy0Partial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related Authy objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related Authy objects.
+     * @throws PropelException
+     */
+    public function countAuthiesRelatedByIdAuthy0(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthiesRelatedByIdAuthy0Partial && !$this->isNew();
+        if (null === $this->collAuthiesRelatedByIdAuthy0 || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collAuthiesRelatedByIdAuthy0) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getAuthiesRelatedByIdAuthy0());
+            }
+            $query = AuthyQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collAuthiesRelatedByIdAuthy0);
+    }
+
+    /**
+     * Method called to associate a Authy object to this object
+     * through the Authy foreign key attribute.
+     *
+     * @param    Authy $l Authy
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addAuthyRelatedByIdAuthy0(Authy $l)
+    {
+        if ($this->collAuthiesRelatedByIdAuthy0 === null) {
+            $this->initAuthiesRelatedByIdAuthy0();
+            $this->collAuthiesRelatedByIdAuthy0Partial = true;
+        }
+
+        if (!in_array($l, $this->collAuthiesRelatedByIdAuthy0->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddAuthyRelatedByIdAuthy0($l);
+
+            if ($this->authiesRelatedByIdAuthy0ScheduledForDeletion and $this->authiesRelatedByIdAuthy0ScheduledForDeletion->contains($l)) {
+                $this->authiesRelatedByIdAuthy0ScheduledForDeletion->remove($this->authiesRelatedByIdAuthy0ScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	AuthyRelatedByIdAuthy0 $authyRelatedByIdAuthy0 The authyRelatedByIdAuthy0 object to add.
+     */
+    protected function doAddAuthyRelatedByIdAuthy0($authyRelatedByIdAuthy0)
+    {
+        $this->collAuthiesRelatedByIdAuthy0[]= $authyRelatedByIdAuthy0;
+        $authyRelatedByIdAuthy0->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	AuthyRelatedByIdAuthy0 $authyRelatedByIdAuthy0 The authyRelatedByIdAuthy0 object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeAuthyRelatedByIdAuthy0($authyRelatedByIdAuthy0)
+    {
+        if ($this->getAuthiesRelatedByIdAuthy0()->contains($authyRelatedByIdAuthy0)) {
+            $this->collAuthiesRelatedByIdAuthy0->remove($this->collAuthiesRelatedByIdAuthy0->search($authyRelatedByIdAuthy0));
+            if (null === $this->authiesRelatedByIdAuthy0ScheduledForDeletion) {
+                $this->authiesRelatedByIdAuthy0ScheduledForDeletion = clone $this->collAuthiesRelatedByIdAuthy0;
+                $this->authiesRelatedByIdAuthy0ScheduledForDeletion->clear();
+            }
+            $this->authiesRelatedByIdAuthy0ScheduledForDeletion[]= $authyRelatedByIdAuthy0;
+            $authyRelatedByIdAuthy0->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|Authy[] List of Authy objects
+     */
+    public function getAuthiesRelatedByIdAuthy0JoinAuthyGroupRelatedByIdAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = AuthyQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroupRelatedByIdAuthyGroup', $join_behavior);
+
+        return $this->getAuthiesRelatedByIdAuthy0($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|Authy[] List of Authy objects
+     */
+    public function getAuthiesRelatedByIdAuthy0JoinAuthyGroupRelatedByIdGroupCreation($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = AuthyQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroupRelatedByIdGroupCreation', $join_behavior);
+
+        return $this->getAuthiesRelatedByIdAuthy0($query, $con);
+    }
+
+    /**
+     * Clears out the collAuthiesRelatedByIdAuthy1 collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addAuthiesRelatedByIdAuthy1()
+     */
+    public function clearAuthiesRelatedByIdAuthy1()
+    {
+        $this->collAuthiesRelatedByIdAuthy1 = null; // important to set this to null since that means it is uninitialized
+        $this->collAuthiesRelatedByIdAuthy1Partial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collAuthiesRelatedByIdAuthy1 collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialAuthiesRelatedByIdAuthy1($v = true)
+    {
+        $this->collAuthiesRelatedByIdAuthy1Partial = $v;
+    }
+
+    /**
+     * Initializes the collAuthiesRelatedByIdAuthy1 collection.
+     *
+     * By default this just sets the collAuthiesRelatedByIdAuthy1 collection to an empty array (like clearcollAuthiesRelatedByIdAuthy1());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initAuthiesRelatedByIdAuthy1($overrideExisting = true)
+    {
+        if (null !== $this->collAuthiesRelatedByIdAuthy1 && !$overrideExisting) {
+            return;
+        }
+        $this->collAuthiesRelatedByIdAuthy1 = new PropelObjectCollection();
+        $this->collAuthiesRelatedByIdAuthy1->setModel('Authy');
+    }
+
+    /**
+     * Gets an array of Authy objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|Authy[] List of Authy objects
+     * @throws PropelException
+     */
+    public function getAuthiesRelatedByIdAuthy1($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthiesRelatedByIdAuthy1Partial && !$this->isNew();
+        if (null === $this->collAuthiesRelatedByIdAuthy1 || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collAuthiesRelatedByIdAuthy1) {
+                // return empty collection
+                $this->initAuthiesRelatedByIdAuthy1();
+            } else {
+                $collAuthiesRelatedByIdAuthy1 = AuthyQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collAuthiesRelatedByIdAuthy1Partial && count($collAuthiesRelatedByIdAuthy1)) {
+                      $this->initAuthiesRelatedByIdAuthy1(false);
+
+                      foreach ($collAuthiesRelatedByIdAuthy1 as $obj) {
+                        if (false == $this->collAuthiesRelatedByIdAuthy1->contains($obj)) {
+                          $this->collAuthiesRelatedByIdAuthy1->append($obj);
+                        }
+                      }
+
+                      $this->collAuthiesRelatedByIdAuthy1Partial = true;
+                    }
+
+                    $collAuthiesRelatedByIdAuthy1->getInternalIterator()->rewind();
+
+                    return $collAuthiesRelatedByIdAuthy1;
+                }
+
+                if ($partial && $this->collAuthiesRelatedByIdAuthy1) {
+                    foreach ($this->collAuthiesRelatedByIdAuthy1 as $obj) {
+                        if ($obj->isNew()) {
+                            $collAuthiesRelatedByIdAuthy1[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collAuthiesRelatedByIdAuthy1 = $collAuthiesRelatedByIdAuthy1;
+                $this->collAuthiesRelatedByIdAuthy1Partial = false;
+            }
+        }
+
+        return $this->collAuthiesRelatedByIdAuthy1;
+    }
+
+    /**
+     * Sets a collection of AuthyRelatedByIdAuthy1 objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $authiesRelatedByIdAuthy1 A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setAuthiesRelatedByIdAuthy1(PropelCollection $authiesRelatedByIdAuthy1, ?PropelPDO $con = null)
+    {
+        $authiesRelatedByIdAuthy1ToDelete = $this->getAuthiesRelatedByIdAuthy1(new Criteria(), $con)->diff($authiesRelatedByIdAuthy1);
+
+
+        $this->authiesRelatedByIdAuthy1ScheduledForDeletion = $authiesRelatedByIdAuthy1ToDelete;
+
+        foreach ($authiesRelatedByIdAuthy1ToDelete as $authyRelatedByIdAuthy1Removed) {
+            $authyRelatedByIdAuthy1Removed->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collAuthiesRelatedByIdAuthy1 = null;
+        foreach ($authiesRelatedByIdAuthy1 as $authyRelatedByIdAuthy1) {
+            $this->addAuthyRelatedByIdAuthy1($authyRelatedByIdAuthy1);
+        }
+
+        $this->collAuthiesRelatedByIdAuthy1 = $authiesRelatedByIdAuthy1;
+        $this->collAuthiesRelatedByIdAuthy1Partial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related Authy objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related Authy objects.
+     * @throws PropelException
+     */
+    public function countAuthiesRelatedByIdAuthy1(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthiesRelatedByIdAuthy1Partial && !$this->isNew();
+        if (null === $this->collAuthiesRelatedByIdAuthy1 || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collAuthiesRelatedByIdAuthy1) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getAuthiesRelatedByIdAuthy1());
+            }
+            $query = AuthyQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collAuthiesRelatedByIdAuthy1);
+    }
+
+    /**
+     * Method called to associate a Authy object to this object
+     * through the Authy foreign key attribute.
+     *
+     * @param    Authy $l Authy
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addAuthyRelatedByIdAuthy1(Authy $l)
+    {
+        if ($this->collAuthiesRelatedByIdAuthy1 === null) {
+            $this->initAuthiesRelatedByIdAuthy1();
+            $this->collAuthiesRelatedByIdAuthy1Partial = true;
+        }
+
+        if (!in_array($l, $this->collAuthiesRelatedByIdAuthy1->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddAuthyRelatedByIdAuthy1($l);
+
+            if ($this->authiesRelatedByIdAuthy1ScheduledForDeletion and $this->authiesRelatedByIdAuthy1ScheduledForDeletion->contains($l)) {
+                $this->authiesRelatedByIdAuthy1ScheduledForDeletion->remove($this->authiesRelatedByIdAuthy1ScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	AuthyRelatedByIdAuthy1 $authyRelatedByIdAuthy1 The authyRelatedByIdAuthy1 object to add.
+     */
+    protected function doAddAuthyRelatedByIdAuthy1($authyRelatedByIdAuthy1)
+    {
+        $this->collAuthiesRelatedByIdAuthy1[]= $authyRelatedByIdAuthy1;
+        $authyRelatedByIdAuthy1->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	AuthyRelatedByIdAuthy1 $authyRelatedByIdAuthy1 The authyRelatedByIdAuthy1 object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeAuthyRelatedByIdAuthy1($authyRelatedByIdAuthy1)
+    {
+        if ($this->getAuthiesRelatedByIdAuthy1()->contains($authyRelatedByIdAuthy1)) {
+            $this->collAuthiesRelatedByIdAuthy1->remove($this->collAuthiesRelatedByIdAuthy1->search($authyRelatedByIdAuthy1));
+            if (null === $this->authiesRelatedByIdAuthy1ScheduledForDeletion) {
+                $this->authiesRelatedByIdAuthy1ScheduledForDeletion = clone $this->collAuthiesRelatedByIdAuthy1;
+                $this->authiesRelatedByIdAuthy1ScheduledForDeletion->clear();
+            }
+            $this->authiesRelatedByIdAuthy1ScheduledForDeletion[]= $authyRelatedByIdAuthy1;
+            $authyRelatedByIdAuthy1->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|Authy[] List of Authy objects
+     */
+    public function getAuthiesRelatedByIdAuthy1JoinAuthyGroupRelatedByIdAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = AuthyQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroupRelatedByIdAuthyGroup', $join_behavior);
+
+        return $this->getAuthiesRelatedByIdAuthy1($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|Authy[] List of Authy objects
+     */
+    public function getAuthiesRelatedByIdAuthy1JoinAuthyGroupRelatedByIdGroupCreation($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = AuthyQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroupRelatedByIdGroupCreation', $join_behavior);
+
+        return $this->getAuthiesRelatedByIdAuthy1($query, $con);
+    }
+
+    /**
+     * Clears out the collPushDevicesRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addPushDevicesRelatedByIdCreation()
+     */
+    public function clearPushDevicesRelatedByIdCreation()
+    {
+        $this->collPushDevicesRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collPushDevicesRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collPushDevicesRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialPushDevicesRelatedByIdCreation($v = true)
+    {
+        $this->collPushDevicesRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collPushDevicesRelatedByIdCreation collection.
+     *
+     * By default this just sets the collPushDevicesRelatedByIdCreation collection to an empty array (like clearcollPushDevicesRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initPushDevicesRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collPushDevicesRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collPushDevicesRelatedByIdCreation = new PropelObjectCollection();
+        $this->collPushDevicesRelatedByIdCreation->setModel('PushDevice');
+    }
+
+    /**
+     * Gets an array of PushDevice objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|PushDevice[] List of PushDevice objects
+     * @throws PropelException
+     */
+    public function getPushDevicesRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collPushDevicesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collPushDevicesRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collPushDevicesRelatedByIdCreation) {
+                // return empty collection
+                $this->initPushDevicesRelatedByIdCreation();
+            } else {
+                $collPushDevicesRelatedByIdCreation = PushDeviceQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collPushDevicesRelatedByIdCreationPartial && count($collPushDevicesRelatedByIdCreation)) {
+                      $this->initPushDevicesRelatedByIdCreation(false);
+
+                      foreach ($collPushDevicesRelatedByIdCreation as $obj) {
+                        if (false == $this->collPushDevicesRelatedByIdCreation->contains($obj)) {
+                          $this->collPushDevicesRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collPushDevicesRelatedByIdCreationPartial = true;
+                    }
+
+                    $collPushDevicesRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collPushDevicesRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collPushDevicesRelatedByIdCreation) {
+                    foreach ($this->collPushDevicesRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collPushDevicesRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collPushDevicesRelatedByIdCreation = $collPushDevicesRelatedByIdCreation;
+                $this->collPushDevicesRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collPushDevicesRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of PushDeviceRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $pushDevicesRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setPushDevicesRelatedByIdCreation(PropelCollection $pushDevicesRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $pushDevicesRelatedByIdCreationToDelete = $this->getPushDevicesRelatedByIdCreation(new Criteria(), $con)->diff($pushDevicesRelatedByIdCreation);
+
+
+        $this->pushDevicesRelatedByIdCreationScheduledForDeletion = $pushDevicesRelatedByIdCreationToDelete;
+
+        foreach ($pushDevicesRelatedByIdCreationToDelete as $pushDeviceRelatedByIdCreationRemoved) {
+            $pushDeviceRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collPushDevicesRelatedByIdCreation = null;
+        foreach ($pushDevicesRelatedByIdCreation as $pushDeviceRelatedByIdCreation) {
+            $this->addPushDeviceRelatedByIdCreation($pushDeviceRelatedByIdCreation);
+        }
+
+        $this->collPushDevicesRelatedByIdCreation = $pushDevicesRelatedByIdCreation;
+        $this->collPushDevicesRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related PushDevice objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related PushDevice objects.
+     * @throws PropelException
+     */
+    public function countPushDevicesRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collPushDevicesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collPushDevicesRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collPushDevicesRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getPushDevicesRelatedByIdCreation());
+            }
+            $query = PushDeviceQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collPushDevicesRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a PushDevice object to this object
+     * through the PushDevice foreign key attribute.
+     *
+     * @param    PushDevice $l PushDevice
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addPushDeviceRelatedByIdCreation(PushDevice $l)
+    {
+        if ($this->collPushDevicesRelatedByIdCreation === null) {
+            $this->initPushDevicesRelatedByIdCreation();
+            $this->collPushDevicesRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collPushDevicesRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddPushDeviceRelatedByIdCreation($l);
+
+            if ($this->pushDevicesRelatedByIdCreationScheduledForDeletion and $this->pushDevicesRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->pushDevicesRelatedByIdCreationScheduledForDeletion->remove($this->pushDevicesRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	PushDeviceRelatedByIdCreation $pushDeviceRelatedByIdCreation The pushDeviceRelatedByIdCreation object to add.
+     */
+    protected function doAddPushDeviceRelatedByIdCreation($pushDeviceRelatedByIdCreation)
+    {
+        $this->collPushDevicesRelatedByIdCreation[]= $pushDeviceRelatedByIdCreation;
+        $pushDeviceRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	PushDeviceRelatedByIdCreation $pushDeviceRelatedByIdCreation The pushDeviceRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removePushDeviceRelatedByIdCreation($pushDeviceRelatedByIdCreation)
+    {
+        if ($this->getPushDevicesRelatedByIdCreation()->contains($pushDeviceRelatedByIdCreation)) {
+            $this->collPushDevicesRelatedByIdCreation->remove($this->collPushDevicesRelatedByIdCreation->search($pushDeviceRelatedByIdCreation));
+            if (null === $this->pushDevicesRelatedByIdCreationScheduledForDeletion) {
+                $this->pushDevicesRelatedByIdCreationScheduledForDeletion = clone $this->collPushDevicesRelatedByIdCreation;
+                $this->pushDevicesRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->pushDevicesRelatedByIdCreationScheduledForDeletion[]= $pushDeviceRelatedByIdCreation;
+            $pushDeviceRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|PushDevice[] List of PushDevice objects
+     */
+    public function getPushDevicesRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = PushDeviceQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getPushDevicesRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collPushDevicesRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addPushDevicesRelatedByIdModification()
+     */
+    public function clearPushDevicesRelatedByIdModification()
+    {
+        $this->collPushDevicesRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collPushDevicesRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collPushDevicesRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialPushDevicesRelatedByIdModification($v = true)
+    {
+        $this->collPushDevicesRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collPushDevicesRelatedByIdModification collection.
+     *
+     * By default this just sets the collPushDevicesRelatedByIdModification collection to an empty array (like clearcollPushDevicesRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initPushDevicesRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collPushDevicesRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collPushDevicesRelatedByIdModification = new PropelObjectCollection();
+        $this->collPushDevicesRelatedByIdModification->setModel('PushDevice');
+    }
+
+    /**
+     * Gets an array of PushDevice objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|PushDevice[] List of PushDevice objects
+     * @throws PropelException
+     */
+    public function getPushDevicesRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collPushDevicesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collPushDevicesRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collPushDevicesRelatedByIdModification) {
+                // return empty collection
+                $this->initPushDevicesRelatedByIdModification();
+            } else {
+                $collPushDevicesRelatedByIdModification = PushDeviceQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collPushDevicesRelatedByIdModificationPartial && count($collPushDevicesRelatedByIdModification)) {
+                      $this->initPushDevicesRelatedByIdModification(false);
+
+                      foreach ($collPushDevicesRelatedByIdModification as $obj) {
+                        if (false == $this->collPushDevicesRelatedByIdModification->contains($obj)) {
+                          $this->collPushDevicesRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collPushDevicesRelatedByIdModificationPartial = true;
+                    }
+
+                    $collPushDevicesRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collPushDevicesRelatedByIdModification;
+                }
+
+                if ($partial && $this->collPushDevicesRelatedByIdModification) {
+                    foreach ($this->collPushDevicesRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collPushDevicesRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collPushDevicesRelatedByIdModification = $collPushDevicesRelatedByIdModification;
+                $this->collPushDevicesRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collPushDevicesRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of PushDeviceRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $pushDevicesRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setPushDevicesRelatedByIdModification(PropelCollection $pushDevicesRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $pushDevicesRelatedByIdModificationToDelete = $this->getPushDevicesRelatedByIdModification(new Criteria(), $con)->diff($pushDevicesRelatedByIdModification);
+
+
+        $this->pushDevicesRelatedByIdModificationScheduledForDeletion = $pushDevicesRelatedByIdModificationToDelete;
+
+        foreach ($pushDevicesRelatedByIdModificationToDelete as $pushDeviceRelatedByIdModificationRemoved) {
+            $pushDeviceRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collPushDevicesRelatedByIdModification = null;
+        foreach ($pushDevicesRelatedByIdModification as $pushDeviceRelatedByIdModification) {
+            $this->addPushDeviceRelatedByIdModification($pushDeviceRelatedByIdModification);
+        }
+
+        $this->collPushDevicesRelatedByIdModification = $pushDevicesRelatedByIdModification;
+        $this->collPushDevicesRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related PushDevice objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related PushDevice objects.
+     * @throws PropelException
+     */
+    public function countPushDevicesRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collPushDevicesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collPushDevicesRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collPushDevicesRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getPushDevicesRelatedByIdModification());
+            }
+            $query = PushDeviceQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collPushDevicesRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a PushDevice object to this object
+     * through the PushDevice foreign key attribute.
+     *
+     * @param    PushDevice $l PushDevice
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addPushDeviceRelatedByIdModification(PushDevice $l)
+    {
+        if ($this->collPushDevicesRelatedByIdModification === null) {
+            $this->initPushDevicesRelatedByIdModification();
+            $this->collPushDevicesRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collPushDevicesRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddPushDeviceRelatedByIdModification($l);
+
+            if ($this->pushDevicesRelatedByIdModificationScheduledForDeletion and $this->pushDevicesRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->pushDevicesRelatedByIdModificationScheduledForDeletion->remove($this->pushDevicesRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	PushDeviceRelatedByIdModification $pushDeviceRelatedByIdModification The pushDeviceRelatedByIdModification object to add.
+     */
+    protected function doAddPushDeviceRelatedByIdModification($pushDeviceRelatedByIdModification)
+    {
+        $this->collPushDevicesRelatedByIdModification[]= $pushDeviceRelatedByIdModification;
+        $pushDeviceRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	PushDeviceRelatedByIdModification $pushDeviceRelatedByIdModification The pushDeviceRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removePushDeviceRelatedByIdModification($pushDeviceRelatedByIdModification)
+    {
+        if ($this->getPushDevicesRelatedByIdModification()->contains($pushDeviceRelatedByIdModification)) {
+            $this->collPushDevicesRelatedByIdModification->remove($this->collPushDevicesRelatedByIdModification->search($pushDeviceRelatedByIdModification));
+            if (null === $this->pushDevicesRelatedByIdModificationScheduledForDeletion) {
+                $this->pushDevicesRelatedByIdModificationScheduledForDeletion = clone $this->collPushDevicesRelatedByIdModification;
+                $this->pushDevicesRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->pushDevicesRelatedByIdModificationScheduledForDeletion[]= $pushDeviceRelatedByIdModification;
+            $pushDeviceRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|PushDevice[] List of PushDevice objects
+     */
+    public function getPushDevicesRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = PushDeviceQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getPushDevicesRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collCountriesRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addCountriesRelatedByIdCreation()
+     */
+    public function clearCountriesRelatedByIdCreation()
+    {
+        $this->collCountriesRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collCountriesRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collCountriesRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialCountriesRelatedByIdCreation($v = true)
+    {
+        $this->collCountriesRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collCountriesRelatedByIdCreation collection.
+     *
+     * By default this just sets the collCountriesRelatedByIdCreation collection to an empty array (like clearcollCountriesRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initCountriesRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collCountriesRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collCountriesRelatedByIdCreation = new PropelObjectCollection();
+        $this->collCountriesRelatedByIdCreation->setModel('Country');
+    }
+
+    /**
+     * Gets an array of Country objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|Country[] List of Country objects
+     * @throws PropelException
+     */
+    public function getCountriesRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collCountriesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collCountriesRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collCountriesRelatedByIdCreation) {
+                // return empty collection
+                $this->initCountriesRelatedByIdCreation();
+            } else {
+                $collCountriesRelatedByIdCreation = CountryQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collCountriesRelatedByIdCreationPartial && count($collCountriesRelatedByIdCreation)) {
+                      $this->initCountriesRelatedByIdCreation(false);
+
+                      foreach ($collCountriesRelatedByIdCreation as $obj) {
+                        if (false == $this->collCountriesRelatedByIdCreation->contains($obj)) {
+                          $this->collCountriesRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collCountriesRelatedByIdCreationPartial = true;
+                    }
+
+                    $collCountriesRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collCountriesRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collCountriesRelatedByIdCreation) {
+                    foreach ($this->collCountriesRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collCountriesRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collCountriesRelatedByIdCreation = $collCountriesRelatedByIdCreation;
+                $this->collCountriesRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collCountriesRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of CountryRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $countriesRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setCountriesRelatedByIdCreation(PropelCollection $countriesRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $countriesRelatedByIdCreationToDelete = $this->getCountriesRelatedByIdCreation(new Criteria(), $con)->diff($countriesRelatedByIdCreation);
+
+
+        $this->countriesRelatedByIdCreationScheduledForDeletion = $countriesRelatedByIdCreationToDelete;
+
+        foreach ($countriesRelatedByIdCreationToDelete as $countryRelatedByIdCreationRemoved) {
+            $countryRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collCountriesRelatedByIdCreation = null;
+        foreach ($countriesRelatedByIdCreation as $countryRelatedByIdCreation) {
+            $this->addCountryRelatedByIdCreation($countryRelatedByIdCreation);
+        }
+
+        $this->collCountriesRelatedByIdCreation = $countriesRelatedByIdCreation;
+        $this->collCountriesRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related Country objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related Country objects.
+     * @throws PropelException
+     */
+    public function countCountriesRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collCountriesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collCountriesRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collCountriesRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getCountriesRelatedByIdCreation());
+            }
+            $query = CountryQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collCountriesRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a Country object to this object
+     * through the Country foreign key attribute.
+     *
+     * @param    Country $l Country
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addCountryRelatedByIdCreation(Country $l)
+    {
+        if ($this->collCountriesRelatedByIdCreation === null) {
+            $this->initCountriesRelatedByIdCreation();
+            $this->collCountriesRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collCountriesRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddCountryRelatedByIdCreation($l);
+
+            if ($this->countriesRelatedByIdCreationScheduledForDeletion and $this->countriesRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->countriesRelatedByIdCreationScheduledForDeletion->remove($this->countriesRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	CountryRelatedByIdCreation $countryRelatedByIdCreation The countryRelatedByIdCreation object to add.
+     */
+    protected function doAddCountryRelatedByIdCreation($countryRelatedByIdCreation)
+    {
+        $this->collCountriesRelatedByIdCreation[]= $countryRelatedByIdCreation;
+        $countryRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	CountryRelatedByIdCreation $countryRelatedByIdCreation The countryRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeCountryRelatedByIdCreation($countryRelatedByIdCreation)
+    {
+        if ($this->getCountriesRelatedByIdCreation()->contains($countryRelatedByIdCreation)) {
+            $this->collCountriesRelatedByIdCreation->remove($this->collCountriesRelatedByIdCreation->search($countryRelatedByIdCreation));
+            if (null === $this->countriesRelatedByIdCreationScheduledForDeletion) {
+                $this->countriesRelatedByIdCreationScheduledForDeletion = clone $this->collCountriesRelatedByIdCreation;
+                $this->countriesRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->countriesRelatedByIdCreationScheduledForDeletion[]= $countryRelatedByIdCreation;
+            $countryRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|Country[] List of Country objects
+     */
+    public function getCountriesRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = CountryQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getCountriesRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collCountriesRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addCountriesRelatedByIdModification()
+     */
+    public function clearCountriesRelatedByIdModification()
+    {
+        $this->collCountriesRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collCountriesRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collCountriesRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialCountriesRelatedByIdModification($v = true)
+    {
+        $this->collCountriesRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collCountriesRelatedByIdModification collection.
+     *
+     * By default this just sets the collCountriesRelatedByIdModification collection to an empty array (like clearcollCountriesRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initCountriesRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collCountriesRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collCountriesRelatedByIdModification = new PropelObjectCollection();
+        $this->collCountriesRelatedByIdModification->setModel('Country');
+    }
+
+    /**
+     * Gets an array of Country objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|Country[] List of Country objects
+     * @throws PropelException
+     */
+    public function getCountriesRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collCountriesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collCountriesRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collCountriesRelatedByIdModification) {
+                // return empty collection
+                $this->initCountriesRelatedByIdModification();
+            } else {
+                $collCountriesRelatedByIdModification = CountryQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collCountriesRelatedByIdModificationPartial && count($collCountriesRelatedByIdModification)) {
+                      $this->initCountriesRelatedByIdModification(false);
+
+                      foreach ($collCountriesRelatedByIdModification as $obj) {
+                        if (false == $this->collCountriesRelatedByIdModification->contains($obj)) {
+                          $this->collCountriesRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collCountriesRelatedByIdModificationPartial = true;
+                    }
+
+                    $collCountriesRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collCountriesRelatedByIdModification;
+                }
+
+                if ($partial && $this->collCountriesRelatedByIdModification) {
+                    foreach ($this->collCountriesRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collCountriesRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collCountriesRelatedByIdModification = $collCountriesRelatedByIdModification;
+                $this->collCountriesRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collCountriesRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of CountryRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $countriesRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setCountriesRelatedByIdModification(PropelCollection $countriesRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $countriesRelatedByIdModificationToDelete = $this->getCountriesRelatedByIdModification(new Criteria(), $con)->diff($countriesRelatedByIdModification);
+
+
+        $this->countriesRelatedByIdModificationScheduledForDeletion = $countriesRelatedByIdModificationToDelete;
+
+        foreach ($countriesRelatedByIdModificationToDelete as $countryRelatedByIdModificationRemoved) {
+            $countryRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collCountriesRelatedByIdModification = null;
+        foreach ($countriesRelatedByIdModification as $countryRelatedByIdModification) {
+            $this->addCountryRelatedByIdModification($countryRelatedByIdModification);
+        }
+
+        $this->collCountriesRelatedByIdModification = $countriesRelatedByIdModification;
+        $this->collCountriesRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related Country objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related Country objects.
+     * @throws PropelException
+     */
+    public function countCountriesRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collCountriesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collCountriesRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collCountriesRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getCountriesRelatedByIdModification());
+            }
+            $query = CountryQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collCountriesRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a Country object to this object
+     * through the Country foreign key attribute.
+     *
+     * @param    Country $l Country
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addCountryRelatedByIdModification(Country $l)
+    {
+        if ($this->collCountriesRelatedByIdModification === null) {
+            $this->initCountriesRelatedByIdModification();
+            $this->collCountriesRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collCountriesRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddCountryRelatedByIdModification($l);
+
+            if ($this->countriesRelatedByIdModificationScheduledForDeletion and $this->countriesRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->countriesRelatedByIdModificationScheduledForDeletion->remove($this->countriesRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	CountryRelatedByIdModification $countryRelatedByIdModification The countryRelatedByIdModification object to add.
+     */
+    protected function doAddCountryRelatedByIdModification($countryRelatedByIdModification)
+    {
+        $this->collCountriesRelatedByIdModification[]= $countryRelatedByIdModification;
+        $countryRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	CountryRelatedByIdModification $countryRelatedByIdModification The countryRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeCountryRelatedByIdModification($countryRelatedByIdModification)
+    {
+        if ($this->getCountriesRelatedByIdModification()->contains($countryRelatedByIdModification)) {
+            $this->collCountriesRelatedByIdModification->remove($this->collCountriesRelatedByIdModification->search($countryRelatedByIdModification));
+            if (null === $this->countriesRelatedByIdModificationScheduledForDeletion) {
+                $this->countriesRelatedByIdModificationScheduledForDeletion = clone $this->collCountriesRelatedByIdModification;
+                $this->countriesRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->countriesRelatedByIdModificationScheduledForDeletion[]= $countryRelatedByIdModification;
+            $countryRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|Country[] List of Country objects
+     */
+    public function getCountriesRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = CountryQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getCountriesRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collGridRunsRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addGridRunsRelatedByIdCreation()
+     */
+    public function clearGridRunsRelatedByIdCreation()
+    {
+        $this->collGridRunsRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collGridRunsRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collGridRunsRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialGridRunsRelatedByIdCreation($v = true)
+    {
+        $this->collGridRunsRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collGridRunsRelatedByIdCreation collection.
+     *
+     * By default this just sets the collGridRunsRelatedByIdCreation collection to an empty array (like clearcollGridRunsRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initGridRunsRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collGridRunsRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collGridRunsRelatedByIdCreation = new PropelObjectCollection();
+        $this->collGridRunsRelatedByIdCreation->setModel('GridRun');
+    }
+
+    /**
+     * Gets an array of GridRun objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|GridRun[] List of GridRun objects
+     * @throws PropelException
+     */
+    public function getGridRunsRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collGridRunsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collGridRunsRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collGridRunsRelatedByIdCreation) {
+                // return empty collection
+                $this->initGridRunsRelatedByIdCreation();
+            } else {
+                $collGridRunsRelatedByIdCreation = GridRunQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collGridRunsRelatedByIdCreationPartial && count($collGridRunsRelatedByIdCreation)) {
+                      $this->initGridRunsRelatedByIdCreation(false);
+
+                      foreach ($collGridRunsRelatedByIdCreation as $obj) {
+                        if (false == $this->collGridRunsRelatedByIdCreation->contains($obj)) {
+                          $this->collGridRunsRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collGridRunsRelatedByIdCreationPartial = true;
+                    }
+
+                    $collGridRunsRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collGridRunsRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collGridRunsRelatedByIdCreation) {
+                    foreach ($this->collGridRunsRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collGridRunsRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collGridRunsRelatedByIdCreation = $collGridRunsRelatedByIdCreation;
+                $this->collGridRunsRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collGridRunsRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of GridRunRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $gridRunsRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setGridRunsRelatedByIdCreation(PropelCollection $gridRunsRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $gridRunsRelatedByIdCreationToDelete = $this->getGridRunsRelatedByIdCreation(new Criteria(), $con)->diff($gridRunsRelatedByIdCreation);
+
+
+        $this->gridRunsRelatedByIdCreationScheduledForDeletion = $gridRunsRelatedByIdCreationToDelete;
+
+        foreach ($gridRunsRelatedByIdCreationToDelete as $gridRunRelatedByIdCreationRemoved) {
+            $gridRunRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collGridRunsRelatedByIdCreation = null;
+        foreach ($gridRunsRelatedByIdCreation as $gridRunRelatedByIdCreation) {
+            $this->addGridRunRelatedByIdCreation($gridRunRelatedByIdCreation);
+        }
+
+        $this->collGridRunsRelatedByIdCreation = $gridRunsRelatedByIdCreation;
+        $this->collGridRunsRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related GridRun objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related GridRun objects.
+     * @throws PropelException
+     */
+    public function countGridRunsRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collGridRunsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collGridRunsRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collGridRunsRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getGridRunsRelatedByIdCreation());
+            }
+            $query = GridRunQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collGridRunsRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a GridRun object to this object
+     * through the GridRun foreign key attribute.
+     *
+     * @param    GridRun $l GridRun
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addGridRunRelatedByIdCreation(GridRun $l)
+    {
+        if ($this->collGridRunsRelatedByIdCreation === null) {
+            $this->initGridRunsRelatedByIdCreation();
+            $this->collGridRunsRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collGridRunsRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddGridRunRelatedByIdCreation($l);
+
+            if ($this->gridRunsRelatedByIdCreationScheduledForDeletion and $this->gridRunsRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->gridRunsRelatedByIdCreationScheduledForDeletion->remove($this->gridRunsRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	GridRunRelatedByIdCreation $gridRunRelatedByIdCreation The gridRunRelatedByIdCreation object to add.
+     */
+    protected function doAddGridRunRelatedByIdCreation($gridRunRelatedByIdCreation)
+    {
+        $this->collGridRunsRelatedByIdCreation[]= $gridRunRelatedByIdCreation;
+        $gridRunRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	GridRunRelatedByIdCreation $gridRunRelatedByIdCreation The gridRunRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeGridRunRelatedByIdCreation($gridRunRelatedByIdCreation)
+    {
+        if ($this->getGridRunsRelatedByIdCreation()->contains($gridRunRelatedByIdCreation)) {
+            $this->collGridRunsRelatedByIdCreation->remove($this->collGridRunsRelatedByIdCreation->search($gridRunRelatedByIdCreation));
+            if (null === $this->gridRunsRelatedByIdCreationScheduledForDeletion) {
+                $this->gridRunsRelatedByIdCreationScheduledForDeletion = clone $this->collGridRunsRelatedByIdCreation;
+                $this->gridRunsRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->gridRunsRelatedByIdCreationScheduledForDeletion[]= $gridRunRelatedByIdCreation;
+            $gridRunRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|GridRun[] List of GridRun objects
+     */
+    public function getGridRunsRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = GridRunQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getGridRunsRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collGridRunsRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addGridRunsRelatedByIdModification()
+     */
+    public function clearGridRunsRelatedByIdModification()
+    {
+        $this->collGridRunsRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collGridRunsRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collGridRunsRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialGridRunsRelatedByIdModification($v = true)
+    {
+        $this->collGridRunsRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collGridRunsRelatedByIdModification collection.
+     *
+     * By default this just sets the collGridRunsRelatedByIdModification collection to an empty array (like clearcollGridRunsRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initGridRunsRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collGridRunsRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collGridRunsRelatedByIdModification = new PropelObjectCollection();
+        $this->collGridRunsRelatedByIdModification->setModel('GridRun');
+    }
+
+    /**
+     * Gets an array of GridRun objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|GridRun[] List of GridRun objects
+     * @throws PropelException
+     */
+    public function getGridRunsRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collGridRunsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collGridRunsRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collGridRunsRelatedByIdModification) {
+                // return empty collection
+                $this->initGridRunsRelatedByIdModification();
+            } else {
+                $collGridRunsRelatedByIdModification = GridRunQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collGridRunsRelatedByIdModificationPartial && count($collGridRunsRelatedByIdModification)) {
+                      $this->initGridRunsRelatedByIdModification(false);
+
+                      foreach ($collGridRunsRelatedByIdModification as $obj) {
+                        if (false == $this->collGridRunsRelatedByIdModification->contains($obj)) {
+                          $this->collGridRunsRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collGridRunsRelatedByIdModificationPartial = true;
+                    }
+
+                    $collGridRunsRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collGridRunsRelatedByIdModification;
+                }
+
+                if ($partial && $this->collGridRunsRelatedByIdModification) {
+                    foreach ($this->collGridRunsRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collGridRunsRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collGridRunsRelatedByIdModification = $collGridRunsRelatedByIdModification;
+                $this->collGridRunsRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collGridRunsRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of GridRunRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $gridRunsRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setGridRunsRelatedByIdModification(PropelCollection $gridRunsRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $gridRunsRelatedByIdModificationToDelete = $this->getGridRunsRelatedByIdModification(new Criteria(), $con)->diff($gridRunsRelatedByIdModification);
+
+
+        $this->gridRunsRelatedByIdModificationScheduledForDeletion = $gridRunsRelatedByIdModificationToDelete;
+
+        foreach ($gridRunsRelatedByIdModificationToDelete as $gridRunRelatedByIdModificationRemoved) {
+            $gridRunRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collGridRunsRelatedByIdModification = null;
+        foreach ($gridRunsRelatedByIdModification as $gridRunRelatedByIdModification) {
+            $this->addGridRunRelatedByIdModification($gridRunRelatedByIdModification);
+        }
+
+        $this->collGridRunsRelatedByIdModification = $gridRunsRelatedByIdModification;
+        $this->collGridRunsRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related GridRun objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related GridRun objects.
+     * @throws PropelException
+     */
+    public function countGridRunsRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collGridRunsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collGridRunsRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collGridRunsRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getGridRunsRelatedByIdModification());
+            }
+            $query = GridRunQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collGridRunsRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a GridRun object to this object
+     * through the GridRun foreign key attribute.
+     *
+     * @param    GridRun $l GridRun
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addGridRunRelatedByIdModification(GridRun $l)
+    {
+        if ($this->collGridRunsRelatedByIdModification === null) {
+            $this->initGridRunsRelatedByIdModification();
+            $this->collGridRunsRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collGridRunsRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddGridRunRelatedByIdModification($l);
+
+            if ($this->gridRunsRelatedByIdModificationScheduledForDeletion and $this->gridRunsRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->gridRunsRelatedByIdModificationScheduledForDeletion->remove($this->gridRunsRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	GridRunRelatedByIdModification $gridRunRelatedByIdModification The gridRunRelatedByIdModification object to add.
+     */
+    protected function doAddGridRunRelatedByIdModification($gridRunRelatedByIdModification)
+    {
+        $this->collGridRunsRelatedByIdModification[]= $gridRunRelatedByIdModification;
+        $gridRunRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	GridRunRelatedByIdModification $gridRunRelatedByIdModification The gridRunRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeGridRunRelatedByIdModification($gridRunRelatedByIdModification)
+    {
+        if ($this->getGridRunsRelatedByIdModification()->contains($gridRunRelatedByIdModification)) {
+            $this->collGridRunsRelatedByIdModification->remove($this->collGridRunsRelatedByIdModification->search($gridRunRelatedByIdModification));
+            if (null === $this->gridRunsRelatedByIdModificationScheduledForDeletion) {
+                $this->gridRunsRelatedByIdModificationScheduledForDeletion = clone $this->collGridRunsRelatedByIdModification;
+                $this->gridRunsRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->gridRunsRelatedByIdModificationScheduledForDeletion[]= $gridRunRelatedByIdModification;
+            $gridRunRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|GridRun[] List of GridRun objects
+     */
+    public function getGridRunsRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = GridRunQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getGridRunsRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collBotOrdersRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addBotOrdersRelatedByIdCreation()
+     */
+    public function clearBotOrdersRelatedByIdCreation()
+    {
+        $this->collBotOrdersRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collBotOrdersRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collBotOrdersRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialBotOrdersRelatedByIdCreation($v = true)
+    {
+        $this->collBotOrdersRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collBotOrdersRelatedByIdCreation collection.
+     *
+     * By default this just sets the collBotOrdersRelatedByIdCreation collection to an empty array (like clearcollBotOrdersRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initBotOrdersRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collBotOrdersRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collBotOrdersRelatedByIdCreation = new PropelObjectCollection();
+        $this->collBotOrdersRelatedByIdCreation->setModel('BotOrder');
+    }
+
+    /**
+     * Gets an array of BotOrder objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|BotOrder[] List of BotOrder objects
+     * @throws PropelException
+     */
+    public function getBotOrdersRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collBotOrdersRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collBotOrdersRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collBotOrdersRelatedByIdCreation) {
+                // return empty collection
+                $this->initBotOrdersRelatedByIdCreation();
+            } else {
+                $collBotOrdersRelatedByIdCreation = BotOrderQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collBotOrdersRelatedByIdCreationPartial && count($collBotOrdersRelatedByIdCreation)) {
+                      $this->initBotOrdersRelatedByIdCreation(false);
+
+                      foreach ($collBotOrdersRelatedByIdCreation as $obj) {
+                        if (false == $this->collBotOrdersRelatedByIdCreation->contains($obj)) {
+                          $this->collBotOrdersRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collBotOrdersRelatedByIdCreationPartial = true;
+                    }
+
+                    $collBotOrdersRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collBotOrdersRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collBotOrdersRelatedByIdCreation) {
+                    foreach ($this->collBotOrdersRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collBotOrdersRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collBotOrdersRelatedByIdCreation = $collBotOrdersRelatedByIdCreation;
+                $this->collBotOrdersRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collBotOrdersRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of BotOrderRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $botOrdersRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setBotOrdersRelatedByIdCreation(PropelCollection $botOrdersRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $botOrdersRelatedByIdCreationToDelete = $this->getBotOrdersRelatedByIdCreation(new Criteria(), $con)->diff($botOrdersRelatedByIdCreation);
+
+
+        $this->botOrdersRelatedByIdCreationScheduledForDeletion = $botOrdersRelatedByIdCreationToDelete;
+
+        foreach ($botOrdersRelatedByIdCreationToDelete as $botOrderRelatedByIdCreationRemoved) {
+            $botOrderRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collBotOrdersRelatedByIdCreation = null;
+        foreach ($botOrdersRelatedByIdCreation as $botOrderRelatedByIdCreation) {
+            $this->addBotOrderRelatedByIdCreation($botOrderRelatedByIdCreation);
+        }
+
+        $this->collBotOrdersRelatedByIdCreation = $botOrdersRelatedByIdCreation;
+        $this->collBotOrdersRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related BotOrder objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related BotOrder objects.
+     * @throws PropelException
+     */
+    public function countBotOrdersRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collBotOrdersRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collBotOrdersRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collBotOrdersRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getBotOrdersRelatedByIdCreation());
+            }
+            $query = BotOrderQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collBotOrdersRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a BotOrder object to this object
+     * through the BotOrder foreign key attribute.
+     *
+     * @param    BotOrder $l BotOrder
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addBotOrderRelatedByIdCreation(BotOrder $l)
+    {
+        if ($this->collBotOrdersRelatedByIdCreation === null) {
+            $this->initBotOrdersRelatedByIdCreation();
+            $this->collBotOrdersRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collBotOrdersRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddBotOrderRelatedByIdCreation($l);
+
+            if ($this->botOrdersRelatedByIdCreationScheduledForDeletion and $this->botOrdersRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->botOrdersRelatedByIdCreationScheduledForDeletion->remove($this->botOrdersRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	BotOrderRelatedByIdCreation $botOrderRelatedByIdCreation The botOrderRelatedByIdCreation object to add.
+     */
+    protected function doAddBotOrderRelatedByIdCreation($botOrderRelatedByIdCreation)
+    {
+        $this->collBotOrdersRelatedByIdCreation[]= $botOrderRelatedByIdCreation;
+        $botOrderRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	BotOrderRelatedByIdCreation $botOrderRelatedByIdCreation The botOrderRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeBotOrderRelatedByIdCreation($botOrderRelatedByIdCreation)
+    {
+        if ($this->getBotOrdersRelatedByIdCreation()->contains($botOrderRelatedByIdCreation)) {
+            $this->collBotOrdersRelatedByIdCreation->remove($this->collBotOrdersRelatedByIdCreation->search($botOrderRelatedByIdCreation));
+            if (null === $this->botOrdersRelatedByIdCreationScheduledForDeletion) {
+                $this->botOrdersRelatedByIdCreationScheduledForDeletion = clone $this->collBotOrdersRelatedByIdCreation;
+                $this->botOrdersRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->botOrdersRelatedByIdCreationScheduledForDeletion[]= $botOrderRelatedByIdCreation;
+            $botOrderRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|BotOrder[] List of BotOrder objects
+     */
+    public function getBotOrdersRelatedByIdCreationJoinGridRun($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = BotOrderQuery::create(null, $criteria);
+        $query->joinWith('GridRun', $join_behavior);
+
+        return $this->getBotOrdersRelatedByIdCreation($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|BotOrder[] List of BotOrder objects
+     */
+    public function getBotOrdersRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = BotOrderQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getBotOrdersRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collBotOrdersRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addBotOrdersRelatedByIdModification()
+     */
+    public function clearBotOrdersRelatedByIdModification()
+    {
+        $this->collBotOrdersRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collBotOrdersRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collBotOrdersRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialBotOrdersRelatedByIdModification($v = true)
+    {
+        $this->collBotOrdersRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collBotOrdersRelatedByIdModification collection.
+     *
+     * By default this just sets the collBotOrdersRelatedByIdModification collection to an empty array (like clearcollBotOrdersRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initBotOrdersRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collBotOrdersRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collBotOrdersRelatedByIdModification = new PropelObjectCollection();
+        $this->collBotOrdersRelatedByIdModification->setModel('BotOrder');
+    }
+
+    /**
+     * Gets an array of BotOrder objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|BotOrder[] List of BotOrder objects
+     * @throws PropelException
+     */
+    public function getBotOrdersRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collBotOrdersRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collBotOrdersRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collBotOrdersRelatedByIdModification) {
+                // return empty collection
+                $this->initBotOrdersRelatedByIdModification();
+            } else {
+                $collBotOrdersRelatedByIdModification = BotOrderQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collBotOrdersRelatedByIdModificationPartial && count($collBotOrdersRelatedByIdModification)) {
+                      $this->initBotOrdersRelatedByIdModification(false);
+
+                      foreach ($collBotOrdersRelatedByIdModification as $obj) {
+                        if (false == $this->collBotOrdersRelatedByIdModification->contains($obj)) {
+                          $this->collBotOrdersRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collBotOrdersRelatedByIdModificationPartial = true;
+                    }
+
+                    $collBotOrdersRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collBotOrdersRelatedByIdModification;
+                }
+
+                if ($partial && $this->collBotOrdersRelatedByIdModification) {
+                    foreach ($this->collBotOrdersRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collBotOrdersRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collBotOrdersRelatedByIdModification = $collBotOrdersRelatedByIdModification;
+                $this->collBotOrdersRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collBotOrdersRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of BotOrderRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $botOrdersRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setBotOrdersRelatedByIdModification(PropelCollection $botOrdersRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $botOrdersRelatedByIdModificationToDelete = $this->getBotOrdersRelatedByIdModification(new Criteria(), $con)->diff($botOrdersRelatedByIdModification);
+
+
+        $this->botOrdersRelatedByIdModificationScheduledForDeletion = $botOrdersRelatedByIdModificationToDelete;
+
+        foreach ($botOrdersRelatedByIdModificationToDelete as $botOrderRelatedByIdModificationRemoved) {
+            $botOrderRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collBotOrdersRelatedByIdModification = null;
+        foreach ($botOrdersRelatedByIdModification as $botOrderRelatedByIdModification) {
+            $this->addBotOrderRelatedByIdModification($botOrderRelatedByIdModification);
+        }
+
+        $this->collBotOrdersRelatedByIdModification = $botOrdersRelatedByIdModification;
+        $this->collBotOrdersRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related BotOrder objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related BotOrder objects.
+     * @throws PropelException
+     */
+    public function countBotOrdersRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collBotOrdersRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collBotOrdersRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collBotOrdersRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getBotOrdersRelatedByIdModification());
+            }
+            $query = BotOrderQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collBotOrdersRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a BotOrder object to this object
+     * through the BotOrder foreign key attribute.
+     *
+     * @param    BotOrder $l BotOrder
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addBotOrderRelatedByIdModification(BotOrder $l)
+    {
+        if ($this->collBotOrdersRelatedByIdModification === null) {
+            $this->initBotOrdersRelatedByIdModification();
+            $this->collBotOrdersRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collBotOrdersRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddBotOrderRelatedByIdModification($l);
+
+            if ($this->botOrdersRelatedByIdModificationScheduledForDeletion and $this->botOrdersRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->botOrdersRelatedByIdModificationScheduledForDeletion->remove($this->botOrdersRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	BotOrderRelatedByIdModification $botOrderRelatedByIdModification The botOrderRelatedByIdModification object to add.
+     */
+    protected function doAddBotOrderRelatedByIdModification($botOrderRelatedByIdModification)
+    {
+        $this->collBotOrdersRelatedByIdModification[]= $botOrderRelatedByIdModification;
+        $botOrderRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	BotOrderRelatedByIdModification $botOrderRelatedByIdModification The botOrderRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeBotOrderRelatedByIdModification($botOrderRelatedByIdModification)
+    {
+        if ($this->getBotOrdersRelatedByIdModification()->contains($botOrderRelatedByIdModification)) {
+            $this->collBotOrdersRelatedByIdModification->remove($this->collBotOrdersRelatedByIdModification->search($botOrderRelatedByIdModification));
+            if (null === $this->botOrdersRelatedByIdModificationScheduledForDeletion) {
+                $this->botOrdersRelatedByIdModificationScheduledForDeletion = clone $this->collBotOrdersRelatedByIdModification;
+                $this->botOrdersRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->botOrdersRelatedByIdModificationScheduledForDeletion[]= $botOrderRelatedByIdModification;
+            $botOrderRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|BotOrder[] List of BotOrder objects
+     */
+    public function getBotOrdersRelatedByIdModificationJoinGridRun($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = BotOrderQuery::create(null, $criteria);
+        $query->joinWith('GridRun', $join_behavior);
+
+        return $this->getBotOrdersRelatedByIdModification($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|BotOrder[] List of BotOrder objects
+     */
+    public function getBotOrdersRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = BotOrderQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getBotOrdersRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collTradeCyclesRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addTradeCyclesRelatedByIdCreation()
+     */
+    public function clearTradeCyclesRelatedByIdCreation()
+    {
+        $this->collTradeCyclesRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collTradeCyclesRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collTradeCyclesRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialTradeCyclesRelatedByIdCreation($v = true)
+    {
+        $this->collTradeCyclesRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collTradeCyclesRelatedByIdCreation collection.
+     *
+     * By default this just sets the collTradeCyclesRelatedByIdCreation collection to an empty array (like clearcollTradeCyclesRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initTradeCyclesRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collTradeCyclesRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collTradeCyclesRelatedByIdCreation = new PropelObjectCollection();
+        $this->collTradeCyclesRelatedByIdCreation->setModel('TradeCycle');
+    }
+
+    /**
+     * Gets an array of TradeCycle objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|TradeCycle[] List of TradeCycle objects
+     * @throws PropelException
+     */
+    public function getTradeCyclesRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collTradeCyclesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collTradeCyclesRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collTradeCyclesRelatedByIdCreation) {
+                // return empty collection
+                $this->initTradeCyclesRelatedByIdCreation();
+            } else {
+                $collTradeCyclesRelatedByIdCreation = TradeCycleQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collTradeCyclesRelatedByIdCreationPartial && count($collTradeCyclesRelatedByIdCreation)) {
+                      $this->initTradeCyclesRelatedByIdCreation(false);
+
+                      foreach ($collTradeCyclesRelatedByIdCreation as $obj) {
+                        if (false == $this->collTradeCyclesRelatedByIdCreation->contains($obj)) {
+                          $this->collTradeCyclesRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collTradeCyclesRelatedByIdCreationPartial = true;
+                    }
+
+                    $collTradeCyclesRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collTradeCyclesRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collTradeCyclesRelatedByIdCreation) {
+                    foreach ($this->collTradeCyclesRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collTradeCyclesRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collTradeCyclesRelatedByIdCreation = $collTradeCyclesRelatedByIdCreation;
+                $this->collTradeCyclesRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collTradeCyclesRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of TradeCycleRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $tradeCyclesRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setTradeCyclesRelatedByIdCreation(PropelCollection $tradeCyclesRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $tradeCyclesRelatedByIdCreationToDelete = $this->getTradeCyclesRelatedByIdCreation(new Criteria(), $con)->diff($tradeCyclesRelatedByIdCreation);
+
+
+        $this->tradeCyclesRelatedByIdCreationScheduledForDeletion = $tradeCyclesRelatedByIdCreationToDelete;
+
+        foreach ($tradeCyclesRelatedByIdCreationToDelete as $tradeCycleRelatedByIdCreationRemoved) {
+            $tradeCycleRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collTradeCyclesRelatedByIdCreation = null;
+        foreach ($tradeCyclesRelatedByIdCreation as $tradeCycleRelatedByIdCreation) {
+            $this->addTradeCycleRelatedByIdCreation($tradeCycleRelatedByIdCreation);
+        }
+
+        $this->collTradeCyclesRelatedByIdCreation = $tradeCyclesRelatedByIdCreation;
+        $this->collTradeCyclesRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related TradeCycle objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related TradeCycle objects.
+     * @throws PropelException
+     */
+    public function countTradeCyclesRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collTradeCyclesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collTradeCyclesRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collTradeCyclesRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getTradeCyclesRelatedByIdCreation());
+            }
+            $query = TradeCycleQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collTradeCyclesRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a TradeCycle object to this object
+     * through the TradeCycle foreign key attribute.
+     *
+     * @param    TradeCycle $l TradeCycle
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addTradeCycleRelatedByIdCreation(TradeCycle $l)
+    {
+        if ($this->collTradeCyclesRelatedByIdCreation === null) {
+            $this->initTradeCyclesRelatedByIdCreation();
+            $this->collTradeCyclesRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collTradeCyclesRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddTradeCycleRelatedByIdCreation($l);
+
+            if ($this->tradeCyclesRelatedByIdCreationScheduledForDeletion and $this->tradeCyclesRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->tradeCyclesRelatedByIdCreationScheduledForDeletion->remove($this->tradeCyclesRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	TradeCycleRelatedByIdCreation $tradeCycleRelatedByIdCreation The tradeCycleRelatedByIdCreation object to add.
+     */
+    protected function doAddTradeCycleRelatedByIdCreation($tradeCycleRelatedByIdCreation)
+    {
+        $this->collTradeCyclesRelatedByIdCreation[]= $tradeCycleRelatedByIdCreation;
+        $tradeCycleRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	TradeCycleRelatedByIdCreation $tradeCycleRelatedByIdCreation The tradeCycleRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeTradeCycleRelatedByIdCreation($tradeCycleRelatedByIdCreation)
+    {
+        if ($this->getTradeCyclesRelatedByIdCreation()->contains($tradeCycleRelatedByIdCreation)) {
+            $this->collTradeCyclesRelatedByIdCreation->remove($this->collTradeCyclesRelatedByIdCreation->search($tradeCycleRelatedByIdCreation));
+            if (null === $this->tradeCyclesRelatedByIdCreationScheduledForDeletion) {
+                $this->tradeCyclesRelatedByIdCreationScheduledForDeletion = clone $this->collTradeCyclesRelatedByIdCreation;
+                $this->tradeCyclesRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->tradeCyclesRelatedByIdCreationScheduledForDeletion[]= $tradeCycleRelatedByIdCreation;
+            $tradeCycleRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|TradeCycle[] List of TradeCycle objects
+     */
+    public function getTradeCyclesRelatedByIdCreationJoinGridRun($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = TradeCycleQuery::create(null, $criteria);
+        $query->joinWith('GridRun', $join_behavior);
+
+        return $this->getTradeCyclesRelatedByIdCreation($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|TradeCycle[] List of TradeCycle objects
+     */
+    public function getTradeCyclesRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = TradeCycleQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getTradeCyclesRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collTradeCyclesRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addTradeCyclesRelatedByIdModification()
+     */
+    public function clearTradeCyclesRelatedByIdModification()
+    {
+        $this->collTradeCyclesRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collTradeCyclesRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collTradeCyclesRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialTradeCyclesRelatedByIdModification($v = true)
+    {
+        $this->collTradeCyclesRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collTradeCyclesRelatedByIdModification collection.
+     *
+     * By default this just sets the collTradeCyclesRelatedByIdModification collection to an empty array (like clearcollTradeCyclesRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initTradeCyclesRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collTradeCyclesRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collTradeCyclesRelatedByIdModification = new PropelObjectCollection();
+        $this->collTradeCyclesRelatedByIdModification->setModel('TradeCycle');
+    }
+
+    /**
+     * Gets an array of TradeCycle objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|TradeCycle[] List of TradeCycle objects
+     * @throws PropelException
+     */
+    public function getTradeCyclesRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collTradeCyclesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collTradeCyclesRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collTradeCyclesRelatedByIdModification) {
+                // return empty collection
+                $this->initTradeCyclesRelatedByIdModification();
+            } else {
+                $collTradeCyclesRelatedByIdModification = TradeCycleQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collTradeCyclesRelatedByIdModificationPartial && count($collTradeCyclesRelatedByIdModification)) {
+                      $this->initTradeCyclesRelatedByIdModification(false);
+
+                      foreach ($collTradeCyclesRelatedByIdModification as $obj) {
+                        if (false == $this->collTradeCyclesRelatedByIdModification->contains($obj)) {
+                          $this->collTradeCyclesRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collTradeCyclesRelatedByIdModificationPartial = true;
+                    }
+
+                    $collTradeCyclesRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collTradeCyclesRelatedByIdModification;
+                }
+
+                if ($partial && $this->collTradeCyclesRelatedByIdModification) {
+                    foreach ($this->collTradeCyclesRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collTradeCyclesRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collTradeCyclesRelatedByIdModification = $collTradeCyclesRelatedByIdModification;
+                $this->collTradeCyclesRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collTradeCyclesRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of TradeCycleRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $tradeCyclesRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setTradeCyclesRelatedByIdModification(PropelCollection $tradeCyclesRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $tradeCyclesRelatedByIdModificationToDelete = $this->getTradeCyclesRelatedByIdModification(new Criteria(), $con)->diff($tradeCyclesRelatedByIdModification);
+
+
+        $this->tradeCyclesRelatedByIdModificationScheduledForDeletion = $tradeCyclesRelatedByIdModificationToDelete;
+
+        foreach ($tradeCyclesRelatedByIdModificationToDelete as $tradeCycleRelatedByIdModificationRemoved) {
+            $tradeCycleRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collTradeCyclesRelatedByIdModification = null;
+        foreach ($tradeCyclesRelatedByIdModification as $tradeCycleRelatedByIdModification) {
+            $this->addTradeCycleRelatedByIdModification($tradeCycleRelatedByIdModification);
+        }
+
+        $this->collTradeCyclesRelatedByIdModification = $tradeCyclesRelatedByIdModification;
+        $this->collTradeCyclesRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related TradeCycle objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related TradeCycle objects.
+     * @throws PropelException
+     */
+    public function countTradeCyclesRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collTradeCyclesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collTradeCyclesRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collTradeCyclesRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getTradeCyclesRelatedByIdModification());
+            }
+            $query = TradeCycleQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collTradeCyclesRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a TradeCycle object to this object
+     * through the TradeCycle foreign key attribute.
+     *
+     * @param    TradeCycle $l TradeCycle
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addTradeCycleRelatedByIdModification(TradeCycle $l)
+    {
+        if ($this->collTradeCyclesRelatedByIdModification === null) {
+            $this->initTradeCyclesRelatedByIdModification();
+            $this->collTradeCyclesRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collTradeCyclesRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddTradeCycleRelatedByIdModification($l);
+
+            if ($this->tradeCyclesRelatedByIdModificationScheduledForDeletion and $this->tradeCyclesRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->tradeCyclesRelatedByIdModificationScheduledForDeletion->remove($this->tradeCyclesRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	TradeCycleRelatedByIdModification $tradeCycleRelatedByIdModification The tradeCycleRelatedByIdModification object to add.
+     */
+    protected function doAddTradeCycleRelatedByIdModification($tradeCycleRelatedByIdModification)
+    {
+        $this->collTradeCyclesRelatedByIdModification[]= $tradeCycleRelatedByIdModification;
+        $tradeCycleRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	TradeCycleRelatedByIdModification $tradeCycleRelatedByIdModification The tradeCycleRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeTradeCycleRelatedByIdModification($tradeCycleRelatedByIdModification)
+    {
+        if ($this->getTradeCyclesRelatedByIdModification()->contains($tradeCycleRelatedByIdModification)) {
+            $this->collTradeCyclesRelatedByIdModification->remove($this->collTradeCyclesRelatedByIdModification->search($tradeCycleRelatedByIdModification));
+            if (null === $this->tradeCyclesRelatedByIdModificationScheduledForDeletion) {
+                $this->tradeCyclesRelatedByIdModificationScheduledForDeletion = clone $this->collTradeCyclesRelatedByIdModification;
+                $this->tradeCyclesRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->tradeCyclesRelatedByIdModificationScheduledForDeletion[]= $tradeCycleRelatedByIdModification;
+            $tradeCycleRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|TradeCycle[] List of TradeCycle objects
+     */
+    public function getTradeCyclesRelatedByIdModificationJoinGridRun($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = TradeCycleQuery::create(null, $criteria);
+        $query->joinWith('GridRun', $join_behavior);
+
+        return $this->getTradeCyclesRelatedByIdModification($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|TradeCycle[] List of TradeCycle objects
+     */
+    public function getTradeCyclesRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = TradeCycleQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getTradeCyclesRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collBotEventsRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addBotEventsRelatedByIdCreation()
+     */
+    public function clearBotEventsRelatedByIdCreation()
+    {
+        $this->collBotEventsRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collBotEventsRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collBotEventsRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialBotEventsRelatedByIdCreation($v = true)
+    {
+        $this->collBotEventsRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collBotEventsRelatedByIdCreation collection.
+     *
+     * By default this just sets the collBotEventsRelatedByIdCreation collection to an empty array (like clearcollBotEventsRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initBotEventsRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collBotEventsRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collBotEventsRelatedByIdCreation = new PropelObjectCollection();
+        $this->collBotEventsRelatedByIdCreation->setModel('BotEvent');
+    }
+
+    /**
+     * Gets an array of BotEvent objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|BotEvent[] List of BotEvent objects
+     * @throws PropelException
+     */
+    public function getBotEventsRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collBotEventsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collBotEventsRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collBotEventsRelatedByIdCreation) {
+                // return empty collection
+                $this->initBotEventsRelatedByIdCreation();
+            } else {
+                $collBotEventsRelatedByIdCreation = BotEventQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collBotEventsRelatedByIdCreationPartial && count($collBotEventsRelatedByIdCreation)) {
+                      $this->initBotEventsRelatedByIdCreation(false);
+
+                      foreach ($collBotEventsRelatedByIdCreation as $obj) {
+                        if (false == $this->collBotEventsRelatedByIdCreation->contains($obj)) {
+                          $this->collBotEventsRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collBotEventsRelatedByIdCreationPartial = true;
+                    }
+
+                    $collBotEventsRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collBotEventsRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collBotEventsRelatedByIdCreation) {
+                    foreach ($this->collBotEventsRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collBotEventsRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collBotEventsRelatedByIdCreation = $collBotEventsRelatedByIdCreation;
+                $this->collBotEventsRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collBotEventsRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of BotEventRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $botEventsRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setBotEventsRelatedByIdCreation(PropelCollection $botEventsRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $botEventsRelatedByIdCreationToDelete = $this->getBotEventsRelatedByIdCreation(new Criteria(), $con)->diff($botEventsRelatedByIdCreation);
+
+
+        $this->botEventsRelatedByIdCreationScheduledForDeletion = $botEventsRelatedByIdCreationToDelete;
+
+        foreach ($botEventsRelatedByIdCreationToDelete as $botEventRelatedByIdCreationRemoved) {
+            $botEventRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collBotEventsRelatedByIdCreation = null;
+        foreach ($botEventsRelatedByIdCreation as $botEventRelatedByIdCreation) {
+            $this->addBotEventRelatedByIdCreation($botEventRelatedByIdCreation);
+        }
+
+        $this->collBotEventsRelatedByIdCreation = $botEventsRelatedByIdCreation;
+        $this->collBotEventsRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related BotEvent objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related BotEvent objects.
+     * @throws PropelException
+     */
+    public function countBotEventsRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collBotEventsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collBotEventsRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collBotEventsRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getBotEventsRelatedByIdCreation());
+            }
+            $query = BotEventQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collBotEventsRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a BotEvent object to this object
+     * through the BotEvent foreign key attribute.
+     *
+     * @param    BotEvent $l BotEvent
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addBotEventRelatedByIdCreation(BotEvent $l)
+    {
+        if ($this->collBotEventsRelatedByIdCreation === null) {
+            $this->initBotEventsRelatedByIdCreation();
+            $this->collBotEventsRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collBotEventsRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddBotEventRelatedByIdCreation($l);
+
+            if ($this->botEventsRelatedByIdCreationScheduledForDeletion and $this->botEventsRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->botEventsRelatedByIdCreationScheduledForDeletion->remove($this->botEventsRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	BotEventRelatedByIdCreation $botEventRelatedByIdCreation The botEventRelatedByIdCreation object to add.
+     */
+    protected function doAddBotEventRelatedByIdCreation($botEventRelatedByIdCreation)
+    {
+        $this->collBotEventsRelatedByIdCreation[]= $botEventRelatedByIdCreation;
+        $botEventRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	BotEventRelatedByIdCreation $botEventRelatedByIdCreation The botEventRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeBotEventRelatedByIdCreation($botEventRelatedByIdCreation)
+    {
+        if ($this->getBotEventsRelatedByIdCreation()->contains($botEventRelatedByIdCreation)) {
+            $this->collBotEventsRelatedByIdCreation->remove($this->collBotEventsRelatedByIdCreation->search($botEventRelatedByIdCreation));
+            if (null === $this->botEventsRelatedByIdCreationScheduledForDeletion) {
+                $this->botEventsRelatedByIdCreationScheduledForDeletion = clone $this->collBotEventsRelatedByIdCreation;
+                $this->botEventsRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->botEventsRelatedByIdCreationScheduledForDeletion[]= $botEventRelatedByIdCreation;
+            $botEventRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|BotEvent[] List of BotEvent objects
+     */
+    public function getBotEventsRelatedByIdCreationJoinGridRun($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = BotEventQuery::create(null, $criteria);
+        $query->joinWith('GridRun', $join_behavior);
+
+        return $this->getBotEventsRelatedByIdCreation($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|BotEvent[] List of BotEvent objects
+     */
+    public function getBotEventsRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = BotEventQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getBotEventsRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collBotEventsRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addBotEventsRelatedByIdModification()
+     */
+    public function clearBotEventsRelatedByIdModification()
+    {
+        $this->collBotEventsRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collBotEventsRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collBotEventsRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialBotEventsRelatedByIdModification($v = true)
+    {
+        $this->collBotEventsRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collBotEventsRelatedByIdModification collection.
+     *
+     * By default this just sets the collBotEventsRelatedByIdModification collection to an empty array (like clearcollBotEventsRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initBotEventsRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collBotEventsRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collBotEventsRelatedByIdModification = new PropelObjectCollection();
+        $this->collBotEventsRelatedByIdModification->setModel('BotEvent');
+    }
+
+    /**
+     * Gets an array of BotEvent objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|BotEvent[] List of BotEvent objects
+     * @throws PropelException
+     */
+    public function getBotEventsRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collBotEventsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collBotEventsRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collBotEventsRelatedByIdModification) {
+                // return empty collection
+                $this->initBotEventsRelatedByIdModification();
+            } else {
+                $collBotEventsRelatedByIdModification = BotEventQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collBotEventsRelatedByIdModificationPartial && count($collBotEventsRelatedByIdModification)) {
+                      $this->initBotEventsRelatedByIdModification(false);
+
+                      foreach ($collBotEventsRelatedByIdModification as $obj) {
+                        if (false == $this->collBotEventsRelatedByIdModification->contains($obj)) {
+                          $this->collBotEventsRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collBotEventsRelatedByIdModificationPartial = true;
+                    }
+
+                    $collBotEventsRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collBotEventsRelatedByIdModification;
+                }
+
+                if ($partial && $this->collBotEventsRelatedByIdModification) {
+                    foreach ($this->collBotEventsRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collBotEventsRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collBotEventsRelatedByIdModification = $collBotEventsRelatedByIdModification;
+                $this->collBotEventsRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collBotEventsRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of BotEventRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $botEventsRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setBotEventsRelatedByIdModification(PropelCollection $botEventsRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $botEventsRelatedByIdModificationToDelete = $this->getBotEventsRelatedByIdModification(new Criteria(), $con)->diff($botEventsRelatedByIdModification);
+
+
+        $this->botEventsRelatedByIdModificationScheduledForDeletion = $botEventsRelatedByIdModificationToDelete;
+
+        foreach ($botEventsRelatedByIdModificationToDelete as $botEventRelatedByIdModificationRemoved) {
+            $botEventRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collBotEventsRelatedByIdModification = null;
+        foreach ($botEventsRelatedByIdModification as $botEventRelatedByIdModification) {
+            $this->addBotEventRelatedByIdModification($botEventRelatedByIdModification);
+        }
+
+        $this->collBotEventsRelatedByIdModification = $botEventsRelatedByIdModification;
+        $this->collBotEventsRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related BotEvent objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related BotEvent objects.
+     * @throws PropelException
+     */
+    public function countBotEventsRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collBotEventsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collBotEventsRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collBotEventsRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getBotEventsRelatedByIdModification());
+            }
+            $query = BotEventQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collBotEventsRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a BotEvent object to this object
+     * through the BotEvent foreign key attribute.
+     *
+     * @param    BotEvent $l BotEvent
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addBotEventRelatedByIdModification(BotEvent $l)
+    {
+        if ($this->collBotEventsRelatedByIdModification === null) {
+            $this->initBotEventsRelatedByIdModification();
+            $this->collBotEventsRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collBotEventsRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddBotEventRelatedByIdModification($l);
+
+            if ($this->botEventsRelatedByIdModificationScheduledForDeletion and $this->botEventsRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->botEventsRelatedByIdModificationScheduledForDeletion->remove($this->botEventsRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	BotEventRelatedByIdModification $botEventRelatedByIdModification The botEventRelatedByIdModification object to add.
+     */
+    protected function doAddBotEventRelatedByIdModification($botEventRelatedByIdModification)
+    {
+        $this->collBotEventsRelatedByIdModification[]= $botEventRelatedByIdModification;
+        $botEventRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	BotEventRelatedByIdModification $botEventRelatedByIdModification The botEventRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeBotEventRelatedByIdModification($botEventRelatedByIdModification)
+    {
+        if ($this->getBotEventsRelatedByIdModification()->contains($botEventRelatedByIdModification)) {
+            $this->collBotEventsRelatedByIdModification->remove($this->collBotEventsRelatedByIdModification->search($botEventRelatedByIdModification));
+            if (null === $this->botEventsRelatedByIdModificationScheduledForDeletion) {
+                $this->botEventsRelatedByIdModificationScheduledForDeletion = clone $this->collBotEventsRelatedByIdModification;
+                $this->botEventsRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->botEventsRelatedByIdModificationScheduledForDeletion[]= $botEventRelatedByIdModification;
+            $botEventRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|BotEvent[] List of BotEvent objects
+     */
+    public function getBotEventsRelatedByIdModificationJoinGridRun($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = BotEventQuery::create(null, $criteria);
+        $query->joinWith('GridRun', $join_behavior);
+
+        return $this->getBotEventsRelatedByIdModification($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|BotEvent[] List of BotEvent objects
+     */
+    public function getBotEventsRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = BotEventQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getBotEventsRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collBotCommandsRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addBotCommandsRelatedByIdCreation()
+     */
+    public function clearBotCommandsRelatedByIdCreation()
+    {
+        $this->collBotCommandsRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collBotCommandsRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collBotCommandsRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialBotCommandsRelatedByIdCreation($v = true)
+    {
+        $this->collBotCommandsRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collBotCommandsRelatedByIdCreation collection.
+     *
+     * By default this just sets the collBotCommandsRelatedByIdCreation collection to an empty array (like clearcollBotCommandsRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initBotCommandsRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collBotCommandsRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collBotCommandsRelatedByIdCreation = new PropelObjectCollection();
+        $this->collBotCommandsRelatedByIdCreation->setModel('BotCommand');
+    }
+
+    /**
+     * Gets an array of BotCommand objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|BotCommand[] List of BotCommand objects
+     * @throws PropelException
+     */
+    public function getBotCommandsRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collBotCommandsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collBotCommandsRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collBotCommandsRelatedByIdCreation) {
+                // return empty collection
+                $this->initBotCommandsRelatedByIdCreation();
+            } else {
+                $collBotCommandsRelatedByIdCreation = BotCommandQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collBotCommandsRelatedByIdCreationPartial && count($collBotCommandsRelatedByIdCreation)) {
+                      $this->initBotCommandsRelatedByIdCreation(false);
+
+                      foreach ($collBotCommandsRelatedByIdCreation as $obj) {
+                        if (false == $this->collBotCommandsRelatedByIdCreation->contains($obj)) {
+                          $this->collBotCommandsRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collBotCommandsRelatedByIdCreationPartial = true;
+                    }
+
+                    $collBotCommandsRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collBotCommandsRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collBotCommandsRelatedByIdCreation) {
+                    foreach ($this->collBotCommandsRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collBotCommandsRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collBotCommandsRelatedByIdCreation = $collBotCommandsRelatedByIdCreation;
+                $this->collBotCommandsRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collBotCommandsRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of BotCommandRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $botCommandsRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setBotCommandsRelatedByIdCreation(PropelCollection $botCommandsRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $botCommandsRelatedByIdCreationToDelete = $this->getBotCommandsRelatedByIdCreation(new Criteria(), $con)->diff($botCommandsRelatedByIdCreation);
+
+
+        $this->botCommandsRelatedByIdCreationScheduledForDeletion = $botCommandsRelatedByIdCreationToDelete;
+
+        foreach ($botCommandsRelatedByIdCreationToDelete as $botCommandRelatedByIdCreationRemoved) {
+            $botCommandRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collBotCommandsRelatedByIdCreation = null;
+        foreach ($botCommandsRelatedByIdCreation as $botCommandRelatedByIdCreation) {
+            $this->addBotCommandRelatedByIdCreation($botCommandRelatedByIdCreation);
+        }
+
+        $this->collBotCommandsRelatedByIdCreation = $botCommandsRelatedByIdCreation;
+        $this->collBotCommandsRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related BotCommand objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related BotCommand objects.
+     * @throws PropelException
+     */
+    public function countBotCommandsRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collBotCommandsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collBotCommandsRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collBotCommandsRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getBotCommandsRelatedByIdCreation());
+            }
+            $query = BotCommandQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collBotCommandsRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a BotCommand object to this object
+     * through the BotCommand foreign key attribute.
+     *
+     * @param    BotCommand $l BotCommand
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addBotCommandRelatedByIdCreation(BotCommand $l)
+    {
+        if ($this->collBotCommandsRelatedByIdCreation === null) {
+            $this->initBotCommandsRelatedByIdCreation();
+            $this->collBotCommandsRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collBotCommandsRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddBotCommandRelatedByIdCreation($l);
+
+            if ($this->botCommandsRelatedByIdCreationScheduledForDeletion and $this->botCommandsRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->botCommandsRelatedByIdCreationScheduledForDeletion->remove($this->botCommandsRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	BotCommandRelatedByIdCreation $botCommandRelatedByIdCreation The botCommandRelatedByIdCreation object to add.
+     */
+    protected function doAddBotCommandRelatedByIdCreation($botCommandRelatedByIdCreation)
+    {
+        $this->collBotCommandsRelatedByIdCreation[]= $botCommandRelatedByIdCreation;
+        $botCommandRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	BotCommandRelatedByIdCreation $botCommandRelatedByIdCreation The botCommandRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeBotCommandRelatedByIdCreation($botCommandRelatedByIdCreation)
+    {
+        if ($this->getBotCommandsRelatedByIdCreation()->contains($botCommandRelatedByIdCreation)) {
+            $this->collBotCommandsRelatedByIdCreation->remove($this->collBotCommandsRelatedByIdCreation->search($botCommandRelatedByIdCreation));
+            if (null === $this->botCommandsRelatedByIdCreationScheduledForDeletion) {
+                $this->botCommandsRelatedByIdCreationScheduledForDeletion = clone $this->collBotCommandsRelatedByIdCreation;
+                $this->botCommandsRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->botCommandsRelatedByIdCreationScheduledForDeletion[]= $botCommandRelatedByIdCreation;
+            $botCommandRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|BotCommand[] List of BotCommand objects
+     */
+    public function getBotCommandsRelatedByIdCreationJoinGridRun($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = BotCommandQuery::create(null, $criteria);
+        $query->joinWith('GridRun', $join_behavior);
+
+        return $this->getBotCommandsRelatedByIdCreation($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|BotCommand[] List of BotCommand objects
+     */
+    public function getBotCommandsRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = BotCommandQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getBotCommandsRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collBotCommandsRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addBotCommandsRelatedByIdModification()
+     */
+    public function clearBotCommandsRelatedByIdModification()
+    {
+        $this->collBotCommandsRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collBotCommandsRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collBotCommandsRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialBotCommandsRelatedByIdModification($v = true)
+    {
+        $this->collBotCommandsRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collBotCommandsRelatedByIdModification collection.
+     *
+     * By default this just sets the collBotCommandsRelatedByIdModification collection to an empty array (like clearcollBotCommandsRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initBotCommandsRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collBotCommandsRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collBotCommandsRelatedByIdModification = new PropelObjectCollection();
+        $this->collBotCommandsRelatedByIdModification->setModel('BotCommand');
+    }
+
+    /**
+     * Gets an array of BotCommand objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|BotCommand[] List of BotCommand objects
+     * @throws PropelException
+     */
+    public function getBotCommandsRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collBotCommandsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collBotCommandsRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collBotCommandsRelatedByIdModification) {
+                // return empty collection
+                $this->initBotCommandsRelatedByIdModification();
+            } else {
+                $collBotCommandsRelatedByIdModification = BotCommandQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collBotCommandsRelatedByIdModificationPartial && count($collBotCommandsRelatedByIdModification)) {
+                      $this->initBotCommandsRelatedByIdModification(false);
+
+                      foreach ($collBotCommandsRelatedByIdModification as $obj) {
+                        if (false == $this->collBotCommandsRelatedByIdModification->contains($obj)) {
+                          $this->collBotCommandsRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collBotCommandsRelatedByIdModificationPartial = true;
+                    }
+
+                    $collBotCommandsRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collBotCommandsRelatedByIdModification;
+                }
+
+                if ($partial && $this->collBotCommandsRelatedByIdModification) {
+                    foreach ($this->collBotCommandsRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collBotCommandsRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collBotCommandsRelatedByIdModification = $collBotCommandsRelatedByIdModification;
+                $this->collBotCommandsRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collBotCommandsRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of BotCommandRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $botCommandsRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setBotCommandsRelatedByIdModification(PropelCollection $botCommandsRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $botCommandsRelatedByIdModificationToDelete = $this->getBotCommandsRelatedByIdModification(new Criteria(), $con)->diff($botCommandsRelatedByIdModification);
+
+
+        $this->botCommandsRelatedByIdModificationScheduledForDeletion = $botCommandsRelatedByIdModificationToDelete;
+
+        foreach ($botCommandsRelatedByIdModificationToDelete as $botCommandRelatedByIdModificationRemoved) {
+            $botCommandRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collBotCommandsRelatedByIdModification = null;
+        foreach ($botCommandsRelatedByIdModification as $botCommandRelatedByIdModification) {
+            $this->addBotCommandRelatedByIdModification($botCommandRelatedByIdModification);
+        }
+
+        $this->collBotCommandsRelatedByIdModification = $botCommandsRelatedByIdModification;
+        $this->collBotCommandsRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related BotCommand objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related BotCommand objects.
+     * @throws PropelException
+     */
+    public function countBotCommandsRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collBotCommandsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collBotCommandsRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collBotCommandsRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getBotCommandsRelatedByIdModification());
+            }
+            $query = BotCommandQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collBotCommandsRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a BotCommand object to this object
+     * through the BotCommand foreign key attribute.
+     *
+     * @param    BotCommand $l BotCommand
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addBotCommandRelatedByIdModification(BotCommand $l)
+    {
+        if ($this->collBotCommandsRelatedByIdModification === null) {
+            $this->initBotCommandsRelatedByIdModification();
+            $this->collBotCommandsRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collBotCommandsRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddBotCommandRelatedByIdModification($l);
+
+            if ($this->botCommandsRelatedByIdModificationScheduledForDeletion and $this->botCommandsRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->botCommandsRelatedByIdModificationScheduledForDeletion->remove($this->botCommandsRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	BotCommandRelatedByIdModification $botCommandRelatedByIdModification The botCommandRelatedByIdModification object to add.
+     */
+    protected function doAddBotCommandRelatedByIdModification($botCommandRelatedByIdModification)
+    {
+        $this->collBotCommandsRelatedByIdModification[]= $botCommandRelatedByIdModification;
+        $botCommandRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	BotCommandRelatedByIdModification $botCommandRelatedByIdModification The botCommandRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeBotCommandRelatedByIdModification($botCommandRelatedByIdModification)
+    {
+        if ($this->getBotCommandsRelatedByIdModification()->contains($botCommandRelatedByIdModification)) {
+            $this->collBotCommandsRelatedByIdModification->remove($this->collBotCommandsRelatedByIdModification->search($botCommandRelatedByIdModification));
+            if (null === $this->botCommandsRelatedByIdModificationScheduledForDeletion) {
+                $this->botCommandsRelatedByIdModificationScheduledForDeletion = clone $this->collBotCommandsRelatedByIdModification;
+                $this->botCommandsRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->botCommandsRelatedByIdModificationScheduledForDeletion[]= $botCommandRelatedByIdModification;
+            $botCommandRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|BotCommand[] List of BotCommand objects
+     */
+    public function getBotCommandsRelatedByIdModificationJoinGridRun($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = BotCommandQuery::create(null, $criteria);
+        $query->joinWith('GridRun', $join_behavior);
+
+        return $this->getBotCommandsRelatedByIdModification($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|BotCommand[] List of BotCommand objects
+     */
+    public function getBotCommandsRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = BotCommandQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getBotCommandsRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collSimWalletsRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addSimWalletsRelatedByIdCreation()
+     */
+    public function clearSimWalletsRelatedByIdCreation()
+    {
+        $this->collSimWalletsRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collSimWalletsRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collSimWalletsRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialSimWalletsRelatedByIdCreation($v = true)
+    {
+        $this->collSimWalletsRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collSimWalletsRelatedByIdCreation collection.
+     *
+     * By default this just sets the collSimWalletsRelatedByIdCreation collection to an empty array (like clearcollSimWalletsRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initSimWalletsRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collSimWalletsRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collSimWalletsRelatedByIdCreation = new PropelObjectCollection();
+        $this->collSimWalletsRelatedByIdCreation->setModel('SimWallet');
+    }
+
+    /**
+     * Gets an array of SimWallet objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|SimWallet[] List of SimWallet objects
+     * @throws PropelException
+     */
+    public function getSimWalletsRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collSimWalletsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collSimWalletsRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collSimWalletsRelatedByIdCreation) {
+                // return empty collection
+                $this->initSimWalletsRelatedByIdCreation();
+            } else {
+                $collSimWalletsRelatedByIdCreation = SimWalletQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collSimWalletsRelatedByIdCreationPartial && count($collSimWalletsRelatedByIdCreation)) {
+                      $this->initSimWalletsRelatedByIdCreation(false);
+
+                      foreach ($collSimWalletsRelatedByIdCreation as $obj) {
+                        if (false == $this->collSimWalletsRelatedByIdCreation->contains($obj)) {
+                          $this->collSimWalletsRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collSimWalletsRelatedByIdCreationPartial = true;
+                    }
+
+                    $collSimWalletsRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collSimWalletsRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collSimWalletsRelatedByIdCreation) {
+                    foreach ($this->collSimWalletsRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collSimWalletsRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collSimWalletsRelatedByIdCreation = $collSimWalletsRelatedByIdCreation;
+                $this->collSimWalletsRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collSimWalletsRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of SimWalletRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $simWalletsRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setSimWalletsRelatedByIdCreation(PropelCollection $simWalletsRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $simWalletsRelatedByIdCreationToDelete = $this->getSimWalletsRelatedByIdCreation(new Criteria(), $con)->diff($simWalletsRelatedByIdCreation);
+
+
+        $this->simWalletsRelatedByIdCreationScheduledForDeletion = $simWalletsRelatedByIdCreationToDelete;
+
+        foreach ($simWalletsRelatedByIdCreationToDelete as $simWalletRelatedByIdCreationRemoved) {
+            $simWalletRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collSimWalletsRelatedByIdCreation = null;
+        foreach ($simWalletsRelatedByIdCreation as $simWalletRelatedByIdCreation) {
+            $this->addSimWalletRelatedByIdCreation($simWalletRelatedByIdCreation);
+        }
+
+        $this->collSimWalletsRelatedByIdCreation = $simWalletsRelatedByIdCreation;
+        $this->collSimWalletsRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related SimWallet objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related SimWallet objects.
+     * @throws PropelException
+     */
+    public function countSimWalletsRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collSimWalletsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collSimWalletsRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collSimWalletsRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getSimWalletsRelatedByIdCreation());
+            }
+            $query = SimWalletQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collSimWalletsRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a SimWallet object to this object
+     * through the SimWallet foreign key attribute.
+     *
+     * @param    SimWallet $l SimWallet
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addSimWalletRelatedByIdCreation(SimWallet $l)
+    {
+        if ($this->collSimWalletsRelatedByIdCreation === null) {
+            $this->initSimWalletsRelatedByIdCreation();
+            $this->collSimWalletsRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collSimWalletsRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddSimWalletRelatedByIdCreation($l);
+
+            if ($this->simWalletsRelatedByIdCreationScheduledForDeletion and $this->simWalletsRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->simWalletsRelatedByIdCreationScheduledForDeletion->remove($this->simWalletsRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	SimWalletRelatedByIdCreation $simWalletRelatedByIdCreation The simWalletRelatedByIdCreation object to add.
+     */
+    protected function doAddSimWalletRelatedByIdCreation($simWalletRelatedByIdCreation)
+    {
+        $this->collSimWalletsRelatedByIdCreation[]= $simWalletRelatedByIdCreation;
+        $simWalletRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	SimWalletRelatedByIdCreation $simWalletRelatedByIdCreation The simWalletRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeSimWalletRelatedByIdCreation($simWalletRelatedByIdCreation)
+    {
+        if ($this->getSimWalletsRelatedByIdCreation()->contains($simWalletRelatedByIdCreation)) {
+            $this->collSimWalletsRelatedByIdCreation->remove($this->collSimWalletsRelatedByIdCreation->search($simWalletRelatedByIdCreation));
+            if (null === $this->simWalletsRelatedByIdCreationScheduledForDeletion) {
+                $this->simWalletsRelatedByIdCreationScheduledForDeletion = clone $this->collSimWalletsRelatedByIdCreation;
+                $this->simWalletsRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->simWalletsRelatedByIdCreationScheduledForDeletion[]= $simWalletRelatedByIdCreation;
+            $simWalletRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|SimWallet[] List of SimWallet objects
+     */
+    public function getSimWalletsRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = SimWalletQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getSimWalletsRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collSimWalletsRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addSimWalletsRelatedByIdModification()
+     */
+    public function clearSimWalletsRelatedByIdModification()
+    {
+        $this->collSimWalletsRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collSimWalletsRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collSimWalletsRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialSimWalletsRelatedByIdModification($v = true)
+    {
+        $this->collSimWalletsRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collSimWalletsRelatedByIdModification collection.
+     *
+     * By default this just sets the collSimWalletsRelatedByIdModification collection to an empty array (like clearcollSimWalletsRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initSimWalletsRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collSimWalletsRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collSimWalletsRelatedByIdModification = new PropelObjectCollection();
+        $this->collSimWalletsRelatedByIdModification->setModel('SimWallet');
+    }
+
+    /**
+     * Gets an array of SimWallet objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|SimWallet[] List of SimWallet objects
+     * @throws PropelException
+     */
+    public function getSimWalletsRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collSimWalletsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collSimWalletsRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collSimWalletsRelatedByIdModification) {
+                // return empty collection
+                $this->initSimWalletsRelatedByIdModification();
+            } else {
+                $collSimWalletsRelatedByIdModification = SimWalletQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collSimWalletsRelatedByIdModificationPartial && count($collSimWalletsRelatedByIdModification)) {
+                      $this->initSimWalletsRelatedByIdModification(false);
+
+                      foreach ($collSimWalletsRelatedByIdModification as $obj) {
+                        if (false == $this->collSimWalletsRelatedByIdModification->contains($obj)) {
+                          $this->collSimWalletsRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collSimWalletsRelatedByIdModificationPartial = true;
+                    }
+
+                    $collSimWalletsRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collSimWalletsRelatedByIdModification;
+                }
+
+                if ($partial && $this->collSimWalletsRelatedByIdModification) {
+                    foreach ($this->collSimWalletsRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collSimWalletsRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collSimWalletsRelatedByIdModification = $collSimWalletsRelatedByIdModification;
+                $this->collSimWalletsRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collSimWalletsRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of SimWalletRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $simWalletsRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setSimWalletsRelatedByIdModification(PropelCollection $simWalletsRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $simWalletsRelatedByIdModificationToDelete = $this->getSimWalletsRelatedByIdModification(new Criteria(), $con)->diff($simWalletsRelatedByIdModification);
+
+
+        $this->simWalletsRelatedByIdModificationScheduledForDeletion = $simWalletsRelatedByIdModificationToDelete;
+
+        foreach ($simWalletsRelatedByIdModificationToDelete as $simWalletRelatedByIdModificationRemoved) {
+            $simWalletRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collSimWalletsRelatedByIdModification = null;
+        foreach ($simWalletsRelatedByIdModification as $simWalletRelatedByIdModification) {
+            $this->addSimWalletRelatedByIdModification($simWalletRelatedByIdModification);
+        }
+
+        $this->collSimWalletsRelatedByIdModification = $simWalletsRelatedByIdModification;
+        $this->collSimWalletsRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related SimWallet objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related SimWallet objects.
+     * @throws PropelException
+     */
+    public function countSimWalletsRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collSimWalletsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collSimWalletsRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collSimWalletsRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getSimWalletsRelatedByIdModification());
+            }
+            $query = SimWalletQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collSimWalletsRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a SimWallet object to this object
+     * through the SimWallet foreign key attribute.
+     *
+     * @param    SimWallet $l SimWallet
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addSimWalletRelatedByIdModification(SimWallet $l)
+    {
+        if ($this->collSimWalletsRelatedByIdModification === null) {
+            $this->initSimWalletsRelatedByIdModification();
+            $this->collSimWalletsRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collSimWalletsRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddSimWalletRelatedByIdModification($l);
+
+            if ($this->simWalletsRelatedByIdModificationScheduledForDeletion and $this->simWalletsRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->simWalletsRelatedByIdModificationScheduledForDeletion->remove($this->simWalletsRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	SimWalletRelatedByIdModification $simWalletRelatedByIdModification The simWalletRelatedByIdModification object to add.
+     */
+    protected function doAddSimWalletRelatedByIdModification($simWalletRelatedByIdModification)
+    {
+        $this->collSimWalletsRelatedByIdModification[]= $simWalletRelatedByIdModification;
+        $simWalletRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	SimWalletRelatedByIdModification $simWalletRelatedByIdModification The simWalletRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeSimWalletRelatedByIdModification($simWalletRelatedByIdModification)
+    {
+        if ($this->getSimWalletsRelatedByIdModification()->contains($simWalletRelatedByIdModification)) {
+            $this->collSimWalletsRelatedByIdModification->remove($this->collSimWalletsRelatedByIdModification->search($simWalletRelatedByIdModification));
+            if (null === $this->simWalletsRelatedByIdModificationScheduledForDeletion) {
+                $this->simWalletsRelatedByIdModificationScheduledForDeletion = clone $this->collSimWalletsRelatedByIdModification;
+                $this->simWalletsRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->simWalletsRelatedByIdModificationScheduledForDeletion[]= $simWalletRelatedByIdModification;
+            $simWalletRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|SimWallet[] List of SimWallet objects
+     */
+    public function getSimWalletsRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = SimWalletQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getSimWalletsRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collMarketSummariesRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addMarketSummariesRelatedByIdCreation()
+     */
+    public function clearMarketSummariesRelatedByIdCreation()
+    {
+        $this->collMarketSummariesRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collMarketSummariesRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collMarketSummariesRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialMarketSummariesRelatedByIdCreation($v = true)
+    {
+        $this->collMarketSummariesRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collMarketSummariesRelatedByIdCreation collection.
+     *
+     * By default this just sets the collMarketSummariesRelatedByIdCreation collection to an empty array (like clearcollMarketSummariesRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initMarketSummariesRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collMarketSummariesRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collMarketSummariesRelatedByIdCreation = new PropelObjectCollection();
+        $this->collMarketSummariesRelatedByIdCreation->setModel('MarketSummary');
+    }
+
+    /**
+     * Gets an array of MarketSummary objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|MarketSummary[] List of MarketSummary objects
+     * @throws PropelException
+     */
+    public function getMarketSummariesRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketSummariesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collMarketSummariesRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collMarketSummariesRelatedByIdCreation) {
+                // return empty collection
+                $this->initMarketSummariesRelatedByIdCreation();
+            } else {
+                $collMarketSummariesRelatedByIdCreation = MarketSummaryQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collMarketSummariesRelatedByIdCreationPartial && count($collMarketSummariesRelatedByIdCreation)) {
+                      $this->initMarketSummariesRelatedByIdCreation(false);
+
+                      foreach ($collMarketSummariesRelatedByIdCreation as $obj) {
+                        if (false == $this->collMarketSummariesRelatedByIdCreation->contains($obj)) {
+                          $this->collMarketSummariesRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collMarketSummariesRelatedByIdCreationPartial = true;
+                    }
+
+                    $collMarketSummariesRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collMarketSummariesRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collMarketSummariesRelatedByIdCreation) {
+                    foreach ($this->collMarketSummariesRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collMarketSummariesRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collMarketSummariesRelatedByIdCreation = $collMarketSummariesRelatedByIdCreation;
+                $this->collMarketSummariesRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collMarketSummariesRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of MarketSummaryRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $marketSummariesRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setMarketSummariesRelatedByIdCreation(PropelCollection $marketSummariesRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $marketSummariesRelatedByIdCreationToDelete = $this->getMarketSummariesRelatedByIdCreation(new Criteria(), $con)->diff($marketSummariesRelatedByIdCreation);
+
+
+        $this->marketSummariesRelatedByIdCreationScheduledForDeletion = $marketSummariesRelatedByIdCreationToDelete;
+
+        foreach ($marketSummariesRelatedByIdCreationToDelete as $marketSummaryRelatedByIdCreationRemoved) {
+            $marketSummaryRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collMarketSummariesRelatedByIdCreation = null;
+        foreach ($marketSummariesRelatedByIdCreation as $marketSummaryRelatedByIdCreation) {
+            $this->addMarketSummaryRelatedByIdCreation($marketSummaryRelatedByIdCreation);
+        }
+
+        $this->collMarketSummariesRelatedByIdCreation = $marketSummariesRelatedByIdCreation;
+        $this->collMarketSummariesRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related MarketSummary objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related MarketSummary objects.
+     * @throws PropelException
+     */
+    public function countMarketSummariesRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketSummariesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collMarketSummariesRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collMarketSummariesRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getMarketSummariesRelatedByIdCreation());
+            }
+            $query = MarketSummaryQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collMarketSummariesRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a MarketSummary object to this object
+     * through the MarketSummary foreign key attribute.
+     *
+     * @param    MarketSummary $l MarketSummary
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addMarketSummaryRelatedByIdCreation(MarketSummary $l)
+    {
+        if ($this->collMarketSummariesRelatedByIdCreation === null) {
+            $this->initMarketSummariesRelatedByIdCreation();
+            $this->collMarketSummariesRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collMarketSummariesRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddMarketSummaryRelatedByIdCreation($l);
+
+            if ($this->marketSummariesRelatedByIdCreationScheduledForDeletion and $this->marketSummariesRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->marketSummariesRelatedByIdCreationScheduledForDeletion->remove($this->marketSummariesRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	MarketSummaryRelatedByIdCreation $marketSummaryRelatedByIdCreation The marketSummaryRelatedByIdCreation object to add.
+     */
+    protected function doAddMarketSummaryRelatedByIdCreation($marketSummaryRelatedByIdCreation)
+    {
+        $this->collMarketSummariesRelatedByIdCreation[]= $marketSummaryRelatedByIdCreation;
+        $marketSummaryRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	MarketSummaryRelatedByIdCreation $marketSummaryRelatedByIdCreation The marketSummaryRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeMarketSummaryRelatedByIdCreation($marketSummaryRelatedByIdCreation)
+    {
+        if ($this->getMarketSummariesRelatedByIdCreation()->contains($marketSummaryRelatedByIdCreation)) {
+            $this->collMarketSummariesRelatedByIdCreation->remove($this->collMarketSummariesRelatedByIdCreation->search($marketSummaryRelatedByIdCreation));
+            if (null === $this->marketSummariesRelatedByIdCreationScheduledForDeletion) {
+                $this->marketSummariesRelatedByIdCreationScheduledForDeletion = clone $this->collMarketSummariesRelatedByIdCreation;
+                $this->marketSummariesRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->marketSummariesRelatedByIdCreationScheduledForDeletion[]= $marketSummaryRelatedByIdCreation;
+            $marketSummaryRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|MarketSummary[] List of MarketSummary objects
+     */
+    public function getMarketSummariesRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = MarketSummaryQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getMarketSummariesRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collMarketSummariesRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addMarketSummariesRelatedByIdModification()
+     */
+    public function clearMarketSummariesRelatedByIdModification()
+    {
+        $this->collMarketSummariesRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collMarketSummariesRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collMarketSummariesRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialMarketSummariesRelatedByIdModification($v = true)
+    {
+        $this->collMarketSummariesRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collMarketSummariesRelatedByIdModification collection.
+     *
+     * By default this just sets the collMarketSummariesRelatedByIdModification collection to an empty array (like clearcollMarketSummariesRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initMarketSummariesRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collMarketSummariesRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collMarketSummariesRelatedByIdModification = new PropelObjectCollection();
+        $this->collMarketSummariesRelatedByIdModification->setModel('MarketSummary');
+    }
+
+    /**
+     * Gets an array of MarketSummary objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|MarketSummary[] List of MarketSummary objects
+     * @throws PropelException
+     */
+    public function getMarketSummariesRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketSummariesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collMarketSummariesRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collMarketSummariesRelatedByIdModification) {
+                // return empty collection
+                $this->initMarketSummariesRelatedByIdModification();
+            } else {
+                $collMarketSummariesRelatedByIdModification = MarketSummaryQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collMarketSummariesRelatedByIdModificationPartial && count($collMarketSummariesRelatedByIdModification)) {
+                      $this->initMarketSummariesRelatedByIdModification(false);
+
+                      foreach ($collMarketSummariesRelatedByIdModification as $obj) {
+                        if (false == $this->collMarketSummariesRelatedByIdModification->contains($obj)) {
+                          $this->collMarketSummariesRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collMarketSummariesRelatedByIdModificationPartial = true;
+                    }
+
+                    $collMarketSummariesRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collMarketSummariesRelatedByIdModification;
+                }
+
+                if ($partial && $this->collMarketSummariesRelatedByIdModification) {
+                    foreach ($this->collMarketSummariesRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collMarketSummariesRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collMarketSummariesRelatedByIdModification = $collMarketSummariesRelatedByIdModification;
+                $this->collMarketSummariesRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collMarketSummariesRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of MarketSummaryRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $marketSummariesRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setMarketSummariesRelatedByIdModification(PropelCollection $marketSummariesRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $marketSummariesRelatedByIdModificationToDelete = $this->getMarketSummariesRelatedByIdModification(new Criteria(), $con)->diff($marketSummariesRelatedByIdModification);
+
+
+        $this->marketSummariesRelatedByIdModificationScheduledForDeletion = $marketSummariesRelatedByIdModificationToDelete;
+
+        foreach ($marketSummariesRelatedByIdModificationToDelete as $marketSummaryRelatedByIdModificationRemoved) {
+            $marketSummaryRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collMarketSummariesRelatedByIdModification = null;
+        foreach ($marketSummariesRelatedByIdModification as $marketSummaryRelatedByIdModification) {
+            $this->addMarketSummaryRelatedByIdModification($marketSummaryRelatedByIdModification);
+        }
+
+        $this->collMarketSummariesRelatedByIdModification = $marketSummariesRelatedByIdModification;
+        $this->collMarketSummariesRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related MarketSummary objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related MarketSummary objects.
+     * @throws PropelException
+     */
+    public function countMarketSummariesRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketSummariesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collMarketSummariesRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collMarketSummariesRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getMarketSummariesRelatedByIdModification());
+            }
+            $query = MarketSummaryQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collMarketSummariesRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a MarketSummary object to this object
+     * through the MarketSummary foreign key attribute.
+     *
+     * @param    MarketSummary $l MarketSummary
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addMarketSummaryRelatedByIdModification(MarketSummary $l)
+    {
+        if ($this->collMarketSummariesRelatedByIdModification === null) {
+            $this->initMarketSummariesRelatedByIdModification();
+            $this->collMarketSummariesRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collMarketSummariesRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddMarketSummaryRelatedByIdModification($l);
+
+            if ($this->marketSummariesRelatedByIdModificationScheduledForDeletion and $this->marketSummariesRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->marketSummariesRelatedByIdModificationScheduledForDeletion->remove($this->marketSummariesRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	MarketSummaryRelatedByIdModification $marketSummaryRelatedByIdModification The marketSummaryRelatedByIdModification object to add.
+     */
+    protected function doAddMarketSummaryRelatedByIdModification($marketSummaryRelatedByIdModification)
+    {
+        $this->collMarketSummariesRelatedByIdModification[]= $marketSummaryRelatedByIdModification;
+        $marketSummaryRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	MarketSummaryRelatedByIdModification $marketSummaryRelatedByIdModification The marketSummaryRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeMarketSummaryRelatedByIdModification($marketSummaryRelatedByIdModification)
+    {
+        if ($this->getMarketSummariesRelatedByIdModification()->contains($marketSummaryRelatedByIdModification)) {
+            $this->collMarketSummariesRelatedByIdModification->remove($this->collMarketSummariesRelatedByIdModification->search($marketSummaryRelatedByIdModification));
+            if (null === $this->marketSummariesRelatedByIdModificationScheduledForDeletion) {
+                $this->marketSummariesRelatedByIdModificationScheduledForDeletion = clone $this->collMarketSummariesRelatedByIdModification;
+                $this->marketSummariesRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->marketSummariesRelatedByIdModificationScheduledForDeletion[]= $marketSummaryRelatedByIdModification;
+            $marketSummaryRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|MarketSummary[] List of MarketSummary objects
+     */
+    public function getMarketSummariesRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = MarketSummaryQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getMarketSummariesRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collMarketRegimesRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addMarketRegimesRelatedByIdCreation()
+     */
+    public function clearMarketRegimesRelatedByIdCreation()
+    {
+        $this->collMarketRegimesRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collMarketRegimesRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collMarketRegimesRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialMarketRegimesRelatedByIdCreation($v = true)
+    {
+        $this->collMarketRegimesRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collMarketRegimesRelatedByIdCreation collection.
+     *
+     * By default this just sets the collMarketRegimesRelatedByIdCreation collection to an empty array (like clearcollMarketRegimesRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initMarketRegimesRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collMarketRegimesRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collMarketRegimesRelatedByIdCreation = new PropelObjectCollection();
+        $this->collMarketRegimesRelatedByIdCreation->setModel('MarketRegime');
+    }
+
+    /**
+     * Gets an array of MarketRegime objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|MarketRegime[] List of MarketRegime objects
+     * @throws PropelException
+     */
+    public function getMarketRegimesRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketRegimesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collMarketRegimesRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collMarketRegimesRelatedByIdCreation) {
+                // return empty collection
+                $this->initMarketRegimesRelatedByIdCreation();
+            } else {
+                $collMarketRegimesRelatedByIdCreation = MarketRegimeQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collMarketRegimesRelatedByIdCreationPartial && count($collMarketRegimesRelatedByIdCreation)) {
+                      $this->initMarketRegimesRelatedByIdCreation(false);
+
+                      foreach ($collMarketRegimesRelatedByIdCreation as $obj) {
+                        if (false == $this->collMarketRegimesRelatedByIdCreation->contains($obj)) {
+                          $this->collMarketRegimesRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collMarketRegimesRelatedByIdCreationPartial = true;
+                    }
+
+                    $collMarketRegimesRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collMarketRegimesRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collMarketRegimesRelatedByIdCreation) {
+                    foreach ($this->collMarketRegimesRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collMarketRegimesRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collMarketRegimesRelatedByIdCreation = $collMarketRegimesRelatedByIdCreation;
+                $this->collMarketRegimesRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collMarketRegimesRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of MarketRegimeRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $marketRegimesRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setMarketRegimesRelatedByIdCreation(PropelCollection $marketRegimesRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $marketRegimesRelatedByIdCreationToDelete = $this->getMarketRegimesRelatedByIdCreation(new Criteria(), $con)->diff($marketRegimesRelatedByIdCreation);
+
+
+        $this->marketRegimesRelatedByIdCreationScheduledForDeletion = $marketRegimesRelatedByIdCreationToDelete;
+
+        foreach ($marketRegimesRelatedByIdCreationToDelete as $marketRegimeRelatedByIdCreationRemoved) {
+            $marketRegimeRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collMarketRegimesRelatedByIdCreation = null;
+        foreach ($marketRegimesRelatedByIdCreation as $marketRegimeRelatedByIdCreation) {
+            $this->addMarketRegimeRelatedByIdCreation($marketRegimeRelatedByIdCreation);
+        }
+
+        $this->collMarketRegimesRelatedByIdCreation = $marketRegimesRelatedByIdCreation;
+        $this->collMarketRegimesRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related MarketRegime objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related MarketRegime objects.
+     * @throws PropelException
+     */
+    public function countMarketRegimesRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketRegimesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collMarketRegimesRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collMarketRegimesRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getMarketRegimesRelatedByIdCreation());
+            }
+            $query = MarketRegimeQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collMarketRegimesRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a MarketRegime object to this object
+     * through the MarketRegime foreign key attribute.
+     *
+     * @param    MarketRegime $l MarketRegime
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addMarketRegimeRelatedByIdCreation(MarketRegime $l)
+    {
+        if ($this->collMarketRegimesRelatedByIdCreation === null) {
+            $this->initMarketRegimesRelatedByIdCreation();
+            $this->collMarketRegimesRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collMarketRegimesRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddMarketRegimeRelatedByIdCreation($l);
+
+            if ($this->marketRegimesRelatedByIdCreationScheduledForDeletion and $this->marketRegimesRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->marketRegimesRelatedByIdCreationScheduledForDeletion->remove($this->marketRegimesRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	MarketRegimeRelatedByIdCreation $marketRegimeRelatedByIdCreation The marketRegimeRelatedByIdCreation object to add.
+     */
+    protected function doAddMarketRegimeRelatedByIdCreation($marketRegimeRelatedByIdCreation)
+    {
+        $this->collMarketRegimesRelatedByIdCreation[]= $marketRegimeRelatedByIdCreation;
+        $marketRegimeRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	MarketRegimeRelatedByIdCreation $marketRegimeRelatedByIdCreation The marketRegimeRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeMarketRegimeRelatedByIdCreation($marketRegimeRelatedByIdCreation)
+    {
+        if ($this->getMarketRegimesRelatedByIdCreation()->contains($marketRegimeRelatedByIdCreation)) {
+            $this->collMarketRegimesRelatedByIdCreation->remove($this->collMarketRegimesRelatedByIdCreation->search($marketRegimeRelatedByIdCreation));
+            if (null === $this->marketRegimesRelatedByIdCreationScheduledForDeletion) {
+                $this->marketRegimesRelatedByIdCreationScheduledForDeletion = clone $this->collMarketRegimesRelatedByIdCreation;
+                $this->marketRegimesRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->marketRegimesRelatedByIdCreationScheduledForDeletion[]= $marketRegimeRelatedByIdCreation;
+            $marketRegimeRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|MarketRegime[] List of MarketRegime objects
+     */
+    public function getMarketRegimesRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = MarketRegimeQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getMarketRegimesRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collMarketRegimesRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addMarketRegimesRelatedByIdModification()
+     */
+    public function clearMarketRegimesRelatedByIdModification()
+    {
+        $this->collMarketRegimesRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collMarketRegimesRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collMarketRegimesRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialMarketRegimesRelatedByIdModification($v = true)
+    {
+        $this->collMarketRegimesRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collMarketRegimesRelatedByIdModification collection.
+     *
+     * By default this just sets the collMarketRegimesRelatedByIdModification collection to an empty array (like clearcollMarketRegimesRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initMarketRegimesRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collMarketRegimesRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collMarketRegimesRelatedByIdModification = new PropelObjectCollection();
+        $this->collMarketRegimesRelatedByIdModification->setModel('MarketRegime');
+    }
+
+    /**
+     * Gets an array of MarketRegime objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|MarketRegime[] List of MarketRegime objects
+     * @throws PropelException
+     */
+    public function getMarketRegimesRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketRegimesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collMarketRegimesRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collMarketRegimesRelatedByIdModification) {
+                // return empty collection
+                $this->initMarketRegimesRelatedByIdModification();
+            } else {
+                $collMarketRegimesRelatedByIdModification = MarketRegimeQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collMarketRegimesRelatedByIdModificationPartial && count($collMarketRegimesRelatedByIdModification)) {
+                      $this->initMarketRegimesRelatedByIdModification(false);
+
+                      foreach ($collMarketRegimesRelatedByIdModification as $obj) {
+                        if (false == $this->collMarketRegimesRelatedByIdModification->contains($obj)) {
+                          $this->collMarketRegimesRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collMarketRegimesRelatedByIdModificationPartial = true;
+                    }
+
+                    $collMarketRegimesRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collMarketRegimesRelatedByIdModification;
+                }
+
+                if ($partial && $this->collMarketRegimesRelatedByIdModification) {
+                    foreach ($this->collMarketRegimesRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collMarketRegimesRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collMarketRegimesRelatedByIdModification = $collMarketRegimesRelatedByIdModification;
+                $this->collMarketRegimesRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collMarketRegimesRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of MarketRegimeRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $marketRegimesRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setMarketRegimesRelatedByIdModification(PropelCollection $marketRegimesRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $marketRegimesRelatedByIdModificationToDelete = $this->getMarketRegimesRelatedByIdModification(new Criteria(), $con)->diff($marketRegimesRelatedByIdModification);
+
+
+        $this->marketRegimesRelatedByIdModificationScheduledForDeletion = $marketRegimesRelatedByIdModificationToDelete;
+
+        foreach ($marketRegimesRelatedByIdModificationToDelete as $marketRegimeRelatedByIdModificationRemoved) {
+            $marketRegimeRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collMarketRegimesRelatedByIdModification = null;
+        foreach ($marketRegimesRelatedByIdModification as $marketRegimeRelatedByIdModification) {
+            $this->addMarketRegimeRelatedByIdModification($marketRegimeRelatedByIdModification);
+        }
+
+        $this->collMarketRegimesRelatedByIdModification = $marketRegimesRelatedByIdModification;
+        $this->collMarketRegimesRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related MarketRegime objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related MarketRegime objects.
+     * @throws PropelException
+     */
+    public function countMarketRegimesRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketRegimesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collMarketRegimesRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collMarketRegimesRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getMarketRegimesRelatedByIdModification());
+            }
+            $query = MarketRegimeQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collMarketRegimesRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a MarketRegime object to this object
+     * through the MarketRegime foreign key attribute.
+     *
+     * @param    MarketRegime $l MarketRegime
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addMarketRegimeRelatedByIdModification(MarketRegime $l)
+    {
+        if ($this->collMarketRegimesRelatedByIdModification === null) {
+            $this->initMarketRegimesRelatedByIdModification();
+            $this->collMarketRegimesRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collMarketRegimesRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddMarketRegimeRelatedByIdModification($l);
+
+            if ($this->marketRegimesRelatedByIdModificationScheduledForDeletion and $this->marketRegimesRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->marketRegimesRelatedByIdModificationScheduledForDeletion->remove($this->marketRegimesRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	MarketRegimeRelatedByIdModification $marketRegimeRelatedByIdModification The marketRegimeRelatedByIdModification object to add.
+     */
+    protected function doAddMarketRegimeRelatedByIdModification($marketRegimeRelatedByIdModification)
+    {
+        $this->collMarketRegimesRelatedByIdModification[]= $marketRegimeRelatedByIdModification;
+        $marketRegimeRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	MarketRegimeRelatedByIdModification $marketRegimeRelatedByIdModification The marketRegimeRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeMarketRegimeRelatedByIdModification($marketRegimeRelatedByIdModification)
+    {
+        if ($this->getMarketRegimesRelatedByIdModification()->contains($marketRegimeRelatedByIdModification)) {
+            $this->collMarketRegimesRelatedByIdModification->remove($this->collMarketRegimesRelatedByIdModification->search($marketRegimeRelatedByIdModification));
+            if (null === $this->marketRegimesRelatedByIdModificationScheduledForDeletion) {
+                $this->marketRegimesRelatedByIdModificationScheduledForDeletion = clone $this->collMarketRegimesRelatedByIdModification;
+                $this->marketRegimesRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->marketRegimesRelatedByIdModificationScheduledForDeletion[]= $marketRegimeRelatedByIdModification;
+            $marketRegimeRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|MarketRegime[] List of MarketRegime objects
+     */
+    public function getMarketRegimesRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = MarketRegimeQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getMarketRegimesRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collBotDecisionsRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addBotDecisionsRelatedByIdCreation()
+     */
+    public function clearBotDecisionsRelatedByIdCreation()
+    {
+        $this->collBotDecisionsRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collBotDecisionsRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collBotDecisionsRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialBotDecisionsRelatedByIdCreation($v = true)
+    {
+        $this->collBotDecisionsRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collBotDecisionsRelatedByIdCreation collection.
+     *
+     * By default this just sets the collBotDecisionsRelatedByIdCreation collection to an empty array (like clearcollBotDecisionsRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initBotDecisionsRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collBotDecisionsRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collBotDecisionsRelatedByIdCreation = new PropelObjectCollection();
+        $this->collBotDecisionsRelatedByIdCreation->setModel('BotDecision');
+    }
+
+    /**
+     * Gets an array of BotDecision objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|BotDecision[] List of BotDecision objects
+     * @throws PropelException
+     */
+    public function getBotDecisionsRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collBotDecisionsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collBotDecisionsRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collBotDecisionsRelatedByIdCreation) {
+                // return empty collection
+                $this->initBotDecisionsRelatedByIdCreation();
+            } else {
+                $collBotDecisionsRelatedByIdCreation = BotDecisionQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collBotDecisionsRelatedByIdCreationPartial && count($collBotDecisionsRelatedByIdCreation)) {
+                      $this->initBotDecisionsRelatedByIdCreation(false);
+
+                      foreach ($collBotDecisionsRelatedByIdCreation as $obj) {
+                        if (false == $this->collBotDecisionsRelatedByIdCreation->contains($obj)) {
+                          $this->collBotDecisionsRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collBotDecisionsRelatedByIdCreationPartial = true;
+                    }
+
+                    $collBotDecisionsRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collBotDecisionsRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collBotDecisionsRelatedByIdCreation) {
+                    foreach ($this->collBotDecisionsRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collBotDecisionsRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collBotDecisionsRelatedByIdCreation = $collBotDecisionsRelatedByIdCreation;
+                $this->collBotDecisionsRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collBotDecisionsRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of BotDecisionRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $botDecisionsRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setBotDecisionsRelatedByIdCreation(PropelCollection $botDecisionsRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $botDecisionsRelatedByIdCreationToDelete = $this->getBotDecisionsRelatedByIdCreation(new Criteria(), $con)->diff($botDecisionsRelatedByIdCreation);
+
+
+        $this->botDecisionsRelatedByIdCreationScheduledForDeletion = $botDecisionsRelatedByIdCreationToDelete;
+
+        foreach ($botDecisionsRelatedByIdCreationToDelete as $botDecisionRelatedByIdCreationRemoved) {
+            $botDecisionRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collBotDecisionsRelatedByIdCreation = null;
+        foreach ($botDecisionsRelatedByIdCreation as $botDecisionRelatedByIdCreation) {
+            $this->addBotDecisionRelatedByIdCreation($botDecisionRelatedByIdCreation);
+        }
+
+        $this->collBotDecisionsRelatedByIdCreation = $botDecisionsRelatedByIdCreation;
+        $this->collBotDecisionsRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related BotDecision objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related BotDecision objects.
+     * @throws PropelException
+     */
+    public function countBotDecisionsRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collBotDecisionsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collBotDecisionsRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collBotDecisionsRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getBotDecisionsRelatedByIdCreation());
+            }
+            $query = BotDecisionQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collBotDecisionsRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a BotDecision object to this object
+     * through the BotDecision foreign key attribute.
+     *
+     * @param    BotDecision $l BotDecision
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addBotDecisionRelatedByIdCreation(BotDecision $l)
+    {
+        if ($this->collBotDecisionsRelatedByIdCreation === null) {
+            $this->initBotDecisionsRelatedByIdCreation();
+            $this->collBotDecisionsRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collBotDecisionsRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddBotDecisionRelatedByIdCreation($l);
+
+            if ($this->botDecisionsRelatedByIdCreationScheduledForDeletion and $this->botDecisionsRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->botDecisionsRelatedByIdCreationScheduledForDeletion->remove($this->botDecisionsRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	BotDecisionRelatedByIdCreation $botDecisionRelatedByIdCreation The botDecisionRelatedByIdCreation object to add.
+     */
+    protected function doAddBotDecisionRelatedByIdCreation($botDecisionRelatedByIdCreation)
+    {
+        $this->collBotDecisionsRelatedByIdCreation[]= $botDecisionRelatedByIdCreation;
+        $botDecisionRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	BotDecisionRelatedByIdCreation $botDecisionRelatedByIdCreation The botDecisionRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeBotDecisionRelatedByIdCreation($botDecisionRelatedByIdCreation)
+    {
+        if ($this->getBotDecisionsRelatedByIdCreation()->contains($botDecisionRelatedByIdCreation)) {
+            $this->collBotDecisionsRelatedByIdCreation->remove($this->collBotDecisionsRelatedByIdCreation->search($botDecisionRelatedByIdCreation));
+            if (null === $this->botDecisionsRelatedByIdCreationScheduledForDeletion) {
+                $this->botDecisionsRelatedByIdCreationScheduledForDeletion = clone $this->collBotDecisionsRelatedByIdCreation;
+                $this->botDecisionsRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->botDecisionsRelatedByIdCreationScheduledForDeletion[]= $botDecisionRelatedByIdCreation;
+            $botDecisionRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|BotDecision[] List of BotDecision objects
+     */
+    public function getBotDecisionsRelatedByIdCreationJoinGridRun($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = BotDecisionQuery::create(null, $criteria);
+        $query->joinWith('GridRun', $join_behavior);
+
+        return $this->getBotDecisionsRelatedByIdCreation($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|BotDecision[] List of BotDecision objects
+     */
+    public function getBotDecisionsRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = BotDecisionQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getBotDecisionsRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collBotDecisionsRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addBotDecisionsRelatedByIdModification()
+     */
+    public function clearBotDecisionsRelatedByIdModification()
+    {
+        $this->collBotDecisionsRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collBotDecisionsRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collBotDecisionsRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialBotDecisionsRelatedByIdModification($v = true)
+    {
+        $this->collBotDecisionsRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collBotDecisionsRelatedByIdModification collection.
+     *
+     * By default this just sets the collBotDecisionsRelatedByIdModification collection to an empty array (like clearcollBotDecisionsRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initBotDecisionsRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collBotDecisionsRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collBotDecisionsRelatedByIdModification = new PropelObjectCollection();
+        $this->collBotDecisionsRelatedByIdModification->setModel('BotDecision');
+    }
+
+    /**
+     * Gets an array of BotDecision objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|BotDecision[] List of BotDecision objects
+     * @throws PropelException
+     */
+    public function getBotDecisionsRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collBotDecisionsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collBotDecisionsRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collBotDecisionsRelatedByIdModification) {
+                // return empty collection
+                $this->initBotDecisionsRelatedByIdModification();
+            } else {
+                $collBotDecisionsRelatedByIdModification = BotDecisionQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collBotDecisionsRelatedByIdModificationPartial && count($collBotDecisionsRelatedByIdModification)) {
+                      $this->initBotDecisionsRelatedByIdModification(false);
+
+                      foreach ($collBotDecisionsRelatedByIdModification as $obj) {
+                        if (false == $this->collBotDecisionsRelatedByIdModification->contains($obj)) {
+                          $this->collBotDecisionsRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collBotDecisionsRelatedByIdModificationPartial = true;
+                    }
+
+                    $collBotDecisionsRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collBotDecisionsRelatedByIdModification;
+                }
+
+                if ($partial && $this->collBotDecisionsRelatedByIdModification) {
+                    foreach ($this->collBotDecisionsRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collBotDecisionsRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collBotDecisionsRelatedByIdModification = $collBotDecisionsRelatedByIdModification;
+                $this->collBotDecisionsRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collBotDecisionsRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of BotDecisionRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $botDecisionsRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setBotDecisionsRelatedByIdModification(PropelCollection $botDecisionsRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $botDecisionsRelatedByIdModificationToDelete = $this->getBotDecisionsRelatedByIdModification(new Criteria(), $con)->diff($botDecisionsRelatedByIdModification);
+
+
+        $this->botDecisionsRelatedByIdModificationScheduledForDeletion = $botDecisionsRelatedByIdModificationToDelete;
+
+        foreach ($botDecisionsRelatedByIdModificationToDelete as $botDecisionRelatedByIdModificationRemoved) {
+            $botDecisionRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collBotDecisionsRelatedByIdModification = null;
+        foreach ($botDecisionsRelatedByIdModification as $botDecisionRelatedByIdModification) {
+            $this->addBotDecisionRelatedByIdModification($botDecisionRelatedByIdModification);
+        }
+
+        $this->collBotDecisionsRelatedByIdModification = $botDecisionsRelatedByIdModification;
+        $this->collBotDecisionsRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related BotDecision objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related BotDecision objects.
+     * @throws PropelException
+     */
+    public function countBotDecisionsRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collBotDecisionsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collBotDecisionsRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collBotDecisionsRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getBotDecisionsRelatedByIdModification());
+            }
+            $query = BotDecisionQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collBotDecisionsRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a BotDecision object to this object
+     * through the BotDecision foreign key attribute.
+     *
+     * @param    BotDecision $l BotDecision
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addBotDecisionRelatedByIdModification(BotDecision $l)
+    {
+        if ($this->collBotDecisionsRelatedByIdModification === null) {
+            $this->initBotDecisionsRelatedByIdModification();
+            $this->collBotDecisionsRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collBotDecisionsRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddBotDecisionRelatedByIdModification($l);
+
+            if ($this->botDecisionsRelatedByIdModificationScheduledForDeletion and $this->botDecisionsRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->botDecisionsRelatedByIdModificationScheduledForDeletion->remove($this->botDecisionsRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	BotDecisionRelatedByIdModification $botDecisionRelatedByIdModification The botDecisionRelatedByIdModification object to add.
+     */
+    protected function doAddBotDecisionRelatedByIdModification($botDecisionRelatedByIdModification)
+    {
+        $this->collBotDecisionsRelatedByIdModification[]= $botDecisionRelatedByIdModification;
+        $botDecisionRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	BotDecisionRelatedByIdModification $botDecisionRelatedByIdModification The botDecisionRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeBotDecisionRelatedByIdModification($botDecisionRelatedByIdModification)
+    {
+        if ($this->getBotDecisionsRelatedByIdModification()->contains($botDecisionRelatedByIdModification)) {
+            $this->collBotDecisionsRelatedByIdModification->remove($this->collBotDecisionsRelatedByIdModification->search($botDecisionRelatedByIdModification));
+            if (null === $this->botDecisionsRelatedByIdModificationScheduledForDeletion) {
+                $this->botDecisionsRelatedByIdModificationScheduledForDeletion = clone $this->collBotDecisionsRelatedByIdModification;
+                $this->botDecisionsRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->botDecisionsRelatedByIdModificationScheduledForDeletion[]= $botDecisionRelatedByIdModification;
+            $botDecisionRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|BotDecision[] List of BotDecision objects
+     */
+    public function getBotDecisionsRelatedByIdModificationJoinGridRun($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = BotDecisionQuery::create(null, $criteria);
+        $query->joinWith('GridRun', $join_behavior);
+
+        return $this->getBotDecisionsRelatedByIdModification($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|BotDecision[] List of BotDecision objects
+     */
+    public function getBotDecisionsRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = BotDecisionQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getBotDecisionsRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collAuthyGroupsRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addAuthyGroupsRelatedByIdCreation()
+     */
+    public function clearAuthyGroupsRelatedByIdCreation()
+    {
+        $this->collAuthyGroupsRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collAuthyGroupsRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collAuthyGroupsRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialAuthyGroupsRelatedByIdCreation($v = true)
+    {
+        $this->collAuthyGroupsRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collAuthyGroupsRelatedByIdCreation collection.
+     *
+     * By default this just sets the collAuthyGroupsRelatedByIdCreation collection to an empty array (like clearcollAuthyGroupsRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initAuthyGroupsRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collAuthyGroupsRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collAuthyGroupsRelatedByIdCreation = new PropelObjectCollection();
+        $this->collAuthyGroupsRelatedByIdCreation->setModel('AuthyGroup');
+    }
+
+    /**
+     * Gets an array of AuthyGroup objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|AuthyGroup[] List of AuthyGroup objects
+     * @throws PropelException
+     */
+    public function getAuthyGroupsRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyGroupsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collAuthyGroupsRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collAuthyGroupsRelatedByIdCreation) {
+                // return empty collection
+                $this->initAuthyGroupsRelatedByIdCreation();
+            } else {
+                $collAuthyGroupsRelatedByIdCreation = AuthyGroupQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collAuthyGroupsRelatedByIdCreationPartial && count($collAuthyGroupsRelatedByIdCreation)) {
+                      $this->initAuthyGroupsRelatedByIdCreation(false);
+
+                      foreach ($collAuthyGroupsRelatedByIdCreation as $obj) {
+                        if (false == $this->collAuthyGroupsRelatedByIdCreation->contains($obj)) {
+                          $this->collAuthyGroupsRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collAuthyGroupsRelatedByIdCreationPartial = true;
+                    }
+
+                    $collAuthyGroupsRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collAuthyGroupsRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collAuthyGroupsRelatedByIdCreation) {
+                    foreach ($this->collAuthyGroupsRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collAuthyGroupsRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collAuthyGroupsRelatedByIdCreation = $collAuthyGroupsRelatedByIdCreation;
+                $this->collAuthyGroupsRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collAuthyGroupsRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of AuthyGroupRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $authyGroupsRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setAuthyGroupsRelatedByIdCreation(PropelCollection $authyGroupsRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $authyGroupsRelatedByIdCreationToDelete = $this->getAuthyGroupsRelatedByIdCreation(new Criteria(), $con)->diff($authyGroupsRelatedByIdCreation);
+
+
+        $this->authyGroupsRelatedByIdCreationScheduledForDeletion = $authyGroupsRelatedByIdCreationToDelete;
+
+        foreach ($authyGroupsRelatedByIdCreationToDelete as $authyGroupRelatedByIdCreationRemoved) {
+            $authyGroupRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collAuthyGroupsRelatedByIdCreation = null;
+        foreach ($authyGroupsRelatedByIdCreation as $authyGroupRelatedByIdCreation) {
+            $this->addAuthyGroupRelatedByIdCreation($authyGroupRelatedByIdCreation);
+        }
+
+        $this->collAuthyGroupsRelatedByIdCreation = $authyGroupsRelatedByIdCreation;
+        $this->collAuthyGroupsRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related AuthyGroup objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related AuthyGroup objects.
+     * @throws PropelException
+     */
+    public function countAuthyGroupsRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyGroupsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collAuthyGroupsRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collAuthyGroupsRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getAuthyGroupsRelatedByIdCreation());
+            }
+            $query = AuthyGroupQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collAuthyGroupsRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a AuthyGroup object to this object
+     * through the AuthyGroup foreign key attribute.
+     *
+     * @param    AuthyGroup $l AuthyGroup
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addAuthyGroupRelatedByIdCreation(AuthyGroup $l)
+    {
+        if ($this->collAuthyGroupsRelatedByIdCreation === null) {
+            $this->initAuthyGroupsRelatedByIdCreation();
+            $this->collAuthyGroupsRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collAuthyGroupsRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddAuthyGroupRelatedByIdCreation($l);
+
+            if ($this->authyGroupsRelatedByIdCreationScheduledForDeletion and $this->authyGroupsRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->authyGroupsRelatedByIdCreationScheduledForDeletion->remove($this->authyGroupsRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	AuthyGroupRelatedByIdCreation $authyGroupRelatedByIdCreation The authyGroupRelatedByIdCreation object to add.
+     */
+    protected function doAddAuthyGroupRelatedByIdCreation($authyGroupRelatedByIdCreation)
+    {
+        $this->collAuthyGroupsRelatedByIdCreation[]= $authyGroupRelatedByIdCreation;
+        $authyGroupRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	AuthyGroupRelatedByIdCreation $authyGroupRelatedByIdCreation The authyGroupRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeAuthyGroupRelatedByIdCreation($authyGroupRelatedByIdCreation)
+    {
+        if ($this->getAuthyGroupsRelatedByIdCreation()->contains($authyGroupRelatedByIdCreation)) {
+            $this->collAuthyGroupsRelatedByIdCreation->remove($this->collAuthyGroupsRelatedByIdCreation->search($authyGroupRelatedByIdCreation));
+            if (null === $this->authyGroupsRelatedByIdCreationScheduledForDeletion) {
+                $this->authyGroupsRelatedByIdCreationScheduledForDeletion = clone $this->collAuthyGroupsRelatedByIdCreation;
+                $this->authyGroupsRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->authyGroupsRelatedByIdCreationScheduledForDeletion[]= $authyGroupRelatedByIdCreation;
+            $authyGroupRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|AuthyGroup[] List of AuthyGroup objects
+     */
+    public function getAuthyGroupsRelatedByIdCreationJoinAuthyGroupRelatedByIdGroupCreation($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = AuthyGroupQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroupRelatedByIdGroupCreation', $join_behavior);
+
+        return $this->getAuthyGroupsRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collAuthyGroupsRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addAuthyGroupsRelatedByIdModification()
+     */
+    public function clearAuthyGroupsRelatedByIdModification()
+    {
+        $this->collAuthyGroupsRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collAuthyGroupsRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collAuthyGroupsRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialAuthyGroupsRelatedByIdModification($v = true)
+    {
+        $this->collAuthyGroupsRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collAuthyGroupsRelatedByIdModification collection.
+     *
+     * By default this just sets the collAuthyGroupsRelatedByIdModification collection to an empty array (like clearcollAuthyGroupsRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initAuthyGroupsRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collAuthyGroupsRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collAuthyGroupsRelatedByIdModification = new PropelObjectCollection();
+        $this->collAuthyGroupsRelatedByIdModification->setModel('AuthyGroup');
+    }
+
+    /**
+     * Gets an array of AuthyGroup objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|AuthyGroup[] List of AuthyGroup objects
+     * @throws PropelException
+     */
+    public function getAuthyGroupsRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyGroupsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collAuthyGroupsRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collAuthyGroupsRelatedByIdModification) {
+                // return empty collection
+                $this->initAuthyGroupsRelatedByIdModification();
+            } else {
+                $collAuthyGroupsRelatedByIdModification = AuthyGroupQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collAuthyGroupsRelatedByIdModificationPartial && count($collAuthyGroupsRelatedByIdModification)) {
+                      $this->initAuthyGroupsRelatedByIdModification(false);
+
+                      foreach ($collAuthyGroupsRelatedByIdModification as $obj) {
+                        if (false == $this->collAuthyGroupsRelatedByIdModification->contains($obj)) {
+                          $this->collAuthyGroupsRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collAuthyGroupsRelatedByIdModificationPartial = true;
+                    }
+
+                    $collAuthyGroupsRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collAuthyGroupsRelatedByIdModification;
+                }
+
+                if ($partial && $this->collAuthyGroupsRelatedByIdModification) {
+                    foreach ($this->collAuthyGroupsRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collAuthyGroupsRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collAuthyGroupsRelatedByIdModification = $collAuthyGroupsRelatedByIdModification;
+                $this->collAuthyGroupsRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collAuthyGroupsRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of AuthyGroupRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $authyGroupsRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setAuthyGroupsRelatedByIdModification(PropelCollection $authyGroupsRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $authyGroupsRelatedByIdModificationToDelete = $this->getAuthyGroupsRelatedByIdModification(new Criteria(), $con)->diff($authyGroupsRelatedByIdModification);
+
+
+        $this->authyGroupsRelatedByIdModificationScheduledForDeletion = $authyGroupsRelatedByIdModificationToDelete;
+
+        foreach ($authyGroupsRelatedByIdModificationToDelete as $authyGroupRelatedByIdModificationRemoved) {
+            $authyGroupRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collAuthyGroupsRelatedByIdModification = null;
+        foreach ($authyGroupsRelatedByIdModification as $authyGroupRelatedByIdModification) {
+            $this->addAuthyGroupRelatedByIdModification($authyGroupRelatedByIdModification);
+        }
+
+        $this->collAuthyGroupsRelatedByIdModification = $authyGroupsRelatedByIdModification;
+        $this->collAuthyGroupsRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related AuthyGroup objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related AuthyGroup objects.
+     * @throws PropelException
+     */
+    public function countAuthyGroupsRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyGroupsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collAuthyGroupsRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collAuthyGroupsRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getAuthyGroupsRelatedByIdModification());
+            }
+            $query = AuthyGroupQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collAuthyGroupsRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a AuthyGroup object to this object
+     * through the AuthyGroup foreign key attribute.
+     *
+     * @param    AuthyGroup $l AuthyGroup
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addAuthyGroupRelatedByIdModification(AuthyGroup $l)
+    {
+        if ($this->collAuthyGroupsRelatedByIdModification === null) {
+            $this->initAuthyGroupsRelatedByIdModification();
+            $this->collAuthyGroupsRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collAuthyGroupsRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddAuthyGroupRelatedByIdModification($l);
+
+            if ($this->authyGroupsRelatedByIdModificationScheduledForDeletion and $this->authyGroupsRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->authyGroupsRelatedByIdModificationScheduledForDeletion->remove($this->authyGroupsRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	AuthyGroupRelatedByIdModification $authyGroupRelatedByIdModification The authyGroupRelatedByIdModification object to add.
+     */
+    protected function doAddAuthyGroupRelatedByIdModification($authyGroupRelatedByIdModification)
+    {
+        $this->collAuthyGroupsRelatedByIdModification[]= $authyGroupRelatedByIdModification;
+        $authyGroupRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	AuthyGroupRelatedByIdModification $authyGroupRelatedByIdModification The authyGroupRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeAuthyGroupRelatedByIdModification($authyGroupRelatedByIdModification)
+    {
+        if ($this->getAuthyGroupsRelatedByIdModification()->contains($authyGroupRelatedByIdModification)) {
+            $this->collAuthyGroupsRelatedByIdModification->remove($this->collAuthyGroupsRelatedByIdModification->search($authyGroupRelatedByIdModification));
+            if (null === $this->authyGroupsRelatedByIdModificationScheduledForDeletion) {
+                $this->authyGroupsRelatedByIdModificationScheduledForDeletion = clone $this->collAuthyGroupsRelatedByIdModification;
+                $this->authyGroupsRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->authyGroupsRelatedByIdModificationScheduledForDeletion[]= $authyGroupRelatedByIdModification;
+            $authyGroupRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|AuthyGroup[] List of AuthyGroup objects
+     */
+    public function getAuthyGroupsRelatedByIdModificationJoinAuthyGroupRelatedByIdGroupCreation($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = AuthyGroupQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroupRelatedByIdGroupCreation', $join_behavior);
+
+        return $this->getAuthyGroupsRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collAuthyGroupxesRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addAuthyGroupxesRelatedByIdCreation()
+     */
+    public function clearAuthyGroupxesRelatedByIdCreation()
+    {
+        $this->collAuthyGroupxesRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collAuthyGroupxesRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collAuthyGroupxesRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialAuthyGroupxesRelatedByIdCreation($v = true)
+    {
+        $this->collAuthyGroupxesRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collAuthyGroupxesRelatedByIdCreation collection.
+     *
+     * By default this just sets the collAuthyGroupxesRelatedByIdCreation collection to an empty array (like clearcollAuthyGroupxesRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initAuthyGroupxesRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collAuthyGroupxesRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collAuthyGroupxesRelatedByIdCreation = new PropelObjectCollection();
+        $this->collAuthyGroupxesRelatedByIdCreation->setModel('AuthyGroupX');
+    }
+
+    /**
+     * Gets an array of AuthyGroupX objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|AuthyGroupX[] List of AuthyGroupX objects
+     * @throws PropelException
+     */
+    public function getAuthyGroupxesRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyGroupxesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collAuthyGroupxesRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collAuthyGroupxesRelatedByIdCreation) {
+                // return empty collection
+                $this->initAuthyGroupxesRelatedByIdCreation();
+            } else {
+                $collAuthyGroupxesRelatedByIdCreation = AuthyGroupXQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collAuthyGroupxesRelatedByIdCreationPartial && count($collAuthyGroupxesRelatedByIdCreation)) {
+                      $this->initAuthyGroupxesRelatedByIdCreation(false);
+
+                      foreach ($collAuthyGroupxesRelatedByIdCreation as $obj) {
+                        if (false == $this->collAuthyGroupxesRelatedByIdCreation->contains($obj)) {
+                          $this->collAuthyGroupxesRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collAuthyGroupxesRelatedByIdCreationPartial = true;
+                    }
+
+                    $collAuthyGroupxesRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collAuthyGroupxesRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collAuthyGroupxesRelatedByIdCreation) {
+                    foreach ($this->collAuthyGroupxesRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collAuthyGroupxesRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collAuthyGroupxesRelatedByIdCreation = $collAuthyGroupxesRelatedByIdCreation;
+                $this->collAuthyGroupxesRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collAuthyGroupxesRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of AuthyGroupXRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $authyGroupxesRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setAuthyGroupxesRelatedByIdCreation(PropelCollection $authyGroupxesRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $authyGroupxesRelatedByIdCreationToDelete = $this->getAuthyGroupxesRelatedByIdCreation(new Criteria(), $con)->diff($authyGroupxesRelatedByIdCreation);
+
+
+        $this->authyGroupxesRelatedByIdCreationScheduledForDeletion = $authyGroupxesRelatedByIdCreationToDelete;
+
+        foreach ($authyGroupxesRelatedByIdCreationToDelete as $authyGroupXRelatedByIdCreationRemoved) {
+            $authyGroupXRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collAuthyGroupxesRelatedByIdCreation = null;
+        foreach ($authyGroupxesRelatedByIdCreation as $authyGroupXRelatedByIdCreation) {
+            $this->addAuthyGroupXRelatedByIdCreation($authyGroupXRelatedByIdCreation);
+        }
+
+        $this->collAuthyGroupxesRelatedByIdCreation = $authyGroupxesRelatedByIdCreation;
+        $this->collAuthyGroupxesRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related AuthyGroupX objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related AuthyGroupX objects.
+     * @throws PropelException
+     */
+    public function countAuthyGroupxesRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyGroupxesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collAuthyGroupxesRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collAuthyGroupxesRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getAuthyGroupxesRelatedByIdCreation());
+            }
+            $query = AuthyGroupXQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collAuthyGroupxesRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a AuthyGroupX object to this object
+     * through the AuthyGroupX foreign key attribute.
+     *
+     * @param    AuthyGroupX $l AuthyGroupX
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addAuthyGroupXRelatedByIdCreation(AuthyGroupX $l)
+    {
+        if ($this->collAuthyGroupxesRelatedByIdCreation === null) {
+            $this->initAuthyGroupxesRelatedByIdCreation();
+            $this->collAuthyGroupxesRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collAuthyGroupxesRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddAuthyGroupXRelatedByIdCreation($l);
+
+            if ($this->authyGroupxesRelatedByIdCreationScheduledForDeletion and $this->authyGroupxesRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->authyGroupxesRelatedByIdCreationScheduledForDeletion->remove($this->authyGroupxesRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	AuthyGroupXRelatedByIdCreation $authyGroupXRelatedByIdCreation The authyGroupXRelatedByIdCreation object to add.
+     */
+    protected function doAddAuthyGroupXRelatedByIdCreation($authyGroupXRelatedByIdCreation)
+    {
+        $this->collAuthyGroupxesRelatedByIdCreation[]= $authyGroupXRelatedByIdCreation;
+        $authyGroupXRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	AuthyGroupXRelatedByIdCreation $authyGroupXRelatedByIdCreation The authyGroupXRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeAuthyGroupXRelatedByIdCreation($authyGroupXRelatedByIdCreation)
+    {
+        if ($this->getAuthyGroupxesRelatedByIdCreation()->contains($authyGroupXRelatedByIdCreation)) {
+            $this->collAuthyGroupxesRelatedByIdCreation->remove($this->collAuthyGroupxesRelatedByIdCreation->search($authyGroupXRelatedByIdCreation));
+            if (null === $this->authyGroupxesRelatedByIdCreationScheduledForDeletion) {
+                $this->authyGroupxesRelatedByIdCreationScheduledForDeletion = clone $this->collAuthyGroupxesRelatedByIdCreation;
+                $this->authyGroupxesRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->authyGroupxesRelatedByIdCreationScheduledForDeletion[]= $authyGroupXRelatedByIdCreation;
+            $authyGroupXRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|AuthyGroupX[] List of AuthyGroupX objects
+     */
+    public function getAuthyGroupxesRelatedByIdCreationJoinAuthyGroupRelatedByIdAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = AuthyGroupXQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroupRelatedByIdAuthyGroup', $join_behavior);
+
+        return $this->getAuthyGroupxesRelatedByIdCreation($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|AuthyGroupX[] List of AuthyGroupX objects
+     */
+    public function getAuthyGroupxesRelatedByIdCreationJoinAuthyGroupRelatedByIdGroupCreation($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = AuthyGroupXQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroupRelatedByIdGroupCreation', $join_behavior);
+
+        return $this->getAuthyGroupxesRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collAuthyGroupxesRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addAuthyGroupxesRelatedByIdModification()
+     */
+    public function clearAuthyGroupxesRelatedByIdModification()
+    {
+        $this->collAuthyGroupxesRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collAuthyGroupxesRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collAuthyGroupxesRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialAuthyGroupxesRelatedByIdModification($v = true)
+    {
+        $this->collAuthyGroupxesRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collAuthyGroupxesRelatedByIdModification collection.
+     *
+     * By default this just sets the collAuthyGroupxesRelatedByIdModification collection to an empty array (like clearcollAuthyGroupxesRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initAuthyGroupxesRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collAuthyGroupxesRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collAuthyGroupxesRelatedByIdModification = new PropelObjectCollection();
+        $this->collAuthyGroupxesRelatedByIdModification->setModel('AuthyGroupX');
+    }
+
+    /**
+     * Gets an array of AuthyGroupX objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|AuthyGroupX[] List of AuthyGroupX objects
+     * @throws PropelException
+     */
+    public function getAuthyGroupxesRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyGroupxesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collAuthyGroupxesRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collAuthyGroupxesRelatedByIdModification) {
+                // return empty collection
+                $this->initAuthyGroupxesRelatedByIdModification();
+            } else {
+                $collAuthyGroupxesRelatedByIdModification = AuthyGroupXQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collAuthyGroupxesRelatedByIdModificationPartial && count($collAuthyGroupxesRelatedByIdModification)) {
+                      $this->initAuthyGroupxesRelatedByIdModification(false);
+
+                      foreach ($collAuthyGroupxesRelatedByIdModification as $obj) {
+                        if (false == $this->collAuthyGroupxesRelatedByIdModification->contains($obj)) {
+                          $this->collAuthyGroupxesRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collAuthyGroupxesRelatedByIdModificationPartial = true;
+                    }
+
+                    $collAuthyGroupxesRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collAuthyGroupxesRelatedByIdModification;
+                }
+
+                if ($partial && $this->collAuthyGroupxesRelatedByIdModification) {
+                    foreach ($this->collAuthyGroupxesRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collAuthyGroupxesRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collAuthyGroupxesRelatedByIdModification = $collAuthyGroupxesRelatedByIdModification;
+                $this->collAuthyGroupxesRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collAuthyGroupxesRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of AuthyGroupXRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $authyGroupxesRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setAuthyGroupxesRelatedByIdModification(PropelCollection $authyGroupxesRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $authyGroupxesRelatedByIdModificationToDelete = $this->getAuthyGroupxesRelatedByIdModification(new Criteria(), $con)->diff($authyGroupxesRelatedByIdModification);
+
+
+        $this->authyGroupxesRelatedByIdModificationScheduledForDeletion = $authyGroupxesRelatedByIdModificationToDelete;
+
+        foreach ($authyGroupxesRelatedByIdModificationToDelete as $authyGroupXRelatedByIdModificationRemoved) {
+            $authyGroupXRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collAuthyGroupxesRelatedByIdModification = null;
+        foreach ($authyGroupxesRelatedByIdModification as $authyGroupXRelatedByIdModification) {
+            $this->addAuthyGroupXRelatedByIdModification($authyGroupXRelatedByIdModification);
+        }
+
+        $this->collAuthyGroupxesRelatedByIdModification = $authyGroupxesRelatedByIdModification;
+        $this->collAuthyGroupxesRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related AuthyGroupX objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related AuthyGroupX objects.
+     * @throws PropelException
+     */
+    public function countAuthyGroupxesRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyGroupxesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collAuthyGroupxesRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collAuthyGroupxesRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getAuthyGroupxesRelatedByIdModification());
+            }
+            $query = AuthyGroupXQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collAuthyGroupxesRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a AuthyGroupX object to this object
+     * through the AuthyGroupX foreign key attribute.
+     *
+     * @param    AuthyGroupX $l AuthyGroupX
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addAuthyGroupXRelatedByIdModification(AuthyGroupX $l)
+    {
+        if ($this->collAuthyGroupxesRelatedByIdModification === null) {
+            $this->initAuthyGroupxesRelatedByIdModification();
+            $this->collAuthyGroupxesRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collAuthyGroupxesRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddAuthyGroupXRelatedByIdModification($l);
+
+            if ($this->authyGroupxesRelatedByIdModificationScheduledForDeletion and $this->authyGroupxesRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->authyGroupxesRelatedByIdModificationScheduledForDeletion->remove($this->authyGroupxesRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	AuthyGroupXRelatedByIdModification $authyGroupXRelatedByIdModification The authyGroupXRelatedByIdModification object to add.
+     */
+    protected function doAddAuthyGroupXRelatedByIdModification($authyGroupXRelatedByIdModification)
+    {
+        $this->collAuthyGroupxesRelatedByIdModification[]= $authyGroupXRelatedByIdModification;
+        $authyGroupXRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	AuthyGroupXRelatedByIdModification $authyGroupXRelatedByIdModification The authyGroupXRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeAuthyGroupXRelatedByIdModification($authyGroupXRelatedByIdModification)
+    {
+        if ($this->getAuthyGroupxesRelatedByIdModification()->contains($authyGroupXRelatedByIdModification)) {
+            $this->collAuthyGroupxesRelatedByIdModification->remove($this->collAuthyGroupxesRelatedByIdModification->search($authyGroupXRelatedByIdModification));
+            if (null === $this->authyGroupxesRelatedByIdModificationScheduledForDeletion) {
+                $this->authyGroupxesRelatedByIdModificationScheduledForDeletion = clone $this->collAuthyGroupxesRelatedByIdModification;
+                $this->authyGroupxesRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->authyGroupxesRelatedByIdModificationScheduledForDeletion[]= $authyGroupXRelatedByIdModification;
+            $authyGroupXRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|AuthyGroupX[] List of AuthyGroupX objects
+     */
+    public function getAuthyGroupxesRelatedByIdModificationJoinAuthyGroupRelatedByIdAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = AuthyGroupXQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroupRelatedByIdAuthyGroup', $join_behavior);
+
+        return $this->getAuthyGroupxesRelatedByIdModification($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|AuthyGroupX[] List of AuthyGroupX objects
+     */
+    public function getAuthyGroupxesRelatedByIdModificationJoinAuthyGroupRelatedByIdGroupCreation($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = AuthyGroupXQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroupRelatedByIdGroupCreation', $join_behavior);
+
+        return $this->getAuthyGroupxesRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collConfigsRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addConfigsRelatedByIdCreation()
+     */
+    public function clearConfigsRelatedByIdCreation()
+    {
+        $this->collConfigsRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collConfigsRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collConfigsRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialConfigsRelatedByIdCreation($v = true)
+    {
+        $this->collConfigsRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collConfigsRelatedByIdCreation collection.
+     *
+     * By default this just sets the collConfigsRelatedByIdCreation collection to an empty array (like clearcollConfigsRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initConfigsRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collConfigsRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collConfigsRelatedByIdCreation = new PropelObjectCollection();
+        $this->collConfigsRelatedByIdCreation->setModel('Config');
+    }
+
+    /**
+     * Gets an array of Config objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|Config[] List of Config objects
+     * @throws PropelException
+     */
+    public function getConfigsRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collConfigsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collConfigsRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collConfigsRelatedByIdCreation) {
+                // return empty collection
+                $this->initConfigsRelatedByIdCreation();
+            } else {
+                $collConfigsRelatedByIdCreation = ConfigQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collConfigsRelatedByIdCreationPartial && count($collConfigsRelatedByIdCreation)) {
+                      $this->initConfigsRelatedByIdCreation(false);
+
+                      foreach ($collConfigsRelatedByIdCreation as $obj) {
+                        if (false == $this->collConfigsRelatedByIdCreation->contains($obj)) {
+                          $this->collConfigsRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collConfigsRelatedByIdCreationPartial = true;
+                    }
+
+                    $collConfigsRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collConfigsRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collConfigsRelatedByIdCreation) {
+                    foreach ($this->collConfigsRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collConfigsRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collConfigsRelatedByIdCreation = $collConfigsRelatedByIdCreation;
+                $this->collConfigsRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collConfigsRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of ConfigRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $configsRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setConfigsRelatedByIdCreation(PropelCollection $configsRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $configsRelatedByIdCreationToDelete = $this->getConfigsRelatedByIdCreation(new Criteria(), $con)->diff($configsRelatedByIdCreation);
+
+
+        $this->configsRelatedByIdCreationScheduledForDeletion = $configsRelatedByIdCreationToDelete;
+
+        foreach ($configsRelatedByIdCreationToDelete as $configRelatedByIdCreationRemoved) {
+            $configRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collConfigsRelatedByIdCreation = null;
+        foreach ($configsRelatedByIdCreation as $configRelatedByIdCreation) {
+            $this->addConfigRelatedByIdCreation($configRelatedByIdCreation);
+        }
+
+        $this->collConfigsRelatedByIdCreation = $configsRelatedByIdCreation;
+        $this->collConfigsRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related Config objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related Config objects.
+     * @throws PropelException
+     */
+    public function countConfigsRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collConfigsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collConfigsRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collConfigsRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getConfigsRelatedByIdCreation());
+            }
+            $query = ConfigQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collConfigsRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a Config object to this object
+     * through the Config foreign key attribute.
+     *
+     * @param    Config $l Config
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addConfigRelatedByIdCreation(Config $l)
+    {
+        if ($this->collConfigsRelatedByIdCreation === null) {
+            $this->initConfigsRelatedByIdCreation();
+            $this->collConfigsRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collConfigsRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddConfigRelatedByIdCreation($l);
+
+            if ($this->configsRelatedByIdCreationScheduledForDeletion and $this->configsRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->configsRelatedByIdCreationScheduledForDeletion->remove($this->configsRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	ConfigRelatedByIdCreation $configRelatedByIdCreation The configRelatedByIdCreation object to add.
+     */
+    protected function doAddConfigRelatedByIdCreation($configRelatedByIdCreation)
+    {
+        $this->collConfigsRelatedByIdCreation[]= $configRelatedByIdCreation;
+        $configRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	ConfigRelatedByIdCreation $configRelatedByIdCreation The configRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeConfigRelatedByIdCreation($configRelatedByIdCreation)
+    {
+        if ($this->getConfigsRelatedByIdCreation()->contains($configRelatedByIdCreation)) {
+            $this->collConfigsRelatedByIdCreation->remove($this->collConfigsRelatedByIdCreation->search($configRelatedByIdCreation));
+            if (null === $this->configsRelatedByIdCreationScheduledForDeletion) {
+                $this->configsRelatedByIdCreationScheduledForDeletion = clone $this->collConfigsRelatedByIdCreation;
+                $this->configsRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->configsRelatedByIdCreationScheduledForDeletion[]= $configRelatedByIdCreation;
+            $configRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|Config[] List of Config objects
+     */
+    public function getConfigsRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = ConfigQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getConfigsRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collConfigsRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addConfigsRelatedByIdModification()
+     */
+    public function clearConfigsRelatedByIdModification()
+    {
+        $this->collConfigsRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collConfigsRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collConfigsRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialConfigsRelatedByIdModification($v = true)
+    {
+        $this->collConfigsRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collConfigsRelatedByIdModification collection.
+     *
+     * By default this just sets the collConfigsRelatedByIdModification collection to an empty array (like clearcollConfigsRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initConfigsRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collConfigsRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collConfigsRelatedByIdModification = new PropelObjectCollection();
+        $this->collConfigsRelatedByIdModification->setModel('Config');
+    }
+
+    /**
+     * Gets an array of Config objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|Config[] List of Config objects
+     * @throws PropelException
+     */
+    public function getConfigsRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collConfigsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collConfigsRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collConfigsRelatedByIdModification) {
+                // return empty collection
+                $this->initConfigsRelatedByIdModification();
+            } else {
+                $collConfigsRelatedByIdModification = ConfigQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collConfigsRelatedByIdModificationPartial && count($collConfigsRelatedByIdModification)) {
+                      $this->initConfigsRelatedByIdModification(false);
+
+                      foreach ($collConfigsRelatedByIdModification as $obj) {
+                        if (false == $this->collConfigsRelatedByIdModification->contains($obj)) {
+                          $this->collConfigsRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collConfigsRelatedByIdModificationPartial = true;
+                    }
+
+                    $collConfigsRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collConfigsRelatedByIdModification;
+                }
+
+                if ($partial && $this->collConfigsRelatedByIdModification) {
+                    foreach ($this->collConfigsRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collConfigsRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collConfigsRelatedByIdModification = $collConfigsRelatedByIdModification;
+                $this->collConfigsRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collConfigsRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of ConfigRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $configsRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setConfigsRelatedByIdModification(PropelCollection $configsRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $configsRelatedByIdModificationToDelete = $this->getConfigsRelatedByIdModification(new Criteria(), $con)->diff($configsRelatedByIdModification);
+
+
+        $this->configsRelatedByIdModificationScheduledForDeletion = $configsRelatedByIdModificationToDelete;
+
+        foreach ($configsRelatedByIdModificationToDelete as $configRelatedByIdModificationRemoved) {
+            $configRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collConfigsRelatedByIdModification = null;
+        foreach ($configsRelatedByIdModification as $configRelatedByIdModification) {
+            $this->addConfigRelatedByIdModification($configRelatedByIdModification);
+        }
+
+        $this->collConfigsRelatedByIdModification = $configsRelatedByIdModification;
+        $this->collConfigsRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related Config objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related Config objects.
+     * @throws PropelException
+     */
+    public function countConfigsRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collConfigsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collConfigsRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collConfigsRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getConfigsRelatedByIdModification());
+            }
+            $query = ConfigQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collConfigsRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a Config object to this object
+     * through the Config foreign key attribute.
+     *
+     * @param    Config $l Config
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addConfigRelatedByIdModification(Config $l)
+    {
+        if ($this->collConfigsRelatedByIdModification === null) {
+            $this->initConfigsRelatedByIdModification();
+            $this->collConfigsRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collConfigsRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddConfigRelatedByIdModification($l);
+
+            if ($this->configsRelatedByIdModificationScheduledForDeletion and $this->configsRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->configsRelatedByIdModificationScheduledForDeletion->remove($this->configsRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	ConfigRelatedByIdModification $configRelatedByIdModification The configRelatedByIdModification object to add.
+     */
+    protected function doAddConfigRelatedByIdModification($configRelatedByIdModification)
+    {
+        $this->collConfigsRelatedByIdModification[]= $configRelatedByIdModification;
+        $configRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	ConfigRelatedByIdModification $configRelatedByIdModification The configRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeConfigRelatedByIdModification($configRelatedByIdModification)
+    {
+        if ($this->getConfigsRelatedByIdModification()->contains($configRelatedByIdModification)) {
+            $this->collConfigsRelatedByIdModification->remove($this->collConfigsRelatedByIdModification->search($configRelatedByIdModification));
+            if (null === $this->configsRelatedByIdModificationScheduledForDeletion) {
+                $this->configsRelatedByIdModificationScheduledForDeletion = clone $this->collConfigsRelatedByIdModification;
+                $this->configsRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->configsRelatedByIdModificationScheduledForDeletion[]= $configRelatedByIdModification;
+            $configRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|Config[] List of Config objects
+     */
+    public function getConfigsRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = ConfigQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getConfigsRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collApiRbacsRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addApiRbacsRelatedByIdCreation()
+     */
+    public function clearApiRbacsRelatedByIdCreation()
+    {
+        $this->collApiRbacsRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collApiRbacsRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collApiRbacsRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialApiRbacsRelatedByIdCreation($v = true)
+    {
+        $this->collApiRbacsRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collApiRbacsRelatedByIdCreation collection.
+     *
+     * By default this just sets the collApiRbacsRelatedByIdCreation collection to an empty array (like clearcollApiRbacsRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initApiRbacsRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collApiRbacsRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collApiRbacsRelatedByIdCreation = new PropelObjectCollection();
+        $this->collApiRbacsRelatedByIdCreation->setModel('ApiRbac');
+    }
+
+    /**
+     * Gets an array of ApiRbac objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|ApiRbac[] List of ApiRbac objects
+     * @throws PropelException
+     */
+    public function getApiRbacsRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collApiRbacsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collApiRbacsRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collApiRbacsRelatedByIdCreation) {
+                // return empty collection
+                $this->initApiRbacsRelatedByIdCreation();
+            } else {
+                $collApiRbacsRelatedByIdCreation = ApiRbacQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collApiRbacsRelatedByIdCreationPartial && count($collApiRbacsRelatedByIdCreation)) {
+                      $this->initApiRbacsRelatedByIdCreation(false);
+
+                      foreach ($collApiRbacsRelatedByIdCreation as $obj) {
+                        if (false == $this->collApiRbacsRelatedByIdCreation->contains($obj)) {
+                          $this->collApiRbacsRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collApiRbacsRelatedByIdCreationPartial = true;
+                    }
+
+                    $collApiRbacsRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collApiRbacsRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collApiRbacsRelatedByIdCreation) {
+                    foreach ($this->collApiRbacsRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collApiRbacsRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collApiRbacsRelatedByIdCreation = $collApiRbacsRelatedByIdCreation;
+                $this->collApiRbacsRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collApiRbacsRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of ApiRbacRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $apiRbacsRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setApiRbacsRelatedByIdCreation(PropelCollection $apiRbacsRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $apiRbacsRelatedByIdCreationToDelete = $this->getApiRbacsRelatedByIdCreation(new Criteria(), $con)->diff($apiRbacsRelatedByIdCreation);
+
+
+        $this->apiRbacsRelatedByIdCreationScheduledForDeletion = $apiRbacsRelatedByIdCreationToDelete;
+
+        foreach ($apiRbacsRelatedByIdCreationToDelete as $apiRbacRelatedByIdCreationRemoved) {
+            $apiRbacRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collApiRbacsRelatedByIdCreation = null;
+        foreach ($apiRbacsRelatedByIdCreation as $apiRbacRelatedByIdCreation) {
+            $this->addApiRbacRelatedByIdCreation($apiRbacRelatedByIdCreation);
+        }
+
+        $this->collApiRbacsRelatedByIdCreation = $apiRbacsRelatedByIdCreation;
+        $this->collApiRbacsRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related ApiRbac objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related ApiRbac objects.
+     * @throws PropelException
+     */
+    public function countApiRbacsRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collApiRbacsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collApiRbacsRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collApiRbacsRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getApiRbacsRelatedByIdCreation());
+            }
+            $query = ApiRbacQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collApiRbacsRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a ApiRbac object to this object
+     * through the ApiRbac foreign key attribute.
+     *
+     * @param    ApiRbac $l ApiRbac
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addApiRbacRelatedByIdCreation(ApiRbac $l)
+    {
+        if ($this->collApiRbacsRelatedByIdCreation === null) {
+            $this->initApiRbacsRelatedByIdCreation();
+            $this->collApiRbacsRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collApiRbacsRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddApiRbacRelatedByIdCreation($l);
+
+            if ($this->apiRbacsRelatedByIdCreationScheduledForDeletion and $this->apiRbacsRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->apiRbacsRelatedByIdCreationScheduledForDeletion->remove($this->apiRbacsRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	ApiRbacRelatedByIdCreation $apiRbacRelatedByIdCreation The apiRbacRelatedByIdCreation object to add.
+     */
+    protected function doAddApiRbacRelatedByIdCreation($apiRbacRelatedByIdCreation)
+    {
+        $this->collApiRbacsRelatedByIdCreation[]= $apiRbacRelatedByIdCreation;
+        $apiRbacRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	ApiRbacRelatedByIdCreation $apiRbacRelatedByIdCreation The apiRbacRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeApiRbacRelatedByIdCreation($apiRbacRelatedByIdCreation)
+    {
+        if ($this->getApiRbacsRelatedByIdCreation()->contains($apiRbacRelatedByIdCreation)) {
+            $this->collApiRbacsRelatedByIdCreation->remove($this->collApiRbacsRelatedByIdCreation->search($apiRbacRelatedByIdCreation));
+            if (null === $this->apiRbacsRelatedByIdCreationScheduledForDeletion) {
+                $this->apiRbacsRelatedByIdCreationScheduledForDeletion = clone $this->collApiRbacsRelatedByIdCreation;
+                $this->apiRbacsRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->apiRbacsRelatedByIdCreationScheduledForDeletion[]= $apiRbacRelatedByIdCreation;
+            $apiRbacRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|ApiRbac[] List of ApiRbac objects
+     */
+    public function getApiRbacsRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = ApiRbacQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getApiRbacsRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collApiRbacsRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addApiRbacsRelatedByIdModification()
+     */
+    public function clearApiRbacsRelatedByIdModification()
+    {
+        $this->collApiRbacsRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collApiRbacsRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collApiRbacsRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialApiRbacsRelatedByIdModification($v = true)
+    {
+        $this->collApiRbacsRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collApiRbacsRelatedByIdModification collection.
+     *
+     * By default this just sets the collApiRbacsRelatedByIdModification collection to an empty array (like clearcollApiRbacsRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initApiRbacsRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collApiRbacsRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collApiRbacsRelatedByIdModification = new PropelObjectCollection();
+        $this->collApiRbacsRelatedByIdModification->setModel('ApiRbac');
+    }
+
+    /**
+     * Gets an array of ApiRbac objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|ApiRbac[] List of ApiRbac objects
+     * @throws PropelException
+     */
+    public function getApiRbacsRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collApiRbacsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collApiRbacsRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collApiRbacsRelatedByIdModification) {
+                // return empty collection
+                $this->initApiRbacsRelatedByIdModification();
+            } else {
+                $collApiRbacsRelatedByIdModification = ApiRbacQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collApiRbacsRelatedByIdModificationPartial && count($collApiRbacsRelatedByIdModification)) {
+                      $this->initApiRbacsRelatedByIdModification(false);
+
+                      foreach ($collApiRbacsRelatedByIdModification as $obj) {
+                        if (false == $this->collApiRbacsRelatedByIdModification->contains($obj)) {
+                          $this->collApiRbacsRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collApiRbacsRelatedByIdModificationPartial = true;
+                    }
+
+                    $collApiRbacsRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collApiRbacsRelatedByIdModification;
+                }
+
+                if ($partial && $this->collApiRbacsRelatedByIdModification) {
+                    foreach ($this->collApiRbacsRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collApiRbacsRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collApiRbacsRelatedByIdModification = $collApiRbacsRelatedByIdModification;
+                $this->collApiRbacsRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collApiRbacsRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of ApiRbacRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $apiRbacsRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setApiRbacsRelatedByIdModification(PropelCollection $apiRbacsRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $apiRbacsRelatedByIdModificationToDelete = $this->getApiRbacsRelatedByIdModification(new Criteria(), $con)->diff($apiRbacsRelatedByIdModification);
+
+
+        $this->apiRbacsRelatedByIdModificationScheduledForDeletion = $apiRbacsRelatedByIdModificationToDelete;
+
+        foreach ($apiRbacsRelatedByIdModificationToDelete as $apiRbacRelatedByIdModificationRemoved) {
+            $apiRbacRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collApiRbacsRelatedByIdModification = null;
+        foreach ($apiRbacsRelatedByIdModification as $apiRbacRelatedByIdModification) {
+            $this->addApiRbacRelatedByIdModification($apiRbacRelatedByIdModification);
+        }
+
+        $this->collApiRbacsRelatedByIdModification = $apiRbacsRelatedByIdModification;
+        $this->collApiRbacsRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related ApiRbac objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related ApiRbac objects.
+     * @throws PropelException
+     */
+    public function countApiRbacsRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collApiRbacsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collApiRbacsRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collApiRbacsRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getApiRbacsRelatedByIdModification());
+            }
+            $query = ApiRbacQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collApiRbacsRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a ApiRbac object to this object
+     * through the ApiRbac foreign key attribute.
+     *
+     * @param    ApiRbac $l ApiRbac
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addApiRbacRelatedByIdModification(ApiRbac $l)
+    {
+        if ($this->collApiRbacsRelatedByIdModification === null) {
+            $this->initApiRbacsRelatedByIdModification();
+            $this->collApiRbacsRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collApiRbacsRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddApiRbacRelatedByIdModification($l);
+
+            if ($this->apiRbacsRelatedByIdModificationScheduledForDeletion and $this->apiRbacsRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->apiRbacsRelatedByIdModificationScheduledForDeletion->remove($this->apiRbacsRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	ApiRbacRelatedByIdModification $apiRbacRelatedByIdModification The apiRbacRelatedByIdModification object to add.
+     */
+    protected function doAddApiRbacRelatedByIdModification($apiRbacRelatedByIdModification)
+    {
+        $this->collApiRbacsRelatedByIdModification[]= $apiRbacRelatedByIdModification;
+        $apiRbacRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	ApiRbacRelatedByIdModification $apiRbacRelatedByIdModification The apiRbacRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeApiRbacRelatedByIdModification($apiRbacRelatedByIdModification)
+    {
+        if ($this->getApiRbacsRelatedByIdModification()->contains($apiRbacRelatedByIdModification)) {
+            $this->collApiRbacsRelatedByIdModification->remove($this->collApiRbacsRelatedByIdModification->search($apiRbacRelatedByIdModification));
+            if (null === $this->apiRbacsRelatedByIdModificationScheduledForDeletion) {
+                $this->apiRbacsRelatedByIdModificationScheduledForDeletion = clone $this->collApiRbacsRelatedByIdModification;
+                $this->apiRbacsRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->apiRbacsRelatedByIdModificationScheduledForDeletion[]= $apiRbacRelatedByIdModification;
+            $apiRbacRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|ApiRbac[] List of ApiRbac objects
+     */
+    public function getApiRbacsRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = ApiRbacQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getApiRbacsRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collApiLogs collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addApiLogs()
+     */
+    public function clearApiLogs()
+    {
+        $this->collApiLogs = null; // important to set this to null since that means it is uninitialized
+        $this->collApiLogsPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collApiLogs collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialApiLogs($v = true)
+    {
+        $this->collApiLogsPartial = $v;
+    }
+
+    /**
+     * Initializes the collApiLogs collection.
+     *
+     * By default this just sets the collApiLogs collection to an empty array (like clearcollApiLogs());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initApiLogs($overrideExisting = true)
+    {
+        if (null !== $this->collApiLogs && !$overrideExisting) {
+            return;
+        }
+        $this->collApiLogs = new PropelObjectCollection();
+        $this->collApiLogs->setModel('ApiLog');
+    }
+
+    /**
+     * Gets an array of ApiLog objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|ApiLog[] List of ApiLog objects
+     * @throws PropelException
+     */
+    public function getApiLogs($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collApiLogsPartial && !$this->isNew();
+        if (null === $this->collApiLogs || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collApiLogs) {
+                // return empty collection
+                $this->initApiLogs();
+            } else {
+                $collApiLogs = ApiLogQuery::create(null, $criteria)
+                    ->filterByAuthy($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collApiLogsPartial && count($collApiLogs)) {
+                      $this->initApiLogs(false);
+
+                      foreach ($collApiLogs as $obj) {
+                        if (false == $this->collApiLogs->contains($obj)) {
+                          $this->collApiLogs->append($obj);
+                        }
+                      }
+
+                      $this->collApiLogsPartial = true;
+                    }
+
+                    $collApiLogs->getInternalIterator()->rewind();
+
+                    return $collApiLogs;
+                }
+
+                if ($partial && $this->collApiLogs) {
+                    foreach ($this->collApiLogs as $obj) {
+                        if ($obj->isNew()) {
+                            $collApiLogs[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collApiLogs = $collApiLogs;
+                $this->collApiLogsPartial = false;
+            }
+        }
+
+        return $this->collApiLogs;
+    }
+
+    /**
+     * Sets a collection of ApiLog objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $apiLogs A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setApiLogs(PropelCollection $apiLogs, ?PropelPDO $con = null)
+    {
+        $apiLogsToDelete = $this->getApiLogs(new Criteria(), $con)->diff($apiLogs);
+
+
+        $this->apiLogsScheduledForDeletion = $apiLogsToDelete;
+
+        foreach ($apiLogsToDelete as $apiLogRemoved) {
+            $apiLogRemoved->setAuthy(null);
+        }
+
+        $this->collApiLogs = null;
+        foreach ($apiLogs as $apiLog) {
+            $this->addApiLog($apiLog);
+        }
+
+        $this->collApiLogs = $apiLogs;
+        $this->collApiLogsPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related ApiLog objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related ApiLog objects.
+     * @throws PropelException
+     */
+    public function countApiLogs(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collApiLogsPartial && !$this->isNew();
+        if (null === $this->collApiLogs || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collApiLogs) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getApiLogs());
+            }
+            $query = ApiLogQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthy($this)
+                ->count($con);
+        }
+
+        return count($this->collApiLogs);
+    }
+
+    /**
+     * Method called to associate a ApiLog object to this object
+     * through the ApiLog foreign key attribute.
+     *
+     * @param    ApiLog $l ApiLog
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addApiLog(ApiLog $l)
+    {
+        if ($this->collApiLogs === null) {
+            $this->initApiLogs();
+            $this->collApiLogsPartial = true;
+        }
+
+        if (!in_array($l, $this->collApiLogs->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddApiLog($l);
+
+            if ($this->apiLogsScheduledForDeletion and $this->apiLogsScheduledForDeletion->contains($l)) {
+                $this->apiLogsScheduledForDeletion->remove($this->apiLogsScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	ApiLog $apiLog The apiLog object to add.
+     */
+    protected function doAddApiLog($apiLog)
+    {
+        $this->collApiLogs[]= $apiLog;
+        $apiLog->setAuthy($this);
+    }
+
+    /**
+     * @param	ApiLog $apiLog The apiLog object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeApiLog($apiLog)
+    {
+        if ($this->getApiLogs()->contains($apiLog)) {
+            $this->collApiLogs->remove($this->collApiLogs->search($apiLog));
+            if (null === $this->apiLogsScheduledForDeletion) {
+                $this->apiLogsScheduledForDeletion = clone $this->collApiLogs;
+                $this->apiLogsScheduledForDeletion->clear();
+            }
+            $this->apiLogsScheduledForDeletion[]= $apiLog;
+            $apiLog->setAuthy(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|ApiLog[] List of ApiLog objects
+     */
+    public function getApiLogsJoinApiRbac($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = ApiLogQuery::create(null, $criteria);
+        $query->joinWith('ApiRbac', $join_behavior);
+
+        return $this->getApiLogs($query, $con);
+    }
+
+    /**
+     * Clears out the collTemplatesRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addTemplatesRelatedByIdCreation()
+     */
+    public function clearTemplatesRelatedByIdCreation()
+    {
+        $this->collTemplatesRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collTemplatesRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collTemplatesRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialTemplatesRelatedByIdCreation($v = true)
+    {
+        $this->collTemplatesRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collTemplatesRelatedByIdCreation collection.
+     *
+     * By default this just sets the collTemplatesRelatedByIdCreation collection to an empty array (like clearcollTemplatesRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initTemplatesRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collTemplatesRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collTemplatesRelatedByIdCreation = new PropelObjectCollection();
+        $this->collTemplatesRelatedByIdCreation->setModel('Template');
+    }
+
+    /**
+     * Gets an array of Template objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|Template[] List of Template objects
+     * @throws PropelException
+     */
+    public function getTemplatesRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collTemplatesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collTemplatesRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collTemplatesRelatedByIdCreation) {
+                // return empty collection
+                $this->initTemplatesRelatedByIdCreation();
+            } else {
+                $collTemplatesRelatedByIdCreation = TemplateQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collTemplatesRelatedByIdCreationPartial && count($collTemplatesRelatedByIdCreation)) {
+                      $this->initTemplatesRelatedByIdCreation(false);
+
+                      foreach ($collTemplatesRelatedByIdCreation as $obj) {
+                        if (false == $this->collTemplatesRelatedByIdCreation->contains($obj)) {
+                          $this->collTemplatesRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collTemplatesRelatedByIdCreationPartial = true;
+                    }
+
+                    $collTemplatesRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collTemplatesRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collTemplatesRelatedByIdCreation) {
+                    foreach ($this->collTemplatesRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collTemplatesRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collTemplatesRelatedByIdCreation = $collTemplatesRelatedByIdCreation;
+                $this->collTemplatesRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collTemplatesRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of TemplateRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $templatesRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setTemplatesRelatedByIdCreation(PropelCollection $templatesRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $templatesRelatedByIdCreationToDelete = $this->getTemplatesRelatedByIdCreation(new Criteria(), $con)->diff($templatesRelatedByIdCreation);
+
+
+        $this->templatesRelatedByIdCreationScheduledForDeletion = $templatesRelatedByIdCreationToDelete;
+
+        foreach ($templatesRelatedByIdCreationToDelete as $templateRelatedByIdCreationRemoved) {
+            $templateRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collTemplatesRelatedByIdCreation = null;
+        foreach ($templatesRelatedByIdCreation as $templateRelatedByIdCreation) {
+            $this->addTemplateRelatedByIdCreation($templateRelatedByIdCreation);
+        }
+
+        $this->collTemplatesRelatedByIdCreation = $templatesRelatedByIdCreation;
+        $this->collTemplatesRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related Template objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related Template objects.
+     * @throws PropelException
+     */
+    public function countTemplatesRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collTemplatesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collTemplatesRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collTemplatesRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getTemplatesRelatedByIdCreation());
+            }
+            $query = TemplateQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collTemplatesRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a Template object to this object
+     * through the Template foreign key attribute.
+     *
+     * @param    Template $l Template
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addTemplateRelatedByIdCreation(Template $l)
+    {
+        if ($this->collTemplatesRelatedByIdCreation === null) {
+            $this->initTemplatesRelatedByIdCreation();
+            $this->collTemplatesRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collTemplatesRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddTemplateRelatedByIdCreation($l);
+
+            if ($this->templatesRelatedByIdCreationScheduledForDeletion and $this->templatesRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->templatesRelatedByIdCreationScheduledForDeletion->remove($this->templatesRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	TemplateRelatedByIdCreation $templateRelatedByIdCreation The templateRelatedByIdCreation object to add.
+     */
+    protected function doAddTemplateRelatedByIdCreation($templateRelatedByIdCreation)
+    {
+        $this->collTemplatesRelatedByIdCreation[]= $templateRelatedByIdCreation;
+        $templateRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	TemplateRelatedByIdCreation $templateRelatedByIdCreation The templateRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeTemplateRelatedByIdCreation($templateRelatedByIdCreation)
+    {
+        if ($this->getTemplatesRelatedByIdCreation()->contains($templateRelatedByIdCreation)) {
+            $this->collTemplatesRelatedByIdCreation->remove($this->collTemplatesRelatedByIdCreation->search($templateRelatedByIdCreation));
+            if (null === $this->templatesRelatedByIdCreationScheduledForDeletion) {
+                $this->templatesRelatedByIdCreationScheduledForDeletion = clone $this->collTemplatesRelatedByIdCreation;
+                $this->templatesRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->templatesRelatedByIdCreationScheduledForDeletion[]= $templateRelatedByIdCreation;
+            $templateRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|Template[] List of Template objects
+     */
+    public function getTemplatesRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = TemplateQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getTemplatesRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collTemplatesRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addTemplatesRelatedByIdModification()
+     */
+    public function clearTemplatesRelatedByIdModification()
+    {
+        $this->collTemplatesRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collTemplatesRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collTemplatesRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialTemplatesRelatedByIdModification($v = true)
+    {
+        $this->collTemplatesRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collTemplatesRelatedByIdModification collection.
+     *
+     * By default this just sets the collTemplatesRelatedByIdModification collection to an empty array (like clearcollTemplatesRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initTemplatesRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collTemplatesRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collTemplatesRelatedByIdModification = new PropelObjectCollection();
+        $this->collTemplatesRelatedByIdModification->setModel('Template');
+    }
+
+    /**
+     * Gets an array of Template objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|Template[] List of Template objects
+     * @throws PropelException
+     */
+    public function getTemplatesRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collTemplatesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collTemplatesRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collTemplatesRelatedByIdModification) {
+                // return empty collection
+                $this->initTemplatesRelatedByIdModification();
+            } else {
+                $collTemplatesRelatedByIdModification = TemplateQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collTemplatesRelatedByIdModificationPartial && count($collTemplatesRelatedByIdModification)) {
+                      $this->initTemplatesRelatedByIdModification(false);
+
+                      foreach ($collTemplatesRelatedByIdModification as $obj) {
+                        if (false == $this->collTemplatesRelatedByIdModification->contains($obj)) {
+                          $this->collTemplatesRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collTemplatesRelatedByIdModificationPartial = true;
+                    }
+
+                    $collTemplatesRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collTemplatesRelatedByIdModification;
+                }
+
+                if ($partial && $this->collTemplatesRelatedByIdModification) {
+                    foreach ($this->collTemplatesRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collTemplatesRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collTemplatesRelatedByIdModification = $collTemplatesRelatedByIdModification;
+                $this->collTemplatesRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collTemplatesRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of TemplateRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $templatesRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setTemplatesRelatedByIdModification(PropelCollection $templatesRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $templatesRelatedByIdModificationToDelete = $this->getTemplatesRelatedByIdModification(new Criteria(), $con)->diff($templatesRelatedByIdModification);
+
+
+        $this->templatesRelatedByIdModificationScheduledForDeletion = $templatesRelatedByIdModificationToDelete;
+
+        foreach ($templatesRelatedByIdModificationToDelete as $templateRelatedByIdModificationRemoved) {
+            $templateRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collTemplatesRelatedByIdModification = null;
+        foreach ($templatesRelatedByIdModification as $templateRelatedByIdModification) {
+            $this->addTemplateRelatedByIdModification($templateRelatedByIdModification);
+        }
+
+        $this->collTemplatesRelatedByIdModification = $templatesRelatedByIdModification;
+        $this->collTemplatesRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related Template objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related Template objects.
+     * @throws PropelException
+     */
+    public function countTemplatesRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collTemplatesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collTemplatesRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collTemplatesRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getTemplatesRelatedByIdModification());
+            }
+            $query = TemplateQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collTemplatesRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a Template object to this object
+     * through the Template foreign key attribute.
+     *
+     * @param    Template $l Template
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addTemplateRelatedByIdModification(Template $l)
+    {
+        if ($this->collTemplatesRelatedByIdModification === null) {
+            $this->initTemplatesRelatedByIdModification();
+            $this->collTemplatesRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collTemplatesRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddTemplateRelatedByIdModification($l);
+
+            if ($this->templatesRelatedByIdModificationScheduledForDeletion and $this->templatesRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->templatesRelatedByIdModificationScheduledForDeletion->remove($this->templatesRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	TemplateRelatedByIdModification $templateRelatedByIdModification The templateRelatedByIdModification object to add.
+     */
+    protected function doAddTemplateRelatedByIdModification($templateRelatedByIdModification)
+    {
+        $this->collTemplatesRelatedByIdModification[]= $templateRelatedByIdModification;
+        $templateRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	TemplateRelatedByIdModification $templateRelatedByIdModification The templateRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeTemplateRelatedByIdModification($templateRelatedByIdModification)
+    {
+        if ($this->getTemplatesRelatedByIdModification()->contains($templateRelatedByIdModification)) {
+            $this->collTemplatesRelatedByIdModification->remove($this->collTemplatesRelatedByIdModification->search($templateRelatedByIdModification));
+            if (null === $this->templatesRelatedByIdModificationScheduledForDeletion) {
+                $this->templatesRelatedByIdModificationScheduledForDeletion = clone $this->collTemplatesRelatedByIdModification;
+                $this->templatesRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->templatesRelatedByIdModificationScheduledForDeletion[]= $templateRelatedByIdModification;
+            $templateRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|Template[] List of Template objects
+     */
+    public function getTemplatesRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = TemplateQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getTemplatesRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collTemplateFilesRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addTemplateFilesRelatedByIdCreation()
+     */
+    public function clearTemplateFilesRelatedByIdCreation()
+    {
+        $this->collTemplateFilesRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collTemplateFilesRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collTemplateFilesRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialTemplateFilesRelatedByIdCreation($v = true)
+    {
+        $this->collTemplateFilesRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collTemplateFilesRelatedByIdCreation collection.
+     *
+     * By default this just sets the collTemplateFilesRelatedByIdCreation collection to an empty array (like clearcollTemplateFilesRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initTemplateFilesRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collTemplateFilesRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collTemplateFilesRelatedByIdCreation = new PropelObjectCollection();
+        $this->collTemplateFilesRelatedByIdCreation->setModel('TemplateFile');
+    }
+
+    /**
+     * Gets an array of TemplateFile objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|TemplateFile[] List of TemplateFile objects
+     * @throws PropelException
+     */
+    public function getTemplateFilesRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collTemplateFilesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collTemplateFilesRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collTemplateFilesRelatedByIdCreation) {
+                // return empty collection
+                $this->initTemplateFilesRelatedByIdCreation();
+            } else {
+                $collTemplateFilesRelatedByIdCreation = TemplateFileQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collTemplateFilesRelatedByIdCreationPartial && count($collTemplateFilesRelatedByIdCreation)) {
+                      $this->initTemplateFilesRelatedByIdCreation(false);
+
+                      foreach ($collTemplateFilesRelatedByIdCreation as $obj) {
+                        if (false == $this->collTemplateFilesRelatedByIdCreation->contains($obj)) {
+                          $this->collTemplateFilesRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collTemplateFilesRelatedByIdCreationPartial = true;
+                    }
+
+                    $collTemplateFilesRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collTemplateFilesRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collTemplateFilesRelatedByIdCreation) {
+                    foreach ($this->collTemplateFilesRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collTemplateFilesRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collTemplateFilesRelatedByIdCreation = $collTemplateFilesRelatedByIdCreation;
+                $this->collTemplateFilesRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collTemplateFilesRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of TemplateFileRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $templateFilesRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setTemplateFilesRelatedByIdCreation(PropelCollection $templateFilesRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $templateFilesRelatedByIdCreationToDelete = $this->getTemplateFilesRelatedByIdCreation(new Criteria(), $con)->diff($templateFilesRelatedByIdCreation);
+
+
+        $this->templateFilesRelatedByIdCreationScheduledForDeletion = $templateFilesRelatedByIdCreationToDelete;
+
+        foreach ($templateFilesRelatedByIdCreationToDelete as $templateFileRelatedByIdCreationRemoved) {
+            $templateFileRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collTemplateFilesRelatedByIdCreation = null;
+        foreach ($templateFilesRelatedByIdCreation as $templateFileRelatedByIdCreation) {
+            $this->addTemplateFileRelatedByIdCreation($templateFileRelatedByIdCreation);
+        }
+
+        $this->collTemplateFilesRelatedByIdCreation = $templateFilesRelatedByIdCreation;
+        $this->collTemplateFilesRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related TemplateFile objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related TemplateFile objects.
+     * @throws PropelException
+     */
+    public function countTemplateFilesRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collTemplateFilesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collTemplateFilesRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collTemplateFilesRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getTemplateFilesRelatedByIdCreation());
+            }
+            $query = TemplateFileQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collTemplateFilesRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a TemplateFile object to this object
+     * through the TemplateFile foreign key attribute.
+     *
+     * @param    TemplateFile $l TemplateFile
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addTemplateFileRelatedByIdCreation(TemplateFile $l)
+    {
+        if ($this->collTemplateFilesRelatedByIdCreation === null) {
+            $this->initTemplateFilesRelatedByIdCreation();
+            $this->collTemplateFilesRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collTemplateFilesRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddTemplateFileRelatedByIdCreation($l);
+
+            if ($this->templateFilesRelatedByIdCreationScheduledForDeletion and $this->templateFilesRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->templateFilesRelatedByIdCreationScheduledForDeletion->remove($this->templateFilesRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	TemplateFileRelatedByIdCreation $templateFileRelatedByIdCreation The templateFileRelatedByIdCreation object to add.
+     */
+    protected function doAddTemplateFileRelatedByIdCreation($templateFileRelatedByIdCreation)
+    {
+        $this->collTemplateFilesRelatedByIdCreation[]= $templateFileRelatedByIdCreation;
+        $templateFileRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	TemplateFileRelatedByIdCreation $templateFileRelatedByIdCreation The templateFileRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeTemplateFileRelatedByIdCreation($templateFileRelatedByIdCreation)
+    {
+        if ($this->getTemplateFilesRelatedByIdCreation()->contains($templateFileRelatedByIdCreation)) {
+            $this->collTemplateFilesRelatedByIdCreation->remove($this->collTemplateFilesRelatedByIdCreation->search($templateFileRelatedByIdCreation));
+            if (null === $this->templateFilesRelatedByIdCreationScheduledForDeletion) {
+                $this->templateFilesRelatedByIdCreationScheduledForDeletion = clone $this->collTemplateFilesRelatedByIdCreation;
+                $this->templateFilesRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->templateFilesRelatedByIdCreationScheduledForDeletion[]= $templateFileRelatedByIdCreation;
+            $templateFileRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|TemplateFile[] List of TemplateFile objects
+     */
+    public function getTemplateFilesRelatedByIdCreationJoinTemplate($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = TemplateFileQuery::create(null, $criteria);
+        $query->joinWith('Template', $join_behavior);
+
+        return $this->getTemplateFilesRelatedByIdCreation($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|TemplateFile[] List of TemplateFile objects
+     */
+    public function getTemplateFilesRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = TemplateFileQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getTemplateFilesRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collTemplateFilesRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addTemplateFilesRelatedByIdModification()
+     */
+    public function clearTemplateFilesRelatedByIdModification()
+    {
+        $this->collTemplateFilesRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collTemplateFilesRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collTemplateFilesRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialTemplateFilesRelatedByIdModification($v = true)
+    {
+        $this->collTemplateFilesRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collTemplateFilesRelatedByIdModification collection.
+     *
+     * By default this just sets the collTemplateFilesRelatedByIdModification collection to an empty array (like clearcollTemplateFilesRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initTemplateFilesRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collTemplateFilesRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collTemplateFilesRelatedByIdModification = new PropelObjectCollection();
+        $this->collTemplateFilesRelatedByIdModification->setModel('TemplateFile');
+    }
+
+    /**
+     * Gets an array of TemplateFile objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|TemplateFile[] List of TemplateFile objects
+     * @throws PropelException
+     */
+    public function getTemplateFilesRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collTemplateFilesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collTemplateFilesRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collTemplateFilesRelatedByIdModification) {
+                // return empty collection
+                $this->initTemplateFilesRelatedByIdModification();
+            } else {
+                $collTemplateFilesRelatedByIdModification = TemplateFileQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collTemplateFilesRelatedByIdModificationPartial && count($collTemplateFilesRelatedByIdModification)) {
+                      $this->initTemplateFilesRelatedByIdModification(false);
+
+                      foreach ($collTemplateFilesRelatedByIdModification as $obj) {
+                        if (false == $this->collTemplateFilesRelatedByIdModification->contains($obj)) {
+                          $this->collTemplateFilesRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collTemplateFilesRelatedByIdModificationPartial = true;
+                    }
+
+                    $collTemplateFilesRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collTemplateFilesRelatedByIdModification;
+                }
+
+                if ($partial && $this->collTemplateFilesRelatedByIdModification) {
+                    foreach ($this->collTemplateFilesRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collTemplateFilesRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collTemplateFilesRelatedByIdModification = $collTemplateFilesRelatedByIdModification;
+                $this->collTemplateFilesRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collTemplateFilesRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of TemplateFileRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $templateFilesRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setTemplateFilesRelatedByIdModification(PropelCollection $templateFilesRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $templateFilesRelatedByIdModificationToDelete = $this->getTemplateFilesRelatedByIdModification(new Criteria(), $con)->diff($templateFilesRelatedByIdModification);
+
+
+        $this->templateFilesRelatedByIdModificationScheduledForDeletion = $templateFilesRelatedByIdModificationToDelete;
+
+        foreach ($templateFilesRelatedByIdModificationToDelete as $templateFileRelatedByIdModificationRemoved) {
+            $templateFileRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collTemplateFilesRelatedByIdModification = null;
+        foreach ($templateFilesRelatedByIdModification as $templateFileRelatedByIdModification) {
+            $this->addTemplateFileRelatedByIdModification($templateFileRelatedByIdModification);
+        }
+
+        $this->collTemplateFilesRelatedByIdModification = $templateFilesRelatedByIdModification;
+        $this->collTemplateFilesRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related TemplateFile objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related TemplateFile objects.
+     * @throws PropelException
+     */
+    public function countTemplateFilesRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collTemplateFilesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collTemplateFilesRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collTemplateFilesRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getTemplateFilesRelatedByIdModification());
+            }
+            $query = TemplateFileQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collTemplateFilesRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a TemplateFile object to this object
+     * through the TemplateFile foreign key attribute.
+     *
+     * @param    TemplateFile $l TemplateFile
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addTemplateFileRelatedByIdModification(TemplateFile $l)
+    {
+        if ($this->collTemplateFilesRelatedByIdModification === null) {
+            $this->initTemplateFilesRelatedByIdModification();
+            $this->collTemplateFilesRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collTemplateFilesRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddTemplateFileRelatedByIdModification($l);
+
+            if ($this->templateFilesRelatedByIdModificationScheduledForDeletion and $this->templateFilesRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->templateFilesRelatedByIdModificationScheduledForDeletion->remove($this->templateFilesRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	TemplateFileRelatedByIdModification $templateFileRelatedByIdModification The templateFileRelatedByIdModification object to add.
+     */
+    protected function doAddTemplateFileRelatedByIdModification($templateFileRelatedByIdModification)
+    {
+        $this->collTemplateFilesRelatedByIdModification[]= $templateFileRelatedByIdModification;
+        $templateFileRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	TemplateFileRelatedByIdModification $templateFileRelatedByIdModification The templateFileRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeTemplateFileRelatedByIdModification($templateFileRelatedByIdModification)
+    {
+        if ($this->getTemplateFilesRelatedByIdModification()->contains($templateFileRelatedByIdModification)) {
+            $this->collTemplateFilesRelatedByIdModification->remove($this->collTemplateFilesRelatedByIdModification->search($templateFileRelatedByIdModification));
+            if (null === $this->templateFilesRelatedByIdModificationScheduledForDeletion) {
+                $this->templateFilesRelatedByIdModificationScheduledForDeletion = clone $this->collTemplateFilesRelatedByIdModification;
+                $this->templateFilesRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->templateFilesRelatedByIdModificationScheduledForDeletion[]= $templateFileRelatedByIdModification;
+            $templateFileRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|TemplateFile[] List of TemplateFile objects
+     */
+    public function getTemplateFilesRelatedByIdModificationJoinTemplate($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = TemplateFileQuery::create(null, $criteria);
+        $query->joinWith('Template', $join_behavior);
+
+        return $this->getTemplateFilesRelatedByIdModification($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|TemplateFile[] List of TemplateFile objects
+     */
+    public function getTemplateFilesRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = TemplateFileQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getTemplateFilesRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collAuthyRefreshTokensRelatedByIdAuthy collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addAuthyRefreshTokensRelatedByIdAuthy()
+     */
+    public function clearAuthyRefreshTokensRelatedByIdAuthy()
+    {
+        $this->collAuthyRefreshTokensRelatedByIdAuthy = null; // important to set this to null since that means it is uninitialized
+        $this->collAuthyRefreshTokensRelatedByIdAuthyPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collAuthyRefreshTokensRelatedByIdAuthy collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialAuthyRefreshTokensRelatedByIdAuthy($v = true)
+    {
+        $this->collAuthyRefreshTokensRelatedByIdAuthyPartial = $v;
+    }
+
+    /**
+     * Initializes the collAuthyRefreshTokensRelatedByIdAuthy collection.
+     *
+     * By default this just sets the collAuthyRefreshTokensRelatedByIdAuthy collection to an empty array (like clearcollAuthyRefreshTokensRelatedByIdAuthy());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initAuthyRefreshTokensRelatedByIdAuthy($overrideExisting = true)
+    {
+        if (null !== $this->collAuthyRefreshTokensRelatedByIdAuthy && !$overrideExisting) {
+            return;
+        }
+        $this->collAuthyRefreshTokensRelatedByIdAuthy = new PropelObjectCollection();
+        $this->collAuthyRefreshTokensRelatedByIdAuthy->setModel('AuthyRefreshToken');
+    }
+
+    /**
+     * Gets an array of AuthyRefreshToken objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|AuthyRefreshToken[] List of AuthyRefreshToken objects
+     * @throws PropelException
+     */
+    public function getAuthyRefreshTokensRelatedByIdAuthy($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyRefreshTokensRelatedByIdAuthyPartial && !$this->isNew();
+        if (null === $this->collAuthyRefreshTokensRelatedByIdAuthy || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collAuthyRefreshTokensRelatedByIdAuthy) {
+                // return empty collection
+                $this->initAuthyRefreshTokensRelatedByIdAuthy();
+            } else {
+                $collAuthyRefreshTokensRelatedByIdAuthy = AuthyRefreshTokenQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdAuthy($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collAuthyRefreshTokensRelatedByIdAuthyPartial && count($collAuthyRefreshTokensRelatedByIdAuthy)) {
+                      $this->initAuthyRefreshTokensRelatedByIdAuthy(false);
+
+                      foreach ($collAuthyRefreshTokensRelatedByIdAuthy as $obj) {
+                        if (false == $this->collAuthyRefreshTokensRelatedByIdAuthy->contains($obj)) {
+                          $this->collAuthyRefreshTokensRelatedByIdAuthy->append($obj);
+                        }
+                      }
+
+                      $this->collAuthyRefreshTokensRelatedByIdAuthyPartial = true;
+                    }
+
+                    $collAuthyRefreshTokensRelatedByIdAuthy->getInternalIterator()->rewind();
+
+                    return $collAuthyRefreshTokensRelatedByIdAuthy;
+                }
+
+                if ($partial && $this->collAuthyRefreshTokensRelatedByIdAuthy) {
+                    foreach ($this->collAuthyRefreshTokensRelatedByIdAuthy as $obj) {
+                        if ($obj->isNew()) {
+                            $collAuthyRefreshTokensRelatedByIdAuthy[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collAuthyRefreshTokensRelatedByIdAuthy = $collAuthyRefreshTokensRelatedByIdAuthy;
+                $this->collAuthyRefreshTokensRelatedByIdAuthyPartial = false;
+            }
+        }
+
+        return $this->collAuthyRefreshTokensRelatedByIdAuthy;
+    }
+
+    /**
+     * Sets a collection of AuthyRefreshTokenRelatedByIdAuthy objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $authyRefreshTokensRelatedByIdAuthy A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setAuthyRefreshTokensRelatedByIdAuthy(PropelCollection $authyRefreshTokensRelatedByIdAuthy, ?PropelPDO $con = null)
+    {
+        $authyRefreshTokensRelatedByIdAuthyToDelete = $this->getAuthyRefreshTokensRelatedByIdAuthy(new Criteria(), $con)->diff($authyRefreshTokensRelatedByIdAuthy);
+
+
+        $this->authyRefreshTokensRelatedByIdAuthyScheduledForDeletion = $authyRefreshTokensRelatedByIdAuthyToDelete;
+
+        foreach ($authyRefreshTokensRelatedByIdAuthyToDelete as $authyRefreshTokenRelatedByIdAuthyRemoved) {
+            $authyRefreshTokenRelatedByIdAuthyRemoved->setAuthyRelatedByIdAuthy(null);
+        }
+
+        $this->collAuthyRefreshTokensRelatedByIdAuthy = null;
+        foreach ($authyRefreshTokensRelatedByIdAuthy as $authyRefreshTokenRelatedByIdAuthy) {
+            $this->addAuthyRefreshTokenRelatedByIdAuthy($authyRefreshTokenRelatedByIdAuthy);
+        }
+
+        $this->collAuthyRefreshTokensRelatedByIdAuthy = $authyRefreshTokensRelatedByIdAuthy;
+        $this->collAuthyRefreshTokensRelatedByIdAuthyPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related AuthyRefreshToken objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related AuthyRefreshToken objects.
+     * @throws PropelException
+     */
+    public function countAuthyRefreshTokensRelatedByIdAuthy(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyRefreshTokensRelatedByIdAuthyPartial && !$this->isNew();
+        if (null === $this->collAuthyRefreshTokensRelatedByIdAuthy || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collAuthyRefreshTokensRelatedByIdAuthy) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getAuthyRefreshTokensRelatedByIdAuthy());
+            }
+            $query = AuthyRefreshTokenQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdAuthy($this)
+                ->count($con);
+        }
+
+        return count($this->collAuthyRefreshTokensRelatedByIdAuthy);
+    }
+
+    /**
+     * Method called to associate a AuthyRefreshToken object to this object
+     * through the AuthyRefreshToken foreign key attribute.
+     *
+     * @param    AuthyRefreshToken $l AuthyRefreshToken
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addAuthyRefreshTokenRelatedByIdAuthy(AuthyRefreshToken $l)
+    {
+        if ($this->collAuthyRefreshTokensRelatedByIdAuthy === null) {
+            $this->initAuthyRefreshTokensRelatedByIdAuthy();
+            $this->collAuthyRefreshTokensRelatedByIdAuthyPartial = true;
+        }
+
+        if (!in_array($l, $this->collAuthyRefreshTokensRelatedByIdAuthy->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddAuthyRefreshTokenRelatedByIdAuthy($l);
+
+            if ($this->authyRefreshTokensRelatedByIdAuthyScheduledForDeletion and $this->authyRefreshTokensRelatedByIdAuthyScheduledForDeletion->contains($l)) {
+                $this->authyRefreshTokensRelatedByIdAuthyScheduledForDeletion->remove($this->authyRefreshTokensRelatedByIdAuthyScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	AuthyRefreshTokenRelatedByIdAuthy $authyRefreshTokenRelatedByIdAuthy The authyRefreshTokenRelatedByIdAuthy object to add.
+     */
+    protected function doAddAuthyRefreshTokenRelatedByIdAuthy($authyRefreshTokenRelatedByIdAuthy)
+    {
+        $this->collAuthyRefreshTokensRelatedByIdAuthy[]= $authyRefreshTokenRelatedByIdAuthy;
+        $authyRefreshTokenRelatedByIdAuthy->setAuthyRelatedByIdAuthy($this);
+    }
+
+    /**
+     * @param	AuthyRefreshTokenRelatedByIdAuthy $authyRefreshTokenRelatedByIdAuthy The authyRefreshTokenRelatedByIdAuthy object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeAuthyRefreshTokenRelatedByIdAuthy($authyRefreshTokenRelatedByIdAuthy)
+    {
+        if ($this->getAuthyRefreshTokensRelatedByIdAuthy()->contains($authyRefreshTokenRelatedByIdAuthy)) {
+            $this->collAuthyRefreshTokensRelatedByIdAuthy->remove($this->collAuthyRefreshTokensRelatedByIdAuthy->search($authyRefreshTokenRelatedByIdAuthy));
+            if (null === $this->authyRefreshTokensRelatedByIdAuthyScheduledForDeletion) {
+                $this->authyRefreshTokensRelatedByIdAuthyScheduledForDeletion = clone $this->collAuthyRefreshTokensRelatedByIdAuthy;
+                $this->authyRefreshTokensRelatedByIdAuthyScheduledForDeletion->clear();
+            }
+            $this->authyRefreshTokensRelatedByIdAuthyScheduledForDeletion[]= clone $authyRefreshTokenRelatedByIdAuthy;
+            $authyRefreshTokenRelatedByIdAuthy->setAuthyRelatedByIdAuthy(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|AuthyRefreshToken[] List of AuthyRefreshToken objects
+     */
+    public function getAuthyRefreshTokensRelatedByIdAuthyJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = AuthyRefreshTokenQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getAuthyRefreshTokensRelatedByIdAuthy($query, $con);
+    }
+
+    /**
+     * Clears out the collAuthyRefreshTokensRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addAuthyRefreshTokensRelatedByIdCreation()
+     */
+    public function clearAuthyRefreshTokensRelatedByIdCreation()
+    {
+        $this->collAuthyRefreshTokensRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collAuthyRefreshTokensRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collAuthyRefreshTokensRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialAuthyRefreshTokensRelatedByIdCreation($v = true)
+    {
+        $this->collAuthyRefreshTokensRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collAuthyRefreshTokensRelatedByIdCreation collection.
+     *
+     * By default this just sets the collAuthyRefreshTokensRelatedByIdCreation collection to an empty array (like clearcollAuthyRefreshTokensRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initAuthyRefreshTokensRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collAuthyRefreshTokensRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collAuthyRefreshTokensRelatedByIdCreation = new PropelObjectCollection();
+        $this->collAuthyRefreshTokensRelatedByIdCreation->setModel('AuthyRefreshToken');
+    }
+
+    /**
+     * Gets an array of AuthyRefreshToken objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|AuthyRefreshToken[] List of AuthyRefreshToken objects
+     * @throws PropelException
+     */
+    public function getAuthyRefreshTokensRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyRefreshTokensRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collAuthyRefreshTokensRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collAuthyRefreshTokensRelatedByIdCreation) {
+                // return empty collection
+                $this->initAuthyRefreshTokensRelatedByIdCreation();
+            } else {
+                $collAuthyRefreshTokensRelatedByIdCreation = AuthyRefreshTokenQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collAuthyRefreshTokensRelatedByIdCreationPartial && count($collAuthyRefreshTokensRelatedByIdCreation)) {
+                      $this->initAuthyRefreshTokensRelatedByIdCreation(false);
+
+                      foreach ($collAuthyRefreshTokensRelatedByIdCreation as $obj) {
+                        if (false == $this->collAuthyRefreshTokensRelatedByIdCreation->contains($obj)) {
+                          $this->collAuthyRefreshTokensRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collAuthyRefreshTokensRelatedByIdCreationPartial = true;
+                    }
+
+                    $collAuthyRefreshTokensRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collAuthyRefreshTokensRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collAuthyRefreshTokensRelatedByIdCreation) {
+                    foreach ($this->collAuthyRefreshTokensRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collAuthyRefreshTokensRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collAuthyRefreshTokensRelatedByIdCreation = $collAuthyRefreshTokensRelatedByIdCreation;
+                $this->collAuthyRefreshTokensRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collAuthyRefreshTokensRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of AuthyRefreshTokenRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $authyRefreshTokensRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setAuthyRefreshTokensRelatedByIdCreation(PropelCollection $authyRefreshTokensRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $authyRefreshTokensRelatedByIdCreationToDelete = $this->getAuthyRefreshTokensRelatedByIdCreation(new Criteria(), $con)->diff($authyRefreshTokensRelatedByIdCreation);
+
+
+        $this->authyRefreshTokensRelatedByIdCreationScheduledForDeletion = $authyRefreshTokensRelatedByIdCreationToDelete;
+
+        foreach ($authyRefreshTokensRelatedByIdCreationToDelete as $authyRefreshTokenRelatedByIdCreationRemoved) {
+            $authyRefreshTokenRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collAuthyRefreshTokensRelatedByIdCreation = null;
+        foreach ($authyRefreshTokensRelatedByIdCreation as $authyRefreshTokenRelatedByIdCreation) {
+            $this->addAuthyRefreshTokenRelatedByIdCreation($authyRefreshTokenRelatedByIdCreation);
+        }
+
+        $this->collAuthyRefreshTokensRelatedByIdCreation = $authyRefreshTokensRelatedByIdCreation;
+        $this->collAuthyRefreshTokensRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related AuthyRefreshToken objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related AuthyRefreshToken objects.
+     * @throws PropelException
+     */
+    public function countAuthyRefreshTokensRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyRefreshTokensRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collAuthyRefreshTokensRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collAuthyRefreshTokensRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getAuthyRefreshTokensRelatedByIdCreation());
+            }
+            $query = AuthyRefreshTokenQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collAuthyRefreshTokensRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a AuthyRefreshToken object to this object
+     * through the AuthyRefreshToken foreign key attribute.
+     *
+     * @param    AuthyRefreshToken $l AuthyRefreshToken
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addAuthyRefreshTokenRelatedByIdCreation(AuthyRefreshToken $l)
+    {
+        if ($this->collAuthyRefreshTokensRelatedByIdCreation === null) {
+            $this->initAuthyRefreshTokensRelatedByIdCreation();
+            $this->collAuthyRefreshTokensRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collAuthyRefreshTokensRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddAuthyRefreshTokenRelatedByIdCreation($l);
+
+            if ($this->authyRefreshTokensRelatedByIdCreationScheduledForDeletion and $this->authyRefreshTokensRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->authyRefreshTokensRelatedByIdCreationScheduledForDeletion->remove($this->authyRefreshTokensRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	AuthyRefreshTokenRelatedByIdCreation $authyRefreshTokenRelatedByIdCreation The authyRefreshTokenRelatedByIdCreation object to add.
+     */
+    protected function doAddAuthyRefreshTokenRelatedByIdCreation($authyRefreshTokenRelatedByIdCreation)
+    {
+        $this->collAuthyRefreshTokensRelatedByIdCreation[]= $authyRefreshTokenRelatedByIdCreation;
+        $authyRefreshTokenRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	AuthyRefreshTokenRelatedByIdCreation $authyRefreshTokenRelatedByIdCreation The authyRefreshTokenRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeAuthyRefreshTokenRelatedByIdCreation($authyRefreshTokenRelatedByIdCreation)
+    {
+        if ($this->getAuthyRefreshTokensRelatedByIdCreation()->contains($authyRefreshTokenRelatedByIdCreation)) {
+            $this->collAuthyRefreshTokensRelatedByIdCreation->remove($this->collAuthyRefreshTokensRelatedByIdCreation->search($authyRefreshTokenRelatedByIdCreation));
+            if (null === $this->authyRefreshTokensRelatedByIdCreationScheduledForDeletion) {
+                $this->authyRefreshTokensRelatedByIdCreationScheduledForDeletion = clone $this->collAuthyRefreshTokensRelatedByIdCreation;
+                $this->authyRefreshTokensRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->authyRefreshTokensRelatedByIdCreationScheduledForDeletion[]= $authyRefreshTokenRelatedByIdCreation;
+            $authyRefreshTokenRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|AuthyRefreshToken[] List of AuthyRefreshToken objects
+     */
+    public function getAuthyRefreshTokensRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = AuthyRefreshTokenQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getAuthyRefreshTokensRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collAuthyRefreshTokensRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addAuthyRefreshTokensRelatedByIdModification()
+     */
+    public function clearAuthyRefreshTokensRelatedByIdModification()
+    {
+        $this->collAuthyRefreshTokensRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collAuthyRefreshTokensRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collAuthyRefreshTokensRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialAuthyRefreshTokensRelatedByIdModification($v = true)
+    {
+        $this->collAuthyRefreshTokensRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collAuthyRefreshTokensRelatedByIdModification collection.
+     *
+     * By default this just sets the collAuthyRefreshTokensRelatedByIdModification collection to an empty array (like clearcollAuthyRefreshTokensRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initAuthyRefreshTokensRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collAuthyRefreshTokensRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collAuthyRefreshTokensRelatedByIdModification = new PropelObjectCollection();
+        $this->collAuthyRefreshTokensRelatedByIdModification->setModel('AuthyRefreshToken');
+    }
+
+    /**
+     * Gets an array of AuthyRefreshToken objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|AuthyRefreshToken[] List of AuthyRefreshToken objects
+     * @throws PropelException
+     */
+    public function getAuthyRefreshTokensRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyRefreshTokensRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collAuthyRefreshTokensRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collAuthyRefreshTokensRelatedByIdModification) {
+                // return empty collection
+                $this->initAuthyRefreshTokensRelatedByIdModification();
+            } else {
+                $collAuthyRefreshTokensRelatedByIdModification = AuthyRefreshTokenQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collAuthyRefreshTokensRelatedByIdModificationPartial && count($collAuthyRefreshTokensRelatedByIdModification)) {
+                      $this->initAuthyRefreshTokensRelatedByIdModification(false);
+
+                      foreach ($collAuthyRefreshTokensRelatedByIdModification as $obj) {
+                        if (false == $this->collAuthyRefreshTokensRelatedByIdModification->contains($obj)) {
+                          $this->collAuthyRefreshTokensRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collAuthyRefreshTokensRelatedByIdModificationPartial = true;
+                    }
+
+                    $collAuthyRefreshTokensRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collAuthyRefreshTokensRelatedByIdModification;
+                }
+
+                if ($partial && $this->collAuthyRefreshTokensRelatedByIdModification) {
+                    foreach ($this->collAuthyRefreshTokensRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collAuthyRefreshTokensRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collAuthyRefreshTokensRelatedByIdModification = $collAuthyRefreshTokensRelatedByIdModification;
+                $this->collAuthyRefreshTokensRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collAuthyRefreshTokensRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of AuthyRefreshTokenRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $authyRefreshTokensRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setAuthyRefreshTokensRelatedByIdModification(PropelCollection $authyRefreshTokensRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $authyRefreshTokensRelatedByIdModificationToDelete = $this->getAuthyRefreshTokensRelatedByIdModification(new Criteria(), $con)->diff($authyRefreshTokensRelatedByIdModification);
+
+
+        $this->authyRefreshTokensRelatedByIdModificationScheduledForDeletion = $authyRefreshTokensRelatedByIdModificationToDelete;
+
+        foreach ($authyRefreshTokensRelatedByIdModificationToDelete as $authyRefreshTokenRelatedByIdModificationRemoved) {
+            $authyRefreshTokenRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collAuthyRefreshTokensRelatedByIdModification = null;
+        foreach ($authyRefreshTokensRelatedByIdModification as $authyRefreshTokenRelatedByIdModification) {
+            $this->addAuthyRefreshTokenRelatedByIdModification($authyRefreshTokenRelatedByIdModification);
+        }
+
+        $this->collAuthyRefreshTokensRelatedByIdModification = $authyRefreshTokensRelatedByIdModification;
+        $this->collAuthyRefreshTokensRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related AuthyRefreshToken objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related AuthyRefreshToken objects.
+     * @throws PropelException
+     */
+    public function countAuthyRefreshTokensRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collAuthyRefreshTokensRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collAuthyRefreshTokensRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collAuthyRefreshTokensRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getAuthyRefreshTokensRelatedByIdModification());
+            }
+            $query = AuthyRefreshTokenQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collAuthyRefreshTokensRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a AuthyRefreshToken object to this object
+     * through the AuthyRefreshToken foreign key attribute.
+     *
+     * @param    AuthyRefreshToken $l AuthyRefreshToken
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addAuthyRefreshTokenRelatedByIdModification(AuthyRefreshToken $l)
+    {
+        if ($this->collAuthyRefreshTokensRelatedByIdModification === null) {
+            $this->initAuthyRefreshTokensRelatedByIdModification();
+            $this->collAuthyRefreshTokensRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collAuthyRefreshTokensRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddAuthyRefreshTokenRelatedByIdModification($l);
+
+            if ($this->authyRefreshTokensRelatedByIdModificationScheduledForDeletion and $this->authyRefreshTokensRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->authyRefreshTokensRelatedByIdModificationScheduledForDeletion->remove($this->authyRefreshTokensRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	AuthyRefreshTokenRelatedByIdModification $authyRefreshTokenRelatedByIdModification The authyRefreshTokenRelatedByIdModification object to add.
+     */
+    protected function doAddAuthyRefreshTokenRelatedByIdModification($authyRefreshTokenRelatedByIdModification)
+    {
+        $this->collAuthyRefreshTokensRelatedByIdModification[]= $authyRefreshTokenRelatedByIdModification;
+        $authyRefreshTokenRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	AuthyRefreshTokenRelatedByIdModification $authyRefreshTokenRelatedByIdModification The authyRefreshTokenRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeAuthyRefreshTokenRelatedByIdModification($authyRefreshTokenRelatedByIdModification)
+    {
+        if ($this->getAuthyRefreshTokensRelatedByIdModification()->contains($authyRefreshTokenRelatedByIdModification)) {
+            $this->collAuthyRefreshTokensRelatedByIdModification->remove($this->collAuthyRefreshTokensRelatedByIdModification->search($authyRefreshTokenRelatedByIdModification));
+            if (null === $this->authyRefreshTokensRelatedByIdModificationScheduledForDeletion) {
+                $this->authyRefreshTokensRelatedByIdModificationScheduledForDeletion = clone $this->collAuthyRefreshTokensRelatedByIdModification;
+                $this->authyRefreshTokensRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->authyRefreshTokensRelatedByIdModificationScheduledForDeletion[]= $authyRefreshTokenRelatedByIdModification;
+            $authyRefreshTokenRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|AuthyRefreshToken[] List of AuthyRefreshToken objects
+     */
+    public function getAuthyRefreshTokensRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = AuthyRefreshTokenQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getAuthyRefreshTokensRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collOauthClientsRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addOauthClientsRelatedByIdCreation()
+     */
+    public function clearOauthClientsRelatedByIdCreation()
+    {
+        $this->collOauthClientsRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collOauthClientsRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collOauthClientsRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialOauthClientsRelatedByIdCreation($v = true)
+    {
+        $this->collOauthClientsRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collOauthClientsRelatedByIdCreation collection.
+     *
+     * By default this just sets the collOauthClientsRelatedByIdCreation collection to an empty array (like clearcollOauthClientsRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initOauthClientsRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collOauthClientsRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collOauthClientsRelatedByIdCreation = new PropelObjectCollection();
+        $this->collOauthClientsRelatedByIdCreation->setModel('OauthClient');
+    }
+
+    /**
+     * Gets an array of OauthClient objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|OauthClient[] List of OauthClient objects
+     * @throws PropelException
+     */
+    public function getOauthClientsRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthClientsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collOauthClientsRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collOauthClientsRelatedByIdCreation) {
+                // return empty collection
+                $this->initOauthClientsRelatedByIdCreation();
+            } else {
+                $collOauthClientsRelatedByIdCreation = OauthClientQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collOauthClientsRelatedByIdCreationPartial && count($collOauthClientsRelatedByIdCreation)) {
+                      $this->initOauthClientsRelatedByIdCreation(false);
+
+                      foreach ($collOauthClientsRelatedByIdCreation as $obj) {
+                        if (false == $this->collOauthClientsRelatedByIdCreation->contains($obj)) {
+                          $this->collOauthClientsRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collOauthClientsRelatedByIdCreationPartial = true;
+                    }
+
+                    $collOauthClientsRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collOauthClientsRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collOauthClientsRelatedByIdCreation) {
+                    foreach ($this->collOauthClientsRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collOauthClientsRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collOauthClientsRelatedByIdCreation = $collOauthClientsRelatedByIdCreation;
+                $this->collOauthClientsRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collOauthClientsRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of OauthClientRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $oauthClientsRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setOauthClientsRelatedByIdCreation(PropelCollection $oauthClientsRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $oauthClientsRelatedByIdCreationToDelete = $this->getOauthClientsRelatedByIdCreation(new Criteria(), $con)->diff($oauthClientsRelatedByIdCreation);
+
+
+        $this->oauthClientsRelatedByIdCreationScheduledForDeletion = $oauthClientsRelatedByIdCreationToDelete;
+
+        foreach ($oauthClientsRelatedByIdCreationToDelete as $oauthClientRelatedByIdCreationRemoved) {
+            $oauthClientRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collOauthClientsRelatedByIdCreation = null;
+        foreach ($oauthClientsRelatedByIdCreation as $oauthClientRelatedByIdCreation) {
+            $this->addOauthClientRelatedByIdCreation($oauthClientRelatedByIdCreation);
+        }
+
+        $this->collOauthClientsRelatedByIdCreation = $oauthClientsRelatedByIdCreation;
+        $this->collOauthClientsRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related OauthClient objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related OauthClient objects.
+     * @throws PropelException
+     */
+    public function countOauthClientsRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthClientsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collOauthClientsRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collOauthClientsRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getOauthClientsRelatedByIdCreation());
+            }
+            $query = OauthClientQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collOauthClientsRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a OauthClient object to this object
+     * through the OauthClient foreign key attribute.
+     *
+     * @param    OauthClient $l OauthClient
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addOauthClientRelatedByIdCreation(OauthClient $l)
+    {
+        if ($this->collOauthClientsRelatedByIdCreation === null) {
+            $this->initOauthClientsRelatedByIdCreation();
+            $this->collOauthClientsRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collOauthClientsRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddOauthClientRelatedByIdCreation($l);
+
+            if ($this->oauthClientsRelatedByIdCreationScheduledForDeletion and $this->oauthClientsRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->oauthClientsRelatedByIdCreationScheduledForDeletion->remove($this->oauthClientsRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	OauthClientRelatedByIdCreation $oauthClientRelatedByIdCreation The oauthClientRelatedByIdCreation object to add.
+     */
+    protected function doAddOauthClientRelatedByIdCreation($oauthClientRelatedByIdCreation)
+    {
+        $this->collOauthClientsRelatedByIdCreation[]= $oauthClientRelatedByIdCreation;
+        $oauthClientRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	OauthClientRelatedByIdCreation $oauthClientRelatedByIdCreation The oauthClientRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeOauthClientRelatedByIdCreation($oauthClientRelatedByIdCreation)
+    {
+        if ($this->getOauthClientsRelatedByIdCreation()->contains($oauthClientRelatedByIdCreation)) {
+            $this->collOauthClientsRelatedByIdCreation->remove($this->collOauthClientsRelatedByIdCreation->search($oauthClientRelatedByIdCreation));
+            if (null === $this->oauthClientsRelatedByIdCreationScheduledForDeletion) {
+                $this->oauthClientsRelatedByIdCreationScheduledForDeletion = clone $this->collOauthClientsRelatedByIdCreation;
+                $this->oauthClientsRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->oauthClientsRelatedByIdCreationScheduledForDeletion[]= $oauthClientRelatedByIdCreation;
+            $oauthClientRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|OauthClient[] List of OauthClient objects
+     */
+    public function getOauthClientsRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = OauthClientQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getOauthClientsRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collOauthClientsRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addOauthClientsRelatedByIdModification()
+     */
+    public function clearOauthClientsRelatedByIdModification()
+    {
+        $this->collOauthClientsRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collOauthClientsRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collOauthClientsRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialOauthClientsRelatedByIdModification($v = true)
+    {
+        $this->collOauthClientsRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collOauthClientsRelatedByIdModification collection.
+     *
+     * By default this just sets the collOauthClientsRelatedByIdModification collection to an empty array (like clearcollOauthClientsRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initOauthClientsRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collOauthClientsRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collOauthClientsRelatedByIdModification = new PropelObjectCollection();
+        $this->collOauthClientsRelatedByIdModification->setModel('OauthClient');
+    }
+
+    /**
+     * Gets an array of OauthClient objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|OauthClient[] List of OauthClient objects
+     * @throws PropelException
+     */
+    public function getOauthClientsRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthClientsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collOauthClientsRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collOauthClientsRelatedByIdModification) {
+                // return empty collection
+                $this->initOauthClientsRelatedByIdModification();
+            } else {
+                $collOauthClientsRelatedByIdModification = OauthClientQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collOauthClientsRelatedByIdModificationPartial && count($collOauthClientsRelatedByIdModification)) {
+                      $this->initOauthClientsRelatedByIdModification(false);
+
+                      foreach ($collOauthClientsRelatedByIdModification as $obj) {
+                        if (false == $this->collOauthClientsRelatedByIdModification->contains($obj)) {
+                          $this->collOauthClientsRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collOauthClientsRelatedByIdModificationPartial = true;
+                    }
+
+                    $collOauthClientsRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collOauthClientsRelatedByIdModification;
+                }
+
+                if ($partial && $this->collOauthClientsRelatedByIdModification) {
+                    foreach ($this->collOauthClientsRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collOauthClientsRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collOauthClientsRelatedByIdModification = $collOauthClientsRelatedByIdModification;
+                $this->collOauthClientsRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collOauthClientsRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of OauthClientRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $oauthClientsRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setOauthClientsRelatedByIdModification(PropelCollection $oauthClientsRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $oauthClientsRelatedByIdModificationToDelete = $this->getOauthClientsRelatedByIdModification(new Criteria(), $con)->diff($oauthClientsRelatedByIdModification);
+
+
+        $this->oauthClientsRelatedByIdModificationScheduledForDeletion = $oauthClientsRelatedByIdModificationToDelete;
+
+        foreach ($oauthClientsRelatedByIdModificationToDelete as $oauthClientRelatedByIdModificationRemoved) {
+            $oauthClientRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collOauthClientsRelatedByIdModification = null;
+        foreach ($oauthClientsRelatedByIdModification as $oauthClientRelatedByIdModification) {
+            $this->addOauthClientRelatedByIdModification($oauthClientRelatedByIdModification);
+        }
+
+        $this->collOauthClientsRelatedByIdModification = $oauthClientsRelatedByIdModification;
+        $this->collOauthClientsRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related OauthClient objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related OauthClient objects.
+     * @throws PropelException
+     */
+    public function countOauthClientsRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthClientsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collOauthClientsRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collOauthClientsRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getOauthClientsRelatedByIdModification());
+            }
+            $query = OauthClientQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collOauthClientsRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a OauthClient object to this object
+     * through the OauthClient foreign key attribute.
+     *
+     * @param    OauthClient $l OauthClient
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addOauthClientRelatedByIdModification(OauthClient $l)
+    {
+        if ($this->collOauthClientsRelatedByIdModification === null) {
+            $this->initOauthClientsRelatedByIdModification();
+            $this->collOauthClientsRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collOauthClientsRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddOauthClientRelatedByIdModification($l);
+
+            if ($this->oauthClientsRelatedByIdModificationScheduledForDeletion and $this->oauthClientsRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->oauthClientsRelatedByIdModificationScheduledForDeletion->remove($this->oauthClientsRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	OauthClientRelatedByIdModification $oauthClientRelatedByIdModification The oauthClientRelatedByIdModification object to add.
+     */
+    protected function doAddOauthClientRelatedByIdModification($oauthClientRelatedByIdModification)
+    {
+        $this->collOauthClientsRelatedByIdModification[]= $oauthClientRelatedByIdModification;
+        $oauthClientRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	OauthClientRelatedByIdModification $oauthClientRelatedByIdModification The oauthClientRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeOauthClientRelatedByIdModification($oauthClientRelatedByIdModification)
+    {
+        if ($this->getOauthClientsRelatedByIdModification()->contains($oauthClientRelatedByIdModification)) {
+            $this->collOauthClientsRelatedByIdModification->remove($this->collOauthClientsRelatedByIdModification->search($oauthClientRelatedByIdModification));
+            if (null === $this->oauthClientsRelatedByIdModificationScheduledForDeletion) {
+                $this->oauthClientsRelatedByIdModificationScheduledForDeletion = clone $this->collOauthClientsRelatedByIdModification;
+                $this->oauthClientsRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->oauthClientsRelatedByIdModificationScheduledForDeletion[]= $oauthClientRelatedByIdModification;
+            $oauthClientRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|OauthClient[] List of OauthClient objects
+     */
+    public function getOauthClientsRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = OauthClientQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getOauthClientsRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collOauthAuthCodesRelatedByIdAuthy collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addOauthAuthCodesRelatedByIdAuthy()
+     */
+    public function clearOauthAuthCodesRelatedByIdAuthy()
+    {
+        $this->collOauthAuthCodesRelatedByIdAuthy = null; // important to set this to null since that means it is uninitialized
+        $this->collOauthAuthCodesRelatedByIdAuthyPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collOauthAuthCodesRelatedByIdAuthy collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialOauthAuthCodesRelatedByIdAuthy($v = true)
+    {
+        $this->collOauthAuthCodesRelatedByIdAuthyPartial = $v;
+    }
+
+    /**
+     * Initializes the collOauthAuthCodesRelatedByIdAuthy collection.
+     *
+     * By default this just sets the collOauthAuthCodesRelatedByIdAuthy collection to an empty array (like clearcollOauthAuthCodesRelatedByIdAuthy());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initOauthAuthCodesRelatedByIdAuthy($overrideExisting = true)
+    {
+        if (null !== $this->collOauthAuthCodesRelatedByIdAuthy && !$overrideExisting) {
+            return;
+        }
+        $this->collOauthAuthCodesRelatedByIdAuthy = new PropelObjectCollection();
+        $this->collOauthAuthCodesRelatedByIdAuthy->setModel('OauthAuthCode');
+    }
+
+    /**
+     * Gets an array of OauthAuthCode objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|OauthAuthCode[] List of OauthAuthCode objects
+     * @throws PropelException
+     */
+    public function getOauthAuthCodesRelatedByIdAuthy($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthAuthCodesRelatedByIdAuthyPartial && !$this->isNew();
+        if (null === $this->collOauthAuthCodesRelatedByIdAuthy || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collOauthAuthCodesRelatedByIdAuthy) {
+                // return empty collection
+                $this->initOauthAuthCodesRelatedByIdAuthy();
+            } else {
+                $collOauthAuthCodesRelatedByIdAuthy = OauthAuthCodeQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdAuthy($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collOauthAuthCodesRelatedByIdAuthyPartial && count($collOauthAuthCodesRelatedByIdAuthy)) {
+                      $this->initOauthAuthCodesRelatedByIdAuthy(false);
+
+                      foreach ($collOauthAuthCodesRelatedByIdAuthy as $obj) {
+                        if (false == $this->collOauthAuthCodesRelatedByIdAuthy->contains($obj)) {
+                          $this->collOauthAuthCodesRelatedByIdAuthy->append($obj);
+                        }
+                      }
+
+                      $this->collOauthAuthCodesRelatedByIdAuthyPartial = true;
+                    }
+
+                    $collOauthAuthCodesRelatedByIdAuthy->getInternalIterator()->rewind();
+
+                    return $collOauthAuthCodesRelatedByIdAuthy;
+                }
+
+                if ($partial && $this->collOauthAuthCodesRelatedByIdAuthy) {
+                    foreach ($this->collOauthAuthCodesRelatedByIdAuthy as $obj) {
+                        if ($obj->isNew()) {
+                            $collOauthAuthCodesRelatedByIdAuthy[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collOauthAuthCodesRelatedByIdAuthy = $collOauthAuthCodesRelatedByIdAuthy;
+                $this->collOauthAuthCodesRelatedByIdAuthyPartial = false;
+            }
+        }
+
+        return $this->collOauthAuthCodesRelatedByIdAuthy;
+    }
+
+    /**
+     * Sets a collection of OauthAuthCodeRelatedByIdAuthy objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $oauthAuthCodesRelatedByIdAuthy A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setOauthAuthCodesRelatedByIdAuthy(PropelCollection $oauthAuthCodesRelatedByIdAuthy, ?PropelPDO $con = null)
+    {
+        $oauthAuthCodesRelatedByIdAuthyToDelete = $this->getOauthAuthCodesRelatedByIdAuthy(new Criteria(), $con)->diff($oauthAuthCodesRelatedByIdAuthy);
+
+
+        $this->oauthAuthCodesRelatedByIdAuthyScheduledForDeletion = $oauthAuthCodesRelatedByIdAuthyToDelete;
+
+        foreach ($oauthAuthCodesRelatedByIdAuthyToDelete as $oauthAuthCodeRelatedByIdAuthyRemoved) {
+            $oauthAuthCodeRelatedByIdAuthyRemoved->setAuthyRelatedByIdAuthy(null);
+        }
+
+        $this->collOauthAuthCodesRelatedByIdAuthy = null;
+        foreach ($oauthAuthCodesRelatedByIdAuthy as $oauthAuthCodeRelatedByIdAuthy) {
+            $this->addOauthAuthCodeRelatedByIdAuthy($oauthAuthCodeRelatedByIdAuthy);
+        }
+
+        $this->collOauthAuthCodesRelatedByIdAuthy = $oauthAuthCodesRelatedByIdAuthy;
+        $this->collOauthAuthCodesRelatedByIdAuthyPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related OauthAuthCode objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related OauthAuthCode objects.
+     * @throws PropelException
+     */
+    public function countOauthAuthCodesRelatedByIdAuthy(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthAuthCodesRelatedByIdAuthyPartial && !$this->isNew();
+        if (null === $this->collOauthAuthCodesRelatedByIdAuthy || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collOauthAuthCodesRelatedByIdAuthy) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getOauthAuthCodesRelatedByIdAuthy());
+            }
+            $query = OauthAuthCodeQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdAuthy($this)
+                ->count($con);
+        }
+
+        return count($this->collOauthAuthCodesRelatedByIdAuthy);
+    }
+
+    /**
+     * Method called to associate a OauthAuthCode object to this object
+     * through the OauthAuthCode foreign key attribute.
+     *
+     * @param    OauthAuthCode $l OauthAuthCode
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addOauthAuthCodeRelatedByIdAuthy(OauthAuthCode $l)
+    {
+        if ($this->collOauthAuthCodesRelatedByIdAuthy === null) {
+            $this->initOauthAuthCodesRelatedByIdAuthy();
+            $this->collOauthAuthCodesRelatedByIdAuthyPartial = true;
+        }
+
+        if (!in_array($l, $this->collOauthAuthCodesRelatedByIdAuthy->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddOauthAuthCodeRelatedByIdAuthy($l);
+
+            if ($this->oauthAuthCodesRelatedByIdAuthyScheduledForDeletion and $this->oauthAuthCodesRelatedByIdAuthyScheduledForDeletion->contains($l)) {
+                $this->oauthAuthCodesRelatedByIdAuthyScheduledForDeletion->remove($this->oauthAuthCodesRelatedByIdAuthyScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	OauthAuthCodeRelatedByIdAuthy $oauthAuthCodeRelatedByIdAuthy The oauthAuthCodeRelatedByIdAuthy object to add.
+     */
+    protected function doAddOauthAuthCodeRelatedByIdAuthy($oauthAuthCodeRelatedByIdAuthy)
+    {
+        $this->collOauthAuthCodesRelatedByIdAuthy[]= $oauthAuthCodeRelatedByIdAuthy;
+        $oauthAuthCodeRelatedByIdAuthy->setAuthyRelatedByIdAuthy($this);
+    }
+
+    /**
+     * @param	OauthAuthCodeRelatedByIdAuthy $oauthAuthCodeRelatedByIdAuthy The oauthAuthCodeRelatedByIdAuthy object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeOauthAuthCodeRelatedByIdAuthy($oauthAuthCodeRelatedByIdAuthy)
+    {
+        if ($this->getOauthAuthCodesRelatedByIdAuthy()->contains($oauthAuthCodeRelatedByIdAuthy)) {
+            $this->collOauthAuthCodesRelatedByIdAuthy->remove($this->collOauthAuthCodesRelatedByIdAuthy->search($oauthAuthCodeRelatedByIdAuthy));
+            if (null === $this->oauthAuthCodesRelatedByIdAuthyScheduledForDeletion) {
+                $this->oauthAuthCodesRelatedByIdAuthyScheduledForDeletion = clone $this->collOauthAuthCodesRelatedByIdAuthy;
+                $this->oauthAuthCodesRelatedByIdAuthyScheduledForDeletion->clear();
+            }
+            $this->oauthAuthCodesRelatedByIdAuthyScheduledForDeletion[]= $oauthAuthCodeRelatedByIdAuthy;
+            $oauthAuthCodeRelatedByIdAuthy->setAuthyRelatedByIdAuthy(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|OauthAuthCode[] List of OauthAuthCode objects
+     */
+    public function getOauthAuthCodesRelatedByIdAuthyJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = OauthAuthCodeQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getOauthAuthCodesRelatedByIdAuthy($query, $con);
+    }
+
+    /**
+     * Clears out the collOauthAuthCodesRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addOauthAuthCodesRelatedByIdCreation()
+     */
+    public function clearOauthAuthCodesRelatedByIdCreation()
+    {
+        $this->collOauthAuthCodesRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collOauthAuthCodesRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collOauthAuthCodesRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialOauthAuthCodesRelatedByIdCreation($v = true)
+    {
+        $this->collOauthAuthCodesRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collOauthAuthCodesRelatedByIdCreation collection.
+     *
+     * By default this just sets the collOauthAuthCodesRelatedByIdCreation collection to an empty array (like clearcollOauthAuthCodesRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initOauthAuthCodesRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collOauthAuthCodesRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collOauthAuthCodesRelatedByIdCreation = new PropelObjectCollection();
+        $this->collOauthAuthCodesRelatedByIdCreation->setModel('OauthAuthCode');
+    }
+
+    /**
+     * Gets an array of OauthAuthCode objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|OauthAuthCode[] List of OauthAuthCode objects
+     * @throws PropelException
+     */
+    public function getOauthAuthCodesRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthAuthCodesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collOauthAuthCodesRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collOauthAuthCodesRelatedByIdCreation) {
+                // return empty collection
+                $this->initOauthAuthCodesRelatedByIdCreation();
+            } else {
+                $collOauthAuthCodesRelatedByIdCreation = OauthAuthCodeQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collOauthAuthCodesRelatedByIdCreationPartial && count($collOauthAuthCodesRelatedByIdCreation)) {
+                      $this->initOauthAuthCodesRelatedByIdCreation(false);
+
+                      foreach ($collOauthAuthCodesRelatedByIdCreation as $obj) {
+                        if (false == $this->collOauthAuthCodesRelatedByIdCreation->contains($obj)) {
+                          $this->collOauthAuthCodesRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collOauthAuthCodesRelatedByIdCreationPartial = true;
+                    }
+
+                    $collOauthAuthCodesRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collOauthAuthCodesRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collOauthAuthCodesRelatedByIdCreation) {
+                    foreach ($this->collOauthAuthCodesRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collOauthAuthCodesRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collOauthAuthCodesRelatedByIdCreation = $collOauthAuthCodesRelatedByIdCreation;
+                $this->collOauthAuthCodesRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collOauthAuthCodesRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of OauthAuthCodeRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $oauthAuthCodesRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setOauthAuthCodesRelatedByIdCreation(PropelCollection $oauthAuthCodesRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $oauthAuthCodesRelatedByIdCreationToDelete = $this->getOauthAuthCodesRelatedByIdCreation(new Criteria(), $con)->diff($oauthAuthCodesRelatedByIdCreation);
+
+
+        $this->oauthAuthCodesRelatedByIdCreationScheduledForDeletion = $oauthAuthCodesRelatedByIdCreationToDelete;
+
+        foreach ($oauthAuthCodesRelatedByIdCreationToDelete as $oauthAuthCodeRelatedByIdCreationRemoved) {
+            $oauthAuthCodeRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collOauthAuthCodesRelatedByIdCreation = null;
+        foreach ($oauthAuthCodesRelatedByIdCreation as $oauthAuthCodeRelatedByIdCreation) {
+            $this->addOauthAuthCodeRelatedByIdCreation($oauthAuthCodeRelatedByIdCreation);
+        }
+
+        $this->collOauthAuthCodesRelatedByIdCreation = $oauthAuthCodesRelatedByIdCreation;
+        $this->collOauthAuthCodesRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related OauthAuthCode objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related OauthAuthCode objects.
+     * @throws PropelException
+     */
+    public function countOauthAuthCodesRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthAuthCodesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collOauthAuthCodesRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collOauthAuthCodesRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getOauthAuthCodesRelatedByIdCreation());
+            }
+            $query = OauthAuthCodeQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collOauthAuthCodesRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a OauthAuthCode object to this object
+     * through the OauthAuthCode foreign key attribute.
+     *
+     * @param    OauthAuthCode $l OauthAuthCode
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addOauthAuthCodeRelatedByIdCreation(OauthAuthCode $l)
+    {
+        if ($this->collOauthAuthCodesRelatedByIdCreation === null) {
+            $this->initOauthAuthCodesRelatedByIdCreation();
+            $this->collOauthAuthCodesRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collOauthAuthCodesRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddOauthAuthCodeRelatedByIdCreation($l);
+
+            if ($this->oauthAuthCodesRelatedByIdCreationScheduledForDeletion and $this->oauthAuthCodesRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->oauthAuthCodesRelatedByIdCreationScheduledForDeletion->remove($this->oauthAuthCodesRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	OauthAuthCodeRelatedByIdCreation $oauthAuthCodeRelatedByIdCreation The oauthAuthCodeRelatedByIdCreation object to add.
+     */
+    protected function doAddOauthAuthCodeRelatedByIdCreation($oauthAuthCodeRelatedByIdCreation)
+    {
+        $this->collOauthAuthCodesRelatedByIdCreation[]= $oauthAuthCodeRelatedByIdCreation;
+        $oauthAuthCodeRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	OauthAuthCodeRelatedByIdCreation $oauthAuthCodeRelatedByIdCreation The oauthAuthCodeRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeOauthAuthCodeRelatedByIdCreation($oauthAuthCodeRelatedByIdCreation)
+    {
+        if ($this->getOauthAuthCodesRelatedByIdCreation()->contains($oauthAuthCodeRelatedByIdCreation)) {
+            $this->collOauthAuthCodesRelatedByIdCreation->remove($this->collOauthAuthCodesRelatedByIdCreation->search($oauthAuthCodeRelatedByIdCreation));
+            if (null === $this->oauthAuthCodesRelatedByIdCreationScheduledForDeletion) {
+                $this->oauthAuthCodesRelatedByIdCreationScheduledForDeletion = clone $this->collOauthAuthCodesRelatedByIdCreation;
+                $this->oauthAuthCodesRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->oauthAuthCodesRelatedByIdCreationScheduledForDeletion[]= $oauthAuthCodeRelatedByIdCreation;
+            $oauthAuthCodeRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|OauthAuthCode[] List of OauthAuthCode objects
+     */
+    public function getOauthAuthCodesRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = OauthAuthCodeQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getOauthAuthCodesRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collOauthAuthCodesRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addOauthAuthCodesRelatedByIdModification()
+     */
+    public function clearOauthAuthCodesRelatedByIdModification()
+    {
+        $this->collOauthAuthCodesRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collOauthAuthCodesRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collOauthAuthCodesRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialOauthAuthCodesRelatedByIdModification($v = true)
+    {
+        $this->collOauthAuthCodesRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collOauthAuthCodesRelatedByIdModification collection.
+     *
+     * By default this just sets the collOauthAuthCodesRelatedByIdModification collection to an empty array (like clearcollOauthAuthCodesRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initOauthAuthCodesRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collOauthAuthCodesRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collOauthAuthCodesRelatedByIdModification = new PropelObjectCollection();
+        $this->collOauthAuthCodesRelatedByIdModification->setModel('OauthAuthCode');
+    }
+
+    /**
+     * Gets an array of OauthAuthCode objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|OauthAuthCode[] List of OauthAuthCode objects
+     * @throws PropelException
+     */
+    public function getOauthAuthCodesRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthAuthCodesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collOauthAuthCodesRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collOauthAuthCodesRelatedByIdModification) {
+                // return empty collection
+                $this->initOauthAuthCodesRelatedByIdModification();
+            } else {
+                $collOauthAuthCodesRelatedByIdModification = OauthAuthCodeQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collOauthAuthCodesRelatedByIdModificationPartial && count($collOauthAuthCodesRelatedByIdModification)) {
+                      $this->initOauthAuthCodesRelatedByIdModification(false);
+
+                      foreach ($collOauthAuthCodesRelatedByIdModification as $obj) {
+                        if (false == $this->collOauthAuthCodesRelatedByIdModification->contains($obj)) {
+                          $this->collOauthAuthCodesRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collOauthAuthCodesRelatedByIdModificationPartial = true;
+                    }
+
+                    $collOauthAuthCodesRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collOauthAuthCodesRelatedByIdModification;
+                }
+
+                if ($partial && $this->collOauthAuthCodesRelatedByIdModification) {
+                    foreach ($this->collOauthAuthCodesRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collOauthAuthCodesRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collOauthAuthCodesRelatedByIdModification = $collOauthAuthCodesRelatedByIdModification;
+                $this->collOauthAuthCodesRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collOauthAuthCodesRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of OauthAuthCodeRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $oauthAuthCodesRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setOauthAuthCodesRelatedByIdModification(PropelCollection $oauthAuthCodesRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $oauthAuthCodesRelatedByIdModificationToDelete = $this->getOauthAuthCodesRelatedByIdModification(new Criteria(), $con)->diff($oauthAuthCodesRelatedByIdModification);
+
+
+        $this->oauthAuthCodesRelatedByIdModificationScheduledForDeletion = $oauthAuthCodesRelatedByIdModificationToDelete;
+
+        foreach ($oauthAuthCodesRelatedByIdModificationToDelete as $oauthAuthCodeRelatedByIdModificationRemoved) {
+            $oauthAuthCodeRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collOauthAuthCodesRelatedByIdModification = null;
+        foreach ($oauthAuthCodesRelatedByIdModification as $oauthAuthCodeRelatedByIdModification) {
+            $this->addOauthAuthCodeRelatedByIdModification($oauthAuthCodeRelatedByIdModification);
+        }
+
+        $this->collOauthAuthCodesRelatedByIdModification = $oauthAuthCodesRelatedByIdModification;
+        $this->collOauthAuthCodesRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related OauthAuthCode objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related OauthAuthCode objects.
+     * @throws PropelException
+     */
+    public function countOauthAuthCodesRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthAuthCodesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collOauthAuthCodesRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collOauthAuthCodesRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getOauthAuthCodesRelatedByIdModification());
+            }
+            $query = OauthAuthCodeQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collOauthAuthCodesRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a OauthAuthCode object to this object
+     * through the OauthAuthCode foreign key attribute.
+     *
+     * @param    OauthAuthCode $l OauthAuthCode
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addOauthAuthCodeRelatedByIdModification(OauthAuthCode $l)
+    {
+        if ($this->collOauthAuthCodesRelatedByIdModification === null) {
+            $this->initOauthAuthCodesRelatedByIdModification();
+            $this->collOauthAuthCodesRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collOauthAuthCodesRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddOauthAuthCodeRelatedByIdModification($l);
+
+            if ($this->oauthAuthCodesRelatedByIdModificationScheduledForDeletion and $this->oauthAuthCodesRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->oauthAuthCodesRelatedByIdModificationScheduledForDeletion->remove($this->oauthAuthCodesRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	OauthAuthCodeRelatedByIdModification $oauthAuthCodeRelatedByIdModification The oauthAuthCodeRelatedByIdModification object to add.
+     */
+    protected function doAddOauthAuthCodeRelatedByIdModification($oauthAuthCodeRelatedByIdModification)
+    {
+        $this->collOauthAuthCodesRelatedByIdModification[]= $oauthAuthCodeRelatedByIdModification;
+        $oauthAuthCodeRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	OauthAuthCodeRelatedByIdModification $oauthAuthCodeRelatedByIdModification The oauthAuthCodeRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeOauthAuthCodeRelatedByIdModification($oauthAuthCodeRelatedByIdModification)
+    {
+        if ($this->getOauthAuthCodesRelatedByIdModification()->contains($oauthAuthCodeRelatedByIdModification)) {
+            $this->collOauthAuthCodesRelatedByIdModification->remove($this->collOauthAuthCodesRelatedByIdModification->search($oauthAuthCodeRelatedByIdModification));
+            if (null === $this->oauthAuthCodesRelatedByIdModificationScheduledForDeletion) {
+                $this->oauthAuthCodesRelatedByIdModificationScheduledForDeletion = clone $this->collOauthAuthCodesRelatedByIdModification;
+                $this->oauthAuthCodesRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->oauthAuthCodesRelatedByIdModificationScheduledForDeletion[]= $oauthAuthCodeRelatedByIdModification;
+            $oauthAuthCodeRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|OauthAuthCode[] List of OauthAuthCode objects
+     */
+    public function getOauthAuthCodesRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = OauthAuthCodeQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getOauthAuthCodesRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collOauthAccessTokensRelatedByIdAuthy collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addOauthAccessTokensRelatedByIdAuthy()
+     */
+    public function clearOauthAccessTokensRelatedByIdAuthy()
+    {
+        $this->collOauthAccessTokensRelatedByIdAuthy = null; // important to set this to null since that means it is uninitialized
+        $this->collOauthAccessTokensRelatedByIdAuthyPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collOauthAccessTokensRelatedByIdAuthy collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialOauthAccessTokensRelatedByIdAuthy($v = true)
+    {
+        $this->collOauthAccessTokensRelatedByIdAuthyPartial = $v;
+    }
+
+    /**
+     * Initializes the collOauthAccessTokensRelatedByIdAuthy collection.
+     *
+     * By default this just sets the collOauthAccessTokensRelatedByIdAuthy collection to an empty array (like clearcollOauthAccessTokensRelatedByIdAuthy());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initOauthAccessTokensRelatedByIdAuthy($overrideExisting = true)
+    {
+        if (null !== $this->collOauthAccessTokensRelatedByIdAuthy && !$overrideExisting) {
+            return;
+        }
+        $this->collOauthAccessTokensRelatedByIdAuthy = new PropelObjectCollection();
+        $this->collOauthAccessTokensRelatedByIdAuthy->setModel('OauthAccessToken');
+    }
+
+    /**
+     * Gets an array of OauthAccessToken objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|OauthAccessToken[] List of OauthAccessToken objects
+     * @throws PropelException
+     */
+    public function getOauthAccessTokensRelatedByIdAuthy($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthAccessTokensRelatedByIdAuthyPartial && !$this->isNew();
+        if (null === $this->collOauthAccessTokensRelatedByIdAuthy || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collOauthAccessTokensRelatedByIdAuthy) {
+                // return empty collection
+                $this->initOauthAccessTokensRelatedByIdAuthy();
+            } else {
+                $collOauthAccessTokensRelatedByIdAuthy = OauthAccessTokenQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdAuthy($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collOauthAccessTokensRelatedByIdAuthyPartial && count($collOauthAccessTokensRelatedByIdAuthy)) {
+                      $this->initOauthAccessTokensRelatedByIdAuthy(false);
+
+                      foreach ($collOauthAccessTokensRelatedByIdAuthy as $obj) {
+                        if (false == $this->collOauthAccessTokensRelatedByIdAuthy->contains($obj)) {
+                          $this->collOauthAccessTokensRelatedByIdAuthy->append($obj);
+                        }
+                      }
+
+                      $this->collOauthAccessTokensRelatedByIdAuthyPartial = true;
+                    }
+
+                    $collOauthAccessTokensRelatedByIdAuthy->getInternalIterator()->rewind();
+
+                    return $collOauthAccessTokensRelatedByIdAuthy;
+                }
+
+                if ($partial && $this->collOauthAccessTokensRelatedByIdAuthy) {
+                    foreach ($this->collOauthAccessTokensRelatedByIdAuthy as $obj) {
+                        if ($obj->isNew()) {
+                            $collOauthAccessTokensRelatedByIdAuthy[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collOauthAccessTokensRelatedByIdAuthy = $collOauthAccessTokensRelatedByIdAuthy;
+                $this->collOauthAccessTokensRelatedByIdAuthyPartial = false;
+            }
+        }
+
+        return $this->collOauthAccessTokensRelatedByIdAuthy;
+    }
+
+    /**
+     * Sets a collection of OauthAccessTokenRelatedByIdAuthy objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $oauthAccessTokensRelatedByIdAuthy A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setOauthAccessTokensRelatedByIdAuthy(PropelCollection $oauthAccessTokensRelatedByIdAuthy, ?PropelPDO $con = null)
+    {
+        $oauthAccessTokensRelatedByIdAuthyToDelete = $this->getOauthAccessTokensRelatedByIdAuthy(new Criteria(), $con)->diff($oauthAccessTokensRelatedByIdAuthy);
+
+
+        $this->oauthAccessTokensRelatedByIdAuthyScheduledForDeletion = $oauthAccessTokensRelatedByIdAuthyToDelete;
+
+        foreach ($oauthAccessTokensRelatedByIdAuthyToDelete as $oauthAccessTokenRelatedByIdAuthyRemoved) {
+            $oauthAccessTokenRelatedByIdAuthyRemoved->setAuthyRelatedByIdAuthy(null);
+        }
+
+        $this->collOauthAccessTokensRelatedByIdAuthy = null;
+        foreach ($oauthAccessTokensRelatedByIdAuthy as $oauthAccessTokenRelatedByIdAuthy) {
+            $this->addOauthAccessTokenRelatedByIdAuthy($oauthAccessTokenRelatedByIdAuthy);
+        }
+
+        $this->collOauthAccessTokensRelatedByIdAuthy = $oauthAccessTokensRelatedByIdAuthy;
+        $this->collOauthAccessTokensRelatedByIdAuthyPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related OauthAccessToken objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related OauthAccessToken objects.
+     * @throws PropelException
+     */
+    public function countOauthAccessTokensRelatedByIdAuthy(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthAccessTokensRelatedByIdAuthyPartial && !$this->isNew();
+        if (null === $this->collOauthAccessTokensRelatedByIdAuthy || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collOauthAccessTokensRelatedByIdAuthy) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getOauthAccessTokensRelatedByIdAuthy());
+            }
+            $query = OauthAccessTokenQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdAuthy($this)
+                ->count($con);
+        }
+
+        return count($this->collOauthAccessTokensRelatedByIdAuthy);
+    }
+
+    /**
+     * Method called to associate a OauthAccessToken object to this object
+     * through the OauthAccessToken foreign key attribute.
+     *
+     * @param    OauthAccessToken $l OauthAccessToken
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addOauthAccessTokenRelatedByIdAuthy(OauthAccessToken $l)
+    {
+        if ($this->collOauthAccessTokensRelatedByIdAuthy === null) {
+            $this->initOauthAccessTokensRelatedByIdAuthy();
+            $this->collOauthAccessTokensRelatedByIdAuthyPartial = true;
+        }
+
+        if (!in_array($l, $this->collOauthAccessTokensRelatedByIdAuthy->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddOauthAccessTokenRelatedByIdAuthy($l);
+
+            if ($this->oauthAccessTokensRelatedByIdAuthyScheduledForDeletion and $this->oauthAccessTokensRelatedByIdAuthyScheduledForDeletion->contains($l)) {
+                $this->oauthAccessTokensRelatedByIdAuthyScheduledForDeletion->remove($this->oauthAccessTokensRelatedByIdAuthyScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	OauthAccessTokenRelatedByIdAuthy $oauthAccessTokenRelatedByIdAuthy The oauthAccessTokenRelatedByIdAuthy object to add.
+     */
+    protected function doAddOauthAccessTokenRelatedByIdAuthy($oauthAccessTokenRelatedByIdAuthy)
+    {
+        $this->collOauthAccessTokensRelatedByIdAuthy[]= $oauthAccessTokenRelatedByIdAuthy;
+        $oauthAccessTokenRelatedByIdAuthy->setAuthyRelatedByIdAuthy($this);
+    }
+
+    /**
+     * @param	OauthAccessTokenRelatedByIdAuthy $oauthAccessTokenRelatedByIdAuthy The oauthAccessTokenRelatedByIdAuthy object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeOauthAccessTokenRelatedByIdAuthy($oauthAccessTokenRelatedByIdAuthy)
+    {
+        if ($this->getOauthAccessTokensRelatedByIdAuthy()->contains($oauthAccessTokenRelatedByIdAuthy)) {
+            $this->collOauthAccessTokensRelatedByIdAuthy->remove($this->collOauthAccessTokensRelatedByIdAuthy->search($oauthAccessTokenRelatedByIdAuthy));
+            if (null === $this->oauthAccessTokensRelatedByIdAuthyScheduledForDeletion) {
+                $this->oauthAccessTokensRelatedByIdAuthyScheduledForDeletion = clone $this->collOauthAccessTokensRelatedByIdAuthy;
+                $this->oauthAccessTokensRelatedByIdAuthyScheduledForDeletion->clear();
+            }
+            $this->oauthAccessTokensRelatedByIdAuthyScheduledForDeletion[]= $oauthAccessTokenRelatedByIdAuthy;
+            $oauthAccessTokenRelatedByIdAuthy->setAuthyRelatedByIdAuthy(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|OauthAccessToken[] List of OauthAccessToken objects
+     */
+    public function getOauthAccessTokensRelatedByIdAuthyJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = OauthAccessTokenQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getOauthAccessTokensRelatedByIdAuthy($query, $con);
+    }
+
+    /**
+     * Clears out the collOauthAccessTokensRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addOauthAccessTokensRelatedByIdCreation()
+     */
+    public function clearOauthAccessTokensRelatedByIdCreation()
+    {
+        $this->collOauthAccessTokensRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collOauthAccessTokensRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collOauthAccessTokensRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialOauthAccessTokensRelatedByIdCreation($v = true)
+    {
+        $this->collOauthAccessTokensRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collOauthAccessTokensRelatedByIdCreation collection.
+     *
+     * By default this just sets the collOauthAccessTokensRelatedByIdCreation collection to an empty array (like clearcollOauthAccessTokensRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initOauthAccessTokensRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collOauthAccessTokensRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collOauthAccessTokensRelatedByIdCreation = new PropelObjectCollection();
+        $this->collOauthAccessTokensRelatedByIdCreation->setModel('OauthAccessToken');
+    }
+
+    /**
+     * Gets an array of OauthAccessToken objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|OauthAccessToken[] List of OauthAccessToken objects
+     * @throws PropelException
+     */
+    public function getOauthAccessTokensRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthAccessTokensRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collOauthAccessTokensRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collOauthAccessTokensRelatedByIdCreation) {
+                // return empty collection
+                $this->initOauthAccessTokensRelatedByIdCreation();
+            } else {
+                $collOauthAccessTokensRelatedByIdCreation = OauthAccessTokenQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collOauthAccessTokensRelatedByIdCreationPartial && count($collOauthAccessTokensRelatedByIdCreation)) {
+                      $this->initOauthAccessTokensRelatedByIdCreation(false);
+
+                      foreach ($collOauthAccessTokensRelatedByIdCreation as $obj) {
+                        if (false == $this->collOauthAccessTokensRelatedByIdCreation->contains($obj)) {
+                          $this->collOauthAccessTokensRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collOauthAccessTokensRelatedByIdCreationPartial = true;
+                    }
+
+                    $collOauthAccessTokensRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collOauthAccessTokensRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collOauthAccessTokensRelatedByIdCreation) {
+                    foreach ($this->collOauthAccessTokensRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collOauthAccessTokensRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collOauthAccessTokensRelatedByIdCreation = $collOauthAccessTokensRelatedByIdCreation;
+                $this->collOauthAccessTokensRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collOauthAccessTokensRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of OauthAccessTokenRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $oauthAccessTokensRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setOauthAccessTokensRelatedByIdCreation(PropelCollection $oauthAccessTokensRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $oauthAccessTokensRelatedByIdCreationToDelete = $this->getOauthAccessTokensRelatedByIdCreation(new Criteria(), $con)->diff($oauthAccessTokensRelatedByIdCreation);
+
+
+        $this->oauthAccessTokensRelatedByIdCreationScheduledForDeletion = $oauthAccessTokensRelatedByIdCreationToDelete;
+
+        foreach ($oauthAccessTokensRelatedByIdCreationToDelete as $oauthAccessTokenRelatedByIdCreationRemoved) {
+            $oauthAccessTokenRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collOauthAccessTokensRelatedByIdCreation = null;
+        foreach ($oauthAccessTokensRelatedByIdCreation as $oauthAccessTokenRelatedByIdCreation) {
+            $this->addOauthAccessTokenRelatedByIdCreation($oauthAccessTokenRelatedByIdCreation);
+        }
+
+        $this->collOauthAccessTokensRelatedByIdCreation = $oauthAccessTokensRelatedByIdCreation;
+        $this->collOauthAccessTokensRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related OauthAccessToken objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related OauthAccessToken objects.
+     * @throws PropelException
+     */
+    public function countOauthAccessTokensRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthAccessTokensRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collOauthAccessTokensRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collOauthAccessTokensRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getOauthAccessTokensRelatedByIdCreation());
+            }
+            $query = OauthAccessTokenQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collOauthAccessTokensRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a OauthAccessToken object to this object
+     * through the OauthAccessToken foreign key attribute.
+     *
+     * @param    OauthAccessToken $l OauthAccessToken
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addOauthAccessTokenRelatedByIdCreation(OauthAccessToken $l)
+    {
+        if ($this->collOauthAccessTokensRelatedByIdCreation === null) {
+            $this->initOauthAccessTokensRelatedByIdCreation();
+            $this->collOauthAccessTokensRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collOauthAccessTokensRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddOauthAccessTokenRelatedByIdCreation($l);
+
+            if ($this->oauthAccessTokensRelatedByIdCreationScheduledForDeletion and $this->oauthAccessTokensRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->oauthAccessTokensRelatedByIdCreationScheduledForDeletion->remove($this->oauthAccessTokensRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	OauthAccessTokenRelatedByIdCreation $oauthAccessTokenRelatedByIdCreation The oauthAccessTokenRelatedByIdCreation object to add.
+     */
+    protected function doAddOauthAccessTokenRelatedByIdCreation($oauthAccessTokenRelatedByIdCreation)
+    {
+        $this->collOauthAccessTokensRelatedByIdCreation[]= $oauthAccessTokenRelatedByIdCreation;
+        $oauthAccessTokenRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	OauthAccessTokenRelatedByIdCreation $oauthAccessTokenRelatedByIdCreation The oauthAccessTokenRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeOauthAccessTokenRelatedByIdCreation($oauthAccessTokenRelatedByIdCreation)
+    {
+        if ($this->getOauthAccessTokensRelatedByIdCreation()->contains($oauthAccessTokenRelatedByIdCreation)) {
+            $this->collOauthAccessTokensRelatedByIdCreation->remove($this->collOauthAccessTokensRelatedByIdCreation->search($oauthAccessTokenRelatedByIdCreation));
+            if (null === $this->oauthAccessTokensRelatedByIdCreationScheduledForDeletion) {
+                $this->oauthAccessTokensRelatedByIdCreationScheduledForDeletion = clone $this->collOauthAccessTokensRelatedByIdCreation;
+                $this->oauthAccessTokensRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->oauthAccessTokensRelatedByIdCreationScheduledForDeletion[]= $oauthAccessTokenRelatedByIdCreation;
+            $oauthAccessTokenRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|OauthAccessToken[] List of OauthAccessToken objects
+     */
+    public function getOauthAccessTokensRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = OauthAccessTokenQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getOauthAccessTokensRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collOauthAccessTokensRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addOauthAccessTokensRelatedByIdModification()
+     */
+    public function clearOauthAccessTokensRelatedByIdModification()
+    {
+        $this->collOauthAccessTokensRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collOauthAccessTokensRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collOauthAccessTokensRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialOauthAccessTokensRelatedByIdModification($v = true)
+    {
+        $this->collOauthAccessTokensRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collOauthAccessTokensRelatedByIdModification collection.
+     *
+     * By default this just sets the collOauthAccessTokensRelatedByIdModification collection to an empty array (like clearcollOauthAccessTokensRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initOauthAccessTokensRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collOauthAccessTokensRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collOauthAccessTokensRelatedByIdModification = new PropelObjectCollection();
+        $this->collOauthAccessTokensRelatedByIdModification->setModel('OauthAccessToken');
+    }
+
+    /**
+     * Gets an array of OauthAccessToken objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|OauthAccessToken[] List of OauthAccessToken objects
+     * @throws PropelException
+     */
+    public function getOauthAccessTokensRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthAccessTokensRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collOauthAccessTokensRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collOauthAccessTokensRelatedByIdModification) {
+                // return empty collection
+                $this->initOauthAccessTokensRelatedByIdModification();
+            } else {
+                $collOauthAccessTokensRelatedByIdModification = OauthAccessTokenQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collOauthAccessTokensRelatedByIdModificationPartial && count($collOauthAccessTokensRelatedByIdModification)) {
+                      $this->initOauthAccessTokensRelatedByIdModification(false);
+
+                      foreach ($collOauthAccessTokensRelatedByIdModification as $obj) {
+                        if (false == $this->collOauthAccessTokensRelatedByIdModification->contains($obj)) {
+                          $this->collOauthAccessTokensRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collOauthAccessTokensRelatedByIdModificationPartial = true;
+                    }
+
+                    $collOauthAccessTokensRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collOauthAccessTokensRelatedByIdModification;
+                }
+
+                if ($partial && $this->collOauthAccessTokensRelatedByIdModification) {
+                    foreach ($this->collOauthAccessTokensRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collOauthAccessTokensRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collOauthAccessTokensRelatedByIdModification = $collOauthAccessTokensRelatedByIdModification;
+                $this->collOauthAccessTokensRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collOauthAccessTokensRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of OauthAccessTokenRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $oauthAccessTokensRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setOauthAccessTokensRelatedByIdModification(PropelCollection $oauthAccessTokensRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $oauthAccessTokensRelatedByIdModificationToDelete = $this->getOauthAccessTokensRelatedByIdModification(new Criteria(), $con)->diff($oauthAccessTokensRelatedByIdModification);
+
+
+        $this->oauthAccessTokensRelatedByIdModificationScheduledForDeletion = $oauthAccessTokensRelatedByIdModificationToDelete;
+
+        foreach ($oauthAccessTokensRelatedByIdModificationToDelete as $oauthAccessTokenRelatedByIdModificationRemoved) {
+            $oauthAccessTokenRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collOauthAccessTokensRelatedByIdModification = null;
+        foreach ($oauthAccessTokensRelatedByIdModification as $oauthAccessTokenRelatedByIdModification) {
+            $this->addOauthAccessTokenRelatedByIdModification($oauthAccessTokenRelatedByIdModification);
+        }
+
+        $this->collOauthAccessTokensRelatedByIdModification = $oauthAccessTokensRelatedByIdModification;
+        $this->collOauthAccessTokensRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related OauthAccessToken objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related OauthAccessToken objects.
+     * @throws PropelException
+     */
+    public function countOauthAccessTokensRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthAccessTokensRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collOauthAccessTokensRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collOauthAccessTokensRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getOauthAccessTokensRelatedByIdModification());
+            }
+            $query = OauthAccessTokenQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collOauthAccessTokensRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a OauthAccessToken object to this object
+     * through the OauthAccessToken foreign key attribute.
+     *
+     * @param    OauthAccessToken $l OauthAccessToken
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addOauthAccessTokenRelatedByIdModification(OauthAccessToken $l)
+    {
+        if ($this->collOauthAccessTokensRelatedByIdModification === null) {
+            $this->initOauthAccessTokensRelatedByIdModification();
+            $this->collOauthAccessTokensRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collOauthAccessTokensRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddOauthAccessTokenRelatedByIdModification($l);
+
+            if ($this->oauthAccessTokensRelatedByIdModificationScheduledForDeletion and $this->oauthAccessTokensRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->oauthAccessTokensRelatedByIdModificationScheduledForDeletion->remove($this->oauthAccessTokensRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	OauthAccessTokenRelatedByIdModification $oauthAccessTokenRelatedByIdModification The oauthAccessTokenRelatedByIdModification object to add.
+     */
+    protected function doAddOauthAccessTokenRelatedByIdModification($oauthAccessTokenRelatedByIdModification)
+    {
+        $this->collOauthAccessTokensRelatedByIdModification[]= $oauthAccessTokenRelatedByIdModification;
+        $oauthAccessTokenRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	OauthAccessTokenRelatedByIdModification $oauthAccessTokenRelatedByIdModification The oauthAccessTokenRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeOauthAccessTokenRelatedByIdModification($oauthAccessTokenRelatedByIdModification)
+    {
+        if ($this->getOauthAccessTokensRelatedByIdModification()->contains($oauthAccessTokenRelatedByIdModification)) {
+            $this->collOauthAccessTokensRelatedByIdModification->remove($this->collOauthAccessTokensRelatedByIdModification->search($oauthAccessTokenRelatedByIdModification));
+            if (null === $this->oauthAccessTokensRelatedByIdModificationScheduledForDeletion) {
+                $this->oauthAccessTokensRelatedByIdModificationScheduledForDeletion = clone $this->collOauthAccessTokensRelatedByIdModification;
+                $this->oauthAccessTokensRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->oauthAccessTokensRelatedByIdModificationScheduledForDeletion[]= $oauthAccessTokenRelatedByIdModification;
+            $oauthAccessTokenRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|OauthAccessToken[] List of OauthAccessToken objects
+     */
+    public function getOauthAccessTokensRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = OauthAccessTokenQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getOauthAccessTokensRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collOauthRefreshTokensRelatedByIdAuthy collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addOauthRefreshTokensRelatedByIdAuthy()
+     */
+    public function clearOauthRefreshTokensRelatedByIdAuthy()
+    {
+        $this->collOauthRefreshTokensRelatedByIdAuthy = null; // important to set this to null since that means it is uninitialized
+        $this->collOauthRefreshTokensRelatedByIdAuthyPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collOauthRefreshTokensRelatedByIdAuthy collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialOauthRefreshTokensRelatedByIdAuthy($v = true)
+    {
+        $this->collOauthRefreshTokensRelatedByIdAuthyPartial = $v;
+    }
+
+    /**
+     * Initializes the collOauthRefreshTokensRelatedByIdAuthy collection.
+     *
+     * By default this just sets the collOauthRefreshTokensRelatedByIdAuthy collection to an empty array (like clearcollOauthRefreshTokensRelatedByIdAuthy());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initOauthRefreshTokensRelatedByIdAuthy($overrideExisting = true)
+    {
+        if (null !== $this->collOauthRefreshTokensRelatedByIdAuthy && !$overrideExisting) {
+            return;
+        }
+        $this->collOauthRefreshTokensRelatedByIdAuthy = new PropelObjectCollection();
+        $this->collOauthRefreshTokensRelatedByIdAuthy->setModel('OauthRefreshToken');
+    }
+
+    /**
+     * Gets an array of OauthRefreshToken objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|OauthRefreshToken[] List of OauthRefreshToken objects
+     * @throws PropelException
+     */
+    public function getOauthRefreshTokensRelatedByIdAuthy($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthRefreshTokensRelatedByIdAuthyPartial && !$this->isNew();
+        if (null === $this->collOauthRefreshTokensRelatedByIdAuthy || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collOauthRefreshTokensRelatedByIdAuthy) {
+                // return empty collection
+                $this->initOauthRefreshTokensRelatedByIdAuthy();
+            } else {
+                $collOauthRefreshTokensRelatedByIdAuthy = OauthRefreshTokenQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdAuthy($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collOauthRefreshTokensRelatedByIdAuthyPartial && count($collOauthRefreshTokensRelatedByIdAuthy)) {
+                      $this->initOauthRefreshTokensRelatedByIdAuthy(false);
+
+                      foreach ($collOauthRefreshTokensRelatedByIdAuthy as $obj) {
+                        if (false == $this->collOauthRefreshTokensRelatedByIdAuthy->contains($obj)) {
+                          $this->collOauthRefreshTokensRelatedByIdAuthy->append($obj);
+                        }
+                      }
+
+                      $this->collOauthRefreshTokensRelatedByIdAuthyPartial = true;
+                    }
+
+                    $collOauthRefreshTokensRelatedByIdAuthy->getInternalIterator()->rewind();
+
+                    return $collOauthRefreshTokensRelatedByIdAuthy;
+                }
+
+                if ($partial && $this->collOauthRefreshTokensRelatedByIdAuthy) {
+                    foreach ($this->collOauthRefreshTokensRelatedByIdAuthy as $obj) {
+                        if ($obj->isNew()) {
+                            $collOauthRefreshTokensRelatedByIdAuthy[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collOauthRefreshTokensRelatedByIdAuthy = $collOauthRefreshTokensRelatedByIdAuthy;
+                $this->collOauthRefreshTokensRelatedByIdAuthyPartial = false;
+            }
+        }
+
+        return $this->collOauthRefreshTokensRelatedByIdAuthy;
+    }
+
+    /**
+     * Sets a collection of OauthRefreshTokenRelatedByIdAuthy objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $oauthRefreshTokensRelatedByIdAuthy A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setOauthRefreshTokensRelatedByIdAuthy(PropelCollection $oauthRefreshTokensRelatedByIdAuthy, ?PropelPDO $con = null)
+    {
+        $oauthRefreshTokensRelatedByIdAuthyToDelete = $this->getOauthRefreshTokensRelatedByIdAuthy(new Criteria(), $con)->diff($oauthRefreshTokensRelatedByIdAuthy);
+
+
+        $this->oauthRefreshTokensRelatedByIdAuthyScheduledForDeletion = $oauthRefreshTokensRelatedByIdAuthyToDelete;
+
+        foreach ($oauthRefreshTokensRelatedByIdAuthyToDelete as $oauthRefreshTokenRelatedByIdAuthyRemoved) {
+            $oauthRefreshTokenRelatedByIdAuthyRemoved->setAuthyRelatedByIdAuthy(null);
+        }
+
+        $this->collOauthRefreshTokensRelatedByIdAuthy = null;
+        foreach ($oauthRefreshTokensRelatedByIdAuthy as $oauthRefreshTokenRelatedByIdAuthy) {
+            $this->addOauthRefreshTokenRelatedByIdAuthy($oauthRefreshTokenRelatedByIdAuthy);
+        }
+
+        $this->collOauthRefreshTokensRelatedByIdAuthy = $oauthRefreshTokensRelatedByIdAuthy;
+        $this->collOauthRefreshTokensRelatedByIdAuthyPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related OauthRefreshToken objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related OauthRefreshToken objects.
+     * @throws PropelException
+     */
+    public function countOauthRefreshTokensRelatedByIdAuthy(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthRefreshTokensRelatedByIdAuthyPartial && !$this->isNew();
+        if (null === $this->collOauthRefreshTokensRelatedByIdAuthy || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collOauthRefreshTokensRelatedByIdAuthy) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getOauthRefreshTokensRelatedByIdAuthy());
+            }
+            $query = OauthRefreshTokenQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdAuthy($this)
+                ->count($con);
+        }
+
+        return count($this->collOauthRefreshTokensRelatedByIdAuthy);
+    }
+
+    /**
+     * Method called to associate a OauthRefreshToken object to this object
+     * through the OauthRefreshToken foreign key attribute.
+     *
+     * @param    OauthRefreshToken $l OauthRefreshToken
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addOauthRefreshTokenRelatedByIdAuthy(OauthRefreshToken $l)
+    {
+        if ($this->collOauthRefreshTokensRelatedByIdAuthy === null) {
+            $this->initOauthRefreshTokensRelatedByIdAuthy();
+            $this->collOauthRefreshTokensRelatedByIdAuthyPartial = true;
+        }
+
+        if (!in_array($l, $this->collOauthRefreshTokensRelatedByIdAuthy->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddOauthRefreshTokenRelatedByIdAuthy($l);
+
+            if ($this->oauthRefreshTokensRelatedByIdAuthyScheduledForDeletion and $this->oauthRefreshTokensRelatedByIdAuthyScheduledForDeletion->contains($l)) {
+                $this->oauthRefreshTokensRelatedByIdAuthyScheduledForDeletion->remove($this->oauthRefreshTokensRelatedByIdAuthyScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	OauthRefreshTokenRelatedByIdAuthy $oauthRefreshTokenRelatedByIdAuthy The oauthRefreshTokenRelatedByIdAuthy object to add.
+     */
+    protected function doAddOauthRefreshTokenRelatedByIdAuthy($oauthRefreshTokenRelatedByIdAuthy)
+    {
+        $this->collOauthRefreshTokensRelatedByIdAuthy[]= $oauthRefreshTokenRelatedByIdAuthy;
+        $oauthRefreshTokenRelatedByIdAuthy->setAuthyRelatedByIdAuthy($this);
+    }
+
+    /**
+     * @param	OauthRefreshTokenRelatedByIdAuthy $oauthRefreshTokenRelatedByIdAuthy The oauthRefreshTokenRelatedByIdAuthy object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeOauthRefreshTokenRelatedByIdAuthy($oauthRefreshTokenRelatedByIdAuthy)
+    {
+        if ($this->getOauthRefreshTokensRelatedByIdAuthy()->contains($oauthRefreshTokenRelatedByIdAuthy)) {
+            $this->collOauthRefreshTokensRelatedByIdAuthy->remove($this->collOauthRefreshTokensRelatedByIdAuthy->search($oauthRefreshTokenRelatedByIdAuthy));
+            if (null === $this->oauthRefreshTokensRelatedByIdAuthyScheduledForDeletion) {
+                $this->oauthRefreshTokensRelatedByIdAuthyScheduledForDeletion = clone $this->collOauthRefreshTokensRelatedByIdAuthy;
+                $this->oauthRefreshTokensRelatedByIdAuthyScheduledForDeletion->clear();
+            }
+            $this->oauthRefreshTokensRelatedByIdAuthyScheduledForDeletion[]= $oauthRefreshTokenRelatedByIdAuthy;
+            $oauthRefreshTokenRelatedByIdAuthy->setAuthyRelatedByIdAuthy(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|OauthRefreshToken[] List of OauthRefreshToken objects
+     */
+    public function getOauthRefreshTokensRelatedByIdAuthyJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = OauthRefreshTokenQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getOauthRefreshTokensRelatedByIdAuthy($query, $con);
+    }
+
+    /**
+     * Clears out the collOauthRefreshTokensRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addOauthRefreshTokensRelatedByIdCreation()
+     */
+    public function clearOauthRefreshTokensRelatedByIdCreation()
+    {
+        $this->collOauthRefreshTokensRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collOauthRefreshTokensRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collOauthRefreshTokensRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialOauthRefreshTokensRelatedByIdCreation($v = true)
+    {
+        $this->collOauthRefreshTokensRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collOauthRefreshTokensRelatedByIdCreation collection.
+     *
+     * By default this just sets the collOauthRefreshTokensRelatedByIdCreation collection to an empty array (like clearcollOauthRefreshTokensRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initOauthRefreshTokensRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collOauthRefreshTokensRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collOauthRefreshTokensRelatedByIdCreation = new PropelObjectCollection();
+        $this->collOauthRefreshTokensRelatedByIdCreation->setModel('OauthRefreshToken');
+    }
+
+    /**
+     * Gets an array of OauthRefreshToken objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|OauthRefreshToken[] List of OauthRefreshToken objects
+     * @throws PropelException
+     */
+    public function getOauthRefreshTokensRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthRefreshTokensRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collOauthRefreshTokensRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collOauthRefreshTokensRelatedByIdCreation) {
+                // return empty collection
+                $this->initOauthRefreshTokensRelatedByIdCreation();
+            } else {
+                $collOauthRefreshTokensRelatedByIdCreation = OauthRefreshTokenQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collOauthRefreshTokensRelatedByIdCreationPartial && count($collOauthRefreshTokensRelatedByIdCreation)) {
+                      $this->initOauthRefreshTokensRelatedByIdCreation(false);
+
+                      foreach ($collOauthRefreshTokensRelatedByIdCreation as $obj) {
+                        if (false == $this->collOauthRefreshTokensRelatedByIdCreation->contains($obj)) {
+                          $this->collOauthRefreshTokensRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collOauthRefreshTokensRelatedByIdCreationPartial = true;
+                    }
+
+                    $collOauthRefreshTokensRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collOauthRefreshTokensRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collOauthRefreshTokensRelatedByIdCreation) {
+                    foreach ($this->collOauthRefreshTokensRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collOauthRefreshTokensRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collOauthRefreshTokensRelatedByIdCreation = $collOauthRefreshTokensRelatedByIdCreation;
+                $this->collOauthRefreshTokensRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collOauthRefreshTokensRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of OauthRefreshTokenRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $oauthRefreshTokensRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setOauthRefreshTokensRelatedByIdCreation(PropelCollection $oauthRefreshTokensRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $oauthRefreshTokensRelatedByIdCreationToDelete = $this->getOauthRefreshTokensRelatedByIdCreation(new Criteria(), $con)->diff($oauthRefreshTokensRelatedByIdCreation);
+
+
+        $this->oauthRefreshTokensRelatedByIdCreationScheduledForDeletion = $oauthRefreshTokensRelatedByIdCreationToDelete;
+
+        foreach ($oauthRefreshTokensRelatedByIdCreationToDelete as $oauthRefreshTokenRelatedByIdCreationRemoved) {
+            $oauthRefreshTokenRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collOauthRefreshTokensRelatedByIdCreation = null;
+        foreach ($oauthRefreshTokensRelatedByIdCreation as $oauthRefreshTokenRelatedByIdCreation) {
+            $this->addOauthRefreshTokenRelatedByIdCreation($oauthRefreshTokenRelatedByIdCreation);
+        }
+
+        $this->collOauthRefreshTokensRelatedByIdCreation = $oauthRefreshTokensRelatedByIdCreation;
+        $this->collOauthRefreshTokensRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related OauthRefreshToken objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related OauthRefreshToken objects.
+     * @throws PropelException
+     */
+    public function countOauthRefreshTokensRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthRefreshTokensRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collOauthRefreshTokensRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collOauthRefreshTokensRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getOauthRefreshTokensRelatedByIdCreation());
+            }
+            $query = OauthRefreshTokenQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collOauthRefreshTokensRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a OauthRefreshToken object to this object
+     * through the OauthRefreshToken foreign key attribute.
+     *
+     * @param    OauthRefreshToken $l OauthRefreshToken
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addOauthRefreshTokenRelatedByIdCreation(OauthRefreshToken $l)
+    {
+        if ($this->collOauthRefreshTokensRelatedByIdCreation === null) {
+            $this->initOauthRefreshTokensRelatedByIdCreation();
+            $this->collOauthRefreshTokensRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collOauthRefreshTokensRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddOauthRefreshTokenRelatedByIdCreation($l);
+
+            if ($this->oauthRefreshTokensRelatedByIdCreationScheduledForDeletion and $this->oauthRefreshTokensRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->oauthRefreshTokensRelatedByIdCreationScheduledForDeletion->remove($this->oauthRefreshTokensRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	OauthRefreshTokenRelatedByIdCreation $oauthRefreshTokenRelatedByIdCreation The oauthRefreshTokenRelatedByIdCreation object to add.
+     */
+    protected function doAddOauthRefreshTokenRelatedByIdCreation($oauthRefreshTokenRelatedByIdCreation)
+    {
+        $this->collOauthRefreshTokensRelatedByIdCreation[]= $oauthRefreshTokenRelatedByIdCreation;
+        $oauthRefreshTokenRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	OauthRefreshTokenRelatedByIdCreation $oauthRefreshTokenRelatedByIdCreation The oauthRefreshTokenRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeOauthRefreshTokenRelatedByIdCreation($oauthRefreshTokenRelatedByIdCreation)
+    {
+        if ($this->getOauthRefreshTokensRelatedByIdCreation()->contains($oauthRefreshTokenRelatedByIdCreation)) {
+            $this->collOauthRefreshTokensRelatedByIdCreation->remove($this->collOauthRefreshTokensRelatedByIdCreation->search($oauthRefreshTokenRelatedByIdCreation));
+            if (null === $this->oauthRefreshTokensRelatedByIdCreationScheduledForDeletion) {
+                $this->oauthRefreshTokensRelatedByIdCreationScheduledForDeletion = clone $this->collOauthRefreshTokensRelatedByIdCreation;
+                $this->oauthRefreshTokensRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->oauthRefreshTokensRelatedByIdCreationScheduledForDeletion[]= $oauthRefreshTokenRelatedByIdCreation;
+            $oauthRefreshTokenRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|OauthRefreshToken[] List of OauthRefreshToken objects
+     */
+    public function getOauthRefreshTokensRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = OauthRefreshTokenQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getOauthRefreshTokensRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collOauthRefreshTokensRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addOauthRefreshTokensRelatedByIdModification()
+     */
+    public function clearOauthRefreshTokensRelatedByIdModification()
+    {
+        $this->collOauthRefreshTokensRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collOauthRefreshTokensRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collOauthRefreshTokensRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialOauthRefreshTokensRelatedByIdModification($v = true)
+    {
+        $this->collOauthRefreshTokensRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collOauthRefreshTokensRelatedByIdModification collection.
+     *
+     * By default this just sets the collOauthRefreshTokensRelatedByIdModification collection to an empty array (like clearcollOauthRefreshTokensRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initOauthRefreshTokensRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collOauthRefreshTokensRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collOauthRefreshTokensRelatedByIdModification = new PropelObjectCollection();
+        $this->collOauthRefreshTokensRelatedByIdModification->setModel('OauthRefreshToken');
+    }
+
+    /**
+     * Gets an array of OauthRefreshToken objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|OauthRefreshToken[] List of OauthRefreshToken objects
+     * @throws PropelException
+     */
+    public function getOauthRefreshTokensRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthRefreshTokensRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collOauthRefreshTokensRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collOauthRefreshTokensRelatedByIdModification) {
+                // return empty collection
+                $this->initOauthRefreshTokensRelatedByIdModification();
+            } else {
+                $collOauthRefreshTokensRelatedByIdModification = OauthRefreshTokenQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collOauthRefreshTokensRelatedByIdModificationPartial && count($collOauthRefreshTokensRelatedByIdModification)) {
+                      $this->initOauthRefreshTokensRelatedByIdModification(false);
+
+                      foreach ($collOauthRefreshTokensRelatedByIdModification as $obj) {
+                        if (false == $this->collOauthRefreshTokensRelatedByIdModification->contains($obj)) {
+                          $this->collOauthRefreshTokensRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collOauthRefreshTokensRelatedByIdModificationPartial = true;
+                    }
+
+                    $collOauthRefreshTokensRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collOauthRefreshTokensRelatedByIdModification;
+                }
+
+                if ($partial && $this->collOauthRefreshTokensRelatedByIdModification) {
+                    foreach ($this->collOauthRefreshTokensRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collOauthRefreshTokensRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collOauthRefreshTokensRelatedByIdModification = $collOauthRefreshTokensRelatedByIdModification;
+                $this->collOauthRefreshTokensRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collOauthRefreshTokensRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of OauthRefreshTokenRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $oauthRefreshTokensRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setOauthRefreshTokensRelatedByIdModification(PropelCollection $oauthRefreshTokensRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $oauthRefreshTokensRelatedByIdModificationToDelete = $this->getOauthRefreshTokensRelatedByIdModification(new Criteria(), $con)->diff($oauthRefreshTokensRelatedByIdModification);
+
+
+        $this->oauthRefreshTokensRelatedByIdModificationScheduledForDeletion = $oauthRefreshTokensRelatedByIdModificationToDelete;
+
+        foreach ($oauthRefreshTokensRelatedByIdModificationToDelete as $oauthRefreshTokenRelatedByIdModificationRemoved) {
+            $oauthRefreshTokenRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collOauthRefreshTokensRelatedByIdModification = null;
+        foreach ($oauthRefreshTokensRelatedByIdModification as $oauthRefreshTokenRelatedByIdModification) {
+            $this->addOauthRefreshTokenRelatedByIdModification($oauthRefreshTokenRelatedByIdModification);
+        }
+
+        $this->collOauthRefreshTokensRelatedByIdModification = $oauthRefreshTokensRelatedByIdModification;
+        $this->collOauthRefreshTokensRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related OauthRefreshToken objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related OauthRefreshToken objects.
+     * @throws PropelException
+     */
+    public function countOauthRefreshTokensRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collOauthRefreshTokensRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collOauthRefreshTokensRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collOauthRefreshTokensRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getOauthRefreshTokensRelatedByIdModification());
+            }
+            $query = OauthRefreshTokenQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collOauthRefreshTokensRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a OauthRefreshToken object to this object
+     * through the OauthRefreshToken foreign key attribute.
+     *
+     * @param    OauthRefreshToken $l OauthRefreshToken
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addOauthRefreshTokenRelatedByIdModification(OauthRefreshToken $l)
+    {
+        if ($this->collOauthRefreshTokensRelatedByIdModification === null) {
+            $this->initOauthRefreshTokensRelatedByIdModification();
+            $this->collOauthRefreshTokensRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collOauthRefreshTokensRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddOauthRefreshTokenRelatedByIdModification($l);
+
+            if ($this->oauthRefreshTokensRelatedByIdModificationScheduledForDeletion and $this->oauthRefreshTokensRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->oauthRefreshTokensRelatedByIdModificationScheduledForDeletion->remove($this->oauthRefreshTokensRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	OauthRefreshTokenRelatedByIdModification $oauthRefreshTokenRelatedByIdModification The oauthRefreshTokenRelatedByIdModification object to add.
+     */
+    protected function doAddOauthRefreshTokenRelatedByIdModification($oauthRefreshTokenRelatedByIdModification)
+    {
+        $this->collOauthRefreshTokensRelatedByIdModification[]= $oauthRefreshTokenRelatedByIdModification;
+        $oauthRefreshTokenRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	OauthRefreshTokenRelatedByIdModification $oauthRefreshTokenRelatedByIdModification The oauthRefreshTokenRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeOauthRefreshTokenRelatedByIdModification($oauthRefreshTokenRelatedByIdModification)
+    {
+        if ($this->getOauthRefreshTokensRelatedByIdModification()->contains($oauthRefreshTokenRelatedByIdModification)) {
+            $this->collOauthRefreshTokensRelatedByIdModification->remove($this->collOauthRefreshTokensRelatedByIdModification->search($oauthRefreshTokenRelatedByIdModification));
+            if (null === $this->oauthRefreshTokensRelatedByIdModificationScheduledForDeletion) {
+                $this->oauthRefreshTokensRelatedByIdModificationScheduledForDeletion = clone $this->collOauthRefreshTokensRelatedByIdModification;
+                $this->oauthRefreshTokensRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->oauthRefreshTokensRelatedByIdModificationScheduledForDeletion[]= $oauthRefreshTokenRelatedByIdModification;
+            $oauthRefreshTokenRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|OauthRefreshToken[] List of OauthRefreshToken objects
+     */
+    public function getOauthRefreshTokensRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = OauthRefreshTokenQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getOauthRefreshTokensRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collMessageI18nsRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addMessageI18nsRelatedByIdCreation()
+     */
+    public function clearMessageI18nsRelatedByIdCreation()
+    {
+        $this->collMessageI18nsRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collMessageI18nsRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collMessageI18nsRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialMessageI18nsRelatedByIdCreation($v = true)
+    {
+        $this->collMessageI18nsRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collMessageI18nsRelatedByIdCreation collection.
+     *
+     * By default this just sets the collMessageI18nsRelatedByIdCreation collection to an empty array (like clearcollMessageI18nsRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initMessageI18nsRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collMessageI18nsRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collMessageI18nsRelatedByIdCreation = new PropelObjectCollection();
+        $this->collMessageI18nsRelatedByIdCreation->setModel('MessageI18n');
+    }
+
+    /**
+     * Gets an array of MessageI18n objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|MessageI18n[] List of MessageI18n objects
+     * @throws PropelException
+     */
+    public function getMessageI18nsRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMessageI18nsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collMessageI18nsRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collMessageI18nsRelatedByIdCreation) {
+                // return empty collection
+                $this->initMessageI18nsRelatedByIdCreation();
+            } else {
+                $collMessageI18nsRelatedByIdCreation = MessageI18nQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collMessageI18nsRelatedByIdCreationPartial && count($collMessageI18nsRelatedByIdCreation)) {
+                      $this->initMessageI18nsRelatedByIdCreation(false);
+
+                      foreach ($collMessageI18nsRelatedByIdCreation as $obj) {
+                        if (false == $this->collMessageI18nsRelatedByIdCreation->contains($obj)) {
+                          $this->collMessageI18nsRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collMessageI18nsRelatedByIdCreationPartial = true;
+                    }
+
+                    $collMessageI18nsRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collMessageI18nsRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collMessageI18nsRelatedByIdCreation) {
+                    foreach ($this->collMessageI18nsRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collMessageI18nsRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collMessageI18nsRelatedByIdCreation = $collMessageI18nsRelatedByIdCreation;
+                $this->collMessageI18nsRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collMessageI18nsRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of MessageI18nRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $messageI18nsRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setMessageI18nsRelatedByIdCreation(PropelCollection $messageI18nsRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $messageI18nsRelatedByIdCreationToDelete = $this->getMessageI18nsRelatedByIdCreation(new Criteria(), $con)->diff($messageI18nsRelatedByIdCreation);
+
+
+        $this->messageI18nsRelatedByIdCreationScheduledForDeletion = $messageI18nsRelatedByIdCreationToDelete;
+
+        foreach ($messageI18nsRelatedByIdCreationToDelete as $messageI18nRelatedByIdCreationRemoved) {
+            $messageI18nRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collMessageI18nsRelatedByIdCreation = null;
+        foreach ($messageI18nsRelatedByIdCreation as $messageI18nRelatedByIdCreation) {
+            $this->addMessageI18nRelatedByIdCreation($messageI18nRelatedByIdCreation);
+        }
+
+        $this->collMessageI18nsRelatedByIdCreation = $messageI18nsRelatedByIdCreation;
+        $this->collMessageI18nsRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related MessageI18n objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related MessageI18n objects.
+     * @throws PropelException
+     */
+    public function countMessageI18nsRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMessageI18nsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collMessageI18nsRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collMessageI18nsRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getMessageI18nsRelatedByIdCreation());
+            }
+            $query = MessageI18nQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collMessageI18nsRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a MessageI18n object to this object
+     * through the MessageI18n foreign key attribute.
+     *
+     * @param    MessageI18n $l MessageI18n
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addMessageI18nRelatedByIdCreation(MessageI18n $l)
+    {
+        if ($this->collMessageI18nsRelatedByIdCreation === null) {
+            $this->initMessageI18nsRelatedByIdCreation();
+            $this->collMessageI18nsRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collMessageI18nsRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddMessageI18nRelatedByIdCreation($l);
+
+            if ($this->messageI18nsRelatedByIdCreationScheduledForDeletion and $this->messageI18nsRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->messageI18nsRelatedByIdCreationScheduledForDeletion->remove($this->messageI18nsRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	MessageI18nRelatedByIdCreation $messageI18nRelatedByIdCreation The messageI18nRelatedByIdCreation object to add.
+     */
+    protected function doAddMessageI18nRelatedByIdCreation($messageI18nRelatedByIdCreation)
+    {
+        $this->collMessageI18nsRelatedByIdCreation[]= $messageI18nRelatedByIdCreation;
+        $messageI18nRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	MessageI18nRelatedByIdCreation $messageI18nRelatedByIdCreation The messageI18nRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeMessageI18nRelatedByIdCreation($messageI18nRelatedByIdCreation)
+    {
+        if ($this->getMessageI18nsRelatedByIdCreation()->contains($messageI18nRelatedByIdCreation)) {
+            $this->collMessageI18nsRelatedByIdCreation->remove($this->collMessageI18nsRelatedByIdCreation->search($messageI18nRelatedByIdCreation));
+            if (null === $this->messageI18nsRelatedByIdCreationScheduledForDeletion) {
+                $this->messageI18nsRelatedByIdCreationScheduledForDeletion = clone $this->collMessageI18nsRelatedByIdCreation;
+                $this->messageI18nsRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->messageI18nsRelatedByIdCreationScheduledForDeletion[]= $messageI18nRelatedByIdCreation;
+            $messageI18nRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|MessageI18n[] List of MessageI18n objects
+     */
+    public function getMessageI18nsRelatedByIdCreationJoinMessage($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = MessageI18nQuery::create(null, $criteria);
+        $query->joinWith('Message', $join_behavior);
+
+        return $this->getMessageI18nsRelatedByIdCreation($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|MessageI18n[] List of MessageI18n objects
+     */
+    public function getMessageI18nsRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = MessageI18nQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getMessageI18nsRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collMessageI18nsRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addMessageI18nsRelatedByIdModification()
+     */
+    public function clearMessageI18nsRelatedByIdModification()
+    {
+        $this->collMessageI18nsRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collMessageI18nsRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collMessageI18nsRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialMessageI18nsRelatedByIdModification($v = true)
+    {
+        $this->collMessageI18nsRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collMessageI18nsRelatedByIdModification collection.
+     *
+     * By default this just sets the collMessageI18nsRelatedByIdModification collection to an empty array (like clearcollMessageI18nsRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initMessageI18nsRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collMessageI18nsRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collMessageI18nsRelatedByIdModification = new PropelObjectCollection();
+        $this->collMessageI18nsRelatedByIdModification->setModel('MessageI18n');
+    }
+
+    /**
+     * Gets an array of MessageI18n objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|MessageI18n[] List of MessageI18n objects
+     * @throws PropelException
+     */
+    public function getMessageI18nsRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMessageI18nsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collMessageI18nsRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collMessageI18nsRelatedByIdModification) {
+                // return empty collection
+                $this->initMessageI18nsRelatedByIdModification();
+            } else {
+                $collMessageI18nsRelatedByIdModification = MessageI18nQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collMessageI18nsRelatedByIdModificationPartial && count($collMessageI18nsRelatedByIdModification)) {
+                      $this->initMessageI18nsRelatedByIdModification(false);
+
+                      foreach ($collMessageI18nsRelatedByIdModification as $obj) {
+                        if (false == $this->collMessageI18nsRelatedByIdModification->contains($obj)) {
+                          $this->collMessageI18nsRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collMessageI18nsRelatedByIdModificationPartial = true;
+                    }
+
+                    $collMessageI18nsRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collMessageI18nsRelatedByIdModification;
+                }
+
+                if ($partial && $this->collMessageI18nsRelatedByIdModification) {
+                    foreach ($this->collMessageI18nsRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collMessageI18nsRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collMessageI18nsRelatedByIdModification = $collMessageI18nsRelatedByIdModification;
+                $this->collMessageI18nsRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collMessageI18nsRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of MessageI18nRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $messageI18nsRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setMessageI18nsRelatedByIdModification(PropelCollection $messageI18nsRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $messageI18nsRelatedByIdModificationToDelete = $this->getMessageI18nsRelatedByIdModification(new Criteria(), $con)->diff($messageI18nsRelatedByIdModification);
+
+
+        $this->messageI18nsRelatedByIdModificationScheduledForDeletion = $messageI18nsRelatedByIdModificationToDelete;
+
+        foreach ($messageI18nsRelatedByIdModificationToDelete as $messageI18nRelatedByIdModificationRemoved) {
+            $messageI18nRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collMessageI18nsRelatedByIdModification = null;
+        foreach ($messageI18nsRelatedByIdModification as $messageI18nRelatedByIdModification) {
+            $this->addMessageI18nRelatedByIdModification($messageI18nRelatedByIdModification);
+        }
+
+        $this->collMessageI18nsRelatedByIdModification = $messageI18nsRelatedByIdModification;
+        $this->collMessageI18nsRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related MessageI18n objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related MessageI18n objects.
+     * @throws PropelException
+     */
+    public function countMessageI18nsRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMessageI18nsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collMessageI18nsRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collMessageI18nsRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getMessageI18nsRelatedByIdModification());
+            }
+            $query = MessageI18nQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collMessageI18nsRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a MessageI18n object to this object
+     * through the MessageI18n foreign key attribute.
+     *
+     * @param    MessageI18n $l MessageI18n
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addMessageI18nRelatedByIdModification(MessageI18n $l)
+    {
+        if ($this->collMessageI18nsRelatedByIdModification === null) {
+            $this->initMessageI18nsRelatedByIdModification();
+            $this->collMessageI18nsRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collMessageI18nsRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddMessageI18nRelatedByIdModification($l);
+
+            if ($this->messageI18nsRelatedByIdModificationScheduledForDeletion and $this->messageI18nsRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->messageI18nsRelatedByIdModificationScheduledForDeletion->remove($this->messageI18nsRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	MessageI18nRelatedByIdModification $messageI18nRelatedByIdModification The messageI18nRelatedByIdModification object to add.
+     */
+    protected function doAddMessageI18nRelatedByIdModification($messageI18nRelatedByIdModification)
+    {
+        $this->collMessageI18nsRelatedByIdModification[]= $messageI18nRelatedByIdModification;
+        $messageI18nRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	MessageI18nRelatedByIdModification $messageI18nRelatedByIdModification The messageI18nRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeMessageI18nRelatedByIdModification($messageI18nRelatedByIdModification)
+    {
+        if ($this->getMessageI18nsRelatedByIdModification()->contains($messageI18nRelatedByIdModification)) {
+            $this->collMessageI18nsRelatedByIdModification->remove($this->collMessageI18nsRelatedByIdModification->search($messageI18nRelatedByIdModification));
+            if (null === $this->messageI18nsRelatedByIdModificationScheduledForDeletion) {
+                $this->messageI18nsRelatedByIdModificationScheduledForDeletion = clone $this->collMessageI18nsRelatedByIdModification;
+                $this->messageI18nsRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->messageI18nsRelatedByIdModificationScheduledForDeletion[]= $messageI18nRelatedByIdModification;
+            $messageI18nRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|MessageI18n[] List of MessageI18n objects
+     */
+    public function getMessageI18nsRelatedByIdModificationJoinMessage($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = MessageI18nQuery::create(null, $criteria);
+        $query->joinWith('Message', $join_behavior);
+
+        return $this->getMessageI18nsRelatedByIdModification($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|MessageI18n[] List of MessageI18n objects
+     */
+    public function getMessageI18nsRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = MessageI18nQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getMessageI18nsRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears the current object and sets all attributes to their default values
+     */
+    public function clear()
+    {
+        $this->id_authy = null;
+        $this->validation_key = null;
+        $this->username = null;
+        $this->fullname = null;
+        $this->email = null;
+        $this->passwd_hash = null;
+        $this->expire = null;
+        $this->deactivate = null;
+        $this->language = null;
+        $this->theme = null;
+        $this->google_sub = null;
+        $this->google_email = null;
+        $this->reset_token_hash = null;
+        $this->reset_token_expires = null;
+        $this->id_tenant = null;
+        $this->location_address = null;
+        $this->location_lat = null;
+        $this->location_lng = null;
+        $this->is_root = null;
+        $this->id_authy_group = null;
+        $this->is_system = null;
+        $this->rights_all = null;
+        $this->rights_group = null;
+        $this->rights_owner = null;
+        $this->onglet = null;
+        $this->date_creation = null;
+        $this->date_modification = null;
+        $this->id_group_creation = null;
+        $this->id_creation = null;
+        $this->id_modification = null;
+        $this->alreadyInSave = false;
+        $this->alreadyInValidation = false;
+        $this->alreadyInClearAllReferencesDeep = false;
+        $this->clearAllReferences();
+        $this->applyDefaultValues();
+        $this->resetModified();
+        $this->setNew(true);
+        $this->setDeleted(false);
+    }
+
+    /**
+     * Resets all references to other model objects or collections of model objects.
+     *
+     * This method is a user-space workaround for PHP's inability to garbage collect
+     * objects with circular references (even in PHP 5.3). This is currently necessary
+     * when using Propel in certain daemon or large-volume/high-memory operations.
+     *
+     * @param boolean $deep Whether to also clear the references on all referrer objects.
+     */
+    public function clearAllReferences($deep = false)
+    {
+        if ($deep && !$this->alreadyInClearAllReferencesDeep) {
+            $this->alreadyInClearAllReferencesDeep = true;
+            if ($this->collPushDevicesRelatedByIdAuthy) {
+                foreach ($this->collPushDevicesRelatedByIdAuthy as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collAuthyGroupxesRelatedByIdAuthy) {
+                foreach ($this->collAuthyGroupxesRelatedByIdAuthy as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collAuthyLogs) {
+                foreach ($this->collAuthyLogs as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collAuthiesRelatedByIdAuthy0) {
+                foreach ($this->collAuthiesRelatedByIdAuthy0 as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collAuthiesRelatedByIdAuthy1) {
+                foreach ($this->collAuthiesRelatedByIdAuthy1 as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collPushDevicesRelatedByIdCreation) {
+                foreach ($this->collPushDevicesRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collPushDevicesRelatedByIdModification) {
+                foreach ($this->collPushDevicesRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collCountriesRelatedByIdCreation) {
+                foreach ($this->collCountriesRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collCountriesRelatedByIdModification) {
+                foreach ($this->collCountriesRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collGridRunsRelatedByIdCreation) {
+                foreach ($this->collGridRunsRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collGridRunsRelatedByIdModification) {
+                foreach ($this->collGridRunsRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collBotOrdersRelatedByIdCreation) {
+                foreach ($this->collBotOrdersRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collBotOrdersRelatedByIdModification) {
+                foreach ($this->collBotOrdersRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collTradeCyclesRelatedByIdCreation) {
+                foreach ($this->collTradeCyclesRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collTradeCyclesRelatedByIdModification) {
+                foreach ($this->collTradeCyclesRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collBotEventsRelatedByIdCreation) {
+                foreach ($this->collBotEventsRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collBotEventsRelatedByIdModification) {
+                foreach ($this->collBotEventsRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collBotCommandsRelatedByIdCreation) {
+                foreach ($this->collBotCommandsRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collBotCommandsRelatedByIdModification) {
+                foreach ($this->collBotCommandsRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collSimWalletsRelatedByIdCreation) {
+                foreach ($this->collSimWalletsRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collSimWalletsRelatedByIdModification) {
+                foreach ($this->collSimWalletsRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collMarketSummariesRelatedByIdCreation) {
+                foreach ($this->collMarketSummariesRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collMarketSummariesRelatedByIdModification) {
+                foreach ($this->collMarketSummariesRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collMarketRegimesRelatedByIdCreation) {
+                foreach ($this->collMarketRegimesRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collMarketRegimesRelatedByIdModification) {
+                foreach ($this->collMarketRegimesRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collBotDecisionsRelatedByIdCreation) {
+                foreach ($this->collBotDecisionsRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collBotDecisionsRelatedByIdModification) {
+                foreach ($this->collBotDecisionsRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collAuthyGroupsRelatedByIdCreation) {
+                foreach ($this->collAuthyGroupsRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collAuthyGroupsRelatedByIdModification) {
+                foreach ($this->collAuthyGroupsRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collAuthyGroupxesRelatedByIdCreation) {
+                foreach ($this->collAuthyGroupxesRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collAuthyGroupxesRelatedByIdModification) {
+                foreach ($this->collAuthyGroupxesRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collConfigsRelatedByIdCreation) {
+                foreach ($this->collConfigsRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collConfigsRelatedByIdModification) {
+                foreach ($this->collConfigsRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collApiRbacsRelatedByIdCreation) {
+                foreach ($this->collApiRbacsRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collApiRbacsRelatedByIdModification) {
+                foreach ($this->collApiRbacsRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collApiLogs) {
+                foreach ($this->collApiLogs as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collTemplatesRelatedByIdCreation) {
+                foreach ($this->collTemplatesRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collTemplatesRelatedByIdModification) {
+                foreach ($this->collTemplatesRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collTemplateFilesRelatedByIdCreation) {
+                foreach ($this->collTemplateFilesRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collTemplateFilesRelatedByIdModification) {
+                foreach ($this->collTemplateFilesRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collAuthyRefreshTokensRelatedByIdAuthy) {
+                foreach ($this->collAuthyRefreshTokensRelatedByIdAuthy as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collAuthyRefreshTokensRelatedByIdCreation) {
+                foreach ($this->collAuthyRefreshTokensRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collAuthyRefreshTokensRelatedByIdModification) {
+                foreach ($this->collAuthyRefreshTokensRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collOauthClientsRelatedByIdCreation) {
+                foreach ($this->collOauthClientsRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collOauthClientsRelatedByIdModification) {
+                foreach ($this->collOauthClientsRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collOauthAuthCodesRelatedByIdAuthy) {
+                foreach ($this->collOauthAuthCodesRelatedByIdAuthy as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collOauthAuthCodesRelatedByIdCreation) {
+                foreach ($this->collOauthAuthCodesRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collOauthAuthCodesRelatedByIdModification) {
+                foreach ($this->collOauthAuthCodesRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collOauthAccessTokensRelatedByIdAuthy) {
+                foreach ($this->collOauthAccessTokensRelatedByIdAuthy as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collOauthAccessTokensRelatedByIdCreation) {
+                foreach ($this->collOauthAccessTokensRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collOauthAccessTokensRelatedByIdModification) {
+                foreach ($this->collOauthAccessTokensRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collOauthRefreshTokensRelatedByIdAuthy) {
+                foreach ($this->collOauthRefreshTokensRelatedByIdAuthy as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collOauthRefreshTokensRelatedByIdCreation) {
+                foreach ($this->collOauthRefreshTokensRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collOauthRefreshTokensRelatedByIdModification) {
+                foreach ($this->collOauthRefreshTokensRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collMessageI18nsRelatedByIdCreation) {
+                foreach ($this->collMessageI18nsRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collMessageI18nsRelatedByIdModification) {
+                foreach ($this->collMessageI18nsRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->aAuthyGroupRelatedByIdAuthyGroup instanceof Persistent) {
+              $this->aAuthyGroupRelatedByIdAuthyGroup->clearAllReferences($deep);
+            }
+            if ($this->aAuthyGroupRelatedByIdGroupCreation instanceof Persistent) {
+              $this->aAuthyGroupRelatedByIdGroupCreation->clearAllReferences($deep);
+            }
+            if ($this->aAuthyRelatedByIdCreation instanceof Persistent) {
+              $this->aAuthyRelatedByIdCreation->clearAllReferences($deep);
+            }
+            if ($this->aAuthyRelatedByIdModification instanceof Persistent) {
+              $this->aAuthyRelatedByIdModification->clearAllReferences($deep);
+            }
+
+            $this->alreadyInClearAllReferencesDeep = false;
+        } // if ($deep)
+
+        if ($this->collPushDevicesRelatedByIdAuthy instanceof PropelCollection) {
+            $this->collPushDevicesRelatedByIdAuthy->clearIterator();
+        }
+        $this->collPushDevicesRelatedByIdAuthy = null;
+        if ($this->collAuthyGroupxesRelatedByIdAuthy instanceof PropelCollection) {
+            $this->collAuthyGroupxesRelatedByIdAuthy->clearIterator();
+        }
+        $this->collAuthyGroupxesRelatedByIdAuthy = null;
+        if ($this->collAuthyLogs instanceof PropelCollection) {
+            $this->collAuthyLogs->clearIterator();
+        }
+        $this->collAuthyLogs = null;
+        if ($this->collAuthiesRelatedByIdAuthy0 instanceof PropelCollection) {
+            $this->collAuthiesRelatedByIdAuthy0->clearIterator();
+        }
+        $this->collAuthiesRelatedByIdAuthy0 = null;
+        if ($this->collAuthiesRelatedByIdAuthy1 instanceof PropelCollection) {
+            $this->collAuthiesRelatedByIdAuthy1->clearIterator();
+        }
+        $this->collAuthiesRelatedByIdAuthy1 = null;
+        if ($this->collPushDevicesRelatedByIdCreation instanceof PropelCollection) {
+            $this->collPushDevicesRelatedByIdCreation->clearIterator();
+        }
+        $this->collPushDevicesRelatedByIdCreation = null;
+        if ($this->collPushDevicesRelatedByIdModification instanceof PropelCollection) {
+            $this->collPushDevicesRelatedByIdModification->clearIterator();
+        }
+        $this->collPushDevicesRelatedByIdModification = null;
+        if ($this->collCountriesRelatedByIdCreation instanceof PropelCollection) {
+            $this->collCountriesRelatedByIdCreation->clearIterator();
+        }
+        $this->collCountriesRelatedByIdCreation = null;
+        if ($this->collCountriesRelatedByIdModification instanceof PropelCollection) {
+            $this->collCountriesRelatedByIdModification->clearIterator();
+        }
+        $this->collCountriesRelatedByIdModification = null;
+        if ($this->collGridRunsRelatedByIdCreation instanceof PropelCollection) {
+            $this->collGridRunsRelatedByIdCreation->clearIterator();
+        }
+        $this->collGridRunsRelatedByIdCreation = null;
+        if ($this->collGridRunsRelatedByIdModification instanceof PropelCollection) {
+            $this->collGridRunsRelatedByIdModification->clearIterator();
+        }
+        $this->collGridRunsRelatedByIdModification = null;
+        if ($this->collBotOrdersRelatedByIdCreation instanceof PropelCollection) {
+            $this->collBotOrdersRelatedByIdCreation->clearIterator();
+        }
+        $this->collBotOrdersRelatedByIdCreation = null;
+        if ($this->collBotOrdersRelatedByIdModification instanceof PropelCollection) {
+            $this->collBotOrdersRelatedByIdModification->clearIterator();
+        }
+        $this->collBotOrdersRelatedByIdModification = null;
+        if ($this->collTradeCyclesRelatedByIdCreation instanceof PropelCollection) {
+            $this->collTradeCyclesRelatedByIdCreation->clearIterator();
+        }
+        $this->collTradeCyclesRelatedByIdCreation = null;
+        if ($this->collTradeCyclesRelatedByIdModification instanceof PropelCollection) {
+            $this->collTradeCyclesRelatedByIdModification->clearIterator();
+        }
+        $this->collTradeCyclesRelatedByIdModification = null;
+        if ($this->collBotEventsRelatedByIdCreation instanceof PropelCollection) {
+            $this->collBotEventsRelatedByIdCreation->clearIterator();
+        }
+        $this->collBotEventsRelatedByIdCreation = null;
+        if ($this->collBotEventsRelatedByIdModification instanceof PropelCollection) {
+            $this->collBotEventsRelatedByIdModification->clearIterator();
+        }
+        $this->collBotEventsRelatedByIdModification = null;
+        if ($this->collBotCommandsRelatedByIdCreation instanceof PropelCollection) {
+            $this->collBotCommandsRelatedByIdCreation->clearIterator();
+        }
+        $this->collBotCommandsRelatedByIdCreation = null;
+        if ($this->collBotCommandsRelatedByIdModification instanceof PropelCollection) {
+            $this->collBotCommandsRelatedByIdModification->clearIterator();
+        }
+        $this->collBotCommandsRelatedByIdModification = null;
+        if ($this->collSimWalletsRelatedByIdCreation instanceof PropelCollection) {
+            $this->collSimWalletsRelatedByIdCreation->clearIterator();
+        }
+        $this->collSimWalletsRelatedByIdCreation = null;
+        if ($this->collSimWalletsRelatedByIdModification instanceof PropelCollection) {
+            $this->collSimWalletsRelatedByIdModification->clearIterator();
+        }
+        $this->collSimWalletsRelatedByIdModification = null;
+        if ($this->collMarketSummariesRelatedByIdCreation instanceof PropelCollection) {
+            $this->collMarketSummariesRelatedByIdCreation->clearIterator();
+        }
+        $this->collMarketSummariesRelatedByIdCreation = null;
+        if ($this->collMarketSummariesRelatedByIdModification instanceof PropelCollection) {
+            $this->collMarketSummariesRelatedByIdModification->clearIterator();
+        }
+        $this->collMarketSummariesRelatedByIdModification = null;
+        if ($this->collMarketRegimesRelatedByIdCreation instanceof PropelCollection) {
+            $this->collMarketRegimesRelatedByIdCreation->clearIterator();
+        }
+        $this->collMarketRegimesRelatedByIdCreation = null;
+        if ($this->collMarketRegimesRelatedByIdModification instanceof PropelCollection) {
+            $this->collMarketRegimesRelatedByIdModification->clearIterator();
+        }
+        $this->collMarketRegimesRelatedByIdModification = null;
+        if ($this->collBotDecisionsRelatedByIdCreation instanceof PropelCollection) {
+            $this->collBotDecisionsRelatedByIdCreation->clearIterator();
+        }
+        $this->collBotDecisionsRelatedByIdCreation = null;
+        if ($this->collBotDecisionsRelatedByIdModification instanceof PropelCollection) {
+            $this->collBotDecisionsRelatedByIdModification->clearIterator();
+        }
+        $this->collBotDecisionsRelatedByIdModification = null;
+        if ($this->collAuthyGroupsRelatedByIdCreation instanceof PropelCollection) {
+            $this->collAuthyGroupsRelatedByIdCreation->clearIterator();
+        }
+        $this->collAuthyGroupsRelatedByIdCreation = null;
+        if ($this->collAuthyGroupsRelatedByIdModification instanceof PropelCollection) {
+            $this->collAuthyGroupsRelatedByIdModification->clearIterator();
+        }
+        $this->collAuthyGroupsRelatedByIdModification = null;
+        if ($this->collAuthyGroupxesRelatedByIdCreation instanceof PropelCollection) {
+            $this->collAuthyGroupxesRelatedByIdCreation->clearIterator();
+        }
+        $this->collAuthyGroupxesRelatedByIdCreation = null;
+        if ($this->collAuthyGroupxesRelatedByIdModification instanceof PropelCollection) {
+            $this->collAuthyGroupxesRelatedByIdModification->clearIterator();
+        }
+        $this->collAuthyGroupxesRelatedByIdModification = null;
+        if ($this->collConfigsRelatedByIdCreation instanceof PropelCollection) {
+            $this->collConfigsRelatedByIdCreation->clearIterator();
+        }
+        $this->collConfigsRelatedByIdCreation = null;
+        if ($this->collConfigsRelatedByIdModification instanceof PropelCollection) {
+            $this->collConfigsRelatedByIdModification->clearIterator();
+        }
+        $this->collConfigsRelatedByIdModification = null;
+        if ($this->collApiRbacsRelatedByIdCreation instanceof PropelCollection) {
+            $this->collApiRbacsRelatedByIdCreation->clearIterator();
+        }
+        $this->collApiRbacsRelatedByIdCreation = null;
+        if ($this->collApiRbacsRelatedByIdModification instanceof PropelCollection) {
+            $this->collApiRbacsRelatedByIdModification->clearIterator();
+        }
+        $this->collApiRbacsRelatedByIdModification = null;
+        if ($this->collApiLogs instanceof PropelCollection) {
+            $this->collApiLogs->clearIterator();
+        }
+        $this->collApiLogs = null;
+        if ($this->collTemplatesRelatedByIdCreation instanceof PropelCollection) {
+            $this->collTemplatesRelatedByIdCreation->clearIterator();
+        }
+        $this->collTemplatesRelatedByIdCreation = null;
+        if ($this->collTemplatesRelatedByIdModification instanceof PropelCollection) {
+            $this->collTemplatesRelatedByIdModification->clearIterator();
+        }
+        $this->collTemplatesRelatedByIdModification = null;
+        if ($this->collTemplateFilesRelatedByIdCreation instanceof PropelCollection) {
+            $this->collTemplateFilesRelatedByIdCreation->clearIterator();
+        }
+        $this->collTemplateFilesRelatedByIdCreation = null;
+        if ($this->collTemplateFilesRelatedByIdModification instanceof PropelCollection) {
+            $this->collTemplateFilesRelatedByIdModification->clearIterator();
+        }
+        $this->collTemplateFilesRelatedByIdModification = null;
+        if ($this->collAuthyRefreshTokensRelatedByIdAuthy instanceof PropelCollection) {
+            $this->collAuthyRefreshTokensRelatedByIdAuthy->clearIterator();
+        }
+        $this->collAuthyRefreshTokensRelatedByIdAuthy = null;
+        if ($this->collAuthyRefreshTokensRelatedByIdCreation instanceof PropelCollection) {
+            $this->collAuthyRefreshTokensRelatedByIdCreation->clearIterator();
+        }
+        $this->collAuthyRefreshTokensRelatedByIdCreation = null;
+        if ($this->collAuthyRefreshTokensRelatedByIdModification instanceof PropelCollection) {
+            $this->collAuthyRefreshTokensRelatedByIdModification->clearIterator();
+        }
+        $this->collAuthyRefreshTokensRelatedByIdModification = null;
+        if ($this->collOauthClientsRelatedByIdCreation instanceof PropelCollection) {
+            $this->collOauthClientsRelatedByIdCreation->clearIterator();
+        }
+        $this->collOauthClientsRelatedByIdCreation = null;
+        if ($this->collOauthClientsRelatedByIdModification instanceof PropelCollection) {
+            $this->collOauthClientsRelatedByIdModification->clearIterator();
+        }
+        $this->collOauthClientsRelatedByIdModification = null;
+        if ($this->collOauthAuthCodesRelatedByIdAuthy instanceof PropelCollection) {
+            $this->collOauthAuthCodesRelatedByIdAuthy->clearIterator();
+        }
+        $this->collOauthAuthCodesRelatedByIdAuthy = null;
+        if ($this->collOauthAuthCodesRelatedByIdCreation instanceof PropelCollection) {
+            $this->collOauthAuthCodesRelatedByIdCreation->clearIterator();
+        }
+        $this->collOauthAuthCodesRelatedByIdCreation = null;
+        if ($this->collOauthAuthCodesRelatedByIdModification instanceof PropelCollection) {
+            $this->collOauthAuthCodesRelatedByIdModification->clearIterator();
+        }
+        $this->collOauthAuthCodesRelatedByIdModification = null;
+        if ($this->collOauthAccessTokensRelatedByIdAuthy instanceof PropelCollection) {
+            $this->collOauthAccessTokensRelatedByIdAuthy->clearIterator();
+        }
+        $this->collOauthAccessTokensRelatedByIdAuthy = null;
+        if ($this->collOauthAccessTokensRelatedByIdCreation instanceof PropelCollection) {
+            $this->collOauthAccessTokensRelatedByIdCreation->clearIterator();
+        }
+        $this->collOauthAccessTokensRelatedByIdCreation = null;
+        if ($this->collOauthAccessTokensRelatedByIdModification instanceof PropelCollection) {
+            $this->collOauthAccessTokensRelatedByIdModification->clearIterator();
+        }
+        $this->collOauthAccessTokensRelatedByIdModification = null;
+        if ($this->collOauthRefreshTokensRelatedByIdAuthy instanceof PropelCollection) {
+            $this->collOauthRefreshTokensRelatedByIdAuthy->clearIterator();
+        }
+        $this->collOauthRefreshTokensRelatedByIdAuthy = null;
+        if ($this->collOauthRefreshTokensRelatedByIdCreation instanceof PropelCollection) {
+            $this->collOauthRefreshTokensRelatedByIdCreation->clearIterator();
+        }
+        $this->collOauthRefreshTokensRelatedByIdCreation = null;
+        if ($this->collOauthRefreshTokensRelatedByIdModification instanceof PropelCollection) {
+            $this->collOauthRefreshTokensRelatedByIdModification->clearIterator();
+        }
+        $this->collOauthRefreshTokensRelatedByIdModification = null;
+        if ($this->collMessageI18nsRelatedByIdCreation instanceof PropelCollection) {
+            $this->collMessageI18nsRelatedByIdCreation->clearIterator();
+        }
+        $this->collMessageI18nsRelatedByIdCreation = null;
+        if ($this->collMessageI18nsRelatedByIdModification instanceof PropelCollection) {
+            $this->collMessageI18nsRelatedByIdModification->clearIterator();
+        }
+        $this->collMessageI18nsRelatedByIdModification = null;
+        $this->aAuthyGroupRelatedByIdAuthyGroup = null;
+        $this->aAuthyGroupRelatedByIdGroupCreation = null;
+        $this->aAuthyRelatedByIdCreation = null;
+        $this->aAuthyRelatedByIdModification = null;
+    }
+
+    /**
+     * return the string representation of this object
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return (string) $this->exportTo(AuthyPeer::DEFAULT_STRING_FORMAT);
+    }
+
+    /**
+     * return true is the object is in saving state
+     *
+     * @return boolean
+     */
+    public function isAlreadyInSave()
+    {
+        return $this->alreadyInSave;
+    }
+
+    // add_tablestamp behavior
+
+    /**
+     * Mark the current object so that the update date doesn't get updated during next save
+     *
+     * @return     Authy The current object (for fluent API support)
+     */
+    public function keepUpdateDateUnchanged(){
+        $this->modifiedColumns[] = AuthyPeer::DATE_MODIFICATION;
+
+        return $this;
+    }
+
+}

@@ -1,0 +1,696 @@
+// Ported from theme guideline new/prototype-children.css
+// Child-list screens (Projects/Bills/Files/Journal/Bill-access). Namespaced .ch-*.
+@use 'tokensv2' as *;
+
+/* ============================================================
+   Client child-list screens
+   Pushed on top of the client edit form (z-index 40+).
+============================================================ */
+
+.ch-screen { display: flex; flex-direction: column; background: $bg; }
+
+.ch-count {
+  display: inline-block;
+  margin-left: 6px;
+  font-family: $font-mono;
+  font-size: 11px;
+  font-weight: 500;
+  color: $text-mute;
+  background: $bg;
+  padding: 1px 7px;
+  border-radius: 999px;
+  vertical-align: 1px;
+}
+
+/* ───── Money ───── */
+.ch-money {
+  font-family: $font-mono;
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  color: $ink;
+  font-weight: 600;
+}
+.ch-money small {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: $text-mute;
+  margin-left: 2px;
+}
+
+/* ───── Summary strip (Projects) ───── */
+.ch-summary {
+  display: flex;
+  gap: 0;
+  padding: 14px 14px 4px;
+}
+.ch-summary-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border-right: 1px solid $line;
+}
+.ch-summary-stat:last-child { border-right: none; }
+.ch-summary-stat .k {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  color: $text-mute;
+}
+.ch-summary-stat .v {
+  font-size: 18px;
+  font-weight: 700;
+  color: $ink;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.018em;
+  line-height: 1.1;
+}
+.ch-summary-stat .v .ch-money { font-size: 15px; }
+
+/* ───── Bill summary (2 big cards) ───── */
+.ch-bill-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 14px 14px 4px;
+}
+.ch-bill-stat {
+  background: $surface;
+  border: 1px solid $line;
+  border-radius: 12px;
+  padding: 12px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ch-bill-stat.ch-bill-stat-unpaid {
+  background: linear-gradient(135deg, #fffbef 0%, #fff 100%);
+  border-color: #fde8a4;
+}
+.ch-bill-stat .k {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  color: $text-mute;
+}
+.ch-bill-stat .v {
+  font-size: 17px;
+  font-weight: 700;
+  color: $ink;
+  font-family: $font-mono;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+.ch-bill-stat .v .ch-money { font-size: 16px; color: $ink; }
+.ch-bill-stat.ch-bill-stat-unpaid .v .ch-money { color: #b45309; }
+.ch-bill-stat .extra { font-size: 11px; color: $text-mute; margin-top: 2px; }
+
+/* ───── Generic list ───── */
+.ch-list { padding: 4px 14px 24px; display: flex; flex-direction: column; gap: 8px; }
+
+.ch-row {
+  background: $surface;
+  border: 1px solid $line;
+  border-radius: 10px;
+  padding: 12px 12px;
+  display: flex;
+  align-items: stretch;
+  gap: 11px;
+  cursor: pointer;
+  text-align: left;
+  border: 1px solid $line;
+  position: relative;
+  font-family: inherit;
+  transition: border-color 0.12s, box-shadow 0.12s, transform 0.06s;
+}
+.ch-row:hover { border-color: $line-hard; }
+.ch-row:active { transform: scale(0.99); background: $bg-warm; }
+
+/* color strip on left for projects */
+.ch-row-strip { padding-left: 14px; overflow: hidden; }
+.ch-row-strip .ch-strip {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+
+.ch-row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ch-row-line1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ch-pref {
+  font-size: 11px;
+  font-weight: 600;
+  color: $text-mute;
+  letter-spacing: 0.02em;
+  font-family: $font-mono;
+}
+
+.ch-row-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: $ink;
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ch-row-name-sm {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: $text-mid;
+}
+.ch-row-name-line1 {
+  font-size: 13.5px;
+  margin-top: 2px;
+}
+
+.ch-row-line3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: $text-mute;
+  margin-top: 2px;
+}
+.ch-row-line3 .ch-money { font-size: 12.5px; }
+.ch-date { font-size: 11px; color: $text-mute; }
+.ch-dot { width: 3px; height: 3px; border-radius: 50%; background: $text-faint; flex-shrink: 0; }
+
+/* ───── Bills row variant ───── */
+.ch-row-bill { padding: 11px 11px 11px 8px; align-items: center; }
+.ch-bill-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  background: $mint-50;
+  color: $mint-700;
+  display: grid;
+  place-items: center;
+  font-size: 19px;
+  flex-shrink: 0;
+}
+.ch-bill-ref { font-size: 12.5px; font-weight: 600; color: $ink; }
+.ch-bill-amount {
+  flex-shrink: 0;
+  padding-left: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-family: $font-mono;
+  font-variant-numeric: tabular-nums;
+}
+.ch-bill-amount .ch-money { font-size: 15px; font-weight: 700; }
+
+/* ───── Files row variant ───── */
+.ch-row-file { padding: 10px 10px; align-items: center; }
+.ch-file-icon {
+  position: relative;
+  width: 42px;
+  height: 50px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(10,37,64,0.04);
+}
+.ch-file-icon i {
+  font-size: 22px;
+  color: inherit;
+}
+.ch-file-type-label {
+  position: absolute;
+  bottom: 4px;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: rgba(255,255,255,0.65);
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+.ch-file-action {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: $bg;
+  border: none;
+  color: $text-mid;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  font-size: 17px;
+  margin: 0 -2px 0 4px;
+}
+.ch-file-action:hover { background: $mint-50; color: $mint-700; }
+.ch-file-action:active { transform: scale(0.93); }
+
+/* ───── Search bar inline (used in Files) ───── */
+.ch-search {
+  position: relative;
+  margin: 12px 14px 4px;
+}
+.ch-search input {
+  width: 100%;
+  height: 36px;
+  padding: 0 36px 0 32px;
+  border: 1px solid $line;
+  border-radius: 8px;
+  font-size: 13px;
+  background: $surface;
+  outline: none;
+  -webkit-appearance: none;
+}
+.ch-search > i {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: $text-mute;
+  font-size: 15px;
+}
+.ch-search .va-mob-filter-btn {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+}
+
+/* ───── Journal timeline ───── */
+.ch-timeline {
+  position: relative;
+  padding: 12px 14px 24px;
+}
+.ch-month-head {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: $text-mute;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 14px 0 8px 4px;
+  position: sticky;
+  top: 0;
+  background: $bg;
+  z-index: 1;
+}
+.ch-tl-item {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  padding-bottom: 10px;
+  cursor: pointer;
+}
+.ch-tl-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  z-index: 1;
+  border: 3px solid $bg;
+}
+.ch-tl-line {
+  position: absolute;
+  left: 16px;
+  top: 32px;
+  bottom: 0;
+  width: 2px;
+  background: $line;
+  z-index: 0;
+}
+.ch-tl-item:last-child .ch-tl-line { display: none; }
+
+.ch-tl-card {
+  flex: 1;
+  background: $surface;
+  border: 1px solid $line;
+  border-radius: 10px;
+  padding: 11px 12px;
+  margin-top: 4px;
+  transition: border-color 0.12s, transform 0.06s;
+}
+.ch-tl-item:active .ch-tl-card { transform: scale(0.99); background: $bg-warm; }
+
+.ch-tl-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.ch-tl-date {
+  margin-left: auto;
+  font-size: 11px;
+  color: $text-mute;
+}
+.ch-tl-subject {
+  font-size: 14px;
+  font-weight: 600;
+  color: $ink;
+  letter-spacing: -0.005em;
+  margin-bottom: 4px;
+}
+.ch-tl-body {
+  font-size: 12.5px;
+  color: $text;
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+.ch-tl-author {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 7px;
+  border-top: 1px solid $line-soft;
+  font-size: 11.5px;
+  color: $text-mute;
+}
+.ch-tl-author .cl-userav { width: 18px; height: 18px; font-size: 8.5px; }
+
+/* ───── Bill access ───── */
+.ch-access-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: $mint-50;
+  color: $mint-700;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 18px;
+}
+
+/* ───── Empty state ───── */
+.ch-empty {
+  padding: 70px 24px;
+  text-align: center;
+}
+.ch-empty-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 14px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, $bg-warm, $bg);
+  border: 1px solid $line;
+  color: $text-mute;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+}
+.ch-empty-title {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: $ink;
+  letter-spacing: -0.012em;
+}
+.ch-empty-body {
+  font-size: 13px;
+  color: $text-mute;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.ch-empty-body strong { color: $ink; font-weight: 600; }
+
+/* ===== Legacy child-panel chrome → guideline (client-children) =====
+ * The edit form still emits jQuery-UI child tabs (.child_pannel /
+ * .panel-heading / ul.ui-tabs-nav / .ac-list-form-header-child); map
+ * them to the guideline Related/child look (prototype-children.css)
+ * without rewriting the child emitter. */
+.child_pannel.childCntClass {
+  margin-top: 18px;
+  background: $surface;
+  border: 1px solid $line;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.child_pannel .panel-heading {
+  padding: 12px 16px 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $text-mute;
+  background: transparent;
+  border: none;
+}
+.child_pannel ul.ui-tabs-nav {
+  display: flex;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 6px 12px 0;
+  border-bottom: 1px solid $line;
+  overflow-x: auto;
+}
+.child_pannel ul.ui-tabs-nav::-webkit-scrollbar { display: none; }
+.child_pannel ul.ui-tabs-nav li {
+  list-style: none;
+  margin: 0;
+  flex-shrink: 0;
+}
+.child_pannel ul.ui-tabs-nav li a {
+  display: block;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: $text-mid;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  text-decoration: none;
+  cursor: pointer;
+}
+.child_pannel ul.ui-tabs-nav li a:hover { color: $ink; }
+.child_pannel ul.ui-tabs-nav li.ui-state-active a {
+  color: $mint-700;
+  border-bottom-color: $mint;
+}
+/* Compact child toolbar + guideline "＋ New" button. */
+.ac-list-form-header-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: $bg-warm;
+  border-bottom: 1px solid $line-soft;
+}
+/* Base mint-pill look for a.add-button now lives in the unscoped
+ * _listv2.scss rule (promoted from here once the competing legacy
+ * main.scss generation — 60×60 blank square + text-indent:-9999px —
+ * was deleted). Only the genuine child-header delta remains: compact
+ * to 32px and push it to the far right of the toolbar.
+ * .add-btn is a different emitted class (childListBuilder.php /
+ * is_file_upload_table.php "+ Add" / "Upload" icon buttons) with no
+ * base-rule counterpart, so it keeps its full definition here. */
+.ac-list-form-header-child .add-button {
+  margin-left: auto;
+  height: 32px;
+  padding: 0 14px;
+}
+.ac-list-form-header-child .add-btn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 14px;
+  background: $mint;
+  color: $on-accent;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+  text-decoration: none;
+  box-shadow: 0 1px 2px rgba(0, 209, 178, .3);
+  background-image: none;
+}
+.ac-list-form-header-child .add-btn:hover { background: $mint-600; color: $on-accent; }
+.ac-list-form-header-child .add-button span,
+.ac-list-form-header-child .add-btn span {
+  display: inline;
+  text-indent: 0;
+  position: static;
+  font-size: 13px;
+  color: $on-accent;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  text-decoration: none;
+}
+.ac-list-form-header-child .add-btn i { font-size: 15px; line-height: 1; }
+/* No leading + glyph on child Add — guideline shows a plain mint pill */
+
+/* The child-add toolbar also carries a child-select picker form
+ * (form.va-mob-searchform > .ac-search-item > .select-label). Outside
+ * .proto-form the _formv2 selectbox re-skin doesn't reach it, so the
+ * legacy widget renders as a broken ~70px stacked box. Lay the form
+ * out inline and re-skin the picker as a clean bordered control;
+ * order it before the +Add button. */
+.ac-list-form-header-child form.va-mob-searchform {
+  order: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+}
+.ac-list-form-header-child .add-button,
+.ac-list-form-header-child a.add-button.button-link-blue,
+.ac-list-form-header-child .add-btn { order: 1; }
+/* Child-list nav title: entity name + count pill, sits left of the
+ * Add button. Count reuses the .ch-count pill skin defined above. */
+.ac-list-form-header-child .ch-list-title {
+  order: -1;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+.ac-list-form-header-child .ch-list-title-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: $ink;
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* gap on the inline-flex handles spacing; clear the inherited margin
+ * from the global .ch-count rule so we don't double-space here. */
+.ac-list-form-header-child .ch-list-title .ch-count {
+  vertical-align: baseline;
+  margin-left: 0;
+}
+.ac-list-form-header-child .ac-search-item {
+  flex: 0 1 240px;
+  min-width: 0;
+  margin: 0;
+}
+/* The child-add form reuses the list-search markup; its Search/Clear
+ * action buttons are the no-JS fallback, redundant with the filter
+ * surface's own Apply/Clear — keep them hidden. */
+.ac-list-form-header-child form.va-mob-searchform .ac-action-buttons { display: none; }
+/* The funnel opens the add_child_search_columns filter surface
+ * (filter.js delegates on document, so it works inside the child-list
+ * drawer). Render it as a compact secondary button pinned to the right,
+ * beside the ＋Add button. (Previously hidden — which made child search
+ * unreachable whenever add_child_search_columns was configured.) */
+.ac-list-form-header-child .va-mob-filter-btn {
+  order: 0;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px 0 10px;
+  border: 1px solid $line-hard;
+  border-radius: 6px;
+  background: $surface;
+  color: $text-mid;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ac-list-form-header-child .va-mob-filter-btn:hover { background: $bg; }
+.ac-list-form-header-child .va-mob-filter-btn::after { content: 'Filters'; }
+.ac-list-form-header-child .va-mob-filter-btn i { font-size: 15px; line-height: 1; color: inherit; }
+.ac-list-form-header-child .select-label.js-select-label {
+  display: block;
+  width: 100%;
+  margin: 0;
+  position: relative;
+}
+.ac-list-form-header-child .select-label-span {
+  box-sizing: border-box;
+  width: 100%;
+  height: 34px;
+  line-height: 34px;
+  padding: 0 30px 0 12px;
+  background: $surface;
+  border: 1px solid $line;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  color: $ink;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  position: relative;
+  transition: border-color .12s;
+}
+.ac-list-form-header-child .select-label-span.gray,
+.ac-list-form-header-child .select-label-span.default {
+  color: $text-faint;
+  font-weight: 400;
+}
+.ac-list-form-header-child .select-label-span:hover { border-color: $mint; }
+.ac-list-form-header-child .select-label-span::after {
+  content: '\203A';
+  position: absolute;
+  right: 11px;
+  top: 50%;
+  transform: translateY(-52%) rotate(90deg);
+  font-size: 15px;
+  color: $text-faint;
+  pointer-events: none;
+}
+.ac-list-form-header-child .select-label.js-select-label ul.scrollable.select-element {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: auto;
+  width: max-content;
+  min-width: 100%;
+  max-width: 320px;
+  max-height: 280px;
+  background: $surface;
+  border: 1px solid $line;
+  border-radius: 9px;
+  box-shadow: 0 8px 28px rgba(10, 37, 64, .16);
+  overflow-y: auto;
+  z-index: 60;
+}
+.ac-list-form-header-child .select-label ul.select-element li {
+  text-align: left;
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: $text;
+}
+.ac-list-form-header-child .select-label ul.select-element li:hover,
+.ac-list-form-header-child .select-label ul.select-element li.hovered { background: $bg-warm; }
+.ac-list-form-header-child .select-label ul.select-element li.selected {
+  background: $mint-50;
+  color: $mint-700;
+  font-weight: 600;
+}
+.ac-list-form-header-child .select-label ul.select-element li.default { color: $text-faint; }
+
+.childListWrapper { padding: 0; }
+.childListWrapper .va-mob.proto-app[data-parent] {
+  position: relative;
+  inset: auto;
+  height: auto;
+  background: transparent;
+}
+.childListWrapper .va-mob-pager { border: none; background: transparent; }

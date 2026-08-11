@@ -1,0 +1,125 @@
+$colorMain : #00d1b2;
+$colorLight : #fff;
+$colorDark : mix(#000, $colorMain, 82%);
+$colorDarkHover : mix(#000, $colorMain, 76%);
+$colorDark3 : mix(#000, $colorMain, 88%);
+$colorMid : mix(#fff, $colorMain, 84%);
+$colorMid2 : $colorMid;
+$colorMid3 : mix(#000, $colorMain, 28%);
+$colorTrOdd : mix(#fff, $colorMain, 88%);
+$colorShadow : rgba($colorMain, 0.42);
+$hoverFilter : none;
+$colorGreen : $colorMain;
+$colorBlue: mix(#4db6fc, $colorMain, 35%);
+$colorLightRed: #d45e5e;
+$colorWarning: #ffca57;
+$colorHoverBg: mix(#fff, $colorMain, 92%);
+$colorHover: $colorMain;
+$colorBgBody: mix(#fff, $colorMain, 96%);
+$colorText: mix(#000, $colorMain, 72%);
+$colorLinkHover: mix(#000, $colorMain, 45%);
+$colorSplash: rgba($colorMain, 0.2);
+
+// Brand / action
+$colorPrimary: $colorMain;
+$colorSuccess: #1f9d55;
+$colorDanger: #c63b3b;
+$colorOrange: #e67e22;
+$colorOrangeLight: #f39c12;
+$colorPurple: mix(#667eea, $colorMain, 45%);
+$colorPurpleDark: mix(#5568d3, $colorMain, 45%);
+$colorGrayMid: mix(#95a5a6, $colorMain, 45%);
+$colorBlueBright: mix(#2c92ff, $colorMain, 40%);
+$colorBlueBold: mix(#1570ef, $colorMain, 40%);
+$colorBlack: #000;
+
+// Text scale
+$colorTextBlack: mix(#000, $colorMain, 85%);
+$colorTextDark: mix(#000, $colorMain, 78%);
+$colorTextSecondary: mix(#000, $colorMain, 62%);
+$colorTextMuted: mix(#000, $colorMain, 52%);
+$colorTextLight: mix(#000, $colorMain, 44%);
+$colorTextLighter: mix(#000, $colorMain, 36%);
+
+// Borders
+$colorBorder: mix(#fff, $colorMain, 82%);
+$colorBorderLighter: mix(#fff, $colorMain, 90%);
+$colorBorderLight: mix(#fff, $colorMain, 88%);
+$colorBorderMid: mix(#fff, $colorMain, 80%);
+$colorBorderCalendar: mix(#fff, $colorMain, 84%);
+
+// Backgrounds
+$colorBgCard: mix(#fff, $colorMain, 95%);
+$colorBgSubtle: mix(#fff, $colorMain, 96%);
+$colorBgWeekend: mix(#fff, $colorMain, 91%);
+$colorBgWeekendHeader: mix(#fff, $colorMain, 87%);
+$colorBgHoverBlue: mix(#fff, $colorMain, 94%);
+$colorBgError: mix(#fff, $colorDanger, 88%);
+$colorBgZero: mix(#fff, $colorDanger, 78%);
+$colorBgLogged: mix(#fff, $colorSuccess, 76%);
+
+// Calendar palette aligned to theme
+$colorCalBlack: mix(#000, $colorMain, 78%);
+$colorCalDark: mix(#000, $colorMain, 66%);
+$colorCalGray: mix(#000, $colorMain, 56%);
+$colorCalMid: mix(#000, $colorMain, 48%);
+$colorCalBorder: mix(#fff, $colorMain, 82%);
+$colorCalBg: mix(#fff, $colorMain, 92%);
+
+// ============================================================
+// v2 design tokens (theme guideline 2026-05-17)
+// Additive only — existing $color* vars above are untouched.
+// Consumed exclusively by _listv2/_formv2/_clientv2/_childlists.
+// Values are authoritative from the guideline prototype :root{}.
+// ============================================================
+
+// Mint scale ($mint == $colorMain, kept)
+$mint:       #00d1b2;
+$mint-600:   #00b89a;
+$mint-700:   #009b82;
+$mint-50:    #ecfbf7;
+$mint-100:   #d4f3ed;
+$mint-200:   #a8e5d8;
+
+// Neutrals (Stripe-inspired ink)
+$ink:        #0a2540;
+$text:       #3c4257;
+$text-mid:   #5b6376;
+$text-mute:  #8898aa;
+$text-faint: #aab4be;
+
+$line:       #e3e8ee;
+$line-soft:  #eef1f5;
+$line-hard:  #cdd5df;
+
+$bg:         #f6f9fc;
+$bg-warm:    #fafbfd;
+$surface:    #ffffff;
+$row-hover:  #f6fbfa;
+$row-active: #ecfbf7;
+
+// Status
+$danger:     #df1b41;
+$danger-50:  #fdebef;
+$warning:    #f59e0b;
+$warning-50: #fef3e0;
+
+// Radius / shadow
+$radius:     6px;
+$shadow-sm:  0 1px 2px rgba(10, 37, 64, .05);
+$shadow-md:  0 4px 14px rgba(10, 37, 64, .08);
+
+// Type
+$font-sans:  'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+$font-mono:  'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+// Client followup status pills: (color, tint)
+$status-pills: (
+  lead:        (#3b82f6, #dbeafe),
+  qualified:   (#6366f1, #e0e7ff),
+  negotiation: (#f97316, #ffedd5),
+  won:         (#00d1b2, #ecfbf7),
+  lost:        (#df1b41, #fdebef),
+  onhold:      (#8898aa, #eef1f5),
+  inactive:    (#aab4be, #f6f9fc),
+);

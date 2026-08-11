@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database name="apigtbot" defaultIdMethod="native" namespace="App">
+
+    <table name="authy_group" description="Group">
+        <behavior name="GoatCheese">
+            <parameter name="is_group_table" value="true" />
+            <parameter name="set_parent_menu" value="Settings" />
+            <parameter name="set_menu_priority" value="50" />
+            <parameter name="is_rights_column" value='["rights_all", "rights_owner", "rights_group"]' />
+            <parameter name="add_tab_columns" value='{"Rights":"rights_all"}' />
+            <parameter name="set_list_hide_columns" value='["rights_all", "rights_owner", "rights_group"]' />
+        </behavior>
+
+        <column name="id_authy_group" type="integer" required="true" primaryKey="true" autoIncrement="true"/>
+
+        <column name="name" type="varchar" size="50" required="false" description="Name"/>
+        <column name="desc" type="varchar" size="32" required="false" description="Description"/>
+        <column name="default_group" type="enum" valueSet="No, Yes" required="true" description="Default"/>
+        <column name="admin" type="enum" valueSet="No, Yes" required="true" description="Admin"/>
+        <column name="rights_all" type="varchar" size="1023" required="false" description="Rights"/>
+        <column name="rights_owner" type="varchar" size="1023" required="false" description="Rights owner"/>
+        <column name="rights_group" type="varchar" size="1023" required="false" description="Rights group"/>
+
+        <validator column="name">
+            <rule name="required" message="group_name_required" />
+        </validator>
+    </table>
+
+    <table name="authy_group_x" isCrossRef="true" description="Group">
+        <behavior name="add_tablestamp">
+        </behavior>
+        <behavior name="GoatCheese">
+            <parameter name="parent_table" value='authy' />
+            <parameter name="checkbox_all_child" value="yes" />
+        </behavior>
+
+        <column name="id_authy" type="integer" required="true" primaryKey="true" />
+        <column name="id_authy_group" type="integer" required="true" primaryKey="true" description="Group" />
+
+        <foreign-key foreignTable="authy_group" onDelete="cascade">
+            <reference local="id_authy_group" foreign="id_authy_group"/>
+        </foreign-key>
+        <foreign-key foreignTable="authy" onDelete="restrict" onUpdate="cascade">
+            <reference local="id_authy" foreign="id_authy"/>
+        </foreign-key>
+    </table>
+
+    <table name="authy_log" description="Login log">
+        <behavior name="GoatCheese">
+            <parameter name="set_parent_menu" value="Settings" />
+            <parameter name="set_menu_priority" value="0" />
+            <parameter name="set_order_list_columns" value='[["timestamp", "DESC"]]' />
+        </behavior>
+        <behavior name="add_tablestamp">
+            <parameter name="exclude" value="all" />
+        </behavior>
+
+        <column name="id_authy_log" type="integer" required="true" primaryKey="true" autoIncrement="true"/>
+        <column name="id_authy" type="integer" required="false"/>
+        <column name="timestamp" type="timestamp" required="false" description="Date"/>
+        <column name="login" type="varchar" size="50" required="true" description="Username"/>
+        <column name="userid" type="integer" required="false"/>
+        <column name="result" type="varchar" size="100" required="true"/>
+        <column name="event" type="varchar" size="64" required="false" description="Event"/>
+        <column name="ip" type="varchar" size="16" required="true" description="Ip"/>
+        <column name="count" type="integer" required="false" description="Count"/>
+
+        <foreign-key foreignTable="authy" onDelete="restrict" onUpdate="cascade">
+            <reference local="id_authy" foreign="id_authy"/>
+        </foreign-key>
+    </table>
+
+    <table name="message" description="Message">
+        <behavior name="GoatCheese">
+            <parameter name="set_parent_menu" value="Settings" />
+            <parameter name="add_search_columns" value='{"Label":[["label", "%val"]]}' />
+            <parameter name="set_list_hide_columns" value='["text"]' />
+            <parameter name="set_menu_priority" value="10" />
+            <parameter name="set_readonly_columns" value='["label"]' />
+        </behavior>
+        <behavior name="i18n">
+            <parameter name="i18n_columns" value="text" />
+        </behavior>
+        <behavior name="add_tablestamp">
+            <parameter name="exclude" value="all" />
+        </behavior>
+        <column name="id_message" type="integer" required="true" primaryKey="true" autoIncrement="true" />
+        <column name="label" type="varchar" size="100" required="true" description ="Label"/>
+        <column name="text" type="LONGVARCHAR" size="200" required="false" description ="Texte"/>
+
+        <validator column="label">
+            <rule name="required" message="message_label_required" />
+        </validator>
+    </table>
+
+    <table name="config" description="Setting">
+        <behavior name="GoatCheese">
+            <parameter name="set_menu_priority" value="0" />
+            <parameter name="set_parent_menu" value="Settings" />
+        </behavior>
+
+        <column name="id_config" type="integer" required="true" primaryKey="true" autoIncrement="true"/>
+
+        <column name="category" type="enum" valueSet="General, API, Control panel" required="true" description="Category"/>
+        <column name="config" type="varchar" size="100" required="true" description="Setting"/>
+        <column name="value" type="longvarchar" size="400" required="false" description="Value"/>
+        <column name="system" type="enum" valueSet="y, n" defaultValue="y" required="false"/>
+        <column name="description" type="varchar" size="500" required="false" description="Description"/>
+        <column name="type" type="varchar" size="35" required="false" description=""/>
+    </table>
+
+</database>

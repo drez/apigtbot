@@ -1,0 +1,71 @@
+// ============================================================
+// v2 design tokens — SHARED, drift-synced.
+//
+// These were originally appended to _variables.scss, but that file
+// is per-project and excluded from `gc build` template-drift sync
+// (Builder.php compareWithTemplate $ignore). Projects created before
+// the v2 redesign keep a stale _variables.scss and never receive
+// these tokens, yet they DO receive the new v2 partials (_listv2 …),
+// which reference them — so main.scss failed to compile with
+// "Undefined variable $bg". Living here (a non-ignored partial that
+// matches public/css/*.scss) means every project gets the current
+// token set on rebuild. _variables.scss stays per-project for
+// legacy ($colorMain …) overrides; the v2 partials @use THIS file.
+//
+// Hex truth has moved to _themes.scss (:root block). Values here are
+// var() aliases so themes switch by flipping html[data-theme].
+// ============================================================
+
+// Mint scale ($mint == $colorMain, kept)
+$mint:       var(--mint);
+$mint-600:   var(--mint-600);
+$mint-700:   var(--mint-700);
+$mint-50:    var(--mint-50);
+$mint-100:   var(--mint-100);
+$mint-200:   var(--mint-200);
+
+// Neutrals (Stripe-inspired ink)
+$ink:        var(--ink);
+$text:       var(--text);
+$text-mid:   var(--text-mid);
+$text-mute:  var(--text-mute);
+$text-faint: var(--text-faint);
+
+$line:       var(--line);
+$line-soft:  var(--line-soft);
+$line-hard:  var(--line-hard);
+
+$bg:         var(--bg);
+$bg-warm:    var(--bg-warm);
+$surface:    var(--surface);
+$row-hover:  var(--row-hover);
+$row-active: var(--row-active);
+
+// Status
+$danger:     var(--danger);
+$danger-50:  var(--danger-50);
+$warning:    var(--warning);
+$warning-50: var(--warning-50);
+
+// Radius / shadow
+$radius:     6px;
+$shadow-sm:  var(--shadow-sm);
+$shadow-md:  var(--shadow-md);
+
+// On-accent (text color on accent-filled elements)
+$on-accent:  var(--on-accent);   // NEW token
+
+// Type
+$font-sans:  'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+$font-mono:  'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+// Client followup status pills: (color, tint)
+$status-pills: (
+  lead:        (#3b82f6, #dbeafe),
+  qualified:   (#6366f1, #e0e7ff),
+  negotiation: (#f97316, #ffedd5),
+  won:         (#00d1b2, #ecfbf7),
+  lost:        (#df1b41, #fdebef),
+  onhold:      (#8898aa, #eef1f5),
+  inactive:    (#aab4be, #f6f9fc),
+);

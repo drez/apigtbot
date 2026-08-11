@@ -1,0 +1,109 @@
+// v2 checkbox shapes, matching the existing .cl-toggle (_clientv2.scss) and the
+// .actionrow row boxes (_listv2.scss).
+//
+//  * Boolean VALUE checkboxes  -> mint pill TOGGLE (form fields, search NtN,
+//    Welcome). Global on input[type=checkbox]+label.
+//  * Row-selection checkboxes  -> box-with-checkmark. Main/child rows keep their
+//    _listv2 `.actionrow ... [j^='check_multi_']` box override (more specific,
+//    untouched). The "select all" control (id^='mass-action-') is EXCLUDED
+//    from the toggle via :not() and given its own matching box here so the
+//    whole bulk-select UI is boxes.
+//
+// The toggle works for empty labels (form fields) and text labels (search
+// "Unset / Set", Welcome) via a right-reserved pill zone.
+@use 'tokensv2' as *;
+
+$tgl-w: 42px;
+$tgl-h: 25px;
+$tgl-knob: 21px;
+
+// Hide the real input but keep it focusable (keyboard / assistive tech).
+input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+// --- mint pill toggle (everything except the select-all box) ---
+input[type="checkbox"]:not([id^="mass-action-"]) + label {
+  position: relative;
+  display: inline-block;
+  min-height: $tgl-h;
+  padding-right: $tgl-w + 8px;        // reserve pill zone
+  cursor: pointer;
+  vertical-align: middle;
+
+  &::before {                         // track
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: $tgl-w;
+    height: $tgl-h;
+    border-radius: 13px;
+    background: $line;
+    transition: background .18s ease;
+  }
+
+  &::after {                          // knob
+    content: "";
+    position: absolute;
+    right: $tgl-w - $tgl-knob - 2px;  // 19px from the right when off
+    top: 2px;
+    width: $tgl-knob;
+    height: $tgl-knob;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(10, 37, 64, 0.16);
+    transition: right .18s cubic-bezier(0.32, 0.72, 0.32, 1);
+  }
+}
+
+input[type="checkbox"]:not([id^="mass-action-"]):checked + label::before { background: $mint; }
+input[type="checkbox"]:not([id^="mass-action-"]):checked + label::after  { right: 2px; }
+input[type="checkbox"]:not([id^="mass-action-"]):focus  + label::before  { box-shadow: 0 0 0 3px $mint-100; }
+
+// --- "select all" (Un/Check all) — box matching the row checkboxes ---
+// Excluded from the toggle above, so no pill pseudo-elements to fight. The
+// label carries text, so the box is ::before and the checkmark is ::after over it.
+input[type="checkbox"][id^="mass-action-"] + label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  vertical-align: middle;
+
+  &::before {                         // the box
+    content: "";
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid $text-faint;
+    border-radius: 4px;
+    background: $surface;
+    box-sizing: border-box;
+    transition: background .12s, border-color .12s;
+  }
+
+  &::after {                          // checkmark, centered over the box
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 18px;
+    transform: translateY(-50%);
+    text-align: center;
+    color: $on-accent;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+  }
+}
+
+input[type="checkbox"][id^="mass-action-"]:checked + label::before {
+  background: $mint;
+  border-color: $mint;
+}
+input[type="checkbox"][id^="mass-action-"]:checked + label::after { content: "✓"; }
+input[type="checkbox"][id^="mass-action-"]:focus  + label::before { box-shadow: 0 0 0 3px $mint-100; }

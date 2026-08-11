@@ -1,0 +1,134 @@
+ $colorHeadBg:#00d1b2;
+ 
+ body{
+    font-family: "Nunito", sans-serif;
+    color: #4a4a4a;
+    font-size: 1em;
+ }
+
+@media only screen {
+    body {
+        background-color: #f0f0f0;
+    }
+}
+ h1,
+ h2,
+ h3,
+ h4,
+ h5 {
+     page-break-after: avoid;
+ }
+
+ table,
+ figure,
+ .no-break {
+     page-break-inside: avoid;
+ }
+
+@media only screen{
+    .print {
+        max-width: 8.5in;
+        margin: auto;
+        
+    }
+}
+
+.print {
+    background-color: #fff;
+}
+
+@page {
+    counter-increment: page;
+    @bottom-right {
+        content: counter(page) " of " counter(pages);
+    }
+}
+
+table {
+    width: 100%;
+    border-spacing: 5px;
+    border-collapse:collapse;
+    padding:10px;
+}
+
+.header{
+    padding: 20px;
+
+    img{
+        max-width: 220px;
+    }
+}
+
+.head1 {
+    display: table-row;
+    width: auto;
+    background-color: #fff;
+    color: $colorHeadBg;
+    font-weight: lighter;
+    font-size: 1.1em;
+
+    td{
+        padding:5px;
+        border:1px solid $colorHeadBg;
+        border-top-width: 0px;
+        border-left-width: 0px;
+        border-right-width: 0px;
+        font-weight: bold;
+    }
+}
+
+.col-2 .divCell {
+    width: 50%;
+}
+
+.client tr td {
+    font-size:0.95em;
+}
+
+.billingDetails {
+    padding:20px;
+}
+
+tr.item td {
+    padding:10px;
+    font-weight: 600;
+}
+
+tr.item td p{
+    margin: 5px;
+}
+
+.itemDescription {
+    p {
+        margin: 5px;
+        margin-bottom:10px;
+        margin-left:15px;
+    }
+}
+
+.totalRow {
+
+    td{
+        text-align: right;
+        padding: 10px;
+        font-weight: 600;
+    }
+}
+
+.disclaimer {
+    margin-top:20px;
+    padding: 10px;
+
+    ul{
+        list-style-type: auto;
+        padding-left: 20px;
+
+        li{
+            font-size: 0.95em;
+        }
+    }
+}
+
+sup {
+    font-size: 10px;
+}

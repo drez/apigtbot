@@ -1,0 +1,453 @@
+// Ported from theme guideline new/prototype-clients.css
+// Client list row + rich edit-form extras. Namespaced .cl-*/.proto-form.
+@use 'tokensv2' as *;
+
+/* ============================================================
+   Client-specific styles (list + edit)
+============================================================ */
+
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: $text-mute;
+  font-size: 14px;
+}
+.empty-state i {
+  font-size: 32px;
+  color: $text-faint;
+  display: block;
+  margin-bottom: 8px;
+}
+.empty-state strong { color: $ink; font-weight: 600; }
+
+.chip-count {
+  font-family: $font-mono;
+  font-size: 10.5px;
+  color: $text-faint;
+  font-weight: 500;
+}
+.va-mob-chip.active .chip-count { color: $mint-700; font-weight: 700; }
+
+/* ───── Client list row ───── */
+.cl-list { padding-bottom: 8px; }
+.cl-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  background: $surface;
+  border-bottom: 1px solid $line-soft;
+  border: none;
+  border-bottom: 1px solid $line-soft;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.08s;
+  font-family: inherit;
+}
+.cl-row:active { background: $row-active; }
+
+.cl-avatar {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  color: $on-accent;
+  display: grid; place-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.cl-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cl-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cl-name {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: $ink;
+  letter-spacing: -0.005em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.cl-type {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.cl-type-client {
+  background: $mint-50;
+  color: $mint-700;
+  border: 1px solid $mint-100;
+}
+.cl-type-prospect {
+  background: #ffedd5;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.cl-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: $text-mute;
+  overflow: hidden;
+}
+.cl-meta-dot { width: 3px; height: 3px; border-radius: 50%; background: $text-faint; flex-shrink: 0; }
+.cl-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.cl-contact i { font-size: 12px; color: $text-faint; flex-shrink: 0; }
+.cl-phone {
+  font-family: $font-mono;
+  font-size: 11.5px;
+  color: $text-mute;
+  flex-shrink: 0;
+}
+
+.cl-trail {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.cl-trail .chev { color: $text-faint; font-size: 17px; }
+
+.cl-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 8px 3px 6px;
+  border-radius: 999px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.cl-status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: currentColor;
+}
+
+/* Pipeline-status colour system. The emitter emits
+ * `cl-status cl-status-<sanitised value>` (lower-cased, non-alnum
+ * stripped: "On hold" -> onhold, "Won" -> won). Unmapped values fall
+ * back to the neutral base below so an arbitrary enum still renders a
+ * legible pill. Hex/tints from handoff/README + the Clients screenshot. */
+.cl-status {
+  background: $bg-warm;
+  color: $text-mid;
+}
+// Literal (non-token) entries here are re-skinned for dark mode by the
+// [data-theme="ink"] .cl-status-* overrides in _themes.scss — keep in sync.
+$cl-status-colors: (
+  won:           ($mint-50,  $mint-700),
+  active:        ($mint-50,  $mint-700),
+  published:     ($mint-50,  $mint-700),
+  qualified:     (#ede9fe,   #6d28d9),
+  lead:          (#e0f2fe,   #0369a1),
+  open:          (#e0f2fe,   #0369a1),
+  negotiation:   ($warning-50, #b45309),
+  shipped:       ($warning-50, #b45309),
+  normal:        ($warning-50, #b45309),
+  lost:          ($danger-50, #b3163a),
+  discontinued:  ($danger-50, #b3163a),
+  cancelled:     ($danger-50, #b3163a),
+  high:          ($danger-50, #b3163a),
+  onhold:        ($bg,       $text-mute),
+  inactive:      ($bg,       $text-mute),
+  draft:         ($bg,       $text-mute),
+  closed:        ($bg,       $text-mute),
+  low:           ($bg,       $text-mute),
+);
+@each $key, $pair in $cl-status-colors {
+  .cl-status-#{$key} {
+    background: nth($pair, 1);
+    color: nth($pair, 2);
+  }
+}
+
+.mono { font-family: $font-mono; }
+
+/* ───── Edit form: hero ───── */
+.cl-hero {
+  margin: 14px 14px 4px;
+  padding: 14px;
+  background: linear-gradient(135deg, $surface 0%, $bg-warm 100%);
+  border: 1px solid $line;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: $shadow-sm;
+}
+.cl-hero-avatar {
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  color: $on-accent;
+  display: grid; place-items: center;
+  font-size: 19px;
+  font-weight: 700;
+  flex-shrink: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  box-shadow: 0 4px 12px rgba(10,37,64,0.12);
+}
+.cl-hero-body {
+  flex: 1;
+  min-width: 0;
+}
+.cl-hero-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: $ink;
+  letter-spacing: -0.012em;
+  margin-bottom: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cl-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ───── Quick actions row ───── */
+.cl-quickactions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 10px 14px 4px;
+}
+.cl-qa {
+  background: $surface;
+  border: 1px solid $line;
+  border-radius: 12px;
+  padding: 11px 6px 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  color: $ink;
+  cursor: pointer;
+  transition: background 0.08s, transform 0.08s;
+  -webkit-tap-highlight-color: transparent;
+}
+.cl-qa:active {
+  background: $bg;
+  transform: scale(0.97);
+}
+.cl-qa i {
+  font-size: 22px;
+  color: $mint-700;
+}
+.cl-qa span {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+/* ───── Form row variants ───── */
+.proto-form .form-row-stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 10px 14px;
+}
+.proto-form .form-row-stack .lbl {
+  width: auto;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $text-mute;
+}
+.proto-form .form-row-stack input,
+.proto-form .form-row-stack textarea {
+  text-align: left;
+  font-size: 14px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  outline: none;
+  font-family: inherit;
+  color: $ink;
+  width: 100%;
+  resize: none;
+  -webkit-appearance: none;
+}
+.proto-form .form-row-stack input::placeholder,
+.proto-form .form-row-stack textarea::placeholder {
+  color: $text-faint;
+}
+.cl-note {
+  min-height: 70px;
+  line-height: 1.5;
+}
+
+.proto-form .form-row-toggle {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.proto-form .form-row-toggle .lbl { width: auto; flex: 1; }
+.proto-form .form-row-toggle .val { flex: 0 0 auto; margin-right: 10px; }
+
+.cl-toggle {
+  width: 42px; height: 25px;
+  border-radius: 13px;
+  background: $line;
+  position: relative;
+  transition: background 0.18s;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.cl-toggle.on { background: $mint; }
+.cl-toggle-knob {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 21px; height: 21px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(10,37,64,0.16);
+  transition: transform 0.18s cubic-bezier(0.32, 0.72, 0.32, 1);
+}
+.cl-toggle.on .cl-toggle-knob { transform: translateX(17px); }
+
+/* phone work + ext split */
+.cl-split {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-end;
+}
+.cl-split input {
+  text-align: right;
+}
+.cl-split input.cl-ext {
+  width: 60px;
+  flex: 0 0 auto;
+  border-left: 1px solid $line;
+  padding-left: 10px;
+}
+
+/* rate input with currency on either side */
+.cl-rate-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+  flex: 1;
+  min-width: 0;
+}
+.cl-rate-wrap input {
+  width: 70px;
+  flex: 0 0 auto;
+  text-align: right;
+}
+.cl-rate-cur { color: $text-mute; font-size: 14px; }
+.cl-rate-suffix { font-size: 12px; color: $text-mute; }
+
+/* user chip in row val */
+.cl-userchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.cl-userav {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  color: $on-accent;
+  font-size: 9.5px;
+  font-weight: 700;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Related rows */
+.cl-related-row { padding: 12px 14px; }
+.cl-related-icon {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  background: $mint-50;
+  color: $mint-700;
+  display: grid; place-items: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.cl-related-label {
+  flex: 1;
+  font-size: 14px;
+  color: $ink;
+  font-weight: 500;
+  margin-left: 0;
+}
+.cl-related-count {
+  font-family: $font-mono;
+  font-size: 13px;
+  color: $text-mute;
+  font-variant-numeric: tabular-nums;
+  background: $bg;
+  padding: 2px 9px;
+  border-radius: 999px;
+  min-width: 26px;
+  text-align: center;
+}
+
+/* Sheet enhancements */
+.sheet-userav {
+  margin-left: 4px;
+  width: 28px;
+  height: 28px;
+  font-size: 11px;
+  border-radius: 50%;
+}
+.sheet-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+.sheet-row-label {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: $ink;
+  letter-spacing: -0.005em;
+}
+.sheet-row-desc {
+  font-size: 12px;
+  color: $text-mute;
+  margin-top: 1px;
+}
+.proto-sheet .sheet-row { gap: 12px; align-items: center; }

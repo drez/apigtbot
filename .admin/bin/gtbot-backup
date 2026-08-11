@@ -1,0 +1,48 @@
+#!/usr/bin/env php
+<?php
+/**
+ * gtbot-backup — daily DB backup with rotation (keep 7). Cron:
+ *   0 3 * * * php <project>/.admin/bin/gtbot-backup
+ * Dumps the project DB (creds from .env) to .admin/tmp/dbbackup/.
+ */
+
+$admin = dirname(__DIR__);
+require $admin . '/vendor/autoload.php';
+(new \Ahc\Env\Loader())->load($admin . '/.env');
+
+$dir = $admin . '/tmp/dbbackup';
+if (!is_dir($dir)) {
+    mkdir($dir, 0750, true);
+}
+$host = (string) env('MY_DB_HOST', 'localhost');
+$db = (string) env('MY_DB_NAME');
+$user = (string) env('MY_DB_USER');
+$pass = (string) env('MY_DB_PASSWORD');
+if ($db === '' || $user === '') {
+    fwrite(STDERR, "gtbot-backup: MY_DB_* not configured\n");
+    exit(1);
+}
+$file = $dir . '/db-' . date('Ymd-His') . '.sql.gz';
+$dumpBin = trim((string) shell_exec('command -v mariadb-dump || command -v mysqldump'));
+if ($dumpBin === '') {
+    fwrite(STDERR, "gtbot-backup: no mysqldump/mariadb-dump binary\n");
+    exit(1);
+}
+putenv('MYSQL_PWD=' . $pass);
+$cmd = escapeshellarg($dumpBin) . ' -h' . escapeshellarg($host) . ' -u' . escapeshellarg($user)
+    . ' --single-transaction --quick ' . escapeshellarg($db)
+    . ' | gzip > ' . escapeshellarg($file);
+exec($cmd, $o, $rc);
+putenv('MYSQL_PWD');
+if ($rc !== 0 || !filesize($file)) {
+    @unlink($file);
+    fwrite(STDERR, "gtbot-backup: dump failed (rc=$rc)\n");
+    exit(1);
+}
+// rotate: keep newest 7
+$files = glob($dir . '/db-*.sql.gz') ?: [];
+rsort($files);
+foreach (array_slice($files, 7) as $old) {
+    @unlink($old);
+}
+echo "backup ok: " . basename($file) . " (" . round(filesize($file) / 1024) . " KB), " . min(7, count($files)) . " kept\n";

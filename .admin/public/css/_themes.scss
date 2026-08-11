@@ -1,0 +1,562 @@
+// ============================================================
+// _themes.scss — SHARED, drift-synced. The single source of
+// truth for every color in the app, emitted as CSS custom
+// properties so themes switch by flipping html[data-theme].
+//
+// :root           = Mint (default) — legacy values READ from the
+//                   project's own _variables.scss so per-project
+//                   $colorMain branding survives as the default.
+// [data-theme=x]  = the four new themes. Light themes derive the
+//                   legacy palette through the same mix() formulas
+//                   as _variables.scss; Ink Dark is hand-tuned.
+//
+// This file also re-exports every legacy $color* name as a var()
+// alias, so main.scss/_selectbox.scss just `@use 'themes' as *`.
+// v2 token aliases live in _tokensv2.scss (which this file feeds).
+// ============================================================
+@use 'variables' as legacy;
+
+// ---------- Sass alias re-exports (legacy names) ----------
+$colorMain: var(--colorMain);
+$colorLight: var(--colorLight);
+$colorDark: var(--colorDark);
+$colorDarkHover: var(--colorDarkHover);
+$colorDark3: var(--colorDark3);
+$colorMid: var(--colorMid);
+$colorMid2: var(--colorMid2);
+$colorMid3: var(--colorMid3);
+$colorTrOdd: var(--colorTrOdd);
+$colorShadow: var(--colorShadow);
+$hoverFilter: var(--hoverFilter);
+$colorGreen: var(--colorGreen);
+$colorBlue: var(--colorBlue);
+$colorLightRed: var(--colorLightRed);
+$colorWarning: var(--colorWarning);
+$colorHoverBg: var(--colorHoverBg);
+$colorHover: var(--colorHover);
+$colorBgBody: var(--colorBgBody);
+$colorText: var(--colorText);
+$colorLinkHover: var(--colorLinkHover);
+$colorSplash: var(--colorSplash);
+$colorPrimary: var(--colorPrimary);
+$colorSuccess: var(--colorSuccess);
+$colorDanger: var(--colorDanger);
+$colorOrange: var(--colorOrange);
+$colorOrangeLight: var(--colorOrangeLight);
+$colorPurple: var(--colorPurple);
+$colorPurpleDark: var(--colorPurpleDark);
+$colorGrayMid: var(--colorGrayMid);
+$colorBlueBright: var(--colorBlueBright);
+$colorBlueBold: var(--colorBlueBold);
+$colorBlack: var(--colorBlack);
+$colorTextBlack: var(--colorTextBlack);
+$colorTextDark: var(--colorTextDark);
+$colorTextSecondary: var(--colorTextSecondary);
+$colorTextMuted: var(--colorTextMuted);
+$colorTextLight: var(--colorTextLight);
+$colorTextLighter: var(--colorTextLighter);
+$colorBorder: var(--colorBorder);
+$colorBorderLighter: var(--colorBorderLighter);
+$colorBorderLight: var(--colorBorderLight);
+$colorBorderMid: var(--colorBorderMid);
+$colorBorderCalendar: var(--colorBorderCalendar);
+$colorBgCard: var(--colorBgCard);
+$colorBgSubtle: var(--colorBgSubtle);
+$colorBgWeekend: var(--colorBgWeekend);
+$colorBgWeekendHeader: var(--colorBgWeekendHeader);
+$colorBgHoverBlue: var(--colorBgHoverBlue);
+$colorBgError: var(--colorBgError);
+$colorBgZero: var(--colorBgZero);
+$colorBgLogged: var(--colorBgLogged);
+$colorCalBlack: var(--colorCalBlack);
+$colorCalDark: var(--colorCalDark);
+$colorCalGray: var(--colorCalGray);
+$colorCalMid: var(--colorCalMid);
+$colorCalBorder: var(--colorCalBorder);
+$colorCalBg: var(--colorCalBg);
+// Unconsumed map, re-exported verbatim so `as *` callers don't break.
+$status-pills: legacy.$status-pills;
+
+// ---------- :root = Mint defaults ----------
+:root {
+  // legacy palette, read from the project's _variables.scss
+  --colorMain: #{legacy.$colorMain};
+  --colorLight: #{legacy.$colorLight};
+  --colorDark: #{legacy.$colorDark};
+  --colorDarkHover: #{legacy.$colorDarkHover};
+  --colorDark3: #{legacy.$colorDark3};
+  --colorMid: #{legacy.$colorMid};
+  --colorMid2: #{legacy.$colorMid2};
+  --colorMid3: #{legacy.$colorMid3};
+  --colorTrOdd: #{legacy.$colorTrOdd};
+  --colorShadow: #{legacy.$colorShadow};
+  --hoverFilter: #{legacy.$hoverFilter};
+  --colorGreen: #{legacy.$colorGreen};
+  --colorBlue: #{legacy.$colorBlue};
+  --colorLightRed: #{legacy.$colorLightRed};
+  --colorWarning: #{legacy.$colorWarning};
+  --colorHoverBg: #{legacy.$colorHoverBg};
+  --colorHover: #{legacy.$colorHover};
+  --colorBgBody: #{legacy.$colorBgBody};
+  --colorText: #{legacy.$colorText};
+  --colorLinkHover: #{legacy.$colorLinkHover};
+  --colorSplash: #{legacy.$colorSplash};
+  --colorPrimary: #{legacy.$colorPrimary};
+  --colorSuccess: #{legacy.$colorSuccess};
+  --colorDanger: #{legacy.$colorDanger};
+  --colorOrange: #{legacy.$colorOrange};
+  --colorOrangeLight: #{legacy.$colorOrangeLight};
+  --colorPurple: #{legacy.$colorPurple};
+  --colorPurpleDark: #{legacy.$colorPurpleDark};
+  --colorGrayMid: #{legacy.$colorGrayMid};
+  --colorBlueBright: #{legacy.$colorBlueBright};
+  --colorBlueBold: #{legacy.$colorBlueBold};
+  --colorBlack: #{legacy.$colorBlack};
+  --colorTextBlack: #{legacy.$colorTextBlack};
+  --colorTextDark: #{legacy.$colorTextDark};
+  --colorTextSecondary: #{legacy.$colorTextSecondary};
+  --colorTextMuted: #{legacy.$colorTextMuted};
+  --colorTextLight: #{legacy.$colorTextLight};
+  --colorTextLighter: #{legacy.$colorTextLighter};
+  --colorBorder: #{legacy.$colorBorder};
+  --colorBorderLighter: #{legacy.$colorBorderLighter};
+  --colorBorderLight: #{legacy.$colorBorderLight};
+  --colorBorderMid: #{legacy.$colorBorderMid};
+  --colorBorderCalendar: #{legacy.$colorBorderCalendar};
+  --colorBgCard: #{legacy.$colorBgCard};
+  --colorBgSubtle: #{legacy.$colorBgSubtle};
+  --colorBgWeekend: #{legacy.$colorBgWeekend};
+  --colorBgWeekendHeader: #{legacy.$colorBgWeekendHeader};
+  --colorBgHoverBlue: #{legacy.$colorBgHoverBlue};
+  --colorBgError: #{legacy.$colorBgError};
+  --colorBgZero: #{legacy.$colorBgZero};
+  --colorBgLogged: #{legacy.$colorBgLogged};
+  --colorCalBlack: #{legacy.$colorCalBlack};
+  --colorCalDark: #{legacy.$colorCalDark};
+  --colorCalGray: #{legacy.$colorCalGray};
+  --colorCalMid: #{legacy.$colorCalMid};
+  --colorCalBorder: #{legacy.$colorCalBorder};
+  --colorCalBg: #{legacy.$colorCalBg};
+
+  // v2 tokens (hex truth moved here from _tokensv2.scss)
+  --mint: #00d1b2;
+  --mint-600: #00b89a;
+  --mint-700: #009b82;
+  --mint-50: #ecfbf7;
+  --mint-100: #d4f3ed;
+  --mint-200: #a8e5d8;
+  --ink: #0a2540;
+  --text: #3c4257;
+  --text-mid: #5b6376;
+  --text-mute: #8898aa;
+  --text-faint: #aab4be;
+  --line: #e3e8ee;
+  --line-soft: #eef1f5;
+  --line-hard: #cdd5df;
+  --bg: #f6f9fc;
+  --bg-warm: #fafbfd;
+  --surface: #ffffff;
+  --row-hover: #f6fbfa;
+  --row-active: #ecfbf7;
+  --danger: #df1b41;
+  --danger-50: #fdebef;
+  --warning: #f59e0b;
+  --warning-50: #fef3e0;
+  --shadow-sm: 0 1px 2px rgba(10, 37, 64, .05);
+  --shadow-md: 0 4px 14px rgba(10, 37, 64, .08);
+  --on-accent: #ffffff;
+}
+
+// ---------- Light themes (formula-derived from anchors) ----------
+$gc-light-themes: (
+  "indigo":     (accent: #6366f1, ink: #1e1b4b, text: #3f415c, mute: #8d92b3, line: #e4e6f2, bg: #f5f6fb, surface: #ffffff),
+  "terracotta": (accent: #c2552c, ink: #33261a, text: #4d3e2e, mute: #a08e7a, line: #ecdfd0, bg: #faf6f0, surface: #fffdf9),
+  "graphite":   (accent: #18181b, ink: #111113, text: #27272a, mute: #71717a, line: #d4d4d8, bg: #f4f4f5, surface: #ffffff),
+);
+
+@each $name, $t in $gc-light-themes {
+  $main: map-get($t, accent);
+  $ink: map-get($t, ink);
+  $text: map-get($t, text);
+  $mute: map-get($t, mute);
+  $line: map-get($t, line);
+  $bg: map-get($t, bg);
+  $surface: map-get($t, surface);
+
+  [data-theme="#{$name}"] {
+    // legacy palette — same formulas as _variables.scss
+    --colorMain: #{$main};
+    --colorLight: #fff;
+    --colorDark: #{mix(#000, $main, 82%)};
+    --colorDarkHover: #{mix(#000, $main, 76%)};
+    --colorDark3: #{mix(#000, $main, 88%)};
+    --colorMid: #{mix(#fff, $main, 84%)};
+    --colorMid2: #{mix(#fff, $main, 84%)};
+    --colorMid3: #{mix(#000, $main, 28%)};
+    --colorTrOdd: #{mix(#fff, $main, 88%)};
+    --colorShadow: #{rgba($main, 0.42)};
+    --hoverFilter: none;
+    --colorGreen: #{$main};
+    --colorBlue: #{mix(#4db6fc, $main, 35%)};
+    --colorLightRed: #d45e5e;
+    --colorWarning: #ffca57;
+    --colorHoverBg: #{mix(#fff, $main, 92%)};
+    --colorHover: #{$main};
+    --colorBgBody: #{mix(#fff, $main, 96%)};
+    --colorText: #{mix(#000, $main, 72%)};
+    --colorLinkHover: #{mix(#000, $main, 45%)};
+    --colorSplash: #{rgba($main, 0.2)};
+    --colorPrimary: #{$main};
+    --colorSuccess: #1f9d55;
+    --colorDanger: #c63b3b;
+    --colorOrange: #e67e22;
+    --colorOrangeLight: #f39c12;
+    --colorPurple: #{mix(#667eea, $main, 45%)};
+    --colorPurpleDark: #{mix(#5568d3, $main, 45%)};
+    --colorGrayMid: #{mix(#95a5a6, $main, 45%)};
+    --colorBlueBright: #{mix(#2c92ff, $main, 40%)};
+    --colorBlueBold: #{mix(#1570ef, $main, 40%)};
+    --colorBlack: #000;
+    --colorTextBlack: #{mix(#000, $main, 85%)};
+    --colorTextDark: #{mix(#000, $main, 78%)};
+    --colorTextSecondary: #{mix(#000, $main, 62%)};
+    --colorTextMuted: #{mix(#000, $main, 52%)};
+    --colorTextLight: #{mix(#000, $main, 44%)};
+    --colorTextLighter: #{mix(#000, $main, 36%)};
+    --colorBorder: #{mix(#fff, $main, 82%)};
+    --colorBorderLighter: #{mix(#fff, $main, 90%)};
+    --colorBorderLight: #{mix(#fff, $main, 88%)};
+    --colorBorderMid: #{mix(#fff, $main, 80%)};
+    --colorBorderCalendar: #{mix(#fff, $main, 84%)};
+    --colorBgCard: #{mix(#fff, $main, 95%)};
+    --colorBgSubtle: #{mix(#fff, $main, 96%)};
+    --colorBgWeekend: #{mix(#fff, $main, 91%)};
+    --colorBgWeekendHeader: #{mix(#fff, $main, 87%)};
+    --colorBgHoverBlue: #{mix(#fff, $main, 94%)};
+    --colorBgError: #{mix(#fff, #c63b3b, 88%)};
+    --colorBgZero: #{mix(#fff, #c63b3b, 78%)};
+    --colorBgLogged: #{mix(#fff, #1f9d55, 76%)};
+    --colorCalBlack: #{mix(#000, $main, 78%)};
+    --colorCalDark: #{mix(#000, $main, 66%)};
+    --colorCalGray: #{mix(#000, $main, 56%)};
+    --colorCalMid: #{mix(#000, $main, 48%)};
+    --colorCalBorder: #{mix(#fff, $main, 82%)};
+    --colorCalBg: #{mix(#fff, $main, 92%)};
+
+    // v2 tokens — accent scale derived (validated against Mint's
+    // hand-picked values: 12/26% dark, 92/84/65% light), neutrals
+    // from the anchor set.
+    --mint: #{$main};
+    --mint-600: #{mix(#000, $main, 12%)};
+    --mint-700: #{mix(#000, $main, 26%)};
+    --mint-50: #{mix(#fff, $main, 92%)};
+    --mint-100: #{mix(#fff, $main, 84%)};
+    --mint-200: #{mix(#fff, $main, 65%)};
+    --ink: #{$ink};
+    --text: #{$text};
+    --text-mid: #{mix($mute, $text, 45%)};
+    --text-mute: #{$mute};
+    --text-faint: #{mix(#fff, $mute, 25%)};
+    --line: #{$line};
+    --line-soft: #{mix(#fff, $line, 50%)};
+    --line-hard: #{mix(#000, $line, 12%)};
+    --bg: #{$bg};
+    --bg-warm: #{mix(#fff, $bg, 50%)};
+    --surface: #{$surface};
+    --row-hover: #{mix($main, $surface, 4%)};
+    --row-active: #{mix(#fff, $main, 92%)};
+    --shadow-sm: 0 1px 2px #{rgba($ink, .05)};
+    --shadow-md: 0 4px 14px #{rgba($ink, .08)};
+    --on-accent: #ffffff;
+    // status colors stay the Mint defaults (semantic, not branded)
+  }
+}
+
+// ---------- Ink Dark (hand-tuned; mix-from-light can't invert) ----------
+[data-theme="ink"] {
+  --colorMain: #00d1b2;
+  --colorLight: #16213a;
+  --colorDark: #dbe6f3;
+  --colorDarkHover: #eaf1fa;
+  --colorDark3: #e8eef7;
+  --colorMid: #1d2a47;
+  --colorMid2: #1d2a47;
+  --colorMid3: #9fb0c8;
+  --colorTrOdd: #131e33;
+  --colorShadow: rgba(0, 0, 0, .5);
+  --hoverFilter: none;
+  --colorGreen: #00d1b2;
+  --colorBlue: #4aa8e8;
+  --colorLightRed: #e07a7a;
+  --colorWarning: #ffca57;
+  --colorHoverBg: #1a2742;
+  --colorHover: #00d1b2;
+  --colorBgBody: #0f1828;
+  --colorText: #c7d2e3;
+  --colorLinkHover: #e8eef7;
+  --colorSplash: rgba(0, 209, 178, .15);
+  --colorPrimary: #00d1b2;
+  --colorSuccess: #34c073;
+  --colorDanger: #e25c5c;
+  --colorOrange: #f0913d;
+  --colorOrangeLight: #f5ad4e;
+  --colorPurple: #8e9ff0;
+  --colorPurpleDark: #7b8be0;
+  --colorGrayMid: #8fa3b8;
+  --colorBlueBright: #56a8f5;
+  --colorBlueBold: #5b9cf3;
+  --colorBlack: #e8eef7;
+  --colorTextBlack: #e8eef7;
+  --colorTextDark: #dbe6f3;
+  --colorTextSecondary: #b6c4d9;
+  --colorTextMuted: #93a3bd;
+  --colorTextLight: #7d8aa3;
+  --colorTextLighter: #67748f;
+  --colorBorder: #243152;
+  --colorBorderLighter: #1d2a47;
+  --colorBorderLight: #202e4d;
+  --colorBorderMid: #2a3a61;
+  --colorBorderCalendar: #243152;
+  --colorBgCard: #16213a;
+  --colorBgSubtle: #131e33;
+  --colorBgWeekend: #182441;
+  --colorBgWeekendHeader: #1d2a47;
+  --colorBgHoverBlue: #1a2742;
+  --colorBgError: #3a1f2b;
+  --colorBgZero: #4a2330;
+  --colorBgLogged: #163a2c;
+  --colorCalBlack: #dbe6f3;
+  --colorCalDark: #c0cde0;
+  --colorCalGray: #a3b2cb;
+  --colorCalMid: #8c9cb8;
+  --colorCalBorder: #243152;
+  --colorCalBg: #1a2742;
+
+  --mint: #00d1b2;
+  --mint-600: #2fe0c2;
+  --mint-700: #56e8cf;
+  --mint-50: rgba(0, 209, 178, .12);
+  --mint-100: rgba(0, 209, 178, .2);
+  --mint-200: rgba(0, 209, 178, .32);
+  --ink: #e8eef7;
+  --text: #c7d2e3;
+  --text-mid: #a4b2c9;
+  --text-mute: #7d8aa3;
+  --text-faint: #5d6c87;
+  --line: #243152;
+  --line-soft: #1d2a47;
+  --line-hard: #31426b;
+  --bg: #0f1828;
+  --bg-warm: #121c30;
+  --surface: #16213a;
+  --row-hover: #1a2742;
+  --row-active: rgba(0, 209, 178, .10);
+  --danger: #f0708d;
+  --danger-50: rgba(223, 27, 65, .16);
+  --warning: #f5b04e;
+  --warning-50: rgba(245, 158, 11, .14);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, .5);
+  --on-accent: #06281f;
+
+  // Literal-color pill classes from _clientv2.scss ($cl-status-colors
+  // entries that don't go through tokens) — translucent on dark.
+  .cl-status-qualified { background: rgba(109, 40, 217, .22); color: #c4b5fd; }
+  .cl-status-lead, .cl-status-open { background: rgba(3, 105, 161, .25); color: #7dd3fc; }
+  .cl-status-negotiation, .cl-status-shipped, .cl-status-normal { color: #fbbf24; }
+  .cl-status-lost, .cl-status-discontinued, .cl-status-cancelled, .cl-status-high { color: #fda4af; }
+}
+
+// ---------- Slate (hand-tuned medium-dark; "midway" between the
+//            light themes and Ink — a soft slate-gray surface with
+//            a calm blue accent. Like Ink, mix-from-light can't
+//            invert, so values are picked by hand.) ----------
+[data-theme="slate"] {
+  --colorMain: #6ea8e6;
+  --colorLight: #343b45;
+  --colorDark: #dbe1ea;
+  --colorDarkHover: #eaeff6;
+  --colorDark3: #e8edf4;
+  --colorMid: #3a414e;
+  --colorMid2: #3a414e;
+  --colorMid3: #aab2bf;
+  --colorTrOdd: #2f343e;
+  --colorShadow: rgba(0, 0, 0, .4);
+  --hoverFilter: none;
+  --colorGreen: #6ea8e6;
+  --colorBlue: #6ea8e6;
+  --colorLightRed: #e07a7a;
+  --colorWarning: #ffca57;
+  --colorHoverBg: #3a4150;
+  --colorHover: #6ea8e6;
+  --colorBgBody: #2b3039;
+  --colorText: #d2d8e0;
+  --colorLinkHover: #eaeff6;
+  --colorSplash: rgba(110, 168, 230, .15);
+  --colorPrimary: #6ea8e6;
+  --colorSuccess: #34c073;
+  --colorDanger: #e25c5c;
+  --colorOrange: #f0913d;
+  --colorOrangeLight: #f5ad4e;
+  --colorPurple: #8e9ff0;
+  --colorPurpleDark: #7b8be0;
+  --colorGrayMid: #9aa6b5;
+  --colorBlueBright: #6fb0f0;
+  --colorBlueBold: #6ea8e6;
+  --colorBlack: #eef1f5;
+  --colorTextBlack: #eef1f5;
+  --colorTextDark: #dbe1ea;
+  --colorTextSecondary: #c0c8d4;
+  --colorTextMuted: #9aa6b5;
+  --colorTextLight: #828c9b;
+  --colorTextLighter: #67707e;
+  --colorBorder: #434b58;
+  --colorBorderLighter: #3a414e;
+  --colorBorderLight: #3e4654;
+  --colorBorderMid: #4b5563;
+  --colorBorderCalendar: #434b58;
+  --colorBgCard: #343b45;
+  --colorBgSubtle: #2f343e;
+  --colorBgWeekend: #313845;
+  --colorBgWeekendHeader: #3a414e;
+  --colorBgHoverBlue: #3a4150;
+  --colorBgError: #3f2a2f;
+  --colorBgZero: #4d2e34;
+  --colorBgLogged: #1f4233;
+  --colorCalBlack: #dbe1ea;
+  --colorCalDark: #c0c8d4;
+  --colorCalGray: #aab2bf;
+  --colorCalMid: #9aa6b5;
+  --colorCalBorder: #434b58;
+  --colorCalBg: #343b45;
+
+  --mint: #6ea8e6;
+  --mint-600: #8bbcec;
+  --mint-700: #a6cef2;
+  --mint-50: rgba(110, 168, 230, .12);
+  --mint-100: rgba(110, 168, 230, .2);
+  --mint-200: rgba(110, 168, 230, .32);
+  --ink: #eef1f5;
+  --text: #d2d8e0;
+  --text-mid: #aab2bf;
+  --text-mute: #828c9b;
+  --text-faint: #67707e;
+  --line: #434b58;
+  --line-soft: #3a414e;
+  --line-hard: #525c6b;
+  --bg: #2b3039;
+  --bg-warm: #2f343e;
+  --surface: #343b45;
+  --row-hover: #3a4150;
+  --row-active: rgba(110, 168, 230, .10);
+  --danger: #f0708d;
+  --danger-50: rgba(223, 27, 65, .16);
+  --warning: #f5b04e;
+  --warning-50: rgba(245, 158, 11, .14);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, .4);
+  --on-accent: #102338;
+
+  // Literal-color pill classes — translucent on dark (mirrors Ink).
+  .cl-status-qualified { background: rgba(109, 40, 217, .22); color: #c4b5fd; }
+  .cl-status-lead, .cl-status-open { background: rgba(3, 105, 161, .25); color: #7dd3fc; }
+  .cl-status-negotiation, .cl-status-shipped, .cl-status-normal { color: #fbbf24; }
+  .cl-status-lost, .cl-status-discontinued, .cl-status-cancelled, .cl-status-high { color: #fda4af; }
+}
+
+// ---------- Dusk (hand-tuned dark; warm neutral-gray surface with
+//            pastel accents — lavender CTA, soft cyan info, soft-pink
+//            highlights. Like Ink/Slate, mix-from-light can't invert,
+//            so values are picked by hand.) ----------
+[data-theme="dusk"] {
+  --colorMain: #b39cd0;
+  --colorLight: #363636;
+  --colorDark: #ececec;
+  --colorDarkHover: #f4f4f4;
+  --colorDark3: #efefef;
+  --colorMid: #3a3a3a;
+  --colorMid2: #3a3a3a;
+  --colorMid3: #a0a0a0;
+  --colorTrOdd: #313131;
+  --colorShadow: rgba(0, 0, 0, .4);
+  --hoverFilter: none;
+  --colorGreen: #b39cd0;
+  --colorBlue: #a8dadc;
+  --colorLightRed: #e8a0ab;
+  --colorWarning: #ffca57;
+  --colorHoverBg: #3d3a42;
+  --colorHover: #b39cd0;
+  --colorBgBody: #2c2c2c;
+  --colorText: #e4e4e4;
+  --colorLinkHover: #f4f4f4;
+  --colorSplash: rgba(179, 156, 208, .16);
+  --colorPrimary: #b39cd0;
+  --colorSuccess: #5ec98f;
+  --colorDanger: #e8788a;
+  --colorOrange: #f0913d;
+  --colorOrangeLight: #f5ad4e;
+  --colorPurple: #ffc1cc;
+  --colorPurpleDark: #f3a9b8;
+  --colorGrayMid: #a0a0a0;
+  --colorBlueBright: #a8dadc;
+  --colorBlueBold: #b39cd0;
+  --colorBlack: #f4f4f4;
+  --colorTextBlack: #f4f4f4;
+  --colorTextDark: #ececec;
+  --colorTextSecondary: #c4c4c4;
+  --colorTextMuted: #a0a0a0;
+  --colorTextLight: #888888;
+  --colorTextLighter: #6c6c6c;
+  --colorBorder: #454545;
+  --colorBorderLighter: #3a3a3a;
+  --colorBorderLight: #404040;
+  --colorBorderMid: #525252;
+  --colorBorderCalendar: #454545;
+  --colorBgCard: #363636;
+  --colorBgSubtle: #313131;
+  --colorBgWeekend: #303030;
+  --colorBgWeekendHeader: #3a3a3a;
+  --colorBgHoverBlue: #3d3a42;
+  --colorBgError: #3f2e30;
+  --colorBgZero: #4a2f37;
+  --colorBgLogged: #2d4035;
+  --colorCalBlack: #ececec;
+  --colorCalDark: #c4c4c4;
+  --colorCalGray: #a0a0a0;
+  --colorCalMid: #a0a0a0;
+  --colorCalBorder: #454545;
+  --colorCalBg: #363636;
+
+  --mint: #b39cd0;
+  --mint-600: #c2afda;
+  --mint-700: #d1c2e5;
+  --mint-50: rgba(179, 156, 208, .12);
+  --mint-100: rgba(179, 156, 208, .2);
+  --mint-200: rgba(179, 156, 208, .32);
+  --ink: #f4f4f4;
+  --text: #e4e4e4;
+  --text-mid: #c4c4c4;
+  --text-mute: #a0a0a0;
+  --text-faint: #6c6c6c;
+  --line: #454545;
+  --line-soft: #3a3a3a;
+  --line-hard: #525252;
+  --bg: #2c2c2c;
+  --bg-warm: #282828;
+  --surface: #363636;
+  --row-hover: #3d3a42;
+  --row-active: rgba(179, 156, 208, .10);
+  --danger: #ff9bb0;
+  --danger-50: rgba(255, 107, 129, .16);
+  --warning: #f5b04e;
+  --warning-50: rgba(245, 158, 11, .14);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, .4);
+  --on-accent: #2a2138;
+
+  // Literal-color pill classes — translucent on dark (mirrors Ink/Slate).
+  .cl-status-qualified { background: rgba(179, 156, 208, .22); color: #d6c6ec; }
+  .cl-status-lead, .cl-status-open { background: rgba(168, 218, 220, .18); color: #a8dadc; }
+  .cl-status-negotiation, .cl-status-shipped, .cl-status-normal { color: #ffca57; }
+  .cl-status-lost, .cl-status-discontinued, .cl-status-cancelled, .cl-status-high { color: #ffc1cc; }
+}

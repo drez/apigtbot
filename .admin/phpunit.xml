@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+         failOnWarning="true"
+         failOnRisky="true">
+    <testsuites>
+        <testsuite name="builder">
+            <directory>tests/Builder</directory>
+        </testsuite>
+        <testsuite name="custom">
+            <directory>tests/Custom</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>vendor/apigoat/runtime/src/Handlers</directory>
+        </include>
+    </source>
+</phpunit>

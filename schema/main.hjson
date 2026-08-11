@@ -1,0 +1,246 @@
+{
+    apigtbot:
+    {
+        "grid_run('Grid Run')": {
+            set_menu_icon: "ri-line-chart-line",
+            set_parent_menu: "Trading",
+            with_child_tables: ["bot_order", "trade_cycle", "bot_event", "bot_command"],
+            add_total: { "trade_cycle": [["realized_pnl", "$"], ["fees_total", "$"]] },
+            set_order_list_columns: [["date_creation", "DESC"]],
+            set_list_hide_columns: ["run_uid", "breakout_buffer_pct", "max_open_orders", "last_tick_at", "sim_bal_base", "sim_bal_quote", "engine_state"],
+            set_readonly_columns: ["daily_loss_limit_quote", "max_unrealized_loss_quote", "max_position_quote", "max_order_quote", "breakout_policy", "atr_stop_mult", "atr_initial_mult", "reentry_cooldown", "engine_state"],
+            add_tab_columns: { "Grid + budget": "p_low", "Risk limits": "max_position_quote", "Trend settings": "trend_tf", "Telemetry": "last_tick_at" },
+
+            "id_grid_run()": ["primary()"],
+            "label('Label')": ["varchar(100)", "required"],
+            "symbol('Symbol')": ["varchar(20)", "required", "default:BTCUSDT"],
+            "status('Status')": ["enum(Draft, DryRun, Testnet, Live, Halted, Done)", "required", "default:Draft"],
+            "kill_switch('Kill switch')": ["boolean()", "default:0"],
+            "profile('Risk profile')": ["enum(NoLoss, Cautious, Balanced, Aggressive, Max)", "required", "default:Balanced"],
+            "algo('Algorithm')": ["enum(Grid, Trend)", "required", "default:Grid"],
+            "simulated('Simulated')": ["boolean()", "default:1"],
+            "p_low('Range low')": ["decimal(18, 8)", "required"],
+            "p_high('Range high')": ["decimal(18, 8)", "required"],
+            "n_levels('Grid lines')": ["integer()", "required", "default:20"],
+            "spacing('Spacing')": ["enum(Geometric, Arithmetic)", "required", "default:Geometric"],
+            "allocation('Allocation')": ["enum(EqualQuote, EqualBase, BottomWeighted)", "required", "default:EqualQuote"],
+            "budget_quote('Budget (USDT)')": ["decimal(18, 8)", "required"],
+            "deploy_pct('Deployed budget %')": ["integer()", "default:100"],
+            "fee_pct('Fee per side')": ["decimal(9, 6)", "required", "default:0.001"],
+            "max_position_quote('Max position (USDT)')": ["decimal(18, 8)", "required"],
+            "max_order_quote('Max per-order (USDT)')": ["decimal(18, 8)", "required"],
+            "daily_loss_limit_quote('Daily loss limit')": ["decimal(18, 8)", "required"],
+            "max_unrealized_loss_quote('Max unrealized loss')": ["decimal(18, 8)", "not-required", "default:null"],
+            "breakout_buffer_pct('Breakout buffer')": ["decimal(9, 6)", "default:0.02"],
+            "breakout_policy('On breakout')": ["enum(HaltAndHold, Flatten)", "required", "default:HaltAndHold"],
+            "max_open_orders('Max open orders')": ["integer()", "default:60"],
+            "max_buy_levels_below('Active buy levels below price (0 = all)')": ["integer()", "not-required", "default:null"],
+            "trend_tf('Signal timeframe')": ["enum(1h, 4h)", "required", "default:1h"],
+            "donchian_period('Breakout period')": ["integer()", "default:20"],
+            "trend_ema_fast('Trend EMA fast')": ["integer()", "default:20"],
+            "trend_ema_slow('Trend EMA slow')": ["integer()", "default:50"],
+            "atr_period('ATR period')": ["integer()", "default:14"],
+            "atr_stop_mult('Trail stop x ATR')": ["decimal(9, 4)", "not-required", "default:null"],
+            "atr_initial_mult('Initial stop x ATR')": ["decimal(9, 4)", "not-required", "default:null"],
+            "reentry_cooldown('Re-entry cooldown (bars)')": ["integer()", "not-required", "default:null"],
+            "engine_state('Engine state (daemon-managed)')": ["longvarchar()", "not-required"],
+            "last_tick_at('Last tick')": ["timestamp()", "not-required", "default:null"],
+            "last_price('Last price')": ["decimal(18, 8)", "not-required", "default:null"],
+            "bal_base('Wallet base')": ["decimal(18, 8)", "not-required", "default:null"],
+            "bal_quote('Wallet quote')": ["decimal(18, 8)", "not-required", "default:null"],
+            "sim_bal_base('Paper wallet base (daemon-managed)')": ["decimal(18, 8)", "not-required", "default:null"],
+            "sim_bal_quote('Paper wallet quote (daemon-managed)')": ["decimal(18, 8)", "not-required", "default:null"],
+            "run_uid('Run UID')": ["varchar(20)", "not-required", "default:null"],
+            "applied_geometry('Applied geometry (daemon-managed)')": ["longvarchar()", "not-required"],
+            "ledger_reset_at('Ledger rebased at (daemon-managed)')": ["timestamp()", "not-required", "default:null"],
+
+            "validator": {
+                "label": { "required": { "msg": "grid_run_label_required" } },
+                "p_low": { "required": { "msg": "grid_run_p_low_required" } },
+                "p_high": { "required": { "msg": "grid_run_p_high_required" } },
+                "budget_quote": { "required": { "msg": "grid_run_budget_required" } }
+            }
+        },
+
+        "bot_order('Order')": {
+            set_parent_table: "grid_run",
+            set_child_colunms: { "id_grid_run": ["label"] },
+            set_summary_cards: [
+                { label: "Open buys",  agg: "count", filter: { state: "BUY_OPEN" } },
+                { label: "Open sells", agg: "count", filter: { state: "SELL_OPEN" } },
+                { label: "Vetoed",     agg: "count", filter: { state: "Vetoed" } }
+            ],
+            set_order_child_list_columns: [["date_modification", "DESC"]],
+            add_search_columns: {
+                "Client order id": [["client_order_id", "%val"]],
+                "Side": [["side", "%val", "multiple"]],
+                "State": [["state", "%val", "multiple"]],
+                "Simulated": [["simulated", "val"]]
+            },
+            set_list_hide_columns: ["legacy_buy_price", "legacy_buy_fee"],
+            set_readonly_columns: ["client_order_id", "exchange_order_id", "filled_qty", "fee_paid", "simulated", "legacy_buy_price", "legacy_buy_fee"],
+
+            "id_bot_order()": ["primary()"],
+            "id_grid_run('Run')": ["integer()", "foreign(grid_run)", "onDelete:cascade", "foreign:id_grid_run", "required"],
+            "client_order_id('Client order id')": ["varchar(36)", "required", "unique"],
+            "exchange_order_id('Exchange id')": ["varchar(32)", "not-required", "default:null"],
+            "level_idx('Level')": ["integer()", "required"],
+            "side('Side')": ["enum(Buy, Sell)", "required"],
+            "state('State')": ["enum(Intended, Vetoed, BUY_OPEN, SELL_OPEN, Filled, PartFilled, Canceled, Rejected, Lost)", "required", "default:Intended"],
+            "price('Price')": ["decimal(18, 8)", "required"],
+            "qty('Qty')": ["decimal(18, 8)", "required"],
+            "filled_qty('Filled qty')": ["decimal(18, 8)", "default:0"],
+            "fee_paid('Fee paid')": ["decimal(18, 8)", "default:0"],
+            "fee_asset('Fee asset')": ["varchar(10)", "not-required", "default:null"],
+            "is_legacy('Legacy exit')": ["boolean()", "default:0"],
+            "legacy_buy_price('Legacy buy price (daemon-managed)')": ["decimal(18, 8)", "not-required", "default:null"],
+            "legacy_buy_fee('Legacy buy fee (daemon-managed)')": ["decimal(18, 8)", "not-required", "default:null"],
+            "simulated('Simulated')": ["boolean()", "default:0"]
+        },
+
+        "trade_cycle('Trade Cycle')": {
+            set_parent_table: "grid_run",
+            set_child_colunms: { "id_grid_run": ["label"] },
+            set_summary_cards: [
+                { label: "PnL (sim)",    agg: "sum", col: "realized_pnl", format: "money", filter: { simulated: 1 } },
+                { label: "PnL (real)",   agg: "sum", col: "realized_pnl", format: "money", filter: { simulated: 0 } },
+                { label: "Fees (sim)",   agg: "sum", col: "fees_total",   format: "money", filter: { simulated: 1 } },
+                { label: "Fees (real)",  agg: "sum", col: "fees_total",   format: "money", filter: { simulated: 0 } },
+                { label: "Cycles (sim)", agg: "count", filter: { simulated: 1 } },
+                { label: "Cycles (real)", agg: "count", filter: { simulated: 0 } }
+            ],
+            add_search_columns: {
+                "Simulated": [["simulated", "val"]]
+            },
+            set_order_child_list_columns: [["date_creation", "DESC"]],
+
+            "id_trade_cycle()": ["primary()"],
+            "id_grid_run('Run')": ["integer()", "foreign(grid_run)", "onDelete:cascade", "foreign:id_grid_run", "required"],
+            "level_idx('Level')": ["integer()", "required"],
+            "buy_price('Buy price')": ["decimal(18, 8)", "required"],
+            "sell_price('Sell price')": ["decimal(18, 8)", "required"],
+            "qty('Qty')": ["decimal(18, 8)", "required"],
+            "realized_pnl('Realized PnL')": ["decimal(18, 8)", "required"],
+            "fees_total('Fees')": ["decimal(18, 8)", "required"],
+            "simulated('Simulated')": ["boolean()", "default:0"]
+        },
+
+        "bot_event('Event')": {
+            set_parent_table: "grid_run",
+            set_child_colunms: { "id_grid_run": ["label"] },
+            set_order_child_list_columns: [["date_creation", "DESC"]],
+            add_search_columns: {
+                "Level": [["level", "%val", "multiple"]],
+                "Kind": [["kind", "%val"]]
+            },
+
+            "id_bot_event()": ["primary()"],
+            "id_grid_run('Run')": ["integer()", "foreign(grid_run)", "onDelete:cascade", "foreign:id_grid_run", "required"],
+            "level('Level')": ["enum(Info, Warn, Error, Alert)", "required", "default:Info"],
+            "kind('Kind')": ["varchar(50)", "required"],
+            "message('Message')": ["varchar(500)", "required"],
+            "payload('Payload')": ["longvarchar()"]
+        },
+
+        "bot_command('Command')": {
+            set_parent_table: "grid_run",
+            set_child_colunms: { "id_grid_run": ["label"] },
+            "id_bot_command()": ["primary()"],
+            "id_grid_run('Run')": ["integer()", "foreign(grid_run)", "onDelete:cascade", "foreign:id_grid_run", "required"],
+            "command('Command')": ["enum(Start, Pause, Resume, Kill, Flatten, CancelBuys, Reload)", "required"],
+            "cmd_status('Status')": ["enum(Pending, Acked, Done, Failed)", "required", "default:Pending"],
+            "note('Note')": ["varchar(255)", "not-required", "default:null"]
+        },
+
+        "sim_wallet('Paper Wallet')": {
+            set_parent_menu: "Settings",
+            set_menu_priority: 6,
+            set_readonly_columns: ["asset", "qty"],
+            unique: [["asset"]],
+
+            "id_sim_wallet()": ["primary()"],
+            "asset('Asset')": ["varchar(10)", "required"],
+            "qty('Quantity')": ["decimal(18, 8)", "required", "default:0"]
+        },
+
+        "market_summary('Market Data')": {
+            set_parent_menu: "Settings",
+            set_menu_priority: 5,
+            set_order_list_columns: [["computed_at", "DESC"]],
+            set_list_hide_columns: ["recent_candles"],
+            set_readonly_columns: ["symbol", "tf", "price", "ema20", "ema50", "ema200", "rsi14", "atr14", "atr_pct", "trend", "swing_high", "swing_low", "candles_used", "recent_candles", "computed_at", "depth_imbalance_avg", "adx14", "atr_pct_rank", "taker_buy_ratio", "vol_zscore"],
+            unique: [["symbol", "tf"]],
+
+            "id_market_summary()": ["primary()"],
+            "symbol('Symbol')": ["varchar(20)", "required"],
+            "tf('Timeframe')": ["varchar(5)", "required"],
+            "price('Price')": ["decimal(18, 8)", "not-required", "default:null"],
+            "ema20('EMA20')": ["decimal(18, 8)", "not-required", "default:null"],
+            "ema50('EMA50')": ["decimal(18, 8)", "not-required", "default:null"],
+            "ema200('EMA200')": ["decimal(18, 8)", "not-required", "default:null"],
+            "rsi14('RSI14')": ["decimal(9, 4)", "not-required", "default:null"],
+            "atr14('ATR14')": ["decimal(18, 8)", "not-required", "default:null"],
+            "atr_pct('ATR %')": ["decimal(9, 4)", "not-required", "default:null"],
+            "trend('Trend')": ["enum(strong_up, up, sideways, down, strong_down)", "not-required", "default:sideways"],
+            "swing_high('Swing high')": ["decimal(18, 8)", "not-required", "default:null"],
+            "swing_low('Swing low')": ["decimal(18, 8)", "not-required", "default:null"],
+            "candles_used('Candles')": ["integer()", "default:0"],
+            "recent_candles('Candles JSON')": ["longvarchar()"],
+            "funding_rate('Funding rate')": ["decimal(12, 8)", "not-required", "default:null"],
+            "depth_imbalance('Depth imbalance')": ["decimal(9, 4)", "not-required", "default:null"],
+            "depth_imbalance_avg('Depth imbalance (smoothed)')": ["decimal(9, 4)", "not-required", "default:null"],
+            "adx14('ADX14')": ["decimal(9, 4)", "not-required", "default:null"],
+            "atr_pct_rank('ATR% percentile')": ["decimal(9, 4)", "not-required", "default:null"],
+            "taker_buy_ratio('Taker buy ratio')": ["decimal(9, 4)", "not-required", "default:null"],
+            "vol_zscore('Volume z-score')": ["decimal(9, 4)", "not-required", "default:null"],
+            "computed_at('Computed at')": ["timestamp()", "not-required", "default:null"]
+        },
+
+        "market_regime('Regime History')": {
+            set_parent_menu: "Settings",
+            set_menu_priority: 6,
+            set_order_list_columns: [["date_creation", "DESC"]],
+            set_readonly_columns: ["symbol", "tf", "price", "trend", "rsi14", "atr_pct", "adx14", "atr_pct_rank", "taker_buy_ratio", "vol_zscore", "funding_rate", "depth_imbalance", "depth_imbalance_avg"],
+
+            "id_market_regime()": ["primary()"],
+            "symbol('Symbol')": ["varchar(20)", "required"],
+            "tf('Timeframe')": ["varchar(5)", "required"],
+            "price('Price')": ["decimal(18, 8)", "not-required", "default:null"],
+            "trend('Trend')": ["enum(strong_up, up, sideways, down, strong_down)", "not-required", "default:sideways"],
+            "rsi14('RSI14')": ["decimal(9, 4)", "not-required", "default:null"],
+            "atr_pct('ATR %')": ["decimal(9, 4)", "not-required", "default:null"],
+            "adx14('ADX14')": ["decimal(9, 4)", "not-required", "default:null"],
+            "atr_pct_rank('ATR% percentile')": ["decimal(9, 4)", "not-required", "default:null"],
+            "taker_buy_ratio('Taker buy ratio')": ["decimal(9, 4)", "not-required", "default:null"],
+            "vol_zscore('Volume z-score')": ["decimal(9, 4)", "not-required", "default:null"],
+            "funding_rate('Funding rate')": ["decimal(12, 8)", "not-required", "default:null"],
+            "depth_imbalance('Depth imbalance')": ["decimal(9, 4)", "not-required", "default:null"],
+            "depth_imbalance_avg('Depth imbalance (smoothed)')": ["decimal(9, 4)", "not-required", "default:null"]
+        },
+
+        "bot_decision('Refit Decision')": {
+            set_parent_table: "grid_run",
+            set_child_colunms: { "id_grid_run": ["label"] },
+            set_order_child_list_columns: [["date_creation", "DESC"]],
+            set_readonly_columns: ["source", "p_low", "p_high", "n_levels", "reason", "price_at", "realized_before", "eval_status", "eval_at", "applied_at", "cycles_delta", "realized_delta", "price_move_pct", "verdict"],
+
+            "id_bot_decision()": ["primary()"],
+            "id_grid_run('Run')": ["integer()", "foreign(grid_run)", "onDelete:cascade", "foreign:id_grid_run", "required"],
+            "source('Source')": ["enum(Claude, Cron, Manual)", "required", "default:Claude"],
+            "p_low('Range low')": ["decimal(18, 8)", "required"],
+            "p_high('Range high')": ["decimal(18, 8)", "required"],
+            "n_levels('Levels')": ["integer()", "required"],
+            "deploy_pct('Deployed budget %')": ["integer()", "not-required", "default:null"],
+            "reason('Reason')": ["varchar(500)", "not-required", "default:null"],
+            "price_at('Price at decision')": ["decimal(18, 8)", "not-required", "default:null"],
+            "realized_before('Realized before')": ["decimal(18, 8)", "default:0"],
+            "eval_status('Eval')": ["enum(Pending, Scored)", "required", "default:Pending"],
+            "eval_at('Scored at')": ["timestamp()", "not-required", "default:null"],
+            "applied_at('Applied at')": ["timestamp()", "not-required", "default:null"],
+            "cycles_delta('Cycles after')": ["integer()", "not-required", "default:null"],
+            "realized_delta('P/L after')": ["decimal(18, 8)", "not-required", "default:null"],
+            "price_move_pct('Price move %')": ["decimal(9, 4)", "not-required", "default:null"],
+            "verdict('Verdict')": ["enum(Win, Flat, Loss, Superseded)", "not-required", "default:null"]
+        }
+    }
+}

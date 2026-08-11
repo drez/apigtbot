@@ -1,0 +1,30 @@
+// Self-hosted UI fonts (latin subset, variable woff2). Replaces the remote
+// @import url('https://fonts.googleapis.com/css2?...') — that was a
+// render-blocking third-party request, leaked every visitor's IP to Google,
+// and blocked a tightenable CSP. The woff2 files live next to remix/ under
+// public/css/fonts/ and propagate to projects like the rest of public/css.
+// Latin subset includes U+0152-0153 (Œœ), so French is covered.
+
+@font-face {
+	font-family: 'Nunito';
+	font-style: normal;
+	font-weight: 400 700;
+	font-display: swap;
+	src: url('fonts/Nunito.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'Inter';
+	font-style: normal;
+	font-weight: 400 700;
+	font-display: swap;
+	src: url('fonts/Inter.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'JetBrains Mono';
+	font-style: normal;
+	font-weight: 400 500;
+	font-display: swap;
+	src: url('fonts/JetBrainsMono.woff2') format('woff2');
+}

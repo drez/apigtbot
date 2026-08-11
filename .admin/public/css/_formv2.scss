@@ -1,0 +1,2706 @@
+// Ported from theme guideline new/prototype.css
+// Drawer + edit form + bottom sheet + push-screen + toast. Namespaced
+// .proto-*/.va-mob — no collision with legacy main.scss selectors.
+@use 'tokensv2' as *;
+
+/* ============================================================
+   Prototype-specific styles
+   - Mobile menu drawer
+   - Edit form screen
+   - Push-style screen navigation
+============================================================ */
+
+.proto-app {
+  position: absolute;
+  inset: 0;
+  background: $bg;
+  overflow: hidden;
+  font-family: $font-sans;
+  color: $text;
+  -webkit-font-smoothing: antialiased;
+}
+/* #appDrawer/.proto-drawer and #appDim are body-level siblings of
+ * .proto-app, so they need their own border-box reset — without it
+ * .dr-item's width:100% + padding overflows the drawer frame. */
+.proto-app *, .proto-app *::before, .proto-app *::after,
+.proto-drawer, .proto-drawer *, .proto-drawer *::before, .proto-drawer *::after { box-sizing: border-box; }
+.proto-app button { font-family: inherit; }
+.proto-app i { font-style: normal; }
+
+/* Each screen is a stacked panel. Push navigation animates translateX. */
+.proto-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: $bg;
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0.32, 1);
+  will-change: transform;
+}
+
+/* Drawer scaffold (spec: docs/superpowers/specs/2026-05-19-edit-drawer-fidelity-design.md).
+   .sw-drawer is emitted by Form.php inside <form id="formClient"> inside .proto-screen.
+   This base rule sets the flex chain that's the same on mobile and desktop:
+   header / identity / tabnav / footer pinned, .sw-body owns the scroll.
+   The legacy .sw-header { position:fixed; top:0; left:0; height:69px; z-index:5000 }
+   rule from main.scss is overridden here because the same class name now
+   belongs to the new drawer scaffold (the legacy chrome was renamed to
+   .legacy-list-toolbar in Form.php). */
+.proto-screen > form.mainForm,
+.proto-screen > form.formContent {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.sw-drawer.proto-form {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: $surface;
+}
+.sw-drawer.proto-form > .sw-header,
+.sw-drawer.proto-form > .sw-identity,
+.sw-drawer.proto-form > .sw-footer {
+  flex-shrink: 0;
+}
+.sw-drawer.proto-form > .sw-header {
+  position: static;
+  top: auto;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  height: auto;
+  min-height: 40px;
+  z-index: auto;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  padding: 0;
+  background: $surface;
+  border-bottom: 1px solid $line;
+  box-sizing: border-box;
+}
+/* .child-tabs row-2 sizing is set in a single combined block below
+ * (search for "Child-tabs ALWAYS render on row 2"). The full-bleed
+ * (negative margins) is applied there to avoid duplicate-block
+ * specificity wars. */
+// .form-nav contents (back / nav-title / Save / close ✕) are
+// promoted to direct flex children of .sw-header so they share
+// the same flex layout as .child-tabs. Row 1 = back + nav-title +
+// Save + ✕. Row 2 = .child-tabs (flex-basis 100% forces the wrap).
+.sw-drawer.proto-form > .sw-header > .form-nav,
+.sw-drawer.proto-form > .sw-header > .form-nav {
+  display: contents;
+}
+/* Row-1 items: 12 px left/right horizontal padding via the items
+ * themselves (the .sw-header has no horizontal padding so .child-tabs
+ * can span edge-to-edge without negative-margin breakout hacks). */
+.sw-drawer.proto-form > .sw-header > .form-nav > .nav-btn {
+  order: 1;
+  flex-shrink: 0;
+  min-height: 48px;
+  padding: 0 8px 0 12px;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.sw-drawer.proto-form > .sw-header > .form-nav > .nav-btn i {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.sw-drawer.proto-form > .sw-header > .form-nav > .nav-btn.nav-close {
+  order: 5;
+  margin-left: 2px;
+  padding: 0 12px 0 8px;
+  align-self: center;
+}
+/* Save sits to the LEFT of close. margin-left:auto claims the free
+ * space so save+close get pushed to the right edge. */
+.sw-drawer.proto-form > .sw-header > .form-nav > .nav-save {
+  order: 4;
+  margin-left: auto;
+  margin-right: 4px;
+  align-self: center;
+}
+/* nav-title is split in HTML into .nav-title-type (always shown, the
+ * table description) and .nav-title-name (the entity name from
+ * $_gcNameVal — only present when not empty). Container is a flex row
+ * so the two parts read as "Project · Acme Corp" with the type muted
+ * and the name bold. On mobile the back arrow shows the description
+ * so this whole title is hidden to keep row 1 compact. */
+.sw-drawer.proto-form > .sw-header > .form-nav > .nav-title {
+  order: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  line-height: 1.2;
+  padding: 0 8px;
+  align-self: center;
+  overflow: hidden;
+}
+.sw-drawer.proto-form > .sw-header > .form-nav > .nav-title > .nav-title-type {
+  font-size: 13px;
+  font-weight: 500;
+  color: $text-mute;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.sw-drawer.proto-form > .sw-header > .form-nav > .nav-title > .nav-title-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: $ink;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+/* Breadcrumb trail (screens.js buildBreadcrumbs): clickable parent crumbs
+ * prepended into .nav-title for stacked child drawers — "Order SO-1001 ›
+ * Order line ⟨name⟩". Each crumb pops back to that ancestor. Muted like the
+ * type; the current entity (type + name) follows as the last, bold segment. */
+.nav-crumbs {
+  display: inline-flex;
+  align-items: baseline;
+  min-width: 0;
+  flex-shrink: 1;
+  overflow: hidden;
+}
+.nav-crumb {
+  -webkit-appearance: none;
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: $text-mute;
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nav-crumb:hover { color: $mint-700; text-decoration: underline; }
+/* The separator carries the spacing on both sides so the trail reads
+ * "Billing › Payment" regardless of whether the parent .nav-title is the
+ * gapped form variant or a plain child-list title. */
+.nav-crumb-sep { color: $text-faint; font-size: 13px; flex-shrink: 0; padding: 0 6px; }
+/* When only the type is present (new record, no name yet), promote it
+ * to the heading slot so the header doesn't read as a faint label. */
+.sw-drawer.proto-form > .sw-header > .form-nav > .nav-title:not(:has(.nav-title-name)) > .nav-title-type {
+  font-size: 15px;
+  font-weight: 600;
+  color: $ink;
+}
+/* On mobile, the back arrow shows the entity description; hide
+ * nav-title to avoid duplication and keep row 1 compact. */
+@media (max-width: 719px) {
+  .sw-drawer.proto-form > .sw-header > .form-nav > .nav-title {
+    display: none;
+  }
+}
+/* .nav-save rule moved above (combined with .sw-drawer.proto-form
+ * alias and order/margin-left:auto). The old order:4 declaration
+ * here is now redundant — kept structure deleted. */
+
+/* Child-tabs ALWAYS render on row 2 (full-bleed strip) under the
+ * form-nav row. flex: 0 0 calc(100% + 24px) forces the line break
+ * AND escapes the .sw-header 12px horizontal padding so the band
+ * spans edge-to-edge. order: 6 (after close=5) places it after all
+ * form-nav children. */
+.sw-drawer.proto-form > .sw-header > .child-tabs {
+  order: 6;
+  flex: 0 0 100%;
+  width: 100%;
+  margin: 0;
+  padding: 6px 12px;
+  background: $bg-warm;
+  border-top: 1px solid $line-soft;
+  border-bottom: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+  flex-wrap: nowrap;
+  align-items: center;
+  scrollbar-width: none;
+  box-sizing: border-box;
+  gap: 2px;
+  display: flex;
+}
+.sw-drawer.proto-form > .sw-header > .child-tabs::-webkit-scrollbar {
+  display: none;
+}
+/* Child-tab overflow arrows — injected by drawer.js when the strip
+ * overflows (desktop has no scrollbar and no swipe). Sticky inside the
+ * horizontal scroller so they pin to the visible edges while the tabs
+ * scroll beneath. Not .child-tab, so neither the active-state handler
+ * nor screens.js openChildList treats them as a tab. */
+.sw-drawer.proto-form > .sw-header > .child-tabs > .child-tabs-arrow {
+  position: sticky;
+  flex: 0 0 auto;
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  cursor: pointer;
+  color: $text-mid;
+  background: $bg-warm;
+  z-index: 2;
+  transition: color .12s, opacity .12s;
+}
+.sw-drawer.proto-form > .sw-header > .child-tabs > .child-tabs-arrow:hover { color: $mint-700; }
+.sw-drawer.proto-form > .sw-header > .child-tabs > .child-tabs-arrow i { font-size: 18px; line-height: 1; }
+.sw-drawer.proto-form > .sw-header > .child-tabs > .child-tabs-arrow.prev {
+  left: 0;
+  box-shadow: 8px 0 8px -6px rgba(10, 37, 64, 0.18);
+}
+.sw-drawer.proto-form > .sw-header > .child-tabs > .child-tabs-arrow.next {
+  right: 0;
+  box-shadow: -8px 0 8px -6px rgba(10, 37, 64, 0.18);
+}
+/* No overflow → remove both (full width for the tabs). At an edge →
+ * keep in layout but dim/disable, so scrolling doesn't shift the band. */
+.sw-drawer.proto-form > .sw-header > .child-tabs > .child-tabs-arrow.is-hidden { display: none; }
+.sw-drawer.proto-form > .sw-header > .child-tabs > .child-tabs-arrow.is-disabled { opacity: .3; pointer-events: none; }
+// On desktop the drawer has Save/✕ in the top-right + a visible
+// entity title at top-left, so the back arrow is redundant.
+@media (min-width: 720px) {
+  .sw-drawer.proto-form > .sw-header > .form-nav > .nav-btn:not(.nav-close) {
+    display: none;
+  }
+}
+
+/* (Mobile-only wrap block removed — the two-row layout is now the
+ * default for all widths. See base rules above and the .child-tabs
+ * row-2 block below.) */
+.sw-drawer.proto-form > .sw-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+/* Child-tabs chip bar (matches edit_dk template):
+ * - row sits on its own band (bg-warm tint) with hairline divider
+ * - each tab is a roomy pill with icon + name + count badge
+ * - count is a circle outlined in $line, neutral text
+ * - active tab gets mint underline (no fill change) so the chip
+ *   feels like a tab indicator, not a button toggle.
+ * Selectors aliased on .proto-screen-wrapped and direct .sw-drawer
+ * paths so both push-screen + full-page routes pick this up. */
+/* (Chip-bar container styling moved into the row-2 block above to
+ * avoid duplicate-block conflicts. Container layout = the row-2
+ * rule; only chip + count styling continues below.) */
+.sw-drawer.proto-form > .sw-header .child-tab,
+.sw-drawer.proto-form > .sw-header .child-tab {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0 10px;
+  height: 30px;
+  min-height: 0;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: $text-mid;
+  cursor: pointer;
+  position: relative;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  gap: 6px;
+  border-radius: 6px;
+  transition: color .12s, background .12s;
+}
+.sw-drawer.proto-form > .sw-header .child-tab .child-tab-icon,
+.sw-drawer.proto-form > .sw-header .child-tab .child-tab-icon {
+  font-size: 14px;
+  color: $text-mute;
+  line-height: 1;
+}
+.sw-drawer.proto-form > .sw-header .child-tab:hover,
+.sw-drawer.proto-form > .sw-header .child-tab:hover {
+  color: $ink;
+  background: $surface;
+}
+.sw-drawer.proto-form > .sw-header .child-tab:hover .child-tab-icon,
+.sw-drawer.proto-form > .sw-header .child-tab:hover .child-tab-icon { color: $text-mid; }
+.sw-drawer.proto-form > .sw-header .child-tab.is-active,
+.sw-drawer.proto-form > .sw-header .child-tab.is-active {
+  color: $mint-700;
+  font-weight: 600;
+  background: transparent;
+}
+.sw-drawer.proto-form > .sw-header .child-tab.is-active .child-tab-icon,
+.sw-drawer.proto-form > .sw-header .child-tab.is-active .child-tab-icon { color: $mint-700; }
+.sw-drawer.proto-form > .sw-header .child-tab.is-active::after,
+.sw-drawer.proto-form > .sw-header .child-tab.is-active::after {
+  content: '';
+  position: absolute;
+  left: 10px; right: 10px; bottom: -4px;
+  height: 2px;
+  background: $mint;
+  border-radius: 2px;
+}
+.sw-drawer.proto-form > .sw-header .child-tab .child-tab-count,
+.sw-drawer.proto-form > .sw-header .child-tab .child-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px; height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: $surface;
+  border: 1px solid $line;
+  color: $text-mute;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1;
+}
+.sw-drawer.proto-form > .sw-header .child-tab.is-active .child-tab-count,
+.sw-drawer.proto-form > .sw-header .child-tab.is-active .child-tab-count {
+  background: $mint-50;
+  border-color: $mint-100;
+  color: $mint-700;
+}
+.proto-screen.under { transform: translateX(-20%); pointer-events: none; }
+.proto-screen.enter { transform: translateX(100%); }
+.proto-screen.exit  { transform: translateX(100%); }
+
+/* Off-screen layers must not block taps on the active layer.
+   Closed proto-screens (translateX 100%) still occupy the DOM and would
+   intercept clicks otherwise. Same goes for closed sheets and dim overlays. */
+.proto-screen[aria-hidden="true"],
+.proto-sheet:not(.open),
+.proto-dim:not(.open) {
+  pointer-events: none !important;
+}
+
+/* dim under the drawer + form */
+.proto-dim {
+  position: absolute; inset: 0;
+  background: rgba(10, 37, 64, 0.32);
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+.proto-dim.open { opacity: 1; pointer-events: auto; }
+
+/* ───── Mobile menu drawer ───── */
+.proto-drawer {
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  /* Capped so ultra-narrow screens (Fold cover, split view) keep the
+   * frame + a sliver of dim inside the viewport. */
+  width: min(286px, calc(100vw - 32px));
+  background: $surface;
+  z-index: 60;
+  transform: translateX(-100%);
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0.32, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 6px 0 24px rgba(10,37,64,0.16);
+}
+.proto-drawer.open { transform: translateX(0); }
+
+.proto-drawer .dr-head {
+  padding: 14px 18px 14px;
+  border-bottom: 1px solid $line;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.proto-drawer .dr-logo-mark {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, $mint, $mint-700);
+  display: grid; place-items: center;
+  color: $on-accent;
+  font-size: 18px;
+  box-shadow: 0 2px 6px rgba(0,209,178,0.3);
+}
+.proto-drawer .dr-logo-text {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 700;
+  color: $ink;
+  letter-spacing: -0.01em;
+}
+.proto-drawer .dr-logo-text small {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: $text-mute;
+  margin-top: 1px;
+  letter-spacing: 0;
+}
+.proto-drawer .dr-close {
+  width: 30px; height: 30px;
+  border-radius: 6px;
+  display: grid; place-items: center;
+  color: $text-mid;
+  font-size: 18px;
+  background: transparent;
+  border: none;
+}
+
+.proto-drawer .dr-search {
+  position: relative;
+  margin: 12px 14px 6px;
+}
+.proto-drawer .dr-search input {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px 0 32px;
+  border: 1px solid $line;
+  border-radius: 8px;
+  font-size: 13px;
+  background: $bg-warm;
+  outline: none;
+  -webkit-appearance: none;
+}
+.proto-drawer .dr-search input:focus {
+  border-color: $mint;
+  background: #fff;
+}
+.proto-drawer .dr-search > i {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: $text-mute;
+  font-size: 15px;
+}
+
+.proto-drawer .dr-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 10px 12px;
+}
+.proto-drawer .dr-section {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: $text-faint;
+  padding: 12px 10px 4px;
+}
+.dr-section.dr-section-foldable {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  user-select: none;
+}
+.dr-section .dr-section-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dr-section .dr-section-icon {
+  font-size: 14px;
+  color: var(--dr-group-color, #{$text-faint});
+}
+.dr-section .dr-fold-chevron {
+  font-size: 15px;
+  color: $text-faint;
+  transition: transform 0.15s ease;
+}
+.dr-section.is-folded .dr-fold-chevron {
+  transform: rotate(-90deg);
+}
+.dr-section .dr-section-dash {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+  color: $text-faint;
+  text-decoration: none;
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+.dr-section .dr-section-dash:hover {
+  opacity: 1;
+}
+.dr-section.has-group-color {
+  border-left: 3px solid var(--dr-group-color);
+  padding-left: 7px;
+}
+.proto-drawer .dr-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: $text;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  transition: background 0.1s;
+}
+.proto-drawer .dr-item:hover { background: $bg; }
+.proto-drawer .dr-item:active { background: $mint-50; }
+.proto-drawer .dr-item.active {
+  background: $mint-50;
+  color: $mint-700;
+  font-weight: 600;
+}
+.proto-drawer .dr-item i {
+  font-size: 19px;
+  width: 22px;
+  text-align: center;
+  color: inherit;
+  flex-shrink: 0;
+}
+.proto-drawer .dr-item .dr-item-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.proto-drawer .dr-item .dr-item-tag {
+  margin-left: auto;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: $text-faint;
+  font-family: $font-mono;
+  background: $bg;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+.proto-drawer .dr-item.active .dr-item-tag {
+  background: $mint-100;
+  color: $mint-700;
+}
+.dr-sub {
+  margin: 2px 0 4px 32px;
+  border-left: 1.5px solid $line;
+  padding-left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+  max-height: 1500px;
+  transition: max-height 0.2s ease;
+}
+.dr-sub.is-folded {
+  max-height: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.proto-drawer .dr-sub .dr-item {
+  font-size: 13px;
+  padding: 7px 10px;
+  font-weight: 500;
+  color: $text-mid;
+  gap: 8px;
+}
+.proto-drawer .dr-sub .dr-item.active {
+  background: transparent;
+  color: $mint-700;
+  position: relative;
+}
+.proto-drawer .dr-sub .dr-item.active::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.5px;
+  height: 16px;
+  background: $mint;
+  border-radius: 2px;
+}
+.proto-drawer .dr-sub .dr-item .dr-item-tag {
+  font-size: 10px;
+}
+
+.proto-drawer .dr-footer {
+  padding: 10px 14px calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid $line;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.proto-drawer .dr-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff9966, #ff5e62);
+  color: #fff;
+  display: grid; place-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.proto-drawer .dr-userinfo { flex: 1; min-width: 0; }
+.proto-drawer .dr-username { font-size: 13.5px; font-weight: 600; color: $ink; text-decoration: none; cursor: pointer; }
+.proto-drawer a.dr-username:hover { text-decoration: underline; }
+.proto-drawer .dr-userrole { font-size: 11.5px; color: $text-mute; display: block; text-align: center; }
+.proto-drawer .dr-signout {
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  display: grid; place-items: center;
+  color: $text-mute;
+  background: transparent;
+  border: none;
+}
+.proto-drawer .dr-signout:hover { color: $danger; }
+
+/* Impersonation: an isRoot-only icon sits next to .dr-signout in the
+ * drawer footer; clicking it toggles .is-open on .dr-impersonate-panel,
+ * which is rendered as the immediate previous sibling of .dr-footer
+ * (so it slides up from the bottom of the drawer). */
+.proto-drawer .dr-impersonate-btn {
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  display: grid; place-items: center;
+  color: $text-mute;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0;
+}
+.proto-drawer .dr-impersonate-btn:hover,
+.proto-drawer .dr-impersonate-btn[aria-expanded="true"] { color: $ink; background: $bg-warm; }
+
+/* The panel uses the HTML `hidden` attribute as its native hide
+ * mechanism (so it works without compiled SCSS); when shell.js opens
+ * it, hidden is removed and .is-open is added. We only need to style
+ * the visible state here. */
+.proto-drawer .dr-impersonate-panel {
+  border-top: 1px solid $line;
+  background: $surface;
+  padding: 12px 14px;
+}
+.proto-drawer .dr-impersonate-panel .dr-impersonate-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: $text-mute;
+  margin-bottom: 6px;
+}
+.proto-drawer .dr-impersonate-panel .box-Authy { display: block; width: 100%; }
+.proto-drawer .dr-impersonate-panel input.ui-autocomplete-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid $line;
+  border-radius: 8px;
+  font-size: 14px;
+  background: $bg-warm;
+  color: $text;
+  box-sizing: border-box;
+}
+
+/* ───── Drawer head + legacy menu (ac-nav/ac-menu) reused as drawer body ─────
+   The builder still emits the legacy ul.ac-menu nav (shared with desktop +
+   the isRoot impersonation JS); we wrap it in .proto-drawer and map the
+   list markup to the guideline item look instead of reshaping the menu
+   builder. Active state comes through via the existing a.active class. */
+.proto-drawer .dr-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 16px 12px; border-bottom: 1px solid $line; flex-shrink: 0;
+}
+.proto-drawer .dr-head .dr-logo-text {
+  font-size: 16px; font-weight: 700; color: $ink; letter-spacing: -0.01em;
+}
+.proto-drawer .dr-head .dr-close {
+  width: 32px; height: 32px; border: none; background: transparent;
+  color: $text-mid; font-size: 20px; display: grid; place-items: center;
+  border-radius: 6px; cursor: pointer;
+}
+.proto-drawer .dr-head .dr-close:active { background: $bg; }
+.proto-drawer .dr-scroll { flex: 1; overflow-y: auto; padding: 8px 10px 16px; }
+.proto-drawer .ac-nav,
+.proto-drawer .ac-menu,
+.proto-drawer .sub-menu { list-style: none; margin: 0; padding: 0; }
+.proto-drawer .ac-menu > li { margin: 1px 0; }
+.proto-drawer .ac-menu a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 8px;
+  font-size: 14px; font-weight: 500; color: $text-mid;
+  text-decoration: none; transition: background .08s;
+}
+.proto-drawer .ac-menu a:hover { background: $bg; }
+.proto-drawer .ac-menu a:active { background: $mint-50; }
+.proto-drawer .ac-menu a.active { background: $mint-50; color: $mint-700; font-weight: 600; }
+.proto-drawer .ac-menu a.disconnect { color: $danger; }
+.proto-drawer .ac-menu .ac-alert-count {
+  margin-left: auto; background: $mint-50; color: $mint-700;
+  font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px;
+}
+
+/* Placeholder dot for menu items with no set_menu_icon — keeps
+ * the label column aligned with the icon-bearing items. */
+.proto-drawer .ac-menu .dr-item-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  flex-shrink: 0;
+}
+.proto-drawer .ac-menu .dr-item-dot::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: $text-faint;
+  transition: background .12s;
+}
+.proto-drawer .ac-menu a:hover .dr-item-dot::before,
+.proto-drawer .ac-menu a.active .dr-item-dot::before {
+  background: $mint-700;
+}
+.proto-drawer .sub-menu {
+  margin: 2px 0 4px 14px; border-left: 1.5px solid $line; padding-left: 8px;
+}
+.proto-drawer .sub-menu a { font-size: 13px; padding: 7px 10px; }
+.proto-drawer .menu-subtitle {
+  padding: 8px 10px 4px; font-size: 11px; font-weight: 600;
+  color: $text-mute; text-transform: uppercase; letter-spacing: 0.04em;
+}
+
+/* The legacy .left-panel sidebar is replaced on mobile by .proto-drawer
+   (kept in the DOM for desktop + the isRoot impersonation selectbox JS).
+   !important + body scope to beat the legacy .left-panel rules that
+   compile after this partial. */
+body .left-panel { display: none !important; }
+
+/* ───── Hamburger button (added to list header) ───── */
+.va-mob .menu-btn {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: $ink;
+  display: grid; place-items: center;
+  font-size: 22px;
+  margin-left: -8px;
+  cursor: pointer;
+}
+.va-mob .menu-btn:active { background: $bg; }
+
+/* Inline validation: the vanilla client (screens.js) adds .error_field
+   to the offending control / select-label-span on a rejected save. No
+   legacy rule styled it, so define the guideline error affordance.
+   Scoped to both .proto-form (mobile/inline) AND .proto-screen (the
+   drawer wrapper used on desktop). */
+.proto-form .error_field,
+.proto-form input.error_field,
+.proto-form textarea.error_field,
+.proto-form select.error_field,
+.sw-drawer.proto-form .error_field,
+.sw-drawer.proto-form input.error_field,
+.sw-drawer.proto-form textarea.error_field,
+.sw-drawer.proto-form select.error_field {
+  border-color: $danger !important;
+  background: rgba(226, 89, 80, 0.06) !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(226, 89, 80, 0.12) !important;
+}
+.proto-form .select-label-span.error_field,
+.sw-drawer.proto-form .select-label-span.error_field {
+  border-color: $danger !important;
+  color: $danger !important;
+}
+.proto-form .form-row.has-error .lbl,
+.sw-drawer.proto-form .form-row.has-error .lbl { color: $danger; }
+/* Per-field inline error message injected by screens.js below the
+ * offending control. */
+.sw-drawer.proto-form .form-row .field-error,
+.proto-form .form-row .field-error {
+  margin-top: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: $danger;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.sw-drawer.proto-form .form-row .field-error::before,
+.proto-form .form-row .field-error::before {
+  content: '⚠';
+  font-size: 12px;
+  line-height: 1;
+}
+/* Banner inserted at the top of .sw-body when a save fails. */
+.sw-drawer.proto-form .form-banner.is-error {
+  margin: 0 0 14px 0;
+  padding: 10px 16px;
+  background: rgba(226, 89, 80, 0.08);
+  border: 1px solid rgba(226, 89, 80, 0.32);
+  border-radius: 6px;
+  color: $danger;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ───── Global topbar (drawer opener on every page) ─────
+   List pages carry their own .va-mob-header .menu-btn, so the bar is
+   hidden there to avoid two hamburgers. */
+.app-topbar {
+  display: flex; align-items: center; gap: 8px;
+  height: 52px; padding: 0 12px;
+  background: $surface; border-bottom: 1px solid $line;
+  position: sticky; top: 0; z-index: 20;
+}
+.app-topbar .menu-btn {
+  width: 38px; height: 38px; border-radius: 8px;
+  background: transparent; border: none; color: $ink;
+  display: grid; place-items: center; font-size: 22px; cursor: pointer;
+}
+.app-topbar .menu-btn:active { background: $bg; }
+.app-topbar .app-topbar-title {
+  font-size: 16px; font-weight: 700; color: $ink; letter-spacing: -0.01em;
+}
+body:has(.va-mob.proto-app[data-model]) .app-topbar { display: none; }
+
+/* Right-side actions area in the topbar — list-page action controls
+ * (mass-action select, bulk update, un/check-all etc.) are relocated
+ * here by list.js after they were emitted into the legacy .sw-header.
+ * Reskinned to match the v2 pill aesthetic. */
+.app-topbar .app-topbar-actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.app-topbar .app-topbar-actions:empty { display: none; }
+.app-topbar .app-topbar-actions select,
+.app-topbar .app-topbar-actions .mass-action-sel {
+  height: 32px;
+  padding: 0 28px 0 10px;
+  border: 1px solid $line;
+  border-radius: 6px;
+  background: $surface;
+  font-size: 13px;
+  color: $ink;
+  cursor: pointer;
+}
+.app-topbar .app-topbar-actions select:focus { outline: none; border-color: $mint; box-shadow: 0 0 0 3px rgba(0,209,178,.18); }
+.app-topbar .app-topbar-actions a.header-controls,
+.app-topbar .app-topbar-actions a.button-link-blue {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 6px;
+  background: $mint;
+  color: $on-accent !important;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgba(0,209,178,.3);
+  // Animate the save-button colour swap (was jQuery-UI .switchClass easing).
+  transition: background-color .3s ease, box-shadow .3s ease;
+}
+.app-topbar .app-topbar-actions a.header-controls:hover,
+.app-topbar .app-topbar-actions a.button-link-blue:hover { background: $mint-600; color: $on-accent !important; }
+.app-topbar .app-topbar-actions a.ac-light-red,
+.app-topbar .app-topbar-actions a.button-link-blue.ac-light-red { background: #ef4444; box-shadow: 0 1px 2px rgba(239,68,68,.3); }
+.app-topbar .app-topbar-actions input[type='checkbox'][id^='mass-action-'] {
+  width: 16px; height: 16px; accent-color: $mint; margin: 0;
+}
+.app-topbar .app-topbar-actions .mass-action-toggle {
+  font-size: 12.5px; color: $text-mid;
+  display: inline-flex; align-items: center; gap: 4px;
+  margin: 0;
+}
+
+/* ───── Edit form screen ───── */
+.proto-form { display: flex; flex-direction: column; background: $bg; }
+
+.proto-form .form-nav {
+  background: $surface;
+  border-bottom: 1px solid $line;
+  padding: 0 6px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.proto-form .form-nav .nav-btn {
+  height: 28px;
+  padding: 0 6px 0 4px;
+  border: none;
+  background: transparent;
+  color: $mint-700;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.proto-form .form-nav .nav-btn:active { background: $bg; }
+.proto-form .form-nav .nav-btn i { font-size: 18px; }
+.proto-form .form-nav .nav-title { flex: 1; text-align: left; font-size: 13px; font-weight: 600; color: $ink; letter-spacing: -0.005em; }
+.proto-form .form-nav .nav-save {
+  height: 32px;
+  padding: 0 20px;
+  border: none;
+  background: $mint;
+  color: $on-accent;
+  font-size: 13.5px;
+  font-weight: 600;
+  border-radius: 7px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,209,178,0.35);
+  margin-right: 4px;
+}
+.proto-form .form-nav .nav-save.disabled {
+  background: $line;
+  color: $text-faint;
+  box-shadow: none;
+}
+
+.proto-form .form-scroll { flex: 1; overflow-y: auto; padding-bottom: 48px; }
+
+.proto-form .form-banner {
+  margin: 14px 14px 4px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, $mint-50, #fff);
+  border: 1px solid $mint-100;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.proto-form .form-banner .banner-flag {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, $mint, $mint-700);
+  display: grid; place-items: center;
+  color: $on-accent;
+  font-family: $font-mono;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.proto-form .form-banner .banner-text { flex: 1; min-width: 0; }
+.proto-form .form-banner .banner-title { font-size: 15px; font-weight: 600; color: $ink; }
+.proto-form .form-banner .banner-sub { font-size: 12px; color: $text-mute; margin-top: 1px; }
+
+.proto-form .form-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: $text-mute;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 18px 18px 6px;
+}
+.proto-form .form-card {
+  background: $surface;
+  margin: 8px 14px 0;
+  border: 1px solid $line;
+  overflow: hidden;
+}
+
+.proto-form .form-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-bottom: 1px solid $line-soft;
+  min-height: 52px;
+}
+button.form-row {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid $line-soft;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.proto-form .form-row:last-child { border-bottom: none; }
+.proto-form .form-row.tap { cursor: pointer; }
+.proto-form .form-row.tap:active { background: $bg; }
+.proto-form .form-row .lbl {
+  font-size: 13px;
+  font-weight: 500;
+  color: $text;
+  width: 110px;
+  flex-shrink: 0;
+}
+.proto-form .form-row .val {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: $ink;
+  text-align: right;
+}
+.proto-form .form-row .val.placeholder { color: $text-faint; font-weight: 400; }
+.proto-form .form-row input[type="text"],
+.proto-form .form-row input[type="number"] {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 14px;
+  color: $ink;
+  text-align: right;
+  outline: none;
+  font-family: inherit;
+  -webkit-appearance: none;
+}
+.proto-form .form-row input::placeholder { color: $text-faint; }
+.proto-form .form-row input.mono { font-family: $font-mono; font-size: 13.5px; }
+
+// Discoverability + parity: every editable control in a .form-row
+// (text/number/email/tel/url/date/password, textarea, select) shares
+// the same right-aligned field treatment, carries a faint affordance
+// so it's visibly clickable, and a clear mint focus box.
+.proto-form .form-row input[type="email"],
+.proto-form .form-row input[type="tel"],
+.proto-form .form-row input[type="url"],
+.proto-form .form-row input[type="password"],
+.proto-form .form-row input[type="date"],
+.proto-form .form-row input[type="datetime-local"],
+.proto-form .form-row input[type="time"],
+.proto-form .form-row input:not([type]),
+.proto-form .form-row textarea,
+.proto-form .form-row select {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 14px;
+  color: $ink;
+  text-align: right;
+  outline: none;
+  font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.proto-form .form-row textarea { resize: vertical; min-height: 22px; }
+.proto-form .form-row select { cursor: pointer; text-align-last: right; }
+.proto-form .form-row input[type="text"],
+.proto-form .form-row input[type="number"],
+.proto-form .form-row input[type="email"],
+.proto-form .form-row input[type="tel"],
+.proto-form .form-row input[type="url"],
+.proto-form .form-row input[type="password"],
+.proto-form .form-row input[type="date"],
+.proto-form .form-row input:not([type]),
+.proto-form .form-row textarea,
+.proto-form .form-row select {
+  cursor: text;
+  border-radius: 6px;
+  transition: background .12s, box-shadow .12s;
+}
+.proto-form .form-row input[type="text"]:hover,
+.proto-form .form-row input[type="number"]:hover,
+.proto-form .form-row textarea:hover,
+.proto-form .form-row select:hover { background: $bg-warm; }
+.proto-form .form-row input:focus,
+.proto-form .form-row textarea:focus,
+.proto-form .form-row select:focus {
+  background: #fff !important;
+  box-shadow: 0 0 0 2px $mint-100, inset 0 0 0 1px $mint !important;
+  outline: none !important;
+  padding: 6px 8px;
+  text-align: left;
+  position: relative;
+  z-index: 1;
+}
+/* Read-only / disabled inputs must read as non-interactive: muted ink,
+ * no hover affordance, no caret. Applies to both [readonly] (text-like
+ * inputs and textarea) and [disabled] (selects + others). */
+.proto-form .form-row input[readonly],
+.proto-form .form-row textarea[readonly],
+.proto-form .form-row input:disabled,
+.proto-form .form-row textarea:disabled,
+.proto-form .form-row select:disabled {
+  color: $text-mute;
+  cursor: default;
+  -webkit-text-fill-color: $text-mute;
+  opacity: 1;
+}
+.proto-form .form-row input[readonly]:hover,
+.proto-form .form-row textarea[readonly]:hover,
+.proto-form .form-row input:disabled:hover,
+.proto-form .form-row textarea:disabled:hover,
+.proto-form .form-row select:disabled:hover { background: transparent; }
+.proto-form .form-row input[readonly]:focus,
+.proto-form .form-row textarea[readonly]:focus {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0;
+  text-align: right;
+}
+
+/* set_readonly_columns: lockFormField() swaps the editable control for a
+ * <div class="readonly ro-value">value</div> (+ a hidden input). It is NOT
+ * an <input>, so none of the rules above reach it. Render it as a quiet,
+ * non-interactive chip: muted value in a soft pill, pushed flush-right so
+ * it lines up with the editable controls it stands in for. */
+.proto-form .form-row .readonly {
+  margin-left: auto;            /* flush right within the flex row */
+  max-width: 72%;
+  padding: 3px 10px;
+  border: 1px solid $line;
+  border-radius: 6px;
+  background: $bg-warm;
+  color: $text-mute;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: right;
+  word-break: break-word;       /* long tokens/URLs wrap inside the chip */
+}
+.proto-form .form-row .readonly:empty::after {
+  content: '\2014';             /* em dash for an empty read-only value */
+  color: $text-faint;
+}
+/* the row stands in for an editable one but offers no affordance */
+.proto-form .form-row.readonly { cursor: default; }
+.proto-form .form-row.readonly:hover { background: transparent; }
+
+/* Desktop: pack runs of CONSECUTIVE read-only fields three-up (label on
+ * top of the pill) to reclaim vertical space. Isolated read-only fields
+ * and every editable row stay full-width. A "run member" is a .readonly
+ * row adjacent to another: :has(+ .readonly) catches all-but-last, and the
+ * "[run member] + .readonly" pairing catches all-but-first — their union
+ * is the whole run, so a lone read-only row (no read-only neighbour)
+ * matches neither and keeps its full-width label-left / chip-right form. */
+@media (min-width: 720px) {
+  .proto-form .tab-pane.is-active,
+  .proto-form .form-card:has(> .form-row) {
+    display: flex;
+    flex-flow: row wrap;
+    align-content: flex-start;
+  }
+  .proto-form .tab-pane.is-active > .form-row,
+  .proto-form .form-card > .form-row { flex: 1 1 100%; }
+
+  .proto-form .form-row.readonly:has(+ .form-row.readonly),
+  .proto-form .form-row.readonly:has(+ .form-row.readonly) + .form-row.readonly {
+    flex: 1 1 33.33%;
+    max-width: 33.33%;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 5px;
+  }
+  .proto-form .form-row.readonly:has(+ .form-row.readonly) .lbl,
+  .proto-form .form-row.readonly:has(+ .form-row.readonly) + .form-row.readonly .lbl { width: auto; }
+  .proto-form .form-row.readonly:has(+ .form-row.readonly) .readonly,
+  .proto-form .form-row.readonly:has(+ .form-row.readonly) + .form-row.readonly .readonly {
+    margin-left: 0;
+    max-width: 100%;
+    text-align: left;
+  }
+}
+/* jQuery selectbox widget (.select-label > .select-label-span + ul)
+ * inside a form-row: the legacy chrome (180px fixed bordered box +
+ * arrow.png) reads as broken next to the right-flush text values.
+ * Re-skin it to the guideline tap-row: value flush right in $ink
+ * 14.5/600 + a faint chevron, no border/box. _selectbox.scss is
+ * template-managed (do not edit) so override here (scoped, wins on
+ * specificity). */
+.proto-form .form-row > .select-label.js-select-label {
+  flex: 1;
+  margin: 0;
+  min-width: 0;
+  text-align: right;
+  position: relative;
+}
+.proto-form .form-row .select-label-span {
+  background: none;
+  border: none;
+  width: auto;
+  height: auto;
+  padding: 4px 16px 4px 8px;
+  line-height: 1.35;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: $ink;
+  text-align: right;
+  overflow: visible;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .12s;
+}
+.proto-form .form-row .select-label-span.default { color: $text-faint; font-weight: 500; }
+.proto-form .form-row .select-label-span:hover { background: $bg-warm; }
+.proto-form .form-row .select-label-span:focus {
+  outline: none;
+  background: $bg-warm;
+  box-shadow: 0 0 0 2px $mint-100;
+}
+.proto-form .form-row .select-label-span::after {
+  content: '\203A';                 /* › chevron, matches tap rows */
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-52%);
+  font-size: 17px;
+  font-weight: 400;
+  color: $text-faint;
+  pointer-events: none;
+}
+/* The card clips its rounded corners with overflow:hidden, which would
+ * also clip an open dropdown. Relax it only while a select is open
+ * (plugin toggles .show on .select-label). */
+.proto-form .form-card:has(.select-label.show) { overflow: visible; }
+/* NOTE: do NOT relax overflow on .form-scroll — it is the scrollable form
+ * body (overflow:auto). Flipping it to visible while a select is open
+ * forces the browser to reset its scrollTop to 0 (a scroll box that becomes
+ * non-scrollable loses its offset), which yanks the drawer to the top and
+ * leaves the open dropdown stranded at the bottom of the viewport when the
+ * field was scrolled down. selectbox.js (openLabel/clipRectFor) already
+ * clamps the menu height to the visible region and flips it up/down so it
+ * fits inside the scroll box — no overflow override is needed here. */
+
+/* Open dropdown: white card, right-aligned under the value. */
+.proto-form .form-row .select-label.js-select-label ul.scrollable.select-element {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: auto;
+  right: 0;
+  width: max-content;
+  min-width: 200px;
+  max-width: 320px;
+  max-height: 300px;
+  background: $surface;
+  border: 1px solid $line;
+  border-radius: 9px;
+  box-shadow: 0 8px 28px rgba(10,37,64,0.16);
+  overflow-y: auto;
+  z-index: 50;
+}
+.proto-form .form-row .select-label ul.select-element li {
+  text-align: left;
+  padding: 9px 14px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: $text;
+}
+.proto-form .form-row .select-label ul.select-element li:hover,
+.proto-form .form-row .select-label ul.select-element li.hovered {
+  background: $bg-warm;
+}
+.proto-form .form-row .select-label ul.select-element li.selected {
+  background: $mint-50;
+  color: $mint-700;
+  font-weight: 600;
+}
+.proto-form .form-row .select-label ul.select-element li.default { color: $text-faint; }
+
+// Persistent hint that the value is editable: a faint baseline under
+// free-text fields (selects/tap rows keep the chevron instead).
+.proto-form .form-row input[type="text"],
+.proto-form .form-row input[type="number"],
+.proto-form .form-row input[type="email"],
+.proto-form .form-row input[type="tel"],
+.proto-form .form-row input[type="url"],
+.proto-form .form-row input:not([type]),
+.proto-form .form-row textarea {
+  background-image: linear-gradient(to right, $line, $line);
+  background-size: 18px 1px;
+  background-position: right bottom 2px;
+  background-repeat: no-repeat;
+}
+.proto-form .form-row input:focus { background-image: none; }
+.proto-form .form-row .chev {
+  color: $text-faint;
+  font-size: 18px;
+  margin-right: -4px;
+}
+
+.proto-form .form-help {
+  padding: 8px 18px 0;
+  font-size: 11.5px;
+  color: $text-mute;
+  line-height: 1.5;
+}
+
+/* Delete button block (bottom) */
+.proto-form .form-delete-block {
+  background: $surface;
+  margin: 14px 14px;
+  border-radius: 12px;
+  border: 1px solid $line;
+  overflow: hidden;
+}
+.proto-form .form-delete-btn {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  border: none;
+  color: $danger;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.proto-form .form-delete-btn:active { background: $danger-50; }
+.proto-form .form-delete-btn i { font-size: 18px; }
+
+.proto-form .form-audit {
+  padding: 16px 18px 30px;
+  font-size: 11.5px;
+  color: $text-faint;
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* Currency picker bottom sheet */
+.proto-sheet {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  background: $surface;
+  border-radius: 16px 16px 0 0;
+  z-index: 70;
+  transform: translateY(100%);
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0.32, 1);
+  max-height: 70%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -12px 32px rgba(10,37,64,0.18);
+}
+.proto-sheet.open { transform: translateY(0); }
+.proto-sheet .sheet-handle {
+  display: flex; justify-content: center;
+  padding: 8px 0 4px;
+}
+.proto-sheet .sheet-handle::before {
+  content: '';
+  width: 36px; height: 4px;
+  border-radius: 999px;
+  background: $line;
+}
+.proto-sheet .sheet-head {
+  display: flex;
+  align-items: center;
+  padding: 4px 14px 10px;
+  border-bottom: 1px solid $line;
+}
+.proto-sheet .sheet-title { flex: 1; font-size: 15.5px; font-weight: 600; color: $ink; }
+.proto-sheet .sheet-close {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: $bg;
+  color: $text-mid;
+  display: grid; place-items: center;
+  font-size: 17px;
+}
+.proto-sheet .sheet-body { flex: 1; overflow-y: auto; padding: 4px 0 calc(14px + env(safe-area-inset-bottom)); }
+.proto-sheet .sheet-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid $line-soft;
+  cursor: pointer;
+}
+.proto-sheet .sheet-row:last-child { border-bottom: none; }
+.proto-sheet .sheet-row:active { background: $bg; }
+.proto-sheet .sheet-row .sr-icon {
+  font-family: $font-mono;
+  font-size: 13px;
+  font-weight: 600;
+  color: $ink;
+  width: 44px;
+}
+.proto-sheet .sheet-row .sr-name { flex: 1; font-size: 14px; color: $text; }
+.proto-sheet .sheet-row.selected { background: $mint-50; }
+.proto-sheet .sheet-row.selected .sr-icon { color: $mint-700; }
+.proto-sheet .sheet-row.selected i { color: $mint-700; font-size: 18px; }
+
+/* Toast */
+.proto-toast {
+  position: absolute;
+  left: 50%;
+  bottom: calc(70px + env(safe-area-inset-bottom));
+  transform: translate(-50%, 20px);
+  background: $ink;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 500;
+  box-shadow: 0 10px 28px rgba(10,37,64,0.25);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.proto-toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.proto-toast i { color: $mint; font-size: 16px; }
+
+/* When pull-down/refreshing isn't relevant, hide var-a's back button as menu replaces it */
+.va-mob .va-mob-row1 .back { display: none; }
+
+/* small adjustments for prototype */
+.proto-app .va-mob-pager { background: $surface; }
+
+/* ===== Toast + designed confirm (A6) =====
+ * Guideline .proto-toast (README §Toast: ink pill, mint check, ~1.7s)
+ * + a tokenized confirm dialog. screens.js toggles .show; no inline
+ * hex, no native confirm()/alert(). */
+.proto-toast {
+  position: fixed; left: 50%;
+  bottom: calc(70px + env(safe-area-inset-bottom));
+  transform: translate(-50%, 20px);
+  background: $ink; color: #fff;
+  padding: 10px 16px; border-radius: 999px;
+  font-size: 13.5px; font-weight: 500;
+  box-shadow: 0 10px 28px rgba(10,37,64,.25);
+  z-index: 250; opacity: 0; pointer-events: none;
+  transition: opacity .22s ease, transform .22s ease;
+  display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+}
+.proto-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.proto-toast i { color: $mint; font-size: 16px; }
+
+.gc-confirm-dim {
+  position: fixed; inset: 0; background: rgba(10,37,64,.32);
+  z-index: 260; display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .18s ease;
+}
+.gc-confirm-dim.show { opacity: 1; }
+.gc-confirm-box {
+  background: $surface; border-radius: 14px; padding: 22px;
+  max-width: 320px; width: calc(100% - 48px);
+  box-shadow: 0 16px 48px rgba(10,37,64,.28);
+  font-size: 14px; color: $ink;
+  transform: scale(.96); transition: transform .18s ease;
+}
+.gc-confirm-dim.show .gc-confirm-box { transform: scale(1); }
+.gc-confirm-msg { margin-bottom: 20px; line-height: 1.45; color: $text; }
+.gc-confirm-btns { display: flex; gap: 8px; justify-content: flex-end; }
+.gc-confirm-btn {
+  padding: 9px 16px; border-radius: 8px; font-size: 13px; cursor: pointer;
+  font-weight: 500; border: 1px solid $line; background: $surface; color: $text-mid;
+}
+.gc-confirm-btn.primary { border: none; font-weight: 600; color: #fff; background: $ink; }
+.gc-confirm-btn.danger { border: none; font-weight: 600; color: #fff; background: $danger; }
+// Title + alert variant (gcScreens.alert — replaces the jQuery-UI #alertDialog).
+.gc-confirm-title { font-weight: 600; font-size: 15px; color: $ink; margin-bottom: 10px; }
+.gc-confirm-box.alert { max-width: 460px; }
+.gc-confirm-box.alert .gc-confirm-msg { max-height: 50vh; overflow-y: auto; }
+
+// Vanilla autocomplete dropdown (gcAutocomplete — replaces jQuery-UI .autocomplete()).
+.gc-ac-menu {
+  list-style: none; margin: 0; padding: 4px; z-index: 280;
+  background: $surface; border: 1px solid $line; border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(10,37,64,.18);
+  max-height: 280px; overflow-y: auto; font-size: 14px; color: $ink;
+}
+.gc-ac-menu .gc-ac-item {
+  padding: 8px 10px; border-radius: 6px; cursor: pointer; line-height: 1.3;
+}
+.gc-ac-menu .gc-ac-item.active,
+.gc-ac-menu .gc-ac-item:hover { background: $mint; color: $on-accent; }
+.gc-ac-menu .gc-ac-empty { padding: 8px 10px; color: $text-mid; font-style: italic; }
+// Mobile: skin the menu as a bottom sheet over a dim layer.
+.gc-ac-dim {
+  position: fixed; inset: 0; background: rgba(10,37,64,.32); z-index: 270;
+}
+.gc-ac-menu.is-sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; top: auto;
+  border-radius: 14px 14px 0 0; max-height: 60vh; padding: 8px;
+  box-shadow: 0 -8px 32px rgba(10,37,64,.24);
+}
+.gc-ac-menu.is-sheet .gc-ac-item { padding: 14px 12px; font-size: 15px; }
+
+// Re-auth modal inputs/error (SessionManager bespoke modal on gc-confirm shell).
+.gc-reauth-input {
+  width: 100%; box-sizing: border-box; margin-bottom: 8px;
+  padding: 9px 10px; border: 1px solid $line; border-radius: 8px;
+  font-size: 14px; color: $ink;
+}
+.gc-reauth-error { color: $danger; font-size: 13px; margin-bottom: 8px; }
+.gc-reauth-error.hide { display: none; }
+
+/* ───── Rights/permission matrix (Authy rights behavior) ─────
+ * The legacy rights widget renders as `.form-row.rightsTr`, so it
+ * inherits the label-left / value-right flex and gets squashed into
+ * the ~350px value column with the help text floating mid-card. The
+ * matrix is a full-width data grid, not a single-value row — break it
+ * out of the form-row flex and re-skin the table + All/Group/Owner
+ * tab strip in the guideline language. Scoped to .proto-form so the
+ * legacy non-proto rights screens are untouched. */
+.proto-form .form-row.rightsTr {
+  display: block;
+  padding: 0;
+  margin: 0;
+  border: none;
+  text-align: left;
+  align-items: stretch;
+}
+.proto-form .form-row.rightsTr > .lbl {
+  display: block;
+  width: auto;
+  padding: 16px 18px 2px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: $text-mute;
+  text-align: left;
+}
+.proto-form .form-row.rightsTr .cntOnglet,
+.proto-form .form-row.rightsTr #RigthsContainer {
+  display: block;
+  width: 100%;
+}
+.proto-form .form-row.rightsTr .cntOnglet { text-align: left; }
+/* Help blurb above the sub-tabs. */
+.proto-form .form-row.rightsTr .cntOnglet > div:first-child {
+  padding: 12px 18px 10px;
+  max-width: 640px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: $text-mute;
+  text-align: left;
+}
+/* All / Group / Owner sub-tab strip. */
+.proto-form .form-row.rightsTr ul.ui-tabs-nav {
+  display: flex;
+  gap: 2px;
+  margin: 0;
+  padding: 0 18px;
+  list-style: none;
+  border-bottom: 1px solid $line;
+}
+.proto-form .form-row.rightsTr ul.ui-tabs-nav li {
+  list-style: none;
+  background: none;
+  border: none;
+}
+.proto-form .form-row.rightsTr ul.ui-tabs-nav li a {
+  display: block;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: $text-mid;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.proto-form .form-row.rightsTr ul.ui-tabs-nav li.ui-tabs-active a,
+.proto-form .form-row.rightsTr ul.ui-tabs-nav li.ui-state-active a,
+.proto-form .form-row.rightsTr ul.ui-tabs-nav li.selected a {
+  color: $mint-700;
+  border-bottom-color: $mint;
+}
+/* The matrix itself: full-width clean grid. */
+.proto-form .form-row.rightsTr .rights-table {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  text-align: center;
+}
+.proto-form .form-row.rightsTr .rights-table thead th {
+  padding: 10px 8px;
+  background: $bg-warm;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: $text-mute;
+  border-bottom: 1px solid $line;
+  text-align: center;
+}
+.proto-form .form-row.rightsTr .rights-table thead th:first-child {
+  text-align: left;
+  padding-left: 18px;
+}
+.proto-form .form-row.rightsTr .rights-table tbody td {
+  padding: 7px 8px;
+  border-bottom: 1px solid $line-soft;
+  font-size: 13px;
+  color: $text;
+  vertical-align: middle;
+}
+.proto-form .form-row.rightsTr .rights-table tbody td:first-child {
+  text-align: left;
+  padding-left: 18px;
+  font-weight: 500;
+  color: $ink;
+}
+.proto-form .form-row.rightsTr .rights-table tbody tr:hover { background: $row-hover; }
+
+// ============================================================
+// Edit-drawer tab nav (T7). Emitted by T4 (.sw-tabnav with
+// .tab-btn buttons) and T6 (.tab-pane[data-tab] panes).
+// Vanilla CSS only — no jQuery-UI styles.
+// ============================================================
+.sw-tabnav {
+    display: flex;
+    gap: 0;
+    border-bottom: 0;
+    background: $surface;
+    padding: 0 18px;
+    overflow-x: auto;
+    flex-shrink: 0;
+}
+.sw-tabnav .tab-btn {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 12px 14px;
+    font: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: $text-mid;
+    cursor: pointer;
+    position: relative;
+    line-height: 1;
+    white-space: nowrap;
+}
+.sw-tabnav .tab-btn:hover { color: $ink; }
+.sw-tabnav .tab-btn.is-active {
+    color: $mint-700;
+    font-weight: 600;
+}
+.sw-tabnav .tab-btn.is-active::after {
+    content: '';
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: -1px;
+    height: 2px;
+    background: $mint;
+    border-radius: 2px;
+}
+.tab-pane[hidden] { display: none; }
+
+// ============================================================
+// Per-field i18n language switcher. Emitted by the goatcheese
+// form builder (@@I18N-WRAP) around each translated column:
+// .i18n-field > .i18n-langnav (.i18n-lang-btn per locale) +
+// one .i18n-pane per locale. drawer.js toggles the panes.
+// ============================================================
+.i18n-field { min-width: 0; }
+.i18n-langnav {
+    display: inline-flex;
+    gap: 2px;
+    padding: 2px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, .05);
+    margin-bottom: 2px;
+}
+.i18n-lang-btn {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    color: $text-mid;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+.i18n-lang-btn:hover { color: $ink; }
+.i18n-lang-btn.is-active {
+    background: $surface;
+    color: $mint-700;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
+}
+.i18n-pane[hidden] { display: none; }
+@media (min-width: 640px) {
+    .sw-grid > .i18n-field { grid-column: 1 / -1; }
+    .sw-grid > .i18n-field.half { grid-column: span 1; }
+}
+
+.proto-form .form-row.rightsTr .rights-table tbody tr:last-child td { border-bottom: none; }
+
+// ============================================================
+// Drawer identity card (T13). Emitted by T12 (goatcheese ce69033).
+// Each sub-block is opt-in via HJSON behaviors; CSS just styles
+// whatever the emitter chose to render.
+// ============================================================
+.sw-identity {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 24px 16px;
+    border-bottom: 0;
+    background: $bg-warm;
+}
+.sw-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $mint, $mint-700);
+    color: $on-accent;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: .02em;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0,209,178,.25);
+}
+.sw-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.sw-identity-text { flex: 1; min-width: 0; }
+.sw-name {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: $ink;
+    letter-spacing: -0.01em;
+}
+/* When drawer.js binds the name to the underlying form input, it
+ * sets contenteditable and adds .is-editable. Show a faint
+ * underline-on-hover/focus so users discover the affordance. */
+.sw-name.is-editable {
+    cursor: text;
+    border-radius: 4px;
+    padding: 1px 4px;
+    margin-left: -4px;
+    transition: background .12s, box-shadow .12s;
+    outline: none;
+}
+.sw-name.is-editable:hover { background: rgba(0, 0, 0, .03); }
+.sw-name.is-editable:focus {
+    background: #fff;
+    box-shadow: 0 0 0 2px $mint-100, inset 0 0 0 1px $mint;
+}
+/* Empty-name placeholder hint on create mode (data-placeholder is
+ * emitted by Form.php on .sw-name). Pseudo only shows while the
+ * heading has no text content. */
+.sw-name:empty::before {
+    content: attr(data-placeholder);
+    color: $text-faint;
+    font-weight: 500;
+}
+
+// ============================================================
+// Login reskin (BuilderLayout::renderLogin -> #mainContent >
+// .login-wrapper > .login-content > [logo + form#login-form +
+// .lost-password]). Matches GoatCheese theme: centered card,
+// mint primary button, quiet inputs with mint focus.
+// ============================================================
+body:has(#login-form) {
+    margin: 0;
+    min-height: 100vh;
+    background:
+        radial-gradient(ellipse at top left, rgba(0, 209, 178, .12), transparent 50%),
+        radial-gradient(ellipse at bottom right, rgba(20, 184, 166, .08), transparent 50%),
+        $bg;
+    font-family: $font-sans;
+    -webkit-font-smoothing: antialiased;
+}
+/* The legacy renderLogin wraps mainContent in .fullWH > .fullWH2 >
+ * .centered. Flex-center each so the card sits dead-center on the
+ * viewport regardless of which ancestor takes the layout. */
+body:has(#login-form) .fullWH,
+body:has(#login-form) .fullWH2,
+body:has(#login-form) .centered {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    text-align: left !important;
+    min-height: 100vh;
+}
+#mainContent:has(#login-form) {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* Beat the legacy `.login-wrapper { position:fixed; top:0; left:0;
+ * width:100%; height:100%; background: bg-login.jpg }` rule. */
+#logMeContainer.login-wrapper {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    top: 0 !important;
+    left: 0 !important;
+    background: none !important;
+    animation: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 24px;
+    box-sizing: border-box;
+}
+/* Override the legacy `.login-content { position:absolute; top:50%;
+ * left:50%; transform: translate(-50%,-50%); width:400px }`. */
+#logMeContainer .login-content {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 380px;
+    background: $surface;
+    border: 1px solid $line;
+    border-radius: 14px;
+    padding: 32px 28px 24px;
+    box-shadow: 0 8px 32px rgba(10, 37, 64, .08), 0 1px 2px rgba(10, 37, 64, .04);
+    text-align: center;
+    box-sizing: border-box;
+}
+/* Legacy .ac-client-logo is height:200px with absolute-positioned
+ * image. Flatten to a natural-height block. */
+#logMeContainer .ac-client-logo {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 0 22px !important;
+}
+#logMeContainer .ac-client-logo img {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    max-width: 160px !important;
+    max-height: none !important;
+    height: auto !important;
+    display: inline-block !important;
+}
+#logMeContainer .ac-client-logo {
+    margin: 0 0 22px;
+}
+#logMeContainer .ac-client-logo img {
+    max-width: 160px;
+    height: auto;
+}
+#login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+#login-form .input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+#login-form input[type="text"],
+#login-form input[type="password"] {
+    width: 100%;
+    box-sizing: border-box;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid $line;
+    border-radius: 8px;
+    background: $surface;
+    font-size: 14px;
+    color: $ink;
+    outline: none;
+    transition: border-color .12s, box-shadow .12s;
+    -webkit-appearance: none;
+    text-align: left;
+}
+#login-form input::placeholder { color: $text-faint; }
+#login-form input:focus {
+    border-color: $mint;
+    box-shadow: 0 0 0 3px $mint-50;
+}
+#login-form button#logMe {
+    height: 42px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 8px;
+    background: $mint;
+    color: $on-accent;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 209, 178, .25);
+    transition: background .12s, transform .04s;
+    margin-top: 4px;
+}
+#login-form button#logMe:hover { background: $mint-700; }
+#login-form button#logMe:active { transform: translateY(1px); }
+// Inline status message rendered inside #login-form, between the password
+// input and the Sign in button. Always present in the DOM; empty = no space.
+#logMeContainer .login-message {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 2px 0;
+    padding: 9px 12px;
+    border: 1px solid $line;
+    border-radius: 8px;
+    font-size: 12.5px;
+    line-height: 1.4;
+    text-align: center;
+    color: $text-mute;
+    background: $surface;
+
+    &:empty { display: none; }
+
+    &.error {
+        color: $danger;
+        background: $danger-50;
+        border-color: rgba($danger, .35);
+    }
+    &.success {
+        color: $mint-700;
+        background: $mint-50;
+        border-color: $mint-200;
+    }
+}
+// Google Identity Services button: GIS renders a fixed-size button inside a
+// cross-origin iframe and caps its width at 400px (data-width), so it can't be
+// CSS-stretched to a wider container. Make the wrapper full-width and center the
+// button — it fills a ~400px login card and stays centered on wider layouts.
+.login-google {
+    width: 100%;
+    margin-top: 4px;
+    display: flex;
+    justify-content: center;
+}
+.login-google > div { max-width: 100%; }
+#login-form .lost-password {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 12.5px;
+    color: $text-mute;
+    text-decoration: none;
+    text-align: center;
+}
+#login-form .lost-password:hover { color: $mint-700; }
+/* Hide the legacy footer block on the login page. */
+body:has(#login-form) .wCtFooter { display: none; }
+.sw-tags { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+.sw-tag, .sw-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 4px;
+    font-size: 0.78em; line-height: 1.5;
+    text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600;
+}
+.sw-tag { background: var(--gc-accent-soft, #ccfbf1); color: var(--gc-accent, #14b8a6); }
+.sw-pill { background: var(--gc-surface-2, #f1f5f9); color: var(--gc-text-muted, #475569); }
+
+// Inside the drawer's identity card, the tag + status read as a
+// single quiet subtitle line below the entity name (per the locked
+// guideline target). Strip the pill chrome (background, padding,
+// uppercase, bold) and keep just the color hint so "Won" still
+// reads green, "Lost" red, etc.
+.sw-identity .sw-tags {
+    margin-top: 2px;
+    gap: 4px;
+    font-size: 0.85em;
+}
+.sw-identity .sw-tag,
+.sw-identity .sw-pill {
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    font-size: inherit;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: normal;
+    text-transform: capitalize;
+}
+.sw-identity .sw-tag { color: var(--gc-accent, #14b8a6); }
+.sw-identity .sw-pill { color: var(--gc-text-muted, #475569); }
+.sw-identity .sw-pill.pill-won         { color: #16a34a; }
+.sw-identity .sw-pill.pill-lost        { color: #dc2626; }
+.sw-identity .sw-pill.pill-qualified   { color: #2563eb; }
+.sw-identity .sw-pill.pill-lead        { color: #d97706; }
+.sw-identity .sw-pill.pill-negotiation { color: #7c3aed; }
+.sw-identity .sw-pill.pill-on-hold     { color: #9333ea; }
+.sw-identity .sw-pill.pill-inactive    { color: #64748b; }
+.sw-pill.pill-won         { background: #dcfce7; color: #166534; }
+.sw-pill.pill-lost        { background: #fee2e2; color: #991b1b; }
+.sw-pill.pill-qualified   { background: #dbeafe; color: #1e40af; }
+.sw-pill.pill-lead        { background: #fef3c7; color: #92400e; }
+.sw-pill.pill-negotiation { background: #ede9fe; color: #5b21b6; }
+.sw-pill.pill-on-hold     { background: #f3e8ff; color: #6b21a8; }
+.sw-pill.pill-inactive    { background: #e2e8f0; color: #475569; }
+.sw-identity-actions { display: flex; gap: 6px; }
+.sw-action {
+    width: 34px; height: 34px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: $surface;
+    color: $mint-700;
+    text-decoration: none;
+    border: 1px solid $line;
+    transition: background .12s, color .12s, border-color .12s;
+}
+.sw-action:hover { background: $mint-50; color: $mint-700; border-color: $mint-100; }
+.sw-action i { font-size: 15px; }
+
+// ============================================================
+// Drawer field groups (T15). Emitted by T14 (goatcheese a82c8f9)
+// only when set_field_groups is present; absent => flat rendering
+// untouched by this block.
+// ============================================================
+.sw-group {
+    // Fill the column: .sw-group is a flex child of the desktop-flexed
+    // .tab-pane; the default flex:0 1 auto sized it to its content's
+    // max-content, leaving dead space on the right. flex:1 1 100% fills it.
+    flex: 1 1 100%;
+    min-width: 0;
+    // Card: a light-tinted, rounded, hair-bordered container so each group
+    // reads as a distinct block on the white drawer — the white inputs inside
+    // pop against the tint. The form gutter is owned by .form-card, so the
+    // card spans full width and pads its own fields internally.
+    background: var(--bg, #f6f9fc);
+    border: 1px solid var(--line, #e3e8ee);
+    border-radius: 10px;
+    padding: 14px 16px 16px;
+    margin: 0 0 12px 0;
+}
+.sw-group:last-child { margin-bottom: 0; }
+// Scoped under .proto-form (specificity 0,2,0) so it beats the legacy
+// ".mainForm h3 { margin-top: 10px }" rule (0,1,1) that otherwise clobbers
+// the top margin. Inside the card the title hugs the top: the card's own
+// top padding sits above it and the first field row's 14px top-padding sits
+// below, so it reads as the card's heading.
+.proto-form .sw-group-title {
+    margin: 0 0 6px 0;
+    font-size: 0.72em;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gc-text-muted, #475569);
+    font-weight: 600;
+}
+.sw-grid {
+    display: grid;
+    grid-template-columns: 1fr;   // mobile: single column -> everything stacks
+    gap: 12px;
+    // Top-align cells so a tall field (textarea/hash blob) in one column
+    // doesn't stretch its short neighbour (date/select) to match row height.
+    align-items: start;
+    // The grid is a flex child of the (desktop) flexed .tab-pane; the default
+    // flex:0 1 auto sizes it to its content's max-content width, so a tab full
+    // of short values (selects reading "Yes"/"On") shrinks the grid and leaves
+    // dead space on the right. flex:1 1 100% makes it always fill the column.
+    flex: 1 1 100%;
+    min-width: 0;
+}
+@media (min-width: 640px) {
+    .sw-grid { grid-template-columns: 1fr 1fr; }
+    // Default: every direct child spans the full row (child lists, wysiwyg,
+    // textareas, hidden inputs, anything not explicitly .half stays full).
+    .sw-grid > * { grid-column: 1 / -1; }
+    // Compact opt-in: only narrow fields the emitter marked .half pair up.
+    .sw-grid > .form-row.half { grid-column: span 1; }
+    // Back-compat with the older set_field_groups full-width marker.
+    .sw-grid > .form-row.full-width { grid-column: 1 / -1; }
+}
+
+// ============================================================
+// Borderless inputs inside the drawer. The legacy main.scss
+// puts a 1px box border + rounded corners on every <input>, which
+// makes the new identity/grouped form read "boxy". Inside the
+// drawer scaffold we want the guideline's quiet field treatment:
+// no border, faint underline only, mint focus underline.
+// ============================================================
+/* Fields get a boxed border (border on the field only — section
+ * dividers are removed). */
+.sw-drawer.proto-form .sw-body input[type="text"],
+.sw-drawer.proto-form .sw-body input[type="number"],
+.sw-drawer.proto-form .sw-body input[type="email"],
+.sw-drawer.proto-form .sw-body input[type="tel"],
+.sw-drawer.proto-form .sw-body input[type="url"],
+.sw-drawer.proto-form .sw-body input[type="password"],
+.sw-drawer.proto-form .sw-body input[type="date"],
+.sw-drawer.proto-form .sw-body input[type="datetime-local"],
+.sw-drawer.proto-form .sw-body input[type="time"],
+.sw-drawer.proto-form .sw-body input:not([type]),
+.sw-drawer.proto-form .sw-body textarea,
+.sw-drawer.proto-form .sw-body select {
+    border: 1px solid $line !important;
+    border-radius: 6px !important;
+    background: $surface !important;
+    padding: 8px 10px !important;
+    width: 100%;
+    font-size: 13.5px;
+    color: $ink;
+    text-align: left !important;
+    outline: none;
+    box-shadow: none !important;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: border-color .12s, box-shadow .12s;
+    box-sizing: border-box;
+}
+.sw-drawer.proto-form .sw-body input:hover,
+.sw-drawer.proto-form .sw-body textarea:hover,
+.sw-drawer.proto-form .sw-body select:hover {
+    border-color: $text-mute !important;
+}
+.sw-drawer.proto-form .sw-body input:focus,
+.sw-drawer.proto-form .sw-body textarea:focus,
+.sw-drawer.proto-form .sw-body select:focus {
+    border-color: $mint !important;
+    box-shadow: 0 0 0 3px $mint-50 !important;
+}
+.sw-drawer.proto-form .sw-body .form-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    /* Proximity: the label hugs ITS control (small gap below) while a larger
+     * pad-top separates it from the previous field — so each label visibly
+     * belongs to the field beneath it, not the one above. */
+    gap: 3px;
+    padding: 14px 0 0;
+    border: 0;
+    min-height: 0;
+}
+.sw-drawer.proto-form .sw-body .form-row .lbl {
+    font-size: 11px;
+    font-weight: 500;
+    color: $text-mute;
+    text-transform: none;
+    letter-spacing: 0;
+    width: auto;
+}
+/* The base .form-row control rule sets flex:1 for the horizontal
+ * label|field layout (fill the remaining WIDTH). Drawer rows stack
+ * vertically (flex-direction: column above), where flex:1 basis-0 makes
+ * the textarea's height content-locked: the inline height the native
+ * resize grip writes was ignored, so the field could not be resized. */
+.sw-drawer.proto-form .sw-body .form-row textarea {
+    flex: none;
+    /* Roomier default: double the 2-row intrinsic height (~58px). */
+    min-height: 117px;
+}
+/* Read-only value sits UNDER its label (left-aligned, hugging content) like the
+ * editable controls — not flush to the far right. The base .readonly chip uses
+ * margin-left:auto for the mobile inline row; in this column drawer layout that
+ * pushed the chip out to the right edge. */
+.sw-drawer.proto-form .sw-body .form-row .readonly {
+    align-self: stretch;         /* fill the cell width like an input (was flex-start → hugged content) */
+    margin-left: 0;
+    width: 100%;
+    max-width: 100%;
+    text-align: left;
+    /* Match the boxed editable controls' height: same vertical padding as
+     * inputs (8px vs the base chip's 3px) + a min-height equal to the boxed
+     * input so an empty read-only value isn't shorter than its neighbours. */
+    padding: 8px 10px;
+    min-height: 37px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+/* The legacy "pack consecutive read-only fields 3-up" rule (search
+ * "Desktop: pack runs") predates the .sw-grid compact layout and caps such
+ * rows at max-width:33.33%; inside the grid that shrinks a run of read-only
+ * cells to a third of their column. In the grid each read-only field is a
+ * normal cell (full width; .half pairs two-up), so undo the 3-up packing. */
+@media (min-width: 720px) {
+  .proto-form .sw-grid > .form-row.readonly:has(+ .form-row.readonly),
+  .proto-form .sw-grid > .form-row.readonly:has(+ .form-row.readonly) + .form-row.readonly {
+    flex: initial;
+    max-width: 100%;
+    flex-direction: column;
+  }
+}
+/* Selectbox: border lives on the VISIBLE field (.select-label-span)
+ * only. The wrapping <label.js-select-label> stays unstyled so the
+ * border doesn't enclose the dropdown <ul> + hidden inputs too. */
+.sw-drawer.proto-form .sw-body .form-row .js-select-label {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    text-align: left;
+    width: 100%;
+}
+/* Native <select> drawer.js drops in front of each .js-select-label
+ * widget on desktop ≥720px. Matches the boxed input styling. */
+.sw-drawer.proto-form .sw-body .form-row select.sw-native-select {
+    appearance: auto !important;
+    -webkit-appearance: auto !important;
+    border: 1px solid $line !important;
+    border-radius: 6px !important;
+    background: $surface !important;
+    padding: 8px 10px !important;
+    width: 100%;
+    font: inherit;
+    font-size: 13.5px;
+    color: $ink;
+    text-align: left !important;
+    outline: none;
+    box-shadow: none !important;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+.sw-drawer.proto-form .sw-body .form-row select.sw-native-select:focus {
+    border-color: $mint !important;
+    box-shadow: 0 0 0 3px $mint-50 !important;
+}
+.sw-drawer.proto-form .sw-body .form-row .select-label-span {
+    border: 1px solid $line !important;
+    border-radius: 6px !important;
+    background: $surface !important;
+    box-shadow: none !important;
+    padding: 8px 28px 8px 10px !important;
+    text-align: left;
+    width: 100%;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: $ink;
+    box-sizing: border-box;
+}
+.sw-drawer.proto-form .sw-body .form-row .select-label-span::after {
+    right: 10px;
+}
+/* The legacy _selectbox.scss positions .select-label ul as
+ * position:fixed left:0 right:0 (full-width bottom sheet style).
+ * Override to a popover anchored under the field on desktop. The
+ * .js-select-label is the relative container; ul becomes absolute
+ * top:100% width:100% so it drops down. mobile-header (title bar
+ * with close ✕ that the mobile sheet shows) is hidden too. */
+.sw-drawer.proto-form .sw-body .form-row .js-select-label {
+    position: relative !important;
+}
+.sw-drawer.proto-form .sw-body .form-row .js-select-label .mobile-header {
+    display: none !important;
+}
+.sw-drawer.proto-form .sw-body .form-row ul.scrollable.select-element,
+.sw-drawer.proto-form .sw-body .form-row ul.select-element {
+    position: absolute !important;
+    top: calc(100% + 4px) !important;
+    left: 0 !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 4px !important;
+    list-style: none !important;
+    background: $surface !important;
+    border: 1px solid $line !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 28px rgba(10, 37, 64, .15) !important;
+    max-height: 280px !important;
+    overflow-y: auto !important;
+    z-index: 220 !important;
+}
+/* Viewport flip: selectbox.js adds .show-top when the dropdown would
+ * overflow the bottom of the viewport — open it above the field instead. */
+.sw-drawer.proto-form .sw-body .form-row .js-select-label.show-top ul.scrollable.select-element,
+.sw-drawer.proto-form .sw-body .form-row .js-select-label.show-top ul.select-element {
+    top: auto !important;
+    bottom: calc(100% + 4px) !important;
+}
+.sw-drawer.proto-form .sw-body .form-row ul.select-element li {
+    list-style: none !important;
+    padding: 7px 10px !important;
+    border-radius: 5px !important;
+    font-size: 13.5px !important;
+    color: $text !important;
+    cursor: pointer !important;
+    line-height: 1.3 !important;
+    background: transparent !important;
+}
+.sw-drawer.proto-form .sw-body .form-row ul.select-element li:hover,
+.sw-drawer.proto-form .sw-body .form-row ul.select-element li.hovered {
+    background: $bg-warm !important;
+    color: $ink !important;
+}
+.sw-drawer.proto-form .sw-body .form-row ul.select-element li.selected {
+    background: $mint-50 !important;
+    color: $mint-700 !important;
+    font-weight: 600 !important;
+}
+/* Open state: the plugin toggles .show on the .js-select-label.
+ * Mint-bordered field + faint glow + open dropdown below. */
+.sw-drawer.proto-form .sw-body .form-row .js-select-label.show .select-label-span {
+    border-color: $mint !important;
+    box-shadow: 0 0 0 3px $mint-50 !important;
+}
+/* Filter-inside-dropdown input — reskin to match the field style
+ * (the plugin uses it for type-ahead filtering of options). */
+.sw-drawer.proto-form .sw-body .form-row .select-element .selextbox-input {
+    width: calc(100% - 8px) !important;
+    margin: 0 0 4px 0 !important;
+    padding: 6px 8px !important;
+    border: 1px solid $line !important;
+    border-radius: 6px !important;
+    background: $bg-warm !important;
+    font-size: 13px !important;
+    color: $ink !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+}
+.sw-drawer.proto-form .sw-body .form-row .select-element .selextbox-input:focus {
+    border-color: $mint !important;
+    background: #fff !important;
+}
+
+/* Drawer-wide hairline kill: the user wants NO section dividers
+ * inside the drawer. Remove all border-* from .form-nav (legacy),
+ * .form-card (legacy wrapper that sometimes appears around field
+ * groups), and the inner .sw-body's nested cards. Input baseline
+ * underlines are kept (set above). */
+.sw-drawer.proto-form .form-nav,
+.sw-drawer.proto-form .form-card {
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+/* CKEditor: drawer.js (re)binds .tinymce textareas after every
+ * screen mount. CKEditor injects a sibling .cke wrapper next to
+ * the textarea — the textarea itself is hidden by CKEditor's own
+ * CSS. Make the wrapper fit the form-row width and the iframe a
+ * sensible height for the narrow drawer. */
+.sw-drawer.proto-form .sw-body .form-row .cke {
+    width: 100% !important;
+    border: 1px solid $line !important;
+    border-radius: 6px !important;
+    background: $surface;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+.sw-drawer.proto-form .sw-body .form-row .cke_inner,
+.sw-drawer.proto-form .sw-body .form-row .cke_contents {
+    width: 100% !important;
+    box-sizing: border-box;
+}
+.sw-drawer.proto-form .sw-body .form-row .cke_contents {
+    height: 220px !important;
+}
+.sw-drawer.proto-form .sw-body .form-row .cke_top,
+.sw-drawer.proto-form .sw-body .form-row .cke_bottom {
+    background: $bg-warm !important;
+    border-color: $line !important;
+}
+/* Don't double-box: when CKEditor takes over a row, drop the
+ * underlying textarea's own border (it's hidden anyway, but the
+ * generic .form-row textarea rule above adds a focus glow that
+ * leaks). */
+.sw-drawer.proto-form .sw-body .form-row textarea.tinymce {
+    display: none !important;
+}
+/* Hide the CKEditor 5 "Powered by CKEditor" badge that the GPL build renders
+ * by default. It's a floating element (.ck-powered-by, carrying the
+ * .ck-powered-by__label) shown in a balloon appended to .ck-body next to the
+ * focused editor — hide the whole badge + its balloon wrapper. */
+.ck.ck-balloon-panel.ck-powered-by-balloon,
+.ck-powered-by,
+.ck-powered-by__label {
+    display: none !important;
+}
+/* CKEditor 5 editing area: the default is barely a line tall. Give it a
+ * sensible multi-line default height and let the user drag-resize it
+ * vertically — CKEditor 5 dropped CKE4's built-in resize grip, so we enable the
+ * browser-native one on the editable (needs a non-visible overflow). */
+.ck.ck-editor__editable_inline {
+    min-height: 160px;
+    resize: vertical;
+    overflow-y: auto;
+}
+/* sw-tabnav: classic underline-style active tab + hairline divider under
+ * the tab row, matching the theme guideline
+ * (screenshots/desktop/05-client-edit-client-tab.png). The base
+ * .sw-tabnav .tab-btn.is-active rules (mint-700 text + 2px ::after
+ * underline bar) take effect since we no longer paint a pill background
+ * or hide ::after. */
+/* Descendant (not > direct-child): the emitted markup nests .sw-tabnav
+ * inside .cntOnglet, so a `.proto-form > .sw-tabnav` selector misses. */
+.sw-drawer.proto-form .sw-tabnav {
+    padding: 0 18px;
+    border-bottom: 1px solid $line;
+}
+
+// ============================================================
+// Drawer footer (T17). Emitted by T16 (goatcheese bf85011 +
+// template 5bc686f delete-in-drawer handler).
+// ============================================================
+.sw-footer {
+    margin-top: auto;
+    padding: 12px 20px;
+    border-top: 0;
+    background: $bg-warm;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 11.5px;
+    color: $text-mute;
+}
+.sw-footer .sw-meta {
+    display: flex; gap: 4px; flex-wrap: wrap; min-width: 0;
+    line-height: 1.4;
+}
+/* Deliberately discreet next to the prominent Save: borderless text
+ * button, danger color only on hover. */
+.sw-footer .sw-delete {
+    appearance: none;
+    background: transparent;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 6px;
+    color: $text-mute;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 500;
+    flex-shrink: 0;
+    transition: background .12s, color .12s;
+}
+.sw-footer .sw-delete:hover {
+    background: $danger-50;
+    color: $danger;
+}
+.sw-footer .sw-delete i { font-size: 12px; }
+
+// ============================================================
+// ac-list chips (T19). Emitted client-side by drawer.js from
+// data-ac-options JSON (T18 goatcheese 19f99a0).
+// ============================================================
+.ac-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--gc-surface-2, #f1f5f9);
+    color: var(--gc-text, #0f172a);
+    font-size: 0.85em;
+    margin-right: 4px;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+// ============================================================
+// gc-taginput chip editor (multiple_fenetre, vanilla gcTagInput).
+// $mint-* vars are in scope via _listv2.scss.
+// ============================================================
+.gc-taginput {
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    min-height: 40px; padding: 6px 8px;
+    border: 1px solid $mint-100; border-radius: 8px; background: $surface;
+}
+.gc-taginput .gc-tag-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 6px 2px 8px; border-radius: 6px;
+    background: $mint-50; border: 1px solid $mint-100; color: $mint-700;
+    font-size: 13px; font-weight: 600;
+}
+.gc-taginput .gc-tag-x {
+    border: 0; background: transparent; cursor: pointer; color: $mint-700;
+    font-size: 14px; line-height: 1; padding: 0 2px;
+}
+.gc-taginput .gc-tag-search {
+    flex: 1 1 80px; min-width: 80px; border: 0; outline: 0; padding: 4px; font: inherit; background: transparent;
+}
+
+// ── set_comment_columns rider ───────────────────────────────────────
+// A column listed in set_comment_columns renders inside the previous
+// column's .form-row (the stdFieldRow comment slot) as:
+//   <div id="comments<PhpName>" class="ac-comment-div">
+//     <label class="commentDesc">Label</label> <select|input …></div>
+// Keep it a compact inline cluster sitting beside the host field: the
+// host input keeps flex:1, the rider hugs the right edge behind a soft
+// divider and never wraps its label.
+.proto-form .form-row .ac-comment-div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  margin-left: 4px;
+  padding-left: 10px;
+  border-left: 1px solid $line-soft;
+}
+.proto-form .form-row .ac-comment-div .commentDesc {
+  font-size: 12px;
+  font-weight: 500;
+  color: $text-faint;
+  white-space: nowrap;
+  margin: 0;
+}
+.proto-form .form-row .ac-comment-div select,
+.proto-form .form-row .ac-comment-div input {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 0;
+  text-align: left;
+}
+.proto-form .form-row .ac-comment-div select { text-align-last: left; }
+.proto-form .form-row .ac-comment-div .commentVal { font-size: 13px; color: $ink; }
+
+// Drawer rows stack label-over-control; when the row hosts a rider
+// (.content-comments), the control line flows horizontally instead:
+// the label keeps the full first line, the host control and the rider
+// share the line beneath it.
+.sw-drawer.proto-form .sw-body .form-row.content-comments {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 10px;
+}
+.sw-drawer.proto-form .sw-body .form-row.content-comments > .lbl {
+  flex: 0 0 100%;
+}
+.sw-drawer.proto-form .sw-body .form-row.content-comments > input,
+.sw-drawer.proto-form .sw-body .form-row.content-comments > textarea,
+.sw-drawer.proto-form .sw-body .form-row.content-comments > .js-select-label,
+.sw-drawer.proto-form .sw-body .form-row.content-comments > select.sw-native-select {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+}
+.sw-drawer.proto-form .sw-body .form-row.content-comments .ac-comment-div {
+  flex: 0 0 auto;
+  // the drawer's boxed controls make the soft divider read as noise
+  margin-left: 0;
+  padding-left: 0;
+  border-left: 0;
+}
+.sw-drawer.proto-form .sw-body .form-row.content-comments .ac-comment-div .js-select-label,
+.sw-drawer.proto-form .sw-body .form-row.content-comments .ac-comment-div select.sw-native-select,
+.sw-drawer.proto-form .sw-body .form-row.content-comments .ac-comment-div .select-label-span {
+  width: auto;
+  min-width: 76px;
+}
+
+/* ── Inline product-detail section ──────────────────────────────────────
+ * Appended at the bottom of quote/invoice line drawers on product select
+ * (DetailPromptScript). Designed as a quiet "spec sheet": mint-tinted
+ * header strip, dense hairline rows, inline-edit inputs that only reveal
+ * their affordance on hover/focus. Values still equal to the catalog
+ * default render faint italic (.is-default) until edited. */
+.proto-form .gc-detail-inline {
+  margin: 18px 0 6px;
+  border: 1px solid $line;
+  border-radius: 10px;
+  background: $surface;
+  overflow: hidden;
+  animation: gcDpIn .28s ease-out both;
+}
+@keyframes gcDpIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.proto-form .gc-detail-inline-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  background: $mint-50;
+  border-bottom: 1px solid $line-soft;
+}
+.proto-form .gc-detail-inline-title i {
+  font-size: 15px;
+  color: $mint-700;
+}
+.proto-form .gc-detail-inline-title .gc-dp-t {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: $mint-700;
+}
+.proto-form .gc-detail-inline-title .gc-dp-n {
+  margin-left: auto;
+  min-width: 20px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: $surface;
+  border: 1px solid $mint-200;
+  font-size: 11px;
+  font-weight: 600;
+  color: $mint-700;
+  text-align: center;
+}
+.proto-form .gc-detail-inline .gc-dp-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  border-bottom: 1px solid $line-soft;
+  transition: background .12s;
+  animation: gcDpIn .24s ease-out both;
+}
+/* Staggered reveal, capped — rows past the 10th land together. */
+@for $i from 1 through 10 {
+  .proto-form .gc-detail-inline .gc-dp-row:nth-child(#{$i}) {
+    animation-delay: #{$i * 24}ms;
+  }
+}
+.proto-form .gc-detail-inline .gc-dp-row:last-child { border-bottom: none; }
+.proto-form .gc-detail-inline .gc-dp-row:hover { background: $row-hover; }
+.proto-form .gc-detail-inline .gc-dp-row:focus-within { background: $mint-50; }
+.proto-form .gc-detail-inline .gc-dp-lbl {
+  flex: 0 0 44%;
+  min-width: 0;
+  padding: 9px 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: $text-mid;
+  cursor: default;
+}
+.proto-form .gc-detail-inline .gc-dp-row:focus-within .gc-dp-lbl {
+  color: $mint-700;
+}
+.proto-form .gc-detail-inline .gc-dp-row input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  margin: 6px 0;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: $ink;
+  transition: border-color .12s, background .12s, box-shadow .12s;
+}
+.proto-form .gc-detail-inline .gc-dp-row input[type="text"]:hover {
+  border-color: $line;
+  background: $surface;
+}
+.proto-form .gc-detail-inline .gc-dp-row input[type="text"]:focus {
+  outline: none;
+  border-color: $mint;
+  background: $surface;
+  box-shadow: 0 0 0 3px $mint-100;
+}
+.proto-form .gc-detail-inline .gc-dp-row input[type="text"].is-default {
+  color: $text-faint;
+  font-style: italic;
+}
+@media (prefers-reduced-motion: reduce) {
+  .proto-form .gc-detail-inline,
+  .proto-form .gc-detail-inline .gc-dp-row { animation: none; }
+}

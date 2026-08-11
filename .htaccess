@@ -1,0 +1,32 @@
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
+# SECURITY: Block .env file from web access (contains database credentials)
+<FilesMatch "^\.env">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+RewriteEngine on
+
+# OAuth/MCP discovery (RFC 8414 oauth-authorization-server / RFC 9728
+# oauth-protected-resource) is served under .well-known. Apache (ISPConfig
+# default) denies the .well-known hidden directory at the server level
+# (authz_core: "client denied by server configuration") → 403, which breaks
+# the MCP OAuth handshake. Route those URLs straight to the app index — a
+# non-dot path Apache allows — so the request never resolves a forbidden
+# .well-known/ directory. Must precede the catch-all below.
+RewriteRule ^\.well-known/(oauth-authorization-server|oauth-protected-resource)$ .admin/public/index.php [QSA,L]
+
+# Rewrite all URLs into the .admin app (relative target: works whether the
+# vhost DocumentRoot is the project dir or the shared p/ parent)
+#
+# NE (noescape) is load-bearing: without it the internal redirect ESCAPES THE
+# QUERY STRING A SECOND TIME, so `?filter[X]=%5B%5B%22col%22...` reaches PHP as
+# the literal text '%5B%5B%22col%22...'. json_decode() then fails and the API
+# built a column-less filter → "Unknown column  in model App\X" → a 500 HTML
+# page for every filtered request (list search, child lists, dashboard
+# aggregates). Only bites where this rewrite is active (prod at the domain
+# root), which is why a dev install under /<project>/.admin never showed it.
+# The API also tolerates the re-escaped form now (QueryBuilder::decodeJsonParam)
+# — belt and braces, since not every deployment's vhost is ours to fix.
+RewriteRule ^(.*)$ .admin/$1 [L,NE]

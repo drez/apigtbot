@@ -1,0 +1,36 @@
+#!/usr/bin/env php
+<?php
+/**
+ * gtbot-market-collect — fetch market data on a schedule and store it.
+ * Cron it every 10 minutes (prod-setup.sh installs the crontab line).
+ *
+ * Keeps the market_summary cache warm. The MCP also refreshes on demand when
+ * stale (MarketCollector::refreshIfStale), so this cron is just to keep the
+ * data fresh between calls. Fetches from the real market (mainnet, public).
+ */
+
+$admin = dirname(__DIR__);
+require $admin . '/vendor/autoload.php';
+(new \Ahc\Env\Loader())->load($admin . '/.env');
+require $admin . '/config/Built/config.php';
+require $admin . '/config/Built/propel.php';
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
+$_SESSION[_AUTH_VAR] = new \ApiGoat\Sessions\AuthySession();
+
+use App\Domains\Bot\MarketCollector;
+
+// Collect for every active run's symbol, plus BTCUSDT as a default.
+$symbols = ['BTCUSDT'];
+foreach (\App\GridRunQuery::create()->filterByStatus(['Live', 'Testnet', 'DryRun'], \Criteria::IN)->find() as $run) {
+    $symbols[] = strtoupper((string) $run->getSymbol());
+}
+$symbols = array_values(array_unique($symbols));
+
+$gw = MarketCollector::analysisGateway();
+$total = 0;
+foreach ($symbols as $symbol) {
+    $total += MarketCollector::refresh($symbol, $gw);
+}
+echo "collected $total (symbol,timeframe) summaries for: " . implode(', ', $symbols) . "\n";

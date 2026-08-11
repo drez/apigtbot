@@ -1,0 +1,761 @@
+// Ported from theme guideline new/variants/var-a.css
+// CSS custom props -> SCSS tokens (_variables.scss). Namespaced .va-* — no
+// collision with legacy main.scss selectors.
+@use 'tokensv2' as *;
+
+/* ============================================================
+   Variant A — "Refined Classic"
+   Familiar table-style list, modernized: lighter borders,
+   Stripe-y ink, mint as accent, comfortable density.
+   Class prefix: .va-
+============================================================ */
+
+/* ===== DESKTOP ===== */
+.va-desk { position: absolute; inset: 0; display: flex; flex-direction: column; background: $bg; }
+.va-desk .va-topbar { height: 56px; background: $surface; border-bottom: 1px solid $line; display: flex; align-items: center; padding: 0 24px; gap: 16px; }
+.va-desk .va-crumbs { display: flex; align-items: center; gap: 6px; font-size: 13px; color: $text-mute; }
+.va-desk .va-crumbs i { color: $text-faint; font-size: 14px; }
+.va-desk .va-crumbs .cur { color: $ink; font-weight: 600; }
+.va-desk .va-topbar .spacer { flex: 1; }
+.va-desk .va-topbar .icon-btn { width: 32px; height: 32px; border-radius: 6px; background: transparent; border: 1px solid transparent; display: grid; place-items: center; color: $text-mid; font-size: 17px; cursor: pointer; }
+.va-desk .va-topbar .icon-btn:hover { background: $bg; }
+
+.va-desk .va-main { flex: 1; padding: 24px 28px 0; overflow: auto; }
+
+.va-desk .va-head { display: flex; align-items: end; gap: 14px; margin-bottom: 18px; }
+.va-desk .va-head h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: $ink; }
+.va-desk .va-head .va-count { font-size: 13px; color: $text-mute; padding-bottom: 4px; }
+.va-desk .va-head .spacer { flex: 1; }
+.va-desk .va-head .btn { height: 34px; padding: 0 14px; border-radius: 6px; border: 1px solid $line; background: $surface; color: $text; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.va-desk .va-head .btn:hover { background: $bg; border-color: $line-hard; }
+.va-desk .va-head .btn.primary { background: $mint; border-color: $mint; color: $on-accent; font-weight: 600; box-shadow: 0 1px 2px rgba(0,209,178,.25); }
+.va-desk .va-head .btn.primary:hover { background: $mint-600; border-color: $mint-600; }
+.va-desk .va-head .btn i { font-size: 16px; }
+
+.va-desk .va-card { background: $surface; border: 1px solid $line; border-radius: 8px; overflow: hidden; box-shadow: $shadow-sm; }
+
+.va-desk .va-toolbar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid $line-soft; }
+.va-desk .va-search { position: relative; flex: 1; max-width: 340px; }
+.va-desk .va-search input { width: 100%; height: 32px; padding: 0 10px 0 32px; border: 1px solid $line; border-radius: 6px; font-size: 13px; color: $text; background: $surface; outline: none; transition: border-color .12s, box-shadow .12s; }
+.va-desk .va-search input::placeholder { color: $text-faint; }
+.va-desk .va-search input:focus { border-color: $mint; box-shadow: 0 0 0 3px $mint-100; }
+.va-desk .va-search > i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: $text-mute; font-size: 15px; }
+
+.va-desk .va-filter { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 11px; border-radius: 6px; border: 1px dashed $line-hard; background: $surface; color: $text-mid; font-size: 12.5px; cursor: pointer; }
+.va-desk .va-filter:hover { background: $bg; border-style: solid; }
+.va-desk .va-filter i { font-size: 14px; }
+.va-desk .va-filter .lbl-key { color: $text-mute; }
+.va-desk .va-filter .lbl-val { color: $ink; font-weight: 500; padding-left: 4px; }
+
+.va-desk .va-toolbar .spacer { flex: 1; }
+.va-desk .va-shortcut { font-size: 12px; color: $text-faint; display: inline-flex; align-items: center; gap: 6px; }
+
+/* Table */
+.va-desk table.va-table { width: 100%; border-collapse: collapse; }
+.va-desk .va-table thead th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: $text-mute; padding: 10px 14px; background: $bg-warm; border-bottom: 1px solid $line; cursor: pointer; user-select: none; white-space: nowrap; }
+.va-desk .va-table thead th:hover { color: $text; }
+.va-desk .va-table thead th .sort { opacity: 0.4; margin-left: 4px; font-size: 12px; }
+.va-desk .va-table thead th.is-sorted .sort { opacity: 1; color: $mint-700; }
+.va-desk .va-table thead th.num, .va-desk .va-table tbody td.num { text-align: right; }
+
+.va-desk .va-table tbody tr { border-bottom: 1px solid $line-soft; transition: background .08s; cursor: pointer; }
+.va-desk .va-table tbody tr:hover { background: $row-hover; }
+.va-desk .va-table tbody tr:last-child { border-bottom: none; }
+.va-desk .va-table tbody td { padding: 11px 14px; font-size: 13px; vertical-align: middle; }
+.va-desk .va-table td.name { font-weight: 600; color: $ink; }
+.va-desk .va-table td .flag { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 5px; background: $mint-50; color: $mint-700; font-size: 10px; font-weight: 700; font-family: $font-mono; margin-right: 9px; vertical-align: -5px; border: 1px solid $mint-100; }
+.va-desk .va-table td.code { color: $text-mid; font-family: $font-mono; font-size: 12px; }
+.va-desk .va-table td.tz { color: $text-mid; }
+.va-desk .va-table td.tzcode { font-family: $font-mono; font-size: 12px; color: $text-mute; }
+.va-desk .va-table td.prio { color: $text; font-variant-numeric: tabular-nums; }
+.va-desk .va-table td.cur { color: $text; }
+.va-desk .va-table td.cur .pill-cur { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 5px; background: $bg; border: 1px solid $line-soft; font-family: $font-mono; font-size: 11.5px; font-weight: 500; color: $text; }
+.va-desk .va-table td.actions { width: 60px; text-align: right; }
+.va-desk .va-table td.actions .row-act { opacity: 0; display: inline-flex; gap: 2px; transition: opacity .1s; }
+.va-desk .va-table tbody tr:hover td.actions .row-act { opacity: 1; }
+.va-desk .va-table td.actions button { width: 28px; height: 28px; border-radius: 5px; background: transparent; border: none; color: $text-mute; cursor: pointer; display: grid; place-items: center; font-size: 15px; }
+.va-desk .va-table td.actions button:hover { background: $bg; color: $ink; }
+.va-desk .va-table td.actions button.del:hover { background: $danger-50; color: $danger; }
+
+.va-desk .va-foot { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-top: 1px solid $line-soft; font-size: 12.5px; color: $text-mute; }
+.va-desk .va-foot .spacer { flex: 1; }
+.va-desk .va-foot .va-pager { display: inline-flex; align-items: center; gap: 2px; }
+.va-desk .va-foot .va-pager button { width: 28px; height: 28px; border-radius: 5px; background: transparent; border: 1px solid $line; color: $text-mid; cursor: pointer; display: grid; place-items: center; font-size: 13px; }
+.va-desk .va-foot .va-pager button:hover { background: $bg; color: $ink; }
+.va-desk .va-foot .va-pager button.disabled { opacity: 0.4; cursor: default; }
+
+
+/* ===== MOBILE ===== */
+/* Legacy chrome bar (toggle-menu + Add new) is replaced on mobile by
+   the guideline chrome (.app-topbar + the list's own .va-mob-header).
+   Hidden everywhere so its leftover controls don't leak (e.g. the
+   stray bottom hamburger on non-list pages). Form.php renames this
+   container to .legacy-list-toolbar; the old .sw-header class name
+   now belongs to the new drawer scaffold (spec) and must NOT be
+   hidden. !important + body scope to beat the legacy rules that
+   compile after this partial (same cascade issue as .left-panel). */
+body .legacy-list-toolbar { display: none !important; }
+
+.va-mob { position: absolute; inset: 0; display: flex; flex-direction: column; background: $bg; }
+
+.va-mob .va-mob-header { background: $surface; padding: 0 14px 10px; border-bottom: 1px solid $line; }
+.va-mob .va-mob-row1 { display: flex; align-items: center; gap: 10px; height: 44px; }
+.va-mob .va-mob-row1 .back { width: 30px; height: 30px; margin-left: -6px; display: grid; place-items: center; color: $mint-700; font-size: 22px; }
+.va-mob .va-mob-row1 .title { font-size: 17px; font-weight: 700; color: $ink; letter-spacing: -0.01em; flex: 1; }
+.va-mob .va-mob-row1 .count { background: $mint-50; color: $mint-700; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+.va-mob .va-mob-row1 .add-btn { background: $mint; color: $on-accent; border: none; height: 32px; padding: 0 12px 0 9px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,209,178,.3); cursor: pointer; }
+.va-mob .va-mob-row1 .add-btn i { font-size: 16px; }
+
+.va-mob .va-mob-search { position: relative; margin-top: 6px; }
+.va-mob .va-mob-search input { width: 100%; height: 38px; padding: 0 12px 0 38px; border: 1px solid $line; border-radius: 8px; font-size: 14px; color: $text; background: $bg-warm; outline: none; -webkit-appearance: none; }
+.va-mob .va-mob-search input::placeholder { color: $text-faint; }
+.va-mob .va-mob-search input:focus { border-color: $mint; background: #fff; }
+.va-mob .va-mob-search > i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: $text-mute; font-size: 17px; }
+/* The 38px left gutter on `.va-mob-search input` (above) clears the leading
+ * `> i` search icon. Inside the advanced-filter surface only the main SEARCH
+ * block carries its own icon; the FK autocompletes (.va-fselect) and date/text
+ * blocks have none, so the gutter is dead space there — reset it (but leave the
+ * icon'd search block alone). */
+.va-mob .va-mob-search .va-filter-surface .va-fblock:not([data-block="search"]) input { padding-left: 12px; }
+.va-mob .va-mob-search .va-mob-filter-btn { position: absolute; right: 4px; top: 4px; width: 30px; height: 30px; border-radius: 6px; background: transparent; border: none; color: $text-mid; display: grid; place-items: center; font-size: 17px; cursor: pointer; z-index: 2; }
+.va-mob .va-mob-search .va-mob-filter-btn:active { background: $bg; }
+
+// Region 4 advanced-filter surface. The inline always-visible box is
+// the FIRST text-like search column's existing input, now wrapped in
+// .va-mob-search-inline. Every other control lives inside
+// .va-filter-surface (a position:fixed sheet/popover). The Task-1
+// .is-expanded interim toggle + its .ac-search-item collapse rules are
+// DELETED (the JS no longer toggles that class — list.js onFilterBtn).
+// All named inputs stay in the DOM so #formMs{T} serialization is
+// unchanged.
+.va-mob .va-mob-search .va-mob-searchform { position: static; }
+// Hide every relocated .ac-search-item (they live inside the surface
+// now); the inline wrapper re-shows its single box.
+.va-mob .va-mob-search .va-mob-searchform .ac-search-item { display: none; }
+.va-mob .va-mob-search .va-mob-searchform .va-mob-search-inline { display: block; }
+.va-mob .va-mob-search .va-mob-searchform .va-mob-search-inline .ac-search-item { display: block; }
+.va-mob .va-mob-search .va-mob-searchform .va-mob-search-inline input,
+.va-mob .va-mob-search .va-mob-searchform .va-mob-search-inline select,
+.va-mob .va-mob-search .va-mob-searchform .va-mob-search-inline .selextbox-input { width: 100%; height: 38px; padding: 0 40px 0 38px; border: 1px solid $line; border-radius: 8px; font-size: 14px; color: $text; background: $bg-warm; outline: none; -webkit-appearance: none; box-sizing: border-box; }
+.va-mob .va-mob-search .va-mob-searchform .va-mob-search-inline input:focus,
+.va-mob .va-mob-search .va-mob-searchform .va-mob-search-inline select:focus { border-color: $mint; background: #fff; }
+// The legacy submit/clear action row is the no-vanilla fallback only —
+// hidden in the vanilla client (its function is the sheet's Apply).
+.va-mob .va-mob-search .va-mob-searchform > .ac-action-buttons { display: none; }
+
+/* ===== Region 4 — advanced-filter surface (mobile bottom sheet) =====
+ * position:fixed escapes the .va-mob-search / list-card overflow (the
+ * documented clip risk); JS toggles `hidden` + `.open`. The panel reuses
+ * the .proto-sheet slide-up recipe (transform translateY). Desktop
+ * re-skins .va-filter-panel to an anchored popover in _desktopv2. */
+.va-filter-surface {
+  position: fixed; inset: 0; z-index: 130;
+  opacity: 1;
+}
+.va-filter-surface[hidden] { display: none; }
+.va-filter-surface .va-filter-dim {
+  position: absolute; inset: 0;
+  background: rgba(10, 37, 64, 0.42);
+  opacity: 0; transition: opacity .22s ease;
+}
+.va-filter-surface.open .va-filter-dim { opacity: 1; }
+.va-filter-panel {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: $surface; border-radius: 16px 16px 0 0;
+  max-height: 86vh; display: flex; flex-direction: column;
+  transform: translateY(100%);
+  transition: transform .28s cubic-bezier(0.32, 0.72, 0.32, 1);
+  box-shadow: 0 -12px 32px rgba(10, 37, 64, .18);
+  outline: none;
+}
+.va-filter-surface.open .va-filter-panel { transform: translateY(0); }
+// Reuse the generic sheet chrome (same selectors as .va-mob-sortsheet /
+// .proto-sheet — kept duplicate-by-selector as the codebase does).
+.va-filter-panel .sheet-handle {
+  width: 36px; height: 4px; border-radius: 999px; background: $line;
+  margin: 8px auto 4px;
+}
+.va-filter-panel .sheet-head {
+  display: flex; align-items: center; padding: 6px 16px 12px;
+  border-bottom: 1px solid $line;
+}
+.va-filter-panel .sheet-title { flex: 1; font-size: 15.5px; font-weight: 700; color: $ink; }
+.va-filter-panel .sheet-close {
+  width: 30px; height: 30px; border: none; background: $bg;
+  color: $text-mid; border-radius: 8px;
+  display: grid; place-items: center; font-size: 18px; cursor: pointer;
+}
+.va-filter-panel .sheet-body {
+  flex: 1; overflow-y: auto;
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 18px;
+}
+
+// Block label + card
+.va-fblock { display: flex; flex-direction: column; gap: 8px; }
+.va-fblock-lbl {
+  font-size: 11px; font-weight: 600; color: $text-mid;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.va-fgroup-cap {
+  font-size: 11px; font-weight: 700; color: $text-mute;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin-top: 4px;
+}
+// SEARCH input
+.va-fsearch { position: relative; }
+.va-fsearch > i {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: $text-mute; font-size: 17px;
+}
+.va-fsearch-input {
+  width: 100%; height: 40px; padding: 0 14px 0 38px;
+  border: 1px solid $line; border-radius: 8px; font-size: 14px;
+  color: $text; background: $bg-warm; outline: none;
+  -webkit-appearance: none; box-sizing: border-box;
+}
+.va-fsearch-input:focus { border-color: $mint; background: #fff; }
+// Chips (SEARCH-IN + multi) — reuse the .va-mob-chip pill recipe.
+.va-fchips { display: flex; flex-wrap: wrap; gap: 6px; }
+.va-fchip {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 30px; padding: 0 12px; border-radius: 999px;
+  background: $bg; border: 1px solid $line; font-size: 12.5px;
+  color: $text-mid; white-space: nowrap; cursor: pointer;
+}
+.va-fchip.active {
+  background: $mint-50; border-color: $mint-200;
+  color: $mint-700; font-weight: 600;
+}
+// Segmented control: track + sliding active segment.
+.va-fseg {
+  display: flex; gap: 2px; padding: 3px;
+  background: $bg; border: 1px solid $line; border-radius: 9px;
+}
+.va-fseg-opt {
+  flex: 1; height: 32px; border: none; background: transparent;
+  border-radius: 7px; font-size: 12.5px; font-weight: 600;
+  color: $text-mid; cursor: pointer; white-space: nowrap;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background .14s ease, color .14s ease;
+}
+.va-fseg-opt.active {
+  background: $surface; color: $ink;
+  box-shadow: 0 1px 2px rgba(10, 37, 64, .12);
+}
+// The relocated select node lives inside its block but is replaced by
+// the chip/segment UI — hide the raw widget for seg/multi (its hidden
+// input still serializes). The Any-select keeps its widget visible.
+// Ancestor chain mirrors the line ~127 blanket `.ac-search-item`
+// hide (specificity 0,4,0); these must outrank it so the relocated
+// Any-select widget inside the surface is not display:none'd.
+.va-mob .va-mob-search .va-mob-searchform .va-fblock-seg .ac-search-item,
+.va-mob .va-mob-search .va-mob-searchform .va-fblock-multi .ac-search-item { display: none; }
+.va-mob .va-mob-search .va-mob-searchform .va-fselect .ac-search-item { display: block; }
+// Any-select group: guideline renders each as a label-left /
+// select-right row (normal-case label), not the tiny uppercase
+// stacked block label used by the other blocks.
+.va-fblock-select { flex-direction: row; align-items: center; gap: 12px; }
+.va-fblock-select .va-fblock-lbl {
+  flex: 0 0 auto; text-transform: none; letter-spacing: 0;
+  font-size: 13.5px; font-weight: 600; color: $text;
+}
+.va-fblock-select .va-fselect { flex: 1 1 auto; min-width: 0; }
+// The child-list header scopes `.select-label` to display:block (it restyles
+// the quick-add picker), and that rule (specificity 0,3,0) leaks into the
+// filter surface and kills the flex centering below — so the placeholder sits
+// at the top of the box instead of vertically centered. Re-assert flex
+// centering for the surface select with higher specificity.
+.va-filter-panel .va-fselect .select-label.js-select-label {
+  display: flex;
+  align-items: center;
+}
+.va-fselect .js-select-label,
+.va-fselect select {
+  width: 100%; min-height: 40px; padding: 0 14px;
+  border: 1px solid $line; border-radius: 8px; font-size: 14px;
+  color: $text; background: $bg-warm; box-sizing: border-box;
+  display: flex; align-items: center;
+}
+.va-fselect .js-select-label .select-label-span {
+  border: none; background: transparent; width: 100%; height: auto;
+  padding: 0; line-height: 1.2;
+}
+.va-fselect .js-select-label ul.scrollable.select-element { z-index: 1000000; }
+// Portaled select dropdown: selectbox.js moves the menu <ul> to <body> when a
+// select is opened inside the .va-filter-panel popover (so the panel can't
+// reveal-scroll it on open). It then lives outside its label, so it carries its
+// full styling here, independent of any ancestor scope. selectbox.js sets
+// position/top/left/width/max-height inline.
+ul.select-element.gc-portal-menu {
+  display: block;
+  z-index: 1000001;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  background: $surface;
+  border: 1px solid $line;
+  border-radius: 9px;
+  box-shadow: 0 8px 28px rgba(10, 37, 64, .16);
+  -webkit-overflow-scrolling: touch;
+}
+ul.select-element.gc-portal-menu li {
+  list-style: none;
+  margin: 0;
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: $text;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+ul.select-element.gc-portal-menu li:hover,
+ul.select-element.gc-portal-menu li.hovered { background: $bg-warm; }
+ul.select-element.gc-portal-menu li.selected { background: $mint-50; color: $mint-700; font-weight: 600; }
+ul.select-element.gc-portal-menu li.default { color: $text-faint; }
+ul.select-element.gc-portal-menu li strong { font-weight: 700; }
+// Sticky footer bar.
+.va-filter-foot {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid $line; background: $surface;
+}
+.va-filter-foot .va-fclear {
+  border: none; background: transparent; color: $danger;
+  font-size: 13px; font-weight: 600; cursor: pointer; padding: 8px 4px;
+}
+.va-filter-foot .va-fcancel {
+  margin-left: auto; height: 38px; padding: 0 16px;
+  border: 1px solid $line; background: $bg; color: $text-mid;
+  border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.va-filter-foot .va-fapply {
+  height: 38px; padding: 0 18px;
+  border: none; background: $mint; color: $on-accent;
+  border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.va-filter-foot .va-fapply i { font-size: 16px; }
+
+/* Mobile hamburger: clean 36px icon button (not the global ri- blob). */
+.va-mob .va-mob-row1 .menu-btn {
+  width: 36px; height: 36px; flex-shrink: 0; margin-left: -6px;
+  border: none; background: transparent; color: $ink;
+  display: grid; place-items: center; font-size: 22px; cursor: pointer;
+  padding: 0;
+}
+/* Mobile list rows are tap-to-edit; no inline delete (it lives in the
+ * edit screen, matching the guideline country/clients rows). */
+.va-mob .va-mob-list .va-mob-row .actionrow,
+.va-mob .va-mob-list .va-mob-row td.actionrow { display: none; }
+/* Totals strip under the mobile list. */
+.va-mob .bottomPagerRow { padding: 0; }
+.va-mob .totalLine {
+  display: block; padding: 8px 14px 0; font-size: 12.5px;
+  color: $text-mid; font-variant-numeric: tabular-nums;
+}
+
+/* ===== Sort affordance (A6) ===== *
+ * Trigger lives in .va-mob-row1; the sheet is a fixed bottom sheet of
+ * per-column buttons emitted by the generator (listSort). list.js owns
+ * the .open toggle (no jQuery). */
+.va-mob .va-mob-row1 .va-mob-sort-btn {
+  width: 32px; height: 32px; flex-shrink: 0; border: 1px solid $line;
+  background: $bg; color: $text-mid; border-radius: 6px;
+  display: grid; place-items: center; font-size: 17px; cursor: pointer;
+}
+.va-mob .va-mob-row1 .va-mob-sort-btn:active { background: $bg-warm; }
+
+.va-mob-sortsheet {
+  position: fixed; inset: 0; z-index: 70;
+  opacity: 0; pointer-events: none; transition: opacity .18s ease;
+}
+.va-mob-sortsheet.open { opacity: 1; pointer-events: auto; }
+.va-mob-sortsheet .va-mob-sortsheet-dim {
+  position: absolute; inset: 0; background: rgba(15,23,32,.42);
+}
+.va-mob-sortsheet .va-mob-sortsheet-panel {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: $surface; border-radius: 16px 16px 0 0;
+  max-height: 70vh; display: flex; flex-direction: column;
+  transform: translateY(100%); transition: transform .22s ease;
+  box-shadow: 0 -4px 24px rgba(15,23,32,.18);
+}
+.va-mob-sortsheet.open .va-mob-sortsheet-panel { transform: translateY(0); }
+.va-mob-sortsheet .sheet-handle {
+  width: 36px; height: 4px; border-radius: 999px; background: $line;
+  margin: 8px auto 4px;
+}
+.va-mob-sortsheet .sheet-head {
+  display: flex; align-items: center; padding: 6px 16px 10px;
+  border-bottom: 1px solid $line;
+}
+.va-mob-sortsheet .sheet-title { flex: 1; font-size: 15.5px; font-weight: 600; color: $ink; }
+.va-mob-sortsheet .sheet-close {
+  width: 30px; height: 30px; border: none; background: transparent;
+  color: $text-mute; font-size: 20px; display: grid; place-items: center; cursor: pointer;
+}
+.va-mob-sortsheet .va-mob-sortsheet-body {
+  overflow-y: auto; padding: 4px 0 calc(14px + env(safe-area-inset-bottom));
+}
+.va-mob-sortsheet .va-mob-sortrow {
+  display: block; width: 100%; text-align: left; border: none;
+  background: transparent; padding: 13px 18px; font-size: 14px;
+  color: $text; border-bottom: 1px solid $line; cursor: pointer;
+}
+.va-mob-sortsheet .va-mob-sortrow:last-child { border-bottom: none; }
+.va-mob-sortsheet .va-mob-sortrow:active { background: $bg; }
+// Active-sort marker (set by list.js applySortMarker via the sens attr).
+.va-mob-sortsheet .va-mob-sortrow[sens] { color: $mint-700; font-weight: 600; }
+.va-mob-sortsheet .va-mob-sortrow[sens]::after {
+  font-family: 'remixicon'; content: '\ea4e'; float: right; color: $mint-700; // ri-arrow-down-s-line (desc)
+}
+.va-mob-sortsheet .va-mob-sortrow[sens='asc']::after { content: '\ea78'; } // ri-arrow-up-s-line
+// Clear-sort row (c='*', server-emitted only while a user ordering is stored).
+.va-mob-sortsheet .va-mob-sortrow-clear { color: $danger; font-weight: 600; }
+.va-mob-sortsheet .va-mob-sortrow-clear i { margin-right: 6px; }
+
+/* Clear-sort chip strip — server-emitted sibling of .va-mob-chips, present
+ * only while the session holds a user ordering for the list. Same pill
+ * look as the .cl-active-filter chips (those are desktop-only styles, so
+ * the chip is styled here mobile-first). */
+.va-mob .va-mob-sortclear { display: flex; padding: 8px 14px 6px; background: $surface; border-bottom: 1px solid $line; }
+.va-mob .cl-sort-clear {
+  display: inline-flex; align-items: center; gap: 6px; height: 28px;
+  padding: 0 4px 0 10px; border-radius: 999px; border: 1px solid $line;
+  background: $bg; color: $text-mid; font-size: 12px; font-weight: 500;
+  line-height: 1; cursor: pointer; white-space: nowrap;
+}
+.va-mob .cl-sort-clear i { font-size: 13px; }
+.va-mob .cl-sort-clear .cl-active-filter-x {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 50%; background: $surface;
+  color: $text-mute; font-size: 14px; line-height: 1; margin-left: 2px;
+}
+.va-mob .cl-sort-clear:hover .cl-active-filter-x { background: $danger; color: #fff; }
+
+.va-mob .va-mob-chips { display: flex; gap: 6px; padding: 10px 14px 6px; overflow-x: auto; background: $surface; border-bottom: 1px solid $line; }
+.va-mob .va-mob-chips::-webkit-scrollbar { display: none; }
+.va-mob .va-mob-chip { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 10px; border-radius: 999px; background: $bg; border: 1px solid $line; font-size: 12px; color: $text-mid; white-space: nowrap; }
+.va-mob .va-mob-chip.active { background: $mint-50; border-color: $mint-200; color: $mint-700; font-weight: 600; }
+.va-mob .va-mob-chip i { font-size: 13px; }
+
+.va-mob .va-mob-list { flex: 1; overflow-y: auto; }
+
+/* The emitter wraps the list in #listForm.ac-list > .content (legacy
+ * main.scss blocks with auto height). Chain the flex column through
+ * them so .va-mob-list's flex:1 + overflow-y:auto gets a bounded
+ * height — without this the list grows to full content height inside
+ * the overflow:hidden .proto-app (so it never scrolls) and its
+ * oversized flex item shrink-squeezes the .va-mob-chips strip.
+ * padding-bottom:0 kills the legacy .content 100px bottom padding
+ * that would otherwise show as dead space above the pager.
+ * Desktop (≥720px) re-overrides all of this in _desktopv2. */
+.va-mob > .va-mob-header, .va-mob > .va-mob-chips, .va-mob > .va-mob-sortclear { flex: 0 0 auto; }
+.va-mob > .ac-list { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.va-mob > .ac-list > .content { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding-bottom: 0; }
+
+/* Empty-state for both .va-mob-list and the desktop .va-dt-table tbody.
+ * The legacy emission is <p class="no-results"><span>Text</span></p>;
+ * v2 reskin turns that into a centered card with an icon glyph.
+ * The legacy main.scss :before rule loaded an SVG by URL — overridden
+ * here with a remixicon glyph so it inherits color and crispness. */
+.va-mob-list > p.no-results,
+.va-dt-table p.no-results,
+p.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 0;
+  padding: 48px 24px;
+  background: transparent;
+  color: $text-mute;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.va-mob-list > p.no-results::before,
+.va-dt-table p.no-results::before,
+p.no-results::before {
+  content: "\ee4f"; // remixicon ri-inbox-line
+  font-family: 'remixicon';
+  font-style: normal;
+  font-weight: normal;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, $bg-warm, $bg);
+  border: 1px solid $line-soft;
+  color: $text-faint;
+  font-size: 26px;
+  line-height: 1;
+  position: static;
+  /* Cancel the legacy main.scss image-icon rule. */
+  background-image: none;
+}
+.va-mob-list > p.no-results > span,
+.va-dt-table p.no-results > span,
+p.no-results > span {
+  display: block;
+  margin: 0;
+  width: auto;
+  color: $text-mid;
+}
+.va-mob .va-mob-sect-head { padding: 14px 14px 6px; font-size: 11px; font-weight: 600; color: $text-mute; text-transform: uppercase; letter-spacing: 0.04em; background: $bg; position: sticky; top: 0; z-index: 1; border-bottom: 1px solid $line-soft; }
+
+.va-mob .va-mob-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: $surface; border-bottom: 1px solid $line-soft; cursor: pointer; transition: background .08s; }
+.va-mob .va-mob-row:active { background: $row-active; }
+.va-mob .va-mob-row .badge { width: 36px; height: 36px; border-radius: 8px; background: $mint-50; border: 1px solid $mint-100; color: $mint-700; display: grid; place-items: center; font-family: $font-mono; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.va-mob .va-mob-row .body { flex: 1; min-width: 0; }
+.va-mob .va-mob-row .name { font-size: 14.5px; font-weight: 600; color: $ink; letter-spacing: -0.005em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.va-mob .va-mob-row .meta { font-size: 12px; color: $text-mute; margin-top: 2px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; row-gap: 2px; }
+/* Meta cells must never spill under the trail/delete/toggle actions:
+ * as flex items the spans' min-width:auto floor is their longest word,
+ * so a row with many cells (or one long URL/email) overflowed the
+ * .body column. Let them shrink + wrap as whole tags instead. */
+.va-mob .va-mob-row .meta > span { min-width: 0; overflow-wrap: anywhere; }
+.va-mob .va-mob-row .meta .dot { width: 3px; height: 3px; border-radius: 50%; background: $text-faint; flex-shrink: 0; }
+.va-mob .va-mob-row .meta .mono-tag { font-family: $font-mono; font-size: 11px; }
+.va-mob .va-mob-row .trail { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.va-mob .va-mob-row .prio { font-family: $font-mono; font-size: 11px; color: $text-faint; }
+.va-mob .va-mob-row .chev { color: $text-faint; font-size: 17px; }
+
+// P3 guideline row slots (08-clients-list): colored hash avatar, the
+// uppercase type tag in the name row, and the trailing status pill.
+.va-mob .va-mob-row .cl-avatar { width: 40px; height: 40px; border-radius: 12px; color: $on-accent; display: grid; place-items: center; font-size: 13px; font-weight: 700; letter-spacing: -0.01em; flex-shrink: 0; }
+.va-mob .va-mob-row .name .cl-type { margin-left: 6px; font-size: 9.5px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; background: $mint-50; color: $mint-700; border: 1px solid $mint-100; white-space: nowrap; }
+.va-mob .va-mob-row .name .cl-type-prospect { background: #ffedd5; color: #c2410c; border-color: #fed7aa; }
+.va-mob .va-mob-row .cl-status { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600; padding: 3px 8px 3px 6px; border-radius: 999px; line-height: 1.3; white-space: nowrap; background: $line-soft; color: $text-mid; }
+.va-mob .va-mob-row .cl-status .cl-status-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; background: currentColor; }
+
+.va-mob .va-mob-pager { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px calc(14px + env(safe-area-inset-bottom)); background: $surface; border-top: 1px solid $line; font-size: 12.5px; color: $text-mute; }
+.va-mob .va-mob-pager .pgr { display: inline-flex; align-items: center; gap: 4px; }
+.va-mob .va-mob-pager .pgr button { width: 34px; height: 34px; border-radius: 6px; border: 1px solid $line; background: $surface; color: $text-mid; display: grid; place-items: center; font-size: 16px; }
+.va-mob .va-mob-pager .pgr button.disabled { opacity: 0.4; }
+
+/* Emitted "Add new" control (Classes/Form.php htmlLink: class="button-link-blue
+ * add-button"). The legacy main.scss generation baked this into a blank
+ * 50×50 mint square (background !important + text-indent:-9999px + a
+ * remixicon ::after glyph) — removed, so this is now the single source of
+ * truth: a labelled mint pill. Unscoped so every list-header "Add new"
+ * (top-level AND child) gets it; _childlists.scss layers only the
+ * child-header-specific compacting on top. */
+a.add-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 34px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 6px;
+    background: $mint;
+    background-image: none;
+    color: $on-accent;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    text-indent: 0;
+    box-shadow: 0 1px 2px rgba(0, 209, 178, .3);
+    transition: background-color .3s ease, box-shadow .3s ease;
+}
+a.add-button:hover {
+    background: $mint-600;
+    color: $on-accent;
+}
+
+/* is_file_upload_table tables: the legacy .ac-left-action-buttons block
+ * only hosts the #pickfilesForm anchor that gcUpload binds (clicked
+ * programmatically from the .va-mob-row1 add-btn via data-upload-trigger).
+ * No moxie shim anymore, so plain display:none is safe. */
+.ac-left-action-buttons {
+    display: none !important;
+}
+
+/* Legacy list-page header (.sw-header in #tabsContain) is the original
+ * mobile chrome: position:fixed; top:0; z-index:5000; height ~69px.
+ * The v2 list provides .app-topbar + .va-mob-row1 in the same slot, so
+ * the legacy chrome now visually collides with the new headers.
+ *
+ * Child lists delegate to the child Form's own getList() (IMPROVEMENTS-
+ * runtime #9), so the same legacy .sw-header also lands INSIDE the edit
+ * drawer / inline form body (.form-scroll), where the #tabsContain rule
+ * can't reach it — its Add/Upload button then renders unstyled next to
+ * the .va-mob-row1 one (worst on is_file_upload_table children, whose
+ * #pickfiles anchor showed as a rogue Upload block over the drawer nav).
+ * Neutralize (not display:none): #pickfiles must stay in the DOM for the
+ * data-upload-trigger proxy click, same pattern as .ac-left-action-buttons
+ * above. The drawer's OWN header is .sw-drawer > .sw-header, a SIBLING of
+ * .form-scroll (_formv2), so it is untouched. */
+#tabsContain > .sw-header,
+.proto-form .form-scroll .sw-header {
+    position: static !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    z-index: auto !important;
+    border: 0 !important;
+    background: transparent !important;
+}
+#tabsContain > .sw-header > .default-controls,
+.proto-form .form-scroll .sw-header > .default-controls {
+    display: none !important;
+}
+
+/* Row select checkbox (bulk_update / add_mass_action) —
+ * Two pieces in the markup:
+ *   <input type=checkbox j=check_multi_*>  (the real input)
+ *   <label for=check_N><span></span></label>  (legacy toggle-switch UI
+ *     styled by main.scss: 40px pill ::before + ::after thumb)
+ * The legacy CSS hides the input (position:absolute; z-index:-10) and
+ * shows the label as a fancy switch — making the label always visible
+ * on every row. The v2 design wants no row chrome unless the user
+ * actually interacts with the row. Hide BOTH by default; reveal both
+ * on row hover / when checked / when focused. */
+.actionrow input[type='checkbox'][j^='check_multi_'],
+.actionrow input[type='checkbox'][j^='check_multi_'] + label {
+    opacity: 0 !important;
+    transition: opacity 0.12s ease;
+    pointer-events: none;
+}
+.va-mob-row:hover .actionrow input[type='checkbox'][j^='check_multi_'],
+.va-mob-row:hover .actionrow input[type='checkbox'][j^='check_multi_'] + label,
+.va-dt-row:hover .actionrow input[type='checkbox'][j^='check_multi_'],
+.va-dt-row:hover .actionrow input[type='checkbox'][j^='check_multi_'] + label,
+.actionrow input[type='checkbox'][j^='check_multi_']:checked,
+.actionrow input[type='checkbox'][j^='check_multi_']:checked + label,
+.actionrow input[type='checkbox'][j^='check_multi_']:focus,
+.actionrow input[type='checkbox'][j^='check_multi_']:focus + label {
+    opacity: 1 !important;
+    pointer-events: auto;
+}
+/* Use a compact box (not the 40px toggle pill) — the v2 list wants a
+ * standard checkbox affordance, not a switch. Override the legacy
+ * label::before pill + the ::after thumb. */
+.actionrow input[type='checkbox'][j^='check_multi_'] + label {
+    width: 18px; height: 18px;
+    border: 1.5px solid $text-faint;
+    border-radius: 4px;
+    background: $surface;
+    display: inline-block;
+    vertical-align: middle;
+    cursor: pointer;
+    position: relative;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+.va-mob-row:hover .actionrow input[type='checkbox'][j^='check_multi_'] + label:hover,
+.va-dt-row:hover .actionrow input[type='checkbox'][j^='check_multi_'] + label:hover {
+    border-color: $mint;
+    box-shadow: 0 0 0 3px rgba(0, 209, 178, 0.15);
+}
+/* Subtle row hover affordance so the user knows the row is interactive
+ * and the revealed checkbox isn't sitting in a void. */
+.va-dt-row:hover { background: $bg-warm; }
+
+/* Action cell: tidy alignment + spacing for the hover-revealed
+ * delete + checkbox so they read as a single trailing action group. */
+.va-dt-table .va-dt-row .actionrow {
+    text-align: right;
+    white-space: nowrap;
+    padding: 0 14px !important;
+    vertical-align: middle;
+}
+.va-dt-table .va-dt-row .actionrow > * {
+    vertical-align: middle;
+}
+.va-dt-row .actionrow .ac-delete-link {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin-right: 6px;
+    border-radius: 6px;
+    color: $text-faint;
+    opacity: 0;
+    transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
+    text-decoration: none;
+}
+.va-dt-row .actionrow .ac-delete-link i { font-size: 15px; line-height: 1; }
+.va-dt-row:hover .actionrow .ac-delete-link,
+.va-mob-row:hover .actionrow .ac-delete-link { opacity: 1; }
+.va-dt-row .actionrow .ac-delete-link:hover {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+}
+/* File action icons (open / download) — same over-icon treatment as the
+   row's ac-delete-link (28x28, rounded, revealed on row hover), with a
+   neutral mint hover instead of delete-red. */
+.va-dt-row .actionrow .ac-file-link {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin-right: 6px;
+    border-radius: 6px;
+    color: $text-faint;
+    opacity: 0;
+    transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
+    text-decoration: none;
+}
+.va-dt-row .actionrow .ac-file-link i { font-size: 15px; line-height: 1; }
+.va-dt-row:hover .actionrow .ac-file-link,
+.va-mob-row:hover .actionrow .ac-file-link { opacity: 1; }
+.va-dt-row .actionrow .ac-file-link:hover {
+    background: rgba(0, 209, 178, 0.12);
+    color: $mint;
+}
+/* Clone/duplicate row action — same over-icon treatment as ac-delete-link
+   (28x28, rounded, revealed on row hover), neutral mint hover. */
+.va-dt-row .actionrow .ac-clone-link {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin-right: 6px;
+    border-radius: 6px;
+    color: $text-faint;
+    opacity: 0;
+    transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
+    text-decoration: none;
+}
+.va-dt-row .actionrow .ac-clone-link i { font-size: 15px; line-height: 1; }
+.va-dt-row:hover .actionrow .ac-clone-link,
+.va-mob-row:hover .actionrow .ac-clone-link { opacity: 1; }
+.va-dt-row .actionrow .ac-clone-link:hover {
+    background: rgba(0, 209, 178, 0.12);
+    color: $mint;
+}
+.va-dt-row .actionrow input[type='checkbox'][j^='check_multi_'] {
+    margin-right: 4px;
+}
+.actionrow input[type='checkbox'][j^='check_multi_'] + label::before,
+.actionrow input[type='checkbox'][j^='check_multi_'] + label::after {
+    display: none !important;
+}
+.actionrow input[type='checkbox'][j^='check_multi_']:checked + label {
+    background: $mint;
+    border-color: $mint;
+}
+.actionrow input[type='checkbox'][j^='check_multi_']:checked + label > span {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: $on-accent;
+    font-size: 12px;
+    line-height: 1;
+}
+.actionrow input[type='checkbox'][j^='check_multi_']:checked + label > span::before {
+    content: '✓';
+    font-weight: 700;
+}

@@ -1,0 +1,22 @@
+# gtbot daemon — install for the multi-day testnet soak (M6):
+#   sudo cp config/gtbot.service /etc/systemd/system/gtbot@.service
+#   sudo systemctl enable --now gtbot@1        # "1" = id_grid_run
+# Logs: journalctl -u gtbot@1 -f   (events also land in bot_event / the GUI)
+[Unit]
+Description=apigtbot grid trading daemon (run %i)
+After=network-online.target mariadb.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/path/to/apigtbot/.admin
+ExecStart=/usr/bin/php /path/to/apigtbot/.admin/bin/gtbot --run=%i --interval=5
+Restart=always
+RestartSec=10
+# SIGTERM lets the daemon finish its tick and release the DB lock
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

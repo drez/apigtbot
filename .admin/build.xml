@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="build" default="dist" basedir=".">
+
+    <property name="templateFolder" value="default" override="true" />
+    <property name="vendor" value="vendor/"/>
+    
+    <path id="phingclasses">
+        <pathelement dir="${vendor}apigoat/phing-copy2"/>
+    </path>
+    
+    <taskdef
+            name="copy2"
+            classname="Copy2Task" classpathRef="phingclasses">
+    </taskdef>
+
+    <!-- ============================================  -->
+    <!-- Target: build                                 -->
+    <!-- ============================================  -->
+    <target name="build">
+
+        <echo msg="Copying files to build directory..." />
+
+        <copy todir="./config/Built" overwrite="true" mode="0775">
+            <fileset dir=".build/classes/config/">
+                <include name="settings.routes.php" />
+                <include name="settings.endpoints.php" />
+                <include name="routes.php" />
+                <include name="propel.php" />
+                <include name="permissions.defaults.php" />
+                <include name="settings.menus.php" />
+                <include name="screens.php" />
+            </fileset>
+        </copy>
+
+        <copy2 todir="./config/Built" overwrite="true" mode="0775">
+            <fileset dir=".build/classes/config/">
+                <include name="config.php" />
+
+            </fileset>
+        </copy2>
+        
+        <echo msg="Copying service wrapper files..." />
+        <copy2 todir="src/App/Services" overwrite="false" mode="0775" preservemode="true">
+            <fileset dir=".build/classes/wrapper/service/">
+                <include name="*.php" />
+                <!-- Skip class-less stub files emitted by Classes/ServiceWrapper.php.
+                     Routes fall back to the bare <X>Service via RouteHelper. -->
+                <contains text="class " casesensitive="true"/>
+            </fileset>
+        </copy2>
+        <echo msg="Copying form wrapper files..." />
+        <copy2 todir="src/App/Interfaces" overwrite="false" mode="0775" preservemode="true">
+            <fileset dir=".build/classes/wrapper/form/">
+                <include name="*.php" />
+            </fileset>
+        </copy2>        <echo msg="Copying service files..." />
+        <copy todir="src/App/Services/Built" overwrite="true" mode="0775">
+            <fileset dir=".build/classes/services/">
+                <include name="*.php" />
+            </fileset>
+        </copy>
+        <echo msg="Copying interface files..." />
+        <copy todir="src/App/Interfaces/Built" overwrite="true" mode="0775">
+            <fileset dir=".build/classes/interface/">
+                <include name="*.php" />
+            </fileset>
+        </copy>
+        <echo msg="Copying model files..." />
+        <!-- Model stub subclasses (e.g. Project.php) are generate-once: Propel
+             emits them only when absent and they hold hand-written customizations
+             (postInsert hooks, etc.). overwrite="false" preserves those across
+             builds, matching the service/form wrapper copies above. The always-
+             regenerated om/ + map/ base classes below keep overwrite="true". -->
+        <copy todir="src/App/Models/Built" overwrite="false" mode="0775">
+            <fileset dir=".build/classes/">
+                <include name="*.php" />
+            </fileset>
+        </copy>
+        <copy todir="src/App/Models/Built/om" overwrite="true" mode="0775">
+            <fileset dir=".build/classes/om">
+                <include name="*.php" />
+            </fileset>
+        </copy>
+        <copy todir="src/App/Models/Built/map" overwrite="true" mode="0775">
+            <fileset dir=".build/classes/map">
+                <include name="*.php" />
+            </fileset>
+        </copy>
+
+
+        <echo message="Moving config files..."/>
+        <copy file=".build/conf/db.php" tofile="./config/Built/db.php" overwrite="true" mode="0775"/>
+        <copy file=".build/sql/schema.sql" tofile="./config/Built/schema.sql" overwrite="true" mode="0775"/>
+
+
+        <!--  Need to remove the <?php tag        -->
+        <reflexive>
+            <fileset dir=".build/classes/">
+                <include pattern="config/basedata.sql.php" />
+            </fileset>
+            <filterchain>
+                <replaceregexp>
+                    <regexp pattern="namespace App;" replace=""/>
+                    <regexp pattern="^.\?php" replace=""/>
+                </replaceregexp>
+            </filterchain>
+        </reflexive>
+
+        <copy file=".build/classes/config/basedata.sql.php" tofile="config/Built/basedata.sql" overwrite="true" mode="0775"/>
+
+    </target>
+   
+    <!-- ============================================  -->
+    <!-- Target: clean                               -->
+    <!-- ============================================  -->
+    <target name="clean">
+        <echo msg="Cleaning directories" />
+        <delete>
+            <fileset dir="./src/App/Models/Built/">
+                <include name="**"></include>
+            </fileset>
+            <fileset dir="./src/App/Models/Built/om">
+                <include name="**"></include>
+            </fileset>
+            <fileset dir="./src/App/Models/Built/map">
+                <include name="**"></include>
+            </fileset>
+            <fileset dir="./src/App/Services/Built/">
+                <include name="**"></include>
+            </fileset>
+            <fileset dir="./src/App/Interfaces/Built/">
+                <include name="**"></include>
+            </fileset>
+            <fileset dir="./src/App/Sessions/Built/">
+                <include name="**"></include>
+            </fileset>
+            <fileset dir="./src/App/config/Built/">
+                <include name="**"></include>
+            </fileset>
+            <fileset dir="./.build">
+                <include name="**"></include>
+            </fileset>
+        </delete>
+
+        <delete dir="./public/css/min" />
+        <delete dir="./public/js/min" />
+        <echo>&lt;?php echo 'Project cleaned';</echo>
+    </target>
+
+    <!-- ============================================  -->
+    <!-- Target: prepare                               -->
+    <!-- ============================================  -->
+    <target name="prepare">
+        <echo msg="Copying TEMPLATE/* to build directory ..." />
+
+        <copy todir=".">
+            <fileset dir="../_T_/${templateFolder}/">
+                <include name="**"></include>
+            </fileset>
+        </copy>
+
+        <phingcall target="fix-perm"/>
+
+    </target>
+    <!-- ============================================  -->
+    <!-- Target: fix permissions                               -->
+    <!-- ============================================  -->
+    <target name="fix-perm">
+        <echo msg="Copying TEMPLATE/* to build directory..." />
+
+        <chown user="www-data.www-data">
+            <fileset dir="./js">
+                <include pattern="**" />
+            </fileset>
+            <fileset dir="./css">
+                <include pattern="**" />
+            </fileset>
+        </chown>
+        <chmod mode="0775">
+            <fileset dir="./js">
+                <include pattern="**" />
+            </fileset>
+            <fileset dir="./css">
+                <include pattern="**" />
+            </fileset>
+            <fileset dir="./inc">
+                <include pattern="**" />
+            </fileset>
+            <fileset dir="./src/App/Services/">
+                <include pattern="**" />
+            </fileset>
+        </chmod>
+
+    </target>
+
+
+    <!-- ============================================  -->
+    <!-- (DEFAULT)  Target: dist                       -->
+    <!-- ============================================  -->
+    <target name="dist" depends="build">
+        <echo msg="Creating archive..." />
+
+        <tar destfile="./build/build.tar.gz" compression="gzip">
+            <fileset dir="./.build">
+                <include name="*" />
+            </fileset>
+        </tar>
+
+        <echo msg="Files copied and compressed in build directory OK!" />
+    </target>
+
+
+</project>

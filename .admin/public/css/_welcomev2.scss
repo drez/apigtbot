@@ -1,0 +1,232 @@
+/* _welcomev2.scss
+ * The welcome page uses .proto-screen.welcome-screen as its outer wrapper.
+ * .proto-screen on desktop is styled as a 30vw right-side push-drawer
+ * (see _desktopv2.scss D3/D3b). The welcome page is a standalone landing
+ * page, not a stacked screen, so it must opt out of the drawer positioning
+ * and flow inline in the main content column.
+ *
+ * Behavior: at every breakpoint where _desktopv2.scss positions .proto-screen
+ * absolutely/fixedly, .proto-screen.welcome-screen reverts to in-flow layout.
+ */
+
+/* Desktop (>=720px): the wide-desktop 30vw drawer rule is overridden;
+ * the welcome page fills the content column instead. */
+@media (min-width: 720px) {
+  .proto-screen.welcome-screen {
+    position: static !important;
+    inset: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    right: auto !important;
+    left: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    box-shadow: none !important;
+    z-index: auto !important;
+    padding: 24px;
+  }
+}
+
+/* Narrow-desktop (720-1080px): the full-cover drawer rule is also
+ * overridden — welcome page does not cover other content. */
+@media (min-width: 720px) and (max-width: 1080px) {
+  .proto-screen.welcome-screen {
+    position: static !important;
+    width: auto !important;
+    max-width: none !important;
+    left: auto !important;
+    right: auto !important;
+  }
+}
+
+/* Welcome-specific spacing inside the override */
+.proto-screen.welcome-screen .welcome-greeting {
+  margin-bottom: 20px;
+}
+.proto-screen.welcome-screen .welcome-greeting h1 {
+  margin: 0 0 4px 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+.proto-screen.welcome-screen .welcome-greeting .welcome-date {
+  color: rgba(0,0,0,0.5);
+  font-size: 13px;
+}
+.proto-screen.welcome-screen .welcome-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.proto-screen.welcome-screen .welcome-stack .sw-drawer.proto-form {
+  position: static;
+  width: 100%;
+  max-width: none;
+  box-shadow: 0 1px 3px rgba(10, 37, 64, 0.06);
+  border: 1px solid rgba(10, 37, 64, 0.08);
+  border-radius: 8px;
+  background: #fff;
+}
+
+/* ── Dashboard redesign (2026-06-27) ──────────────────────────────
+ * Tabbed Overview/Settings/API-security card. Authoritative styles for
+ * the status pill, stat cards, quick links and Settings sub-sections,
+ * plus the input-bleed fix (the global dark form inputs must not apply
+ * inside the welcome card). Literal colors mirror the runtime inline
+ * baseline ($welcomeBaseline in WelcomeView.php) so compiled + pre-compile
+ * render identically; high-specificity .proto-screen.welcome-screen prefix
+ * beats the global .proto-form input styling. */
+
+.proto-screen.welcome-screen {
+  /* The welcome card is designed always-light (literal colors). Pin the
+   * light-palette tokens here so any reused themed component inside it
+   * (notably the .sw-body inputs, which paint `background: var(--surface)
+   * !important`) resolves light even under a dark theme like slate. This
+   * .welcome-screen scope is a closer ancestor than [data-theme] at :root,
+   * so it wins the custom-property cascade — no !important needed. */
+  --surface: #ffffff;
+  --colorLight: #ffffff;
+  --line: #e3e8ee;
+  --line-hard: #cdd5df;
+
+  /* Tab nav + panes */
+  .welcome-tabnav {
+    display: flex;
+    gap: 4px;
+    padding: 6px 10px 0;
+    border-bottom: 1px solid #eef1f5;
+    background: #fafbfd;
+    overflow-x: auto;
+  }
+  .welcome-tab-btn {
+    appearance: none;
+    background: transparent;
+    border: none;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #8898aa;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    white-space: nowrap;
+    &:hover { color: #0a2540; }
+    &.is-active { color: #0a2540; border-bottom-color: #00d1b2; }
+    &:focus { outline: none; }
+    &:focus-visible { box-shadow: 0 0 0 3px rgba(10, 37, 64, 0.12); border-radius: 4px; }
+  }
+  .welcome-tab-panes { padding: 16px; }
+  .welcome-tab-pane[hidden] { display: none; }
+
+  /* App-status pill */
+  .welcome-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid #e3e8ee;
+    background: #f7fafc;
+    margin-bottom: 16px;
+    form { margin: 0; display: inline-flex; align-items: center; gap: 10px; }
+    .welcome-status-dot { width: 9px; height: 9px; border-radius: 50%; background: #8898aa; }
+    &.is-prod .welcome-status-dot { background: #00d1b2; }
+    &.is-dev  .welcome-status-dot { background: #f59e0b; }
+    .welcome-status-text { font-size: 13px; font-weight: 600; color: #0a2540; }
+    input[type="checkbox"] { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .welcome-status-toggle {
+      position: relative;
+      display: inline-block;
+      width: 42px;
+      height: 24px;
+      cursor: pointer;
+      &::before { content: ""; position: absolute; inset: 0; border-radius: 12px; background: #e3e8ee; transition: background .18s ease; }
+      &::after { content: ""; position: absolute; left: 2px; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(10, 37, 64, 0.16); transition: left .18s cubic-bezier(0.32, 0.72, 0.32, 1); }
+    }
+    input[type="checkbox"]:checked + .welcome-status-toggle::before { background: #00d1b2; }
+    input[type="checkbox"]:checked + .welcome-status-toggle::after { left: 20px; }
+  }
+
+  /* Stat cards */
+  .welcome-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .welcome-stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px;
+    border: 1px solid #e3e8ee;
+    border-radius: 12px;
+    background: #fff;
+    text-decoration: none;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+    &:hover { border-color: #00d1b2; box-shadow: 0 2px 10px rgba(10, 37, 64, 0.08); transform: translateY(-1px); }
+    .welcome-stat-count { font-size: 26px; font-weight: 700; color: #0a2540; line-height: 1; }
+    .welcome-stat-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #8898aa; }
+  }
+
+  /* Quick links */
+  .welcome-quicklinks { display: flex; flex-wrap: wrap; gap: 8px; }
+  .welcome-quicklink {
+    display: inline-block;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid #e3e8ee;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0a2540;
+    text-decoration: none;
+    transition: border-color .15s ease, color .15s ease;
+    &:hover { border-color: #00d1b2; color: #009b82; }
+  }
+
+  /* Settings tab — stacked category sub-sections */
+  .welcome-settings-group { margin-bottom: 18px; &:last-child { margin-bottom: 0; } }
+  .welcome-settings-grouphdr {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #8898aa;
+    padding: 0 0 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #eef1f5;
+  }
+  /* .welcome-tab-pane in the chain lifts specificity to (0,5,1) so the
+   * input rule beats the dark form-drawer rule
+   * `.sw-drawer.proto-form .sw-body input => var(--surface)` (0,4,1), which
+   * otherwise wins on source order and paints the inputs dark. */
+  .welcome-tab-pane .form-row {
+    padding: 10px 0;
+    form { margin: 0; }
+    > form > label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #8898aa;
+      margin-bottom: 6px;
+    }
+    /* Input-bleed fix: force light inputs inside the welcome card. */
+    input[type="text"] {
+      width: 100%;
+      height: 38px;
+      padding: 0 12px;
+      border: 1px solid #e3e8ee;
+      border-radius: 8px;
+      font-size: 14px;
+      background: #fff;
+      color: #0a2540;
+      box-sizing: border-box;
+      &:focus { outline: none; border-color: #00d1b2; box-shadow: 0 0 0 3px rgba(0, 209, 178, 0.12); }
+    }
+    .explain { margin-top: 6px; font-size: 12px; color: #8898aa; line-height: 1.45; }
+    ul { margin: 8px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.6; color: #0a2540; }
+    a { color: #0a2540; text-decoration: underline; &:hover { color: #00d1b2; } }
+  }
+}

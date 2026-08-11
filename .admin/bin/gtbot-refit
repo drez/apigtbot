@@ -1,0 +1,186 @@
+#!/usr/bin/env php
+<?php
+/**
+ * gtbot-refit — automated grid re-fit. Cron it (e.g. hourly/daily):
+ *
+ *   0 * * * * php <project>/.admin/bin/gtbot-refit
+ *
+ * For EACH active (Testnet/Live) run: fits candidate ranges to recent price
+ * history (RangeFitter) and, when the price is near/outside the run's bounds
+ * (RefitPlanner), writes the best re-centred geometry onto the run row. The
+ * daemon detects the change and re-anchors within a tick — working sells are
+ * carried as legacy exits, so held inventory is never stranded and a refit
+ * never waits for a flat grid. Sends a Telegram when it re-fits.
+ * Read-only otherwise.
+ *
+ *   --dry   compute + report, write nothing
+ */
+
+$admin = dirname(__DIR__);
+require $admin . '/vendor/autoload.php';
+(new \Ahc\Env\Loader())->load($admin . '/.env');
+require $admin . '/config/Built/config.php';
+require $admin . '/config/Built/propel.php';
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
+$_SESSION[_AUTH_VAR] = new \ApiGoat\Sessions\AuthySession();
+
+use App\Domains\Bot\Backtester;
+use App\Domains\Bot\DecisionScorer;
+use App\Domains\Bot\Gateway\BinanceGateway;
+use App\Domains\Bot\Indicators;
+use App\Domains\Bot\RangeFitter;
+use App\Domains\Bot\RefitPlanner;
+use App\Domains\Bot\RoutineLiveness;
+use App\Domains\Bot\TelegramNotifier;
+
+$dry = in_array('--dry', $argv, true);
+
+// Hourly housekeeping (piggybacked here): score pending refit decisions and
+// prune old noise (bot_event noise kinds > 30d, api_log > 90d).
+if (!$dry) {
+    try {
+        // per-run pricing + applied-aware clocks live inside scorePending now
+        $scored = DecisionScorer::scorePending();
+        if ($scored) {
+            echo "scored $scored refit decision(s)\n";
+        }
+        $con = \Propel::getConnection();
+        $con->exec("DELETE FROM bot_event WHERE kind IN ('boot','reloading','refit_pending','command','would_place','heartbeat') AND date_creation < DATE_SUB(NOW(), INTERVAL 30 DAY)");
+        $con->exec("DELETE FROM api_log WHERE time < DATE_SUB(NOW(), INTERVAL 90 DAY)");
+        $con->exec("DELETE FROM market_regime WHERE date_creation < DATE_SUB(NOW(), INTERVAL 365 DAY)");
+    } catch (\Throwable $e) {
+        fwrite(STDERR, "housekeeping: " . $e->getMessage() . "\n");
+    }
+}
+
+$runs = \App\GridRunQuery::create()
+    ->filterByStatus(['Live', 'Testnet'], \Criteria::IN)
+    ->orderByIdGridRun()
+    ->find();
+if (!count($runs)) {
+    fwrite(STDERR, "gtbot-refit: no active (Testnet/Live) run\n");
+    exit(0);
+}
+
+// Analysis on REAL market data (mainnet klines: public + full history; testnet
+// only has ~49 daily candles). Orders still execute on the trading venue.
+$base = (string) env('GTBOT_ANALYSIS_BASE', 'https://api.binance.com');
+$gw = new BinanceGateway($base, '', ''); // public klines only
+
+// Claude's scheduled routine is the PRIMARY refit brain (it reads market
+// signal and sets the grid via gtbot_set_grid). This cron is a dead-man's
+// switch, not a second brain: while the routine is demonstrably alive
+// (gtbot_* MCP activity within the watchdog's 2h silence threshold) the cron
+// NEVER re-fits — not even when price leaves the range; the hourly routine
+// handles the excursion on its next pass with full market signal. Acting
+// early here is what used to front-run the routine with quantile grids it
+// then spent its slot reverting. Only a silent routine hands control over.
+$routineAlive = !$dry && !RoutineLiveness::isSilent(2 * 3600);
+if ($routineAlive) {
+    echo "refit routine is alive (gtbot MCP activity < 2h) — cron deferring on all runs\n";
+    exit(0);
+}
+
+foreach ($runs as $run) {
+
+// Trend runs have no grid geometry to fit — RangeFitter/RefitPlanner are
+// grid-only tools, and writing p_low/p_high onto a Trend run would just sit
+// there unread while looking like a live decision in the journal.
+if ((string) ($run->getAlgo() ?: 'Grid') === 'Trend') {
+    echo "run {$run->getIdGridRun()} algo=Trend — skipping refit (grid geometry does not apply)\n";
+    continue;
+}
+
+// Never re-fit an unhealthy bot.
+if ($run->getKillSwitch()) {
+    echo "run {$run->getIdGridRun()} kill switch set — skipping refit\n";
+    continue;
+}
+$last = $run->getLastTickAt('U');
+if (!$last || (time() - (int) $last) > 180) {
+    echo "run {$run->getIdGridRun()} heartbeat stale — skipping refit (is the daemon up?)\n";
+    continue;
+}
+
+$symbol = (string) $run->getSymbol();
+$candles = $gw->klines($symbol, '4h', 180);
+if (count($candles) < 30) {
+    fwrite(STDERR, "gtbot-refit: only " . count($candles) . " candles for $symbol\n");
+    continue;
+}
+$price = end($candles)['close'];
+
+$candidates = RangeFitter::candidates($candles, (string) $run->getFeePct(), (string) $run->getBudgetQuote());
+$decision = RefitPlanner::decide(
+    ['p_low' => (string) $run->getPLow(), 'p_high' => (string) $run->getPHigh()],
+    $price,
+    $candidates,
+    Indicators::trend(array_column($candles, 'close')) // 4h — blocks low-side chasing in a downtrend
+);
+
+echo "run {$run->getIdGridRun()} price=$price decision={$decision['action']}: {$decision['reason']}\n";
+
+if ($decision['action'] !== 'refit') {
+    continue;
+}
+
+$c = $decision['candidate'];
+
+// sanity: backtest the candidate over the window; skip if it wouldn't have traded
+$bt = Backtester::run([
+    'p_low' => $c['p_low'], 'p_high' => $c['p_high'], 'n_levels' => (int) $c['n_levels'],
+    'spacing' => 'Geometric', 'allocation' => (string) $run->getAllocation(),
+    'budget_quote' => (string) $run->getBudgetQuote(), 'fee_pct' => (string) $run->getFeePct(),
+    'max_position_quote' => (string) $run->getMaxPositionQuote(),
+    'max_order_quote' => (string) $run->getMaxOrderQuote(),
+    'daily_loss_limit_quote' => (string) $run->getDailyLossLimitQuote(),
+    'breakout_buffer_pct' => (string) $run->getBreakoutBufferPct(),
+    'breakout_policy' => (string) $run->getBreakoutPolicy(),
+    'max_open_orders' => (int) $run->getMaxOpenOrders(),
+    'min_notional' => '5',
+], array_column($candles, 'close'));
+
+$summary = sprintf(
+    "🔄 gtbot refit — run %d (%s)\nre-centering: [%s, %s] → [%s, %s] × %d levels\nprice %s · backtest %d cycles, %.2f P/L (in-sample)\napplies within a tick; held inventory rides out as legacy exits.",
+    $run->getIdGridRun(),
+    $symbol,
+    rtrim((string) $run->getPLow(), '0'),
+    rtrim((string) $run->getPHigh(), '0'),
+    $c['p_low'],
+    $c['p_high'],
+    (int) $c['n_levels'],
+    $price,
+    $bt['cycles'],
+    (float) $bt['realized_pnl']
+);
+
+if ($dry) {
+    echo $summary . "\n(dry run — nothing written)\n";
+    continue;
+}
+
+// Write the new geometry. The daemon re-anchors within a tick; working
+// sells are carried as legacy exits.
+$run->setPLow($c['p_low']);
+$run->setPHigh($c['p_high']);
+$run->setNLevels((int) $c['n_levels']);
+$run->setSpacing('Geometric');
+$run->save();
+
+DecisionScorer::record($run, 'Cron', $c['p_low'], $c['p_high'], (int) $c['n_levels'], $decision['reason'], $price, (int) ($run->getDeployPct() ?? 100));
+
+$e = new \App\BotEvent();
+$e->setIdGridRun((int) $run->getIdGridRun());
+$e->setLevel('Info');
+$e->setKind('refit_written');
+$e->setMessage(sprintf('geometry re-centred to [%s, %s] × %d — daemon re-anchors within a tick', $c['p_low'], $c['p_high'], (int) $c['n_levels']));
+$e->save();
+
+if ($n = TelegramNotifier::fromEnv()) {
+    $n->send($summary);
+}
+echo "refit written.\n";
+
+} // foreach run

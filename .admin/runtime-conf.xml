@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+  <propel>
+    <datasources default="apigtbot">
+      <datasource id="apigtbot">
+
+        <adapter>mysql</adapter>
+        <connection>
+          <dsn>mysql:host=localhost;dbname=apigtbot;charset=utf8;</dsn>
+          <user>apigtbot</user>
+
+          <password>change-me</password>
+        </connection>
+      </datasource>
+    </datasources>
+  </propel>
+</config>

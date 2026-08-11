@@ -1,0 +1,88 @@
+{
+    "version": "1.2.0",
+    "active": true,
+    "description": "",
+    "created": "2026-07-21",
+    "changes": [
+        {
+            "date": "2026-08-11 13:21",
+            "type": "build",
+            "version": "1.2.0",
+            "note": "build",
+            "runtime": "dev-master (3d91587)",
+            "build_id": "202608111320581ba36564",
+            "count": 26
+        },
+        {
+            "date": "2026-07-31 11:33",
+            "type": "version",
+            "version": "1.2.0",
+            "note": "clear-sort: Sorted chip + Default order sheet row"
+        },
+        {
+            "date": "2026-07-31 11:11",
+            "type": "build",
+            "version": "1.1.0",
+            "note": "build",
+            "runtime": "dev-master (3d91587)",
+            "build_id": "2026073111112351832962",
+            "count": 2
+        },
+        {
+            "date": "2026-07-31 10:22",
+            "type": "version",
+            "version": "1.1.0",
+            "note": "behaviors catalog index + gc-first policy in emitted docs"
+        },
+        {
+            "date": "2026-07-31 10:22",
+            "type": "build",
+            "version": "1.0.0",
+            "note": "build",
+            "runtime": "dev-master (aca766e)",
+            "build_id": "202607311022014ff2ae2a",
+            "count": 4
+        },
+        {
+            "date": "2026-07-25 08:33",
+            "type": "build",
+            "version": "1.0.0",
+            "note": "build",
+            "runtime": "dev-master (3123db5)",
+            "build_id": "20260725083306b7d5d294",
+            "count": 3
+        },
+        {
+            "date": "2026-07-23 11:24",
+            "type": "build",
+            "version": "1.0.0",
+            "note": "build",
+            "runtime": "dev-master (cd3c64a)",
+            "build_id": "202607231124263495b3e5",
+            "count": 29
+        }
+    ],
+    "rbac": {
+        "public": [
+            "mcp/list/POST"
+        ],
+        "allow": [
+            "_meta/list/GET",
+            "Dashboard/restart/POST",
+            "Dashboard/command/POST",
+            "gtbot_status/mcp/POST",
+            "gtbot_refit_proposal/mcp/POST",
+            "gtbot_market/mcp/POST",
+            "gtbot_set_grid/mcp/POST",
+            "gtbot_pnl_report/mcp/POST",
+            "gtbot_preview_grid/mcp/POST",
+            "gtbot_backtest/mcp/POST",
+            "gtbot_events/mcp/POST",
+            "gtbot_decisions/mcp/POST",
+            "gtbot_create_run/mcp/POST",
+            "gtbot_start/mcp/POST",
+            "gtbot_stop/mcp/POST",
+            "gtbot_kill/mcp/POST"
+        ]
+    }
+}

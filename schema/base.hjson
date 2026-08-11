@@ -1,0 +1,94 @@
+{
+    apigtbot:
+    {
+        set_config:{
+            project_url:"https://gc.local/apigtbot/.admin/",
+            project_root:"/path/to/apigtbot/.admin/"
+        },
+        add_validator:true,
+        add_tablestamp:true,
+        set_debug_level:3,
+        add_hooks:{ "afterFormObj":[],
+                    // grid_run: GridRunServiceWrapper::beforeSave enforces the shared-budget invariant (never overcommit)
+                    "beforeSave":["grid_run"],
+                    "afterSave":[],
+                    "beforeList":[]
+                },
+        with_api:true,
+        with_mcp:true,
+        set_menu:[
+            { name: "Trading", folded: false, icon: "ri-line-chart-line", order: 10 },
+            { name: "Settings", folded: true }
+        ],
+
+        "authy('User')":{
+            // modifiers
+            set_parent_menu:"Settings",
+            "set_input_options": {"location_address": {"type": "location", "lat": "location_lat", "lng": "location_lng", "country": "ca"}},
+            set_menu_priority: 200,
+            set_list_hide_columns: ["rights", "passwd_hash", "rights_all", "rights_owner", "rights_group", "google_sub", "google_email", "reset_token_hash", "reset_token_expires"],
+            add_search_columns: {
+                    "Name":[["username", "%val", "or"], ["email", "%val"]],
+                    "Primary group":[["id_authy_group", "%val"]]
+                    },
+            with_child_tables: ["authy_group_x", "authy_log"],
+
+            // columns
+            id_authy:["primary"],
+            validation_key:"string(32)",
+            "username(Username)":["string(32)", "not-required", "unique"],
+            "fullname(Fullname)":["string(100)", "not-required"],
+            "email(Email)":["string(100)", "required"],
+            "passwd_hash(Password)":["string(255)", "required"],
+            "expire(Expiration)":["date()", "default:0000-00-00"],
+            deactivate(Deactivated):["enum(Yes, No)", "default:No"],
+            "language(Language)":["enum(en_US, fr_CA)", "default:en_US"],
+            "theme(Theme)":["enum(mint, ink, indigo, terracotta, graphite, slate, dusk)", "default:mint"],
+            "google_sub(Google sub)":["string(64)", "not-required", "unique"],
+            "google_email(Google email)":["string(255)", "not-required"],
+            "reset_token_hash(Reset token)":["string(255)", "not-required", "default:null"],
+            "reset_token_expires(Reset expires)":["integer()", "not-required", "default:null"],
+            "id_tenant('Tenant')":["integer()", "default:1"],
+            "location_address('Location Address')":["varchar(500)", "not-required", "default:null"],
+            "location_lat('')":["decimal(13, 8)", "not-required", "default:null"],
+            "location_lng('')":["decimal(13, 8)", "not-required", "default:null"],
+
+            with_refresh_tokens: true,
+
+            validator:{
+                email:{
+                    required:"authy_email_required",
+                    unique:"authy_email_in_use",
+                },
+                passwd_hash:{
+                    required:"authy_password_required"
+                }
+            }
+        },
+
+        "push_device('Push device')": {
+            // Expo push tokens per user (with_mobile). One row per device token;
+            // the runtime PushService upserts on (token) and sends via Expo.
+            set_parent_menu:"Settings",
+            set_menu_priority: 210,
+            set_child_colunms:{"id_authy":["username"]},
+            "id_push_device()": ["primary()"],
+            "id_authy('User')": ["integer()", "foreign(authy)", "onDelete:cascade", "foreign:id_authy"],
+            "token('Token')": ["varchar(255)", "required", "unique"],
+            "platform('Platform')": ["enum(ios, android, web)", "default:ios"],
+        },
+
+        "country('Country')": {
+            set_parent_menu:"Settings",
+			"id_country()": ["primary()"],
+			"name('Name')": ["varchar(100)"],
+			"code('Code')": ["varchar(3)"],
+			"timezone('Timezone')": ["varchar(20)"],
+			"timezone_code('Timezone code')": ["varchar(50)"],
+			"priority('Priority')": ["integer()"],
+			"validator": {"name":{"required":{"msg":"coutry_name_required","value":null}}},
+		}
+
+
+    }
+}

@@ -1,0 +1,85 @@
+<database name="apigtbot" defaultIdMethod="native" namespace="App" >
+		<behavior name="GoatCheese" >
+			<parameter name="set_config" value='{&quot;project_url&quot;:&quot;https:\/\/gc.local\/apigtbot\/.admin\/&quot;,&quot;project_root&quot;:&quot;\/var\/www\/gc\/p\/apigtbot\/.admin\/&quot;}' />
+			<parameter name="set_debug_level" value="3" />
+			<parameter name="add_hooks" value='{&quot;afterFormObj&quot;:[],&quot;beforeSave&quot;:[],&quot;afterSave&quot;:[],&quot;beforeList&quot;:[]}' />
+			<parameter name="with_api" value="1" />
+			<parameter name="with_mcp" value="1" />
+			<parameter name="set_menu" value='{&quot;name&quot;:&quot;Settings&quot;,&quot;folded&quot;:true}' />
+		</behavior>
+		<behavior name="add_validator" />
+		<behavior name="add_tablestamp" />
+	<table name="authy" description="User" >
+		<behavior name="GoatCheese" >
+			<parameter name="set_parent_menu" value="Settings" />
+			<parameter name="set_input_options" value='{&quot;location_address&quot;:{&quot;type&quot;:&quot;location&quot;,&quot;lat&quot;:&quot;location_lat&quot;,&quot;lng&quot;:&quot;location_lng&quot;,&quot;country&quot;:&quot;ca&quot;}}' />
+			<parameter name="set_menu_priority" value="200" />
+			<parameter name="set_list_hide_columns" value='[&quot;rights&quot;,&quot;passwd_hash&quot;,&quot;rights_all&quot;,&quot;rights_owner&quot;,&quot;rights_group&quot;,&quot;google_sub&quot;,&quot;google_email&quot;,&quot;reset_token_hash&quot;,&quot;reset_token_expires&quot;]' />
+			<parameter name="add_search_columns" value='{&quot;Name&quot;:[[&quot;username&quot;,&quot;%val&quot;,&quot;or&quot;],[&quot;email&quot;,&quot;%val&quot;]],&quot;Primary group&quot;:[[&quot;id_authy_group&quot;,&quot;%val&quot;]]}' />
+			<parameter name="with_child_tables" value='[&quot;authy_group_x&quot;,&quot;authy_log&quot;]' />
+			<parameter name="with_refresh_tokens" value="1" />
+		</behavior>
+		<column name="id_authy" type="INTEGER" size="11" required="true" primaryKey="true" autoIncrement="true" />
+		<column name="validation_key" type="VARCHAR" size="32" required="false" />
+		<column name="username" description="Username" type="VARCHAR" size="32" required="false" />
+		<column name="fullname" description="Fullname" type="VARCHAR" size="100" required="false" />
+		<column name="email" description="Email" type="VARCHAR" size="100" required="true" />
+		<column name="passwd_hash" description="Password" type="VARCHAR" size="255" required="true" />
+		<column name="expire" description="Expiration" type="DATE" required="false" defaultValue="0000-00-00" />
+		<column name="deactivate" description="Deactivated" type="ENUM" valueSet="Yes, No" required="false" defaultValue="No" />
+		<column name="language" description="Language" type="ENUM" valueSet="en_US, fr_CA" required="false" defaultValue="en_US" />
+		<column name="theme" description="Theme" type="ENUM" valueSet="mint, ink, indigo, terracotta, graphite, slate, dusk" required="false" defaultValue="mint" />
+		<column name="google_sub" description="Google sub" type="VARCHAR" size="64" required="false" />
+		<column name="google_email" description="Google email" type="VARCHAR" size="255" required="false" />
+		<column name="reset_token_hash" description="Reset token" type="VARCHAR" size="255" required="false" defaultValue="null" />
+		<column name="reset_token_expires" description="Reset expires" type="INTEGER" size="10" required="false" defaultValue="null" />
+		<column name="id_tenant" description="Tenant" type="INTEGER" size="10" defaultValue="1" />
+		<column name="location_address" description="Location Address" type="VARCHAR" size="500" required="false" defaultValue="null" />
+		<column name="location_lat" description="" type="DECIMAL" size="13" scale=" 8" required="false" defaultValue="null" />
+		<column name="location_lng" description="" type="DECIMAL" size="13" scale=" 8" required="false" defaultValue="null" />
+		<unique >
+			<unique-column name="username" />
+		</unique>
+		<unique >
+			<unique-column name="google_sub" />
+		</unique>
+		<validator column="email" >
+			<rule name="required" message="authy_email_required" />
+			<rule name="unique" message="authy_email_in_use" />
+		</validator>
+		<validator column="passwd_hash" >
+			<rule name="required" message="authy_password_required" />
+		</validator>
+	</table>
+	<table name="push_device" description="Push device" >
+		<behavior name="GoatCheese" >
+			<parameter name="set_parent_menu" value="Settings" />
+			<parameter name="set_menu_priority" value="210" />
+			<parameter name="set_child_colunms" value='{&quot;id_authy&quot;:[&quot;username&quot;]}' />
+		</behavior>
+		<column name="id_push_device" description="" type="INTEGER" size="11" required="true" primaryKey="true" autoIncrement="true" />
+		<column name="id_authy" description="User" type="INTEGER" size="11" required="true" />
+		<foreign-key foreignTable="authy" onDelete="cascade" onUpdate="restrict" >
+			<reference local="id_authy" foreign="id_authy" />
+		</foreign-key>
+		<column name="token" description="Token" type="VARCHAR" size="255" required="true" />
+		<column name="platform" description="Platform" type="ENUM" valueSet="ios, android, web" required="false" defaultValue="ios" />
+		<unique >
+			<unique-column name="token" />
+		</unique>
+	</table>
+	<table name="country" description="Country" >
+		<behavior name="GoatCheese" >
+			<parameter name="set_parent_menu" value="Settings" />
+		</behavior>
+		<column name="id_country" description="" type="INTEGER" size="11" required="true" primaryKey="true" autoIncrement="true" />
+		<column name="name" description="Name" type="VARCHAR" size="100" />
+		<column name="code" description="Code" type="VARCHAR" size="3" />
+		<column name="timezone" description="Timezone" type="VARCHAR" size="20" />
+		<column name="timezone_code" description="Timezone code" type="VARCHAR" size="50" />
+		<column name="priority" description="Priority" type="INTEGER" size="10" />
+		<validator column="name" >
+			<rule name="required" message="coutry_name_required" />
+		</validator>
+	</table>
+</database>
