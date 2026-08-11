@@ -174,14 +174,6 @@ Re-fit the apigtbot grids — the SAME method for EVERY active trading pair:
    config `gtbot_shared_budget_quote` (currently 1000 USDT). Each run's
    `budget_quote` is its reserved slice. After the per-pair refit decisions,
    reallocate the slices for the coming hour:
-   • A/B TEST PIN (2026-08-11, in force until this line is removed): BTCUSDT
-     runs a controlled experiment — run 1 (Trend) and run 7 (Grid control)
-     have their slices PINNED at 250 each. Do NOT change either run's
-     BudgetQuote in either direction; apply the allocation rules below to
-     the REMAINING runs only (currently BNB run 4, slice 500). Run 7's
-     geometry and deploy_pct stay under your normal grid management — the
-     pin is capital only, so the comparison measures the algorithms, not
-     the allocator.
    • Slices are CAPACITY, not exposure — deploy_pct is the risk throttle.
      Active slices should sum to 85–100% of the shared budget; unallocated
      pool is idle capital, not safety. Do NOT park capital by shrinking

@@ -128,6 +128,40 @@ A run's own `simulated` switch (default **on**) is the paper-mode gate; the
 env flags above only matter once it is off, and mismatched combinations are
 refused at daemon boot.
 
+## AI-assisted refits (optional)
+
+The grid geometry doesn't have to be tuned by hand. The repo ships a
+battle-tested **hourly agent routine** (`.admin/docs/refit-routine.md`): an
+LLM agent connects over MCP, reads live market signal (`gtbot_market`),
+re-fits each grid run's range/levels/deployment (`gtbot_set_grid`),
+reallocates budget slices across runs, and journals every decision — which
+the server then **scores against what actually happened** (`gtbot_decisions`),
+so the agent learns from its own track record. Evidence-derived guardrails
+(spacing/width floors from the shipped walk-forward sweeps) are baked into
+the prompt, and hard risk caps stay enforced server-side no matter what the
+agent asks for.
+
+Setup:
+
+1. **Connect the MCP server** (OAuth; acts as your admin user):
+   ```bash
+   claude mcp add --transport http gtbot https://your-domain/api/v1/mcp
+   ```
+2. **Schedule the routine hourly** with the prompt block from
+   `.admin/docs/refit-routine.md` — as a Claude Code cloud routine
+   (`/schedule`), or any MCP-capable agent runner, or plain cron:
+   ```cron
+   0 * * * * claude -p "$(sed -n '/^PROMPT VERSION/,/^```/p' /path/to/apigtbot/.admin/docs/refit-routine.md | sed '$d')"
+   ```
+3. **The fallback is already installed**: the `gtbot-refit` cron from the
+   install steps acts as a dead-man's switch — it stays silent while the
+   agent routine is active and takes over quantile-based refits only if the
+   routine goes quiet for 2+ hours.
+
+The routine is advisory-with-guardrails by design: it may re-fit geometry
+and reallocate slices, but it cannot touch risk caps, clear kill switches,
+or liquidate inventory — those stay human decisions.
+
 ## Documentation
 
 | Doc | Contents |
