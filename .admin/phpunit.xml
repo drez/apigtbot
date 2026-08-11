@@ -6,6 +6,14 @@
          cacheDirectory=".phpunit.cache"
          failOnWarning="true"
          failOnRisky="true">
+    <php>
+        <!-- Tests exercise the REAL kill/alert paths; without these blanks the
+             suite fans kill_requested/Alert events out to the operator's actual
+             Telegram on every run (2026-08-11 incident). Guard test:
+             TelegramQuietInTestsTest. -->
+        <env name="GTBOT_TELEGRAM_BOT_TOKEN" value="" force="true"/>
+        <env name="GTBOT_TELEGRAM_CHAT_ID" value="" force="true"/>
+    </php>
     <testsuites>
         <testsuite name="builder">
             <directory>tests/Builder</directory>
