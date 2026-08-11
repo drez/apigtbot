@@ -3,8 +3,10 @@
 A self-hosted crypto trading bot with **two switchable strategies per run** — a
 classic **grid** (mean-reversion ladder) and a **trend follower** (Donchian
 breakout entry, ATR trailing-stop exit) — running as always-on daemons against
-live Binance market data in **paper-trading mode** (real prices, simulated
-fills, no keys required). Built on the [ApiGoat / GoatCheese](https://apigoat.com/)
+live Binance market data. **Both trading modes are available**: paper mode
+(the default — real prices, simulated fills, no keys required) and real
+trading (Binance testnet or live mainnet with your API keys). Built on the
+[ApiGoat / GoatCheese](https://apigoat.com/)
 schema-driven PHP stack: the admin UI, REST API, and MCP server are generated
 from an HJSON schema.
 
@@ -42,10 +44,19 @@ from an HJSON schema.
   `deploy-policy`, `trend`) validate strategy parameters against collected
   candle history before they are trusted with a live run.
 
-Everything trades **paper by default**: mainnet public data, locally
-simulated fills, balances in a simulated wallet table. Real-money mode
-exists behind multiple explicit gates (per-run switch + environment flags +
-API keys) and fast-fails without credentials.
+## Trading modes
+
+| Mode | How | Keys |
+|---|---|---|
+| **Paper** (default) | Live mainnet market data, fills simulated locally, balances in a simulated wallet; a per-run `simulated` switch and a dashboard-wide toggle | none |
+| **Real — testnet** | Orders sent to the Binance Spot testnet (run status `Testnet`, `GTBOT_USE_TESTNET=1`) | testnet API keys |
+| **Real — live** | Orders sent to mainnet (run status `Live`, `simulated` off, `GTBOT_USE_TESTNET=0`, `GTBOT_DRY_RUN=0`) | mainnet API keys (HMAC or Ed25519) |
+
+Real trading is gated on purpose: the per-run switch AND the environment
+flags must all agree, mismatched combinations are refused at daemon boot,
+and the daemon fast-fails without credentials. Every risk rail (per-run
+loss caps, shared-budget guard, wallet drawdown stop) applies identically
+in every mode.
 
 ## Requirements
 
