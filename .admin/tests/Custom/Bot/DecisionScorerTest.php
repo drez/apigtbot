@@ -174,4 +174,31 @@ class DecisionScorerTest extends TestCase
         $this->assertSame('Flat', (string) $d->getVerdict(), 'old-grid harvest must not count as this decision\'s Win');
         $this->assertSame(0, (int) $d->getCyclesDelta());
     }
+
+    public function testScoresCounterfactualAgainstPreviousAppliedGeometry(): void
+    {
+        $run = $this->makeRun('CFTUSDT', '100');
+        $run->setBudgetQuote('1000');
+        $run->save();
+        // the geometry this decision replaced: wide, never fills on a ±4% wobble
+        $this->makeDecision($run, '50', '150', 30, 20);
+        $new = $this->makeDecision($run, '94', '106', 8, 7);
+        $new->setNLevels(4);
+        $new->save();
+        // 1h tape (newest = computed_at = now): 7h of wobble since apply
+        $row = new \App\MarketSummary();
+        $row->setSymbol('CFTUSDT');
+        $row->setTf('1h');
+        $row->setComputedAt(date('Y-m-d H:i:s'));
+        $row->setRecentCandles(json_encode(array_map(static fn ($c) => [$c, $c, $c], ['100', '96', '100', '96', '100', '96', '100', '96'])));
+        $row->save();
+
+        DecisionScorer::scorePending();
+
+        $new->reload();
+        $this->assertSame('Scored', (string) $new->getEvalStatus());
+        $this->assertNotNull($new->getCounterfactualDelta());
+        $this->assertGreaterThan(0, (float) $new->getCounterfactualDelta(), 'the tight refit out-earns the wide grid it replaced on the same tape');
+        $this->assertSame('Flat', (string) $new->getVerdict(), 'no live cycles yet and in range; counterfactual favourable → not Worse');
+    }
 }

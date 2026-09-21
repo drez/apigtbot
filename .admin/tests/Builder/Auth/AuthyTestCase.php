@@ -2,43 +2,32 @@
 
 namespace Tests\Builder\Auth;
 
-use ApiGoat\Sessions\AuthySession;
-use PHPUnit\Framework\TestCase;
-use Propel;
+use Tests\Builder\Support\DbTestCase;
 
 /**
  * Base class for tests that need Authy / AuthyQuery against a real DB.
  *
- * Boots the project runtime constants and points Propel at the parallel
- * `apigtbot_test` project's database. Each test runs inside a
- * transaction that's rolled back in tearDown, so fixtures don't leak.
+ * Same contract as DbTestCase (read its header before writing a DB-backed
+ * test) with one difference: the source database is the parallel
+ * `apigtbot_test` project's, never the dev database — these tests
+ * exercise login and account state, so they must not read or write the data
+ * you develop against. Under paratest each worker still gets its own clone,
+ * `gc_apigtbot_test_t<TOKEN>`.
  *
  * Provision the test DB via `./gc create apigtbot_test` from the
- * gc root, then load schema with mysqldump from gc_apigtbot.
+ * gc root, then load schema with mysqldump from gc_apigtbot. Without it these
+ * tests skip.
  */
-abstract class AuthyTestCase extends TestCase
+abstract class AuthyTestCase extends DbTestCase
 {
-    public static function setUpBeforeClass(): void
+    protected static function sourceConnection(): array
     {
-        if (!defined('_AUTH_VAR')) {
-            require __DIR__ . '/../../../config/Built/config.php';
-        }
-
-        if (session_status() === PHP_SESSION_NONE) {
-            @session_start();
-        }
-        $_SESSION[_AUTH_VAR] = new AuthySession();
-
-        if (Propel::isInit()) {
-            return;
-        }
-
         $testEnvPath = __DIR__ . '/../../../../../apigtbot_test/.env';
-        if (!file_exists($testEnvPath)) {
+        if (! file_exists($testEnvPath)) {
             self::markTestSkipped(
                 "Test DB env not found at: {$testEnvPath}\n"
                 . "Provision via './gc create apigtbot_test' from the gc root, "
-                . "then mysqldump --no-data gc_apigtbot | mysql gc_apigtbot_test."
+                . 'then mysqldump --no-data gc_apigtbot | mysql gc_apigtbot_test.'
             );
         }
 
@@ -51,44 +40,11 @@ abstract class AuthyTestCase extends TestCase
             }
         }
 
-        set_include_path(_BASE_DIR . 'src/' . PATH_SEPARATOR . get_include_path());
-
-        Propel::setConfiguration([
-            'datasources' => [
-                // Datasource id must be the project's actual Propel datasource
-                // (_DATA_SRC in config/Built/config.php) so the generated models
-                // resolve their connection. For git-cloned projects this differs
-                // from the project directory name (which only names the
-                // apigtbot_test test-DB dir above), so DO NOT hardcode it.
-                _DATA_SRC => [
-                    'adapter'    => 'mysql',
-                    'connection' => [
-                        'dsn'      => sprintf(
-                            'mysql:host=%s;dbname=%s;charset=utf8;',
-                            $env['MY_DB_HOST'],
-                            $env['MY_DB_NAME']
-                        ),
-                        'user'     => $env['MY_DB_USER'],
-                        'password' => $env['MY_DB_PASSWORD'],
-                    ],
-                ],
-                'default' => _DATA_SRC,
-            ],
-        ]);
-        Propel::initialize();
-    }
-
-    protected function setUp(): void
-    {
-        Propel::getConnection(_DATA_SRC)->beginTransaction();
-        $_SESSION[_AUTH_VAR] = new AuthySession();
-    }
-
-    protected function tearDown(): void
-    {
-        $con = Propel::getConnection(_DATA_SRC);
-        if ($con->isInTransaction()) {
-            $con->rollBack();
-        }
+        return [
+            'host' => $env['MY_DB_HOST'] ?? 'localhost',
+            'name' => $env['MY_DB_NAME'] ?? '',
+            'user' => $env['MY_DB_USER'] ?? '',
+            'pass' => $env['MY_DB_PASSWORD'] ?? '',
+        ];
     }
 }

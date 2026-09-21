@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseCountryQuery;
 
-require 'om/BaseCountryQuery.php';
+require_once __DIR__ . '/om/BaseCountryQuery.php';
 
 
 /**

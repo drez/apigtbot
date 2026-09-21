@@ -106,6 +106,7 @@ class TemplateTableMap extends TableMap
   'add_search_columns' => '{"Name": [["name", "%val"]]}',
   'set_order_list_columns' => '[["date_creation", "DESC"]]',
   'is_wysiwyg_colunms' => '["body", "footer"]',
+  'set_trusted_html_columns' => '["body", "footer"]',
   'set_list_hide_columns' => '["color_1", "color_2", "color_3", "body", "footer"]',
   'with_child_tables' => '["template_file"]',
   'add_child_insert_wysiwyg_tables' => '["template_file"]',

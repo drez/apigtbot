@@ -12,11 +12,8 @@ class GtbotStartTool extends AbstractGtbotBase
 
     public function description(): string
     {
-        return 'Enqueue a Start command for a grid run (also clears a Pause). A call without '
-            . 'confirm:true changes nothing: it echoes the pending action for user approval — '
-            . 'show it, then re-call with confirm:true. Note: the daemon process itself is '
-            . 'launched by systemd / `php bin/gtbot --run=<id>`; if the heartbeat is stale, '
-            . 'starting the process is the missing step, and this tool will say so.';
+        return 'Enqueue Start for a run (clears a Pause). Without confirm:true it only echoes the pending action. '
+            . 'If the heartbeat is stale the process itself needs launching (watchdog cron / bin/gtbot) — the tool says so.';
     }
 
     public function inputSchema(): array

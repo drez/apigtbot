@@ -1,0 +1,91 @@
+#!/usr/bin/env php
+<?php
+/**
+ * gtbot-ab-conclude — one-shot A/B conclusion (2026-08-19, operator-approved):
+ * sentinel shape.
+ *   run 1 (Trend)        250 -> 100  (sentinel, viability floor)   [decrease first]
+ *   run 7 (Grid control) 250 -> 350  (standing BTC grid)
+ *   run 4 (BNB grid)     500 -> 550  (restores pre-A/B trim)
+ * Every increase re-checks BudgetGuard before saving; any surprise aborts
+ * before the first write. Reload is enqueued so live daemons re-read config.
+ */
+
+$admin = dirname(__DIR__);
+require $admin . '/vendor/autoload.php';
+(new \Ahc\Env\Loader())->load($admin . '/.env');
+require $admin . '/config/Built/config.php';
+require $admin . '/config/Built/propel.php';
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
+$_SESSION[_AUTH_VAR] = new \ApiGoat\Sessions\AuthySession();
+
+use App\Domains\Bot\BudgetGuard;
+use App\Domains\Bot\EventLog;
+use App\Domains\Bot\TelegramNotifier;
+
+$plan = [
+    // id => [expected current budget, new budget, new label]
+    1 => ['250', '100', 'BTC trend sentinel (prod)'],
+    7 => ['250', '350', 'BTC grid (prod)'],
+    4 => ['500', '550', null],
+];
+
+$runs = [];
+foreach ($plan as $id => [$expect, , ]) {
+    $r = \App\GridRunQuery::create()->findPk($id);
+    if ($r === null) {
+        fwrite(STDERR, "ABORT: run $id not found\n");
+        exit(1);
+    }
+    if (bccomp((string) $r->getBudgetQuote(), $expect, 8) !== 0) {
+        fwrite(STDERR, sprintf(
+            "ABORT: run %d budget is %s, expected %s — state changed since the plan was made, nothing written\n",
+            $id, (string) $r->getBudgetQuote(), $expect
+        ));
+        exit(1);
+    }
+    $runs[$id] = $r;
+}
+
+// Decreases first (BudgetGuard ordering), then increases, re-checking each.
+$order = [1, 7, 4];
+foreach ($order as $id) {
+    [, $new, $label] = $plan[$id];
+    $r = $runs[$id];
+    $statusName = ['Draft', 'DryRun', 'Testnet', 'Live', 'Halted', 'Done'][(int) $r->getStatus()] ?? 'Live';
+    $over = BudgetGuard::check($id, $new, $statusName);
+    if ($over !== null) {
+        fwrite(STDERR, 'ABORT on run ' . $id . ': ' . BudgetGuard::message($over) . "\n");
+        exit(1);
+    }
+    $old = (string) $r->getBudgetQuote();
+    $r->setBudgetQuote($new);
+    if ($label !== null) {
+        $r->setLabel($label);
+    }
+    $r->save();
+    echo sprintf("run %d: budget %s -> %s%s\n", $id, $old, $new, $label !== null ? ", label '$label'" : '');
+}
+
+$notifier = TelegramNotifier::fromEnv();
+(new EventLog(7, true, $notifier))->write(
+    'Info',
+    'command',
+    'A/B concluded (no-decision: zero TREND_UP windows in 8d; grid +0.17 vs trend 0.00, both regime-gated flat ~90% of soak). '
+    . 'Sentinel shape applied: run 1 Trend slice 250->100 (pinned sentinel), run 7 250->350 (standing BTC grid), run 4 500->550. '
+    . 'Milestone watch stays for the sentinel\'s first entry/stop. (Fred/Claude session 2026-08-19)'
+);
+
+foreach ($order as $id) {
+    $c = new \App\BotCommand();
+    $c->setIdGridRun($id);
+    $c->setCommand('Reload');
+    $c->setCmdStatus('Pending');
+    $c->setNote('A/B conclusion realloc — re-read budget/label');
+    $c->save();
+    echo "run $id: Reload enqueued (#" . (int) $c->getIdBotCommand() . ")\n";
+}
+
+$audit = BudgetGuard::check();
+echo $audit === null ? "invariant OK: active slices within shared budget\n" : 'INVARIANT VIOLATION: ' . BudgetGuard::message($audit) . "\n";

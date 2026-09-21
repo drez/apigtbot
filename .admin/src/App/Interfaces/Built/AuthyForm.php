@@ -91,12 +91,108 @@ class AuthyForm extends Authy
     public $formSaveBtn;
     public $formSaveBar;
     public $omMap;
+    /** getEditForm()/getList() field slots, keyed [Model][Column]['html']. */
+    public $fields = [];
+    public $fieldsRo = [];
+    /** Columns whose read-only markup gcBuildFieldRo() has already built (A43). */
+    public $gcFieldRoBuilt = [];
+    /** Sort-header restore JS, rebuilt per list query. */
+    public $orderReadyJsOrder = '';
 
         public $arrayIdAuthyGroupOptions;
     public $queryObjAuthyGroupX;
     public $listActionCellAuthyGroupX;
     public $queryObjAuthyLog;
     public $listActionCellAuthyLog;
+    public $commentsIdAuthy;
+    public $commentsIdAuthy_css;
+    public $commentsValidationKey;
+    public $commentsValidationKey_css;
+    public $commentsUsername;
+    public $commentsUsername_css;
+    public $commentsFullname;
+    public $commentsFullname_css;
+    public $commentsEmail;
+    public $commentsEmail_css;
+    public $commentsPasswdHash;
+    public $commentsPasswdHash_css;
+    public $commentsExpire;
+    public $commentsExpire_css;
+    public $commentsDeactivate;
+    public $commentsDeactivate_css;
+    public $commentsLanguage;
+    public $commentsLanguage_css;
+    public $commentsTheme;
+    public $commentsTheme_css;
+    public $commentsGoogleSub;
+    public $commentsGoogleSub_css;
+    public $commentsGoogleEmail;
+    public $commentsGoogleEmail_css;
+    public $commentsResetTokenHash;
+    public $commentsResetTokenHash_css;
+    public $commentsResetTokenExpires;
+    public $commentsResetTokenExpires_css;
+    public $commentsIdTenant;
+    public $commentsIdTenant_css;
+    public $commentsLocationAddress;
+    public $commentsLocationAddress_css;
+    public $commentsLocationLat;
+    public $commentsLocationLat_css;
+    public $commentsLocationLng;
+    public $commentsLocationLng_css;
+    public $commentsIsRoot;
+    public $commentsIsRoot_css;
+    public $commentsIdAuthyGroup;
+    public $commentsIdAuthyGroup_css;
+    public $commentsIsSystem;
+    public $commentsIsSystem_css;
+    public $commentsRightsAll;
+    public $commentsRightsAll_css;
+    public $commentsRightsGroup;
+    public $commentsRightsGroup_css;
+    public $commentsRightsOwner;
+    public $commentsRightsOwner_css;
+    public $commentsOnglet;
+    public $commentsOnglet_css;
+    public $commentsDateCreation;
+    public $commentsDateCreation_css;
+    public $commentsDateModification;
+    public $commentsDateModification_css;
+    public $commentsIdGroupCreation;
+    public $commentsIdGroupCreation_css;
+    public $commentsIdCreation;
+    public $commentsIdCreation_css;
+    public $commentsIdModification;
+    public $commentsIdModification_css;
+    public $Authy;
+    public $AuthyGroupX;
+    public $hookAuthyGroupXListTop;
+    public $hookAuthyGroupXListBottom;
+    public $hookAuthyGroupXTableFooter;
+    public $hookListReadyJsAuthyGroupX;
+    public $hookListReadyJsFirstAuthyGroupX;
+    public $AuthyLog;
+    public $hookAuthyLogListTop;
+    public $hookAuthyLogListBottom;
+    public $hookAuthyLogTableFooter;
+    public $hookListReadyJsAuthyLog;
+    public $hookListReadyJsFirstAuthyLog;
+    public $commentsIdAuthyLog;
+    public $commentsIdAuthyLog_css;
+    public $commentsTimestamp;
+    public $commentsTimestamp_css;
+    public $commentsLogin;
+    public $commentsLogin_css;
+    public $commentsUserid;
+    public $commentsUserid_css;
+    public $commentsResult;
+    public $commentsResult_css;
+    public $commentsEvent;
+    public $commentsEvent_css;
+    public $commentsIp;
+    public $commentsIp_css;
+    public $commentsCount;
+    public $commentsCount_css;
 
 
     /**
@@ -126,12 +222,12 @@ class AuthyForm extends Authy
 
     public function login($username='', $mobile = false)
     {
-        if(defined('LOGO_URL_LOGIN')) {
-            if(file_exists(_INSTALL_PATH . 'public/img/' . LOGO_URL_LOGIN)) {
-                $logoAdmin = LOGO_URL_LOGIN;
-            }
-        } else {
-            $logoAdmin = _SITE_URL.'public/img/logo-admin.png';
+        // Fallback FIRST: the old shape only assigned $logoAdmin in the else,
+        // so a defined LOGO_URL_LOGIN pointing at a missing file left it
+        // undefined and img($logoAdmin) emitted a warning + a broken image.
+        $logoAdmin = _SITE_URL.'public/img/logo-admin.png';
+        if(defined('LOGO_URL_LOGIN') && file_exists(_INSTALL_PATH . 'public/img/' . LOGO_URL_LOGIN)) {
+            $logoAdmin = LOGO_URL_LOGIN;
         }
 
         if(empty($_SESSION[_AUTH_VAR]->getCsrf())) {
@@ -379,7 +475,7 @@ class AuthyForm extends Authy
         }
         return $return;
     }
-            
+
     /**
      * function getListSearch
      * @param integer $IdParent
@@ -392,7 +488,7 @@ class AuthyForm extends Authy
 
         $q = new AuthyQuery();
         $q = $this->setAclFilter($q);
-        
+
 
         $q
 
@@ -415,41 +511,66 @@ class AuthyForm extends Authy
 
             $q->filterByIdAuthyGroup($value, $criteria);
         }
-            
+
         }else{
             ## standard list
-            
-        }
-        
 
-        
+        }
+
+
+
+            $this->orderReadyJsOrder = '';
             if(!empty($this->searchOrder)){
                 $f=0;
                 foreach($this->searchOrder as $order){
                     foreach($order as $col => $sens){
                         if($sens){
                             $tOrd = explode('.',$col);
-                            if($tOrd[1]){
+                            # The ordering comes from the session (setOrderVar keeps
+                            # whatever the client last clicked, and a session can outlive
+                            # a renamed/removed column or be seeded by another list).
+                            # Propel throws on a column it cannot resolve, which turned a
+                            # stale sort key into a 500 on the whole list — fall back to
+                            # the model's default order instead, and forget the key so the
+                            # next request is clean.
+                            $gcOrdApplied = true;
+                            try {
+                            if(!empty($tOrd[1])){
                                 $q->join($tOrd[0]." order".$f);
                                 $orderBy = "use".$tOrd[0]."Query";
                                 $q->$orderBy("order".$f, 'left join')->orderBy($tOrd[1], $sens)->endUse();
                             }else{
                                 $q->orderBy($col,$sens);
                             }
+                            } catch (\Exception $gcOrdEx) {
+                                $gcOrdApplied = false;
+                                error_log('list order: dropping unresolvable column ' . (string) $col
+                                    . ' on Authy — ' . $gcOrdEx->getMessage());
+                                unset($_SESSION['mem']['order']['Authy/'],
+                                    $_SESSION['mem']['order']['Authy/child']);
+                            }
+                            if($gcOrdApplied){
+                            # C8: $col / $sens come from the session (setOrderVar), so they
+                            # are never interpolated raw into the JS source. JSON_HEX_* keeps
+                            # quotes/tags/ampersands out of the surrounding <script> and the
+                            # attribute selector is composed client-side from the JSON value.
+                            $gcOrdCol = json_encode((string) $col, JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP);
+                            $gcOrdSens = json_encode(strtolower((string) $sens), JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP);
                             $this->orderReadyJsOrder .="
-                                var __se=document.querySelector(\"#AuthyListForm [th='sorted'][c='".$col."']\");if(__se){__se.setAttribute('sens', '".strtolower($sens)."');__se.setAttribute('order','on');__se.classList.add('sorted');}
+                                (function(){var __c=".$gcOrdCol.",__s=".$gcOrdSens.";var __se=document.querySelector(\"#AuthyListForm [th='sorted'][c=\"+JSON.stringify(__c)+\"]\");if(__se){__se.setAttribute('sens', __s);__se.setAttribute('order','on');__se.classList.add('sorted');}})();
                             ";
+                            }
                         }
                         $f++;
                     }
                 }
             }
-            
-        
-        
+
+
+
 
         $this->pmpoData = $q;
-        
+
 
         return $this->pmpoData;
     }
@@ -487,20 +608,17 @@ class AuthyForm extends Authy
 
             case 'list-button':
                 $listButton = '';
-                
-                
+
+
                 return $listButton;
 
             case 'search':
 
         if($this->setReadOnly !== 'all'){ $this->arrayIdAuthyGroupOptions = $this->selectBoxAuthy_IdAuthyGroup($this, $emptyVar, $data); } else { $this->arrayIdAuthyGroupOptions = []; }
-                $data = [];
-                $data['Username'] = ( !empty( $this->searchMs['Username'])) ? $this->searchMs['Username']:'';
-            $data['IdAuthyGroup'] = ( !empty( $this->searchMs['IdAuthyGroup'])) ? $this->searchMs['IdAuthyGroup']:'';
-            
+
 
                 $trSearch = ''
-                .form(div(div(input('text', 'Username', $this->searchMs['Username'], '  title="'._('Name').'" placeholder="'._('Search').' '._('Name').'"',''),'','class="ac-search-item"'), '', " class='va-mob-search-inline' ").$this->hookListSearchTop.button("<i class='ri-filter-3-line'></i>", " type='button' class='va-mob-filter-btn' aria-haspopup='dialog' aria-label='"._('Filter')."' ").div(
+                .form(div(div(input('text', 'Username', $this->searchMs['Username'] ?? '', '  title="'._('Name').'" placeholder="'._('Search').' '._('Name').'"',''),'','class="ac-search-item"'), '', " class='va-mob-search-inline' ").$this->hookListSearchTop.button("<i class='ri-filter-3-line'></i>", " type='button' class='va-mob-filter-btn' aria-haspopup='dialog' aria-label='"._('Filter')."' ").div(
                     div('',''," class='va-filter-dim' ")
                     .div(
                         div("",''," class='sheet-handle' ")
@@ -513,7 +631,7 @@ class AuthyForm extends Authy
                         .div("<i class='ri-search-line'></i>".input('text','',''," class='va-fsearch-input' autocomplete='off' placeholder='"._('Search')." "._('Authy')."…' "),''," class='va-fsearch' ")
                     ,''," class='va-fblock' data-block='search' ").div(_('More filters'),''," class='va-fgroup-cap' ").div(
                         div(_('Primary group'),''," class='va-fblock-lbl' ")
-                        .div(div(selectboxCustomArray('IdAuthyGroup', $this->arrayIdAuthyGroupOptions, 'Primary group' , "v='ID_AUTHY_GROUP'  s='d' ", $this->searchMs['IdAuthyGroup'], '', false), '', ' class="ac-search-item "'),''," class='va-fselect' ")
+                        .div(div(selectboxCustomArray('IdAuthyGroup', $this->arrayIdAuthyGroupOptions, 'Primary group' , "v='ID_AUTHY_GROUP'  s='d' ", ($this->searchMs['IdAuthyGroup'] ?? ''), '', false), '', ' class="ac-search-item "'),''," class='va-fselect' ")
                     ,''," class='va-fblock va-fblock-select' data-block='select' "),''," class='sheet-body' ")
                         .div(
                         button(span(_('Clear all'))," type='button' class='va-fclear' ")
@@ -524,15 +642,14 @@ class AuthyForm extends Authy
                 ,''," class='va-filter-surface' role='dialog' aria-modal='true' aria-label='"._('Filter')." "._('Authy')."' hidden ").div(
                            button(span(_("Search")),'id="msAuthyBt" title="'._('Search').'" class="icon search"')
                            .button(span(_("Clear")),' title="'._('Clear search').'" id="msAuthyBtClear"')
-                           .input('hidden', 'Seq', $data['Seq'] )
                         ,'','class="ac-search-item ac-action-buttons"')
-                ,"id='formMsAuthy' class='va-mob-searchform' data-entity='Authy'");;
+                ,"id='formMsAuthy' class='va-mob-searchform' data-entity='Authy'");
                 return $trSearch;
 
             case 'add':
             ###### ADD
-                 if($_SESSION[_AUTH_VAR]->hasRights('Authy', 'a') && !$this->setReadOnly){
-                
+                if($_SESSION[_AUTH_VAR]->hasRights('Authy', 'a') && !$this->setReadOnly){
+
                                 $this->listAddButton = htmlLink(
                                     _("Add new")
                                 ,_SITE_URL.$this->virtualClassName."/edit/", "id='addAuthy' title='"._('Add')."' class='button-link-blue add-button'");
@@ -565,7 +682,10 @@ class AuthyForm extends Authy
         $this->in = 'getList';
         $this->isChild = '';
         $this->TableName = 'Authy';
-        $altValue = array (
+        # A11: the per-row reset below restores this seed instead of nulling
+        # $altValue — every `($altValue['X'] !== null) ? … : …` cell read from
+        # row 2 on was an array offset on null (one warning per cell per row).
+        $__altValueInit = array (
   'IdAuthy' => NULL,
   'ValidationKey' => NULL,
   'Username' => NULL,
@@ -597,14 +717,16 @@ class AuthyForm extends Authy
   'IdCreation' => NULL,
   'IdModification' => NULL,
 );
+        $altValue = $__altValueInit;
         $tr = '';
         $trDt = '';
-        $hook = [];
+        $hook = ['class' => ''];
+        $this->orderReadyJsOrder = '';
         $editEvent = '';
         $return = ['html' => '', 'js' => '', 'onReadyJs' => ''];
         $cCmoreCols = '';
 
-        
+
 
         // SECURITY (review H7): uiTabsId comes from request['ui'] and is reflected
         // raw into the list container's data-ui attribute and into the quick-add
@@ -613,22 +735,40 @@ class AuthyForm extends Authy
         $uiTabsId = preg_replace('/[^A-Za-z0-9_]/', '', (string) $uiTabsId);
         $this->uiTabsId = $uiTabsId;
 
-        
+
         $this->IdParent = $IdParent;
         // Child-tab / nested list: mark context for behaviors that branch on isChild.
         if ($IdParent !== null && $IdParent !== '') {
             $this->isChild = 'Authy';
         }
 
+        // A22: list session key for search / order / page. $childTableName is
+        // always empty in the unified getList(), so the standalone list and every
+        // parent-scoped (child-tab) render used to share ONE key and therefore one
+        // page/sort/search state. Standalone keeps the historic '<Table>/' key;
+        // parent-scoped renders get '<Table>/child'. NOT keyed per parent id:
+        // FormHelper stores these keys unbounded, so one entry per visited parent
+        // would grow the session forever — instead the stored page is dropped when
+        // the parent id changes (search/sort intentionally carry over, matching the
+        // pre-existing '<Parent>/<Child>' desktop child-list behaviour).
+        $gcListKey = 'Authy/';
+        if ($IdParent !== null && $IdParent !== '') {
+            $gcListKey = 'Authy/child';
+            if (($_SESSION['mem']['ip'][$gcListKey] ?? null) !== (string) $IdParent) {
+                $_SESSION['mem']['ip'][$gcListKey] = (string) $IdParent;
+                unset($_SESSION['mem']['page'][$gcListKey]);
+            }
+        }
+
         // if Search params
-        $this->searchMs = $this->setSearchVar($request['ms'] ?? '', 'Authy/');
+        $this->searchMs = $this->setSearchVar($request['ms'] ?? '', $gcListKey);
 
         // Guideline filter chips (built from the first ENUM search col).
         $trChips = '';
-        
+
 
         // order
-        $this->searchOrder = $this->setOrderVar($request['order'] ?? '', 'Authy/');
+        $this->searchOrder = $this->setOrderVar($request['order'] ?? '', $gcListKey);
 
         // Clear-sort affordances (chip strip + sort-sheet row), rendered only
         // while the session carries a user ordering for this list. Both carry
@@ -636,20 +776,20 @@ class AuthyForm extends Authy
         // sort handler; the server drops the whole stored ordering on '*'.
         $gcSortClear = '';
         $gcSortSheetClear = '';
-        if (!empty($_SESSION['mem']['order']['Authy/'])) {
+        if (!empty($_SESSION['mem']['order'][$gcListKey])) {
             $gcSortClear = div(button("<i class='ri-sort-desc'></i>"._('Sorted')."<span class='cl-active-filter-x' aria-hidden='true'>×</span>", " type='button' th='sorted' c='*' class='cl-active-filter cl-sort-clear' "), '', " class='va-mob-sortclear' ");
             $gcSortSheetClear = button("<i class='ri-arrow-go-back-line'></i> "._('Default order'), " type='button' th='sorted' c='*' class='va-mob-sortrow va-mob-sortrow-clear' ");
         }
 
         // page
-        $search['page'] = $this->setPageVar($request['pg'] ?? '', 'Authy/');
+        $search['page'] = $this->setPageVar($request['pg'] ?? '', $gcListKey);
 
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
 
         // Parent-scoped lists use the child pager size (same as former inlined getChildList).
         $maxPerPage = ($IdParent !== null && $IdParent !== '') ? $this->childMaxPerPage : $this->maxPerPage;
@@ -660,6 +800,7 @@ class AuthyForm extends Authy
         $resultsCount = 0;
         if(empty($pmpoDataIn)) {
             $pmpoData = $this->getListSearch($IdParent, $search);
+
             $pmpoData = $pmpoData->paginate($search['page'], $maxPerPage);
             $resultsCount = $pmpoData->getNbResults();
 
@@ -685,68 +826,59 @@ class AuthyForm extends Authy
             /**
             *	Main list loop
             **/
-            
+
             $i=0;
             $gcGroupCol = 'Username';
             $gcGroupNorm = function($s){ return strtolower(preg_replace('/[^a-z0-9]/i','', (string) $s)); };
             $gcGroupKey = $gcGroupNorm($gcGroupCol);
-            // Use the RAW request order, not the resolved $this->searchOrder
-            // (getListSearch mutates the latter). Empty => default landing
-            // view => list is in its default (name) order => group A–Z, as
-            // the guideline screenshots show. A user sort only keeps the
-            // headers when it is the name column ascending.
-            $gcReqOrder = $request['order'] ?? '';
+            // $this->searchOrder is the ordering this list actually runs with: the
+            // session ordering for this list, or the schema default ($default_order,
+            // resolved just above) when the session carries none. A table that
+            // declares NO default order leaves it empty — the query emits no ORDER BY,
+            // so the list is NOT name-ordered and gets no headers. Only the first
+            // entry with a truthy sens decides (that is the primary sort column that
+            // getListSearch() applies); direction-agnostic, since a Z→A sort groups
+            // just as well as A→Z. Compared on the NORMALISED FULL column name so a
+            // dotted FK label ('Product.Name') matches its own sort key.
+            // Child-context lists (IdParent set) never letter-group: their order is
+            // the child ranking/FK order, not the name column.
             $gcGroupOn = false;
-            // Child-context lists (IdParent set) never letter-group: their
-            // default order is the child ranking/FK order, not the name
-            // column, so the empty-order assumption below doesn't hold and
-            // the letters render as stray one-letter rows in the drawer.
-            if (empty($IdParent)) {
-                if ($gcReqOrder === '' || $gcReqOrder === null) {
-                    $gcGroupOn = true;
-                } else {
-                    $gcOd = is_array($gcReqOrder) ? $gcReqOrder : json_decode((string) $gcReqOrder, true);
-                    if (is_array($gcOd) && isset($gcOd['col'])) {
-                        $gcFc = (string) $gcOd['col'];
-                        if (strpos($gcFc, '.') !== false) { $gcParts = explode('.', $gcFc); $gcFc = end($gcParts); }
-                        $gcSens = strtolower((string) ($gcOd['sens'] ?? ''));
-                        if ($gcGroupNorm($gcFc) === $gcGroupKey && $gcSens !== 'desc') { $gcGroupOn = true; }
+            if (empty($IdParent) && is_array($this->searchOrder)) {
+                foreach ($this->searchOrder as $gcOrdEntry) {
+                    if (!is_array($gcOrdEntry)) { continue; }
+                    foreach ($gcOrdEntry as $gcOrdCol => $gcOrdSens) {
+                        if (!$gcOrdSens) { continue; }
+                        $gcGroupOn = ($gcGroupNorm($gcOrdCol) === $gcGroupKey);
+                        break 2;
                     }
                 }
             }
             $gcGroupLetter = null;
-            
+
             if(!$this->setReadOnly && !$this->setListRemoveDelete){
                 if($_SESSION[_AUTH_VAR]->hasRights('Authy', 'd')){
                     $this->canDelete = htmlLink("<i class='ri-delete-bin-7-line'></i>", "Javascript:", "class='ac-delete-link' j='deleteAuthy' ");
                 }
             }
-        
+
             $gcListRows = [];
             $gcListRowsDt = [];
             foreach($pcData as $data) {
-                if ($gcGroupOn) {
-                    $gcVal = (string) ((($altValue['Username'] !== null ) ? $altValue['Username'] : $data->getUsername()));
-                    $gcL = mb_strtoupper(mb_substr(trim($gcVal), 0, 1));
-                    if ($gcL !== '' && $gcL !== $gcGroupLetter) {
-                        $gcGroupLetter = $gcL;
-                        $tr .= div(htmlspecialchars($gcL), '', " class='va-mob-sect-head' ");
-                    }
-                }
                 # hoist the row PK encodings once — reused by the mobile + desktop row wrappers below
                 $__pkJsonEsc = htmlspecialchars(json_encode($data->getPrimaryKey()), ENT_QUOTES);
                 $__pkEsc = htmlspecialchars((string)$data->getPrimaryKey(), ENT_QUOTES);
                 $this->listActionCell = '';
-                
-                
+
+
 
                                     $AuthyGroupRelatedByIdAuthyGroup_Name = "";
                                     if($data->getAuthyGroupRelatedByIdAuthyGroup()){
                                         $AuthyGroupRelatedByIdAuthyGroup_Name = $data->getAuthyGroupRelatedByIdAuthyGroup()->getName();
                                     }
-                
 
-                $actionCell =  td($this->canDelete . $this->listActionCell, " class='actionrow' ");
+
+                $actionInner = '' . $this->canDelete . $this->listActionCell;
+                $actionCell =  td($actionInner, " class='actionrow' ");
 
                 $gcRowHtml = div(
  ''
@@ -755,8 +887,8 @@ class AuthyForm extends Authy
    . div(''  . span(htmlspecialchars((string)((($altValue['Fullname'] !== null ) ? $altValue['Fullname'] : $data->getFullname())))." ", "   i='" . $__pkJsonEsc . "' c='Fullname' class=''  j='editAuthy'") . span(htmlspecialchars((string)((($altValue['Email'] !== null ) ? $altValue['Email'] : $data->getEmail())))." ", "   i='" . $__pkJsonEsc . "' c='Email' class=''  j='editAuthy'") . span(htmlspecialchars((string)((($altValue['Expire'] !== null ) ? $altValue['Expire'] : $data->getExpire())))." ", "   i='" . $__pkJsonEsc . "' c='Expire' class=''  j='editAuthy'") . span(htmlspecialchars((string)((($altValue['Deactivate'] !== null ) ? $altValue['Deactivate'] : isntPo($data->getDeactivate()))))." ", "   i='" . $__pkJsonEsc . "' c='Deactivate' class='center'  j='editAuthy'") . span(htmlspecialchars((string)((($altValue['Language'] !== null ) ? $altValue['Language'] : isntPo($data->getLanguage()))))." ", "   i='" . $__pkJsonEsc . "' c='Language' class='center'  j='editAuthy'") . span(htmlspecialchars((string)((($altValue['Theme'] !== null ) ? $altValue['Theme'] : isntPo($data->getTheme()))))." ", "   i='" . $__pkJsonEsc . "' c='Theme' class='center'  j='editAuthy'") . span(htmlspecialchars((string)((($altValue['IdTenant'] !== null ) ? $altValue['IdTenant'] : $data->getIdTenant())))." ", "   i='" . $__pkJsonEsc . "' c='IdTenant' class=''  j='editAuthy'") . span(htmlspecialchars((string)((($altValue['LocationAddress'] !== null ) ? $altValue['LocationAddress'] : $data->getLocationAddress())))." ", "   i='" . $__pkJsonEsc . "' c='LocationAddress' class=''  j='editAuthy'") . span(htmlspecialchars((string)((($altValue['IsRoot'] !== null ) ? $altValue['IsRoot'] : isntPo($data->getIsRoot()))))." ", "   i='" . $__pkJsonEsc . "' c='IsRoot' class='center'  j='editAuthy'") . span(htmlspecialchars((string)((($altValue['IdAuthyGroup'] !== null ) ? $altValue['IdAuthyGroup'] : $AuthyGroupRelatedByIdAuthyGroup_Name)))." ", "   i='" . $__pkJsonEsc . "' c='IdAuthyGroup' class=''  j='editAuthy'") . $cCmoreCols ,''," class='meta' ")
  ,'', " class='body' ")
 . div('' . '<i class="ri-arrow-right-s-line chev"></i>',''," class='trail' ")
-. $actionCell
-                , '', " 
+. div($actionInner, '', " class='actionrow' ")
+                , '', "
                         rid='".$__pkJsonEsc."' data-iterator='".$pcData->getPosition()."'
                         r='data'
                         class='va-mob-row ".$hook['class']." '
@@ -774,25 +906,37 @@ class AuthyForm extends Authy
                 td(span(htmlspecialchars((string)((($altValue['LocationAddress'] !== null ) ? $altValue['LocationAddress'] : $data->getLocationAddress())))." "), "  i='" . $__pkJsonEsc . "' c='LocationAddress' class=''  j='editAuthy'") .
                 td(span(htmlspecialchars((string)((($altValue['IsRoot'] !== null ) ? $altValue['IsRoot'] : isntPo($data->getIsRoot()))))." "), "  i='" . $__pkJsonEsc . "' c='IsRoot' class='center'  j='editAuthy'") .
                 td(span(htmlspecialchars((string)((($altValue['IdAuthyGroup'] !== null ) ? $altValue['IdAuthyGroup'] : $AuthyGroupRelatedByIdAuthyGroup_Name)))." "), "  i='" . $__pkJsonEsc . "' c='IdAuthyGroup' class=''  j='editAuthy'") .  $actionCell, "  rid='".$__pkJsonEsc."' data-iterator='".$pcData->getPosition()."' r='data' class='va-dt-row ".$hook['class']." ' id='AuthyDtRow".$__pkEsc."'");
-                
+
+                # A10: the letter header reads $this->listCardNameVar, which for an
+                # FK-labelled list is a local ($<Rel>_Name) or an $altValue key the
+                # row body above assigns — so it is pushed here, after the body ran
+                # and before the row itself, keeping header→row order.
+
+                if ($gcGroupOn) {
+                    $gcVal = (string) ((($altValue['Username'] !== null ) ? $altValue['Username'] : $data->getUsername()));
+                    $gcL = mb_strtoupper(mb_substr(trim($gcVal), 0, 1));
+                    if ($gcL !== '' && $gcL !== $gcGroupLetter) {
+                        $gcGroupLetter = $gcL;
+                        $gcListRows[] = div(htmlspecialchars($gcL), '', " class='va-mob-sect-head' ");
+                    }
+                }
                 $gcListRows[] = $gcRowHtml;
                 $gcListRowsDt[] = $gcDtRowHtml;
 
                 $i++;
-                $altValue = null;
+                $altValue = $__altValueInit;
             }
             $tr .= implode('', $gcListRows);
             $trDt .= implode('', $gcListRowsDt);
             $tr .= input('hidden', 'rowCountAuthy', $i);
-        }
 
-        
+        }
 
         ## @Paging
         $pagerRow = $this->getPager($pmpoData, $resultsCount, $search);
         $bottomRow = div($pagerRow,'bottomPagerRow', "class='tablesorter'");
 
-        
+
 
         $controlsContent = $this->getListHeader('list-button');
 
@@ -802,11 +946,11 @@ class AuthyForm extends Authy
                 div(
                     href(span(_('Open/close menu')),'javascript:','class="toggle-menu button-link-blue trigger-menu"')
                     .$this->getListHeader('add')
-                    
+
                 ,'','class="default-controls"')
                 .div($controlsContent,'AuthyControlsList', "class='custom-controls'")
                 .$this->hookSwHeader.$HelpDiv
-                
+
             ,'','class="sw-header"')
 
             /*.div(
@@ -850,23 +994,23 @@ class AuthyForm extends Authy
                 ,'listForm',' class="ac-list" ')
                 .$this->hookListBottom
                 .$bottomRow
-            , 'AuthyListForm', " class='va-mob proto-app' data-model='Authy' data-table='Authy' data-ui='".$this->uiTabsId."' ");
+            , 'AuthyListForm', " class='va-mob proto-app' data-model='Authy' data-table='Authy' data-gc-db='authy' data-ui='".$this->uiTabsId."' ");
 
-        
+
 
 
 
         $return['onReadyJs'] =
             $HelpDivJs
-            
+
             ."
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         (function(){var r=document.getElementById('tabsContain');if(r&&window.gcSelectBox){gcSelectBox.bindWithin(r);}})();
         ".$this->hookListReadyJsFirst.$editEvent."
         var __ab=document.getElementById('addAuthyAutoc');
@@ -876,12 +1020,12 @@ class AuthyForm extends Authy
                 fetch('"._SITE_URL."GuiManager',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','X-Requested-With':'XMLHttpRequest'},body:__b.toString()}).then(function(){document.location='"._SITE_URL.$this->virtualClassName."/edit/';});
             });
         }
-        
-        
+
+
         ".$this->orderReadyJsOrder."
         ".$this->hookListReadyJs;
-        
-        $return['js'] .= script("". $this->hookListJs);
+
+        $return['js'] .= script($this->hookListJs);
         return $return;
     }
     /*
@@ -908,57 +1052,43 @@ class AuthyForm extends Authy
         if( $data['Deactivate'] == '' )unset($data['Deactivate']);
         if( $data['Language'] == '' )unset($data['Language']);
         if( $data['Theme'] == '' )unset($data['Theme']);
-        if(!$data['IsRoot']){
-            $data['IsRoot'] = 'No';
-        }
-        if(!$data['IsSystem']){
-            $data['IsSystem'] = 'No';
-        }
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
         #
 
-        //integer not required
+        //varchar not required
         $e->setValidationKey( ($data['ValidationKey'] == '' ) ? null : $data['ValidationKey']);
-        //integer not required
+        //varchar not required
         $e->setUsername( ($data['Username'] == '' ) ? null : $data['Username']);
-        //integer not required
+        //varchar not required
         $e->setFullname( ($data['Fullname'] == '' ) ? null : $data['Fullname']);
         $e->setExpire( ($data['Expire'] == '' || $data['Expire'] == 'null' || substr($data['Expire'],0,10) == '-0001-11-30') ? null : $data['Expire'] );
         $e->setDeactivate(($data['Deactivate'] == '' ) ? null : $data['Deactivate']);
         $e->setLanguage(($data['Language'] == '' ) ? null : $data['Language']);
         $e->setTheme(($data['Theme'] == '' ) ? null : $data['Theme']);
-        //integer not required
+        //varchar not required
         $e->setGoogleSub( ($data['GoogleSub'] == '' ) ? null : $data['GoogleSub']);
-        //integer not required
+        //varchar not required
         $e->setGoogleEmail( ($data['GoogleEmail'] == '' ) ? null : $data['GoogleEmail']);
-        //integer not required
+        //varchar not required
         $e->setResetTokenHash( ($data['ResetTokenHash'] == '' ) ? null : $data['ResetTokenHash']);
         //integer not required
         $e->setResetTokenExpires( ($data['ResetTokenExpires'] == '' ) ? null : $data['ResetTokenExpires']);
-        //integer not required
+        //varchar not required
         $e->setLocationAddress( ($data['LocationAddress'] == '' ) ? null : $data['LocationAddress']);
-        //integer not required
+        //decimal not required
         $e->setLocationLat( ($data['LocationLat'] == '' ) ? null : $data['LocationLat']);
-        //integer not required
+        //decimal not required
         $e->setLocationLng( ($data['LocationLng'] == '' ) ? null : $data['LocationLng']);
-        //integer not required
+        //longvarchar not required
         $e->setRightsAll( ($data['RightsAll'] == '' ) ? null : $data['RightsAll']);
-        //integer not required
+        //longvarchar not required
         $e->setRightsGroup( ($data['RightsGroup'] == '' ) ? null : $data['RightsGroup']);
-        //integer not required
+        //longvarchar not required
         $e->setRightsOwner( ($data['RightsOwner'] == '' ) ? null : $data['RightsOwner']);
-        //integer not required
+        //longvarchar not required
         $e->setOnglet( ($data['Onglet'] == '' ) ? null : $data['Onglet']);
-        $e->setDateCreation( ($data['DateCreation'] == '' || $data['DateCreation'] == 'null' || substr($data['DateCreation'],0,10) == '-0001-11-30') ? null : $data['DateCreation'] );
-        $e->setDateModification( ($data['DateModification'] == '' || $data['DateModification'] == 'null' || substr($data['DateModification'],0,10) == '-0001-11-30') ? null : $data['DateModification'] );
-        //foreign
-        $e->setIdGroupCreation(( $data['IdGroupCreation'] == '' ) ? null : $data['IdGroupCreation']);
-        //foreign
-        $e->setIdCreation(( $data['IdCreation'] == '' ) ? null : $data['IdCreation']);
-        //foreign
-        $e->setIdModification(( $data['IdModification'] == '' ) ? null : $data['IdModification']);
         #
 
         return $e;
@@ -989,13 +1119,7 @@ class AuthyForm extends Authy
         if( $data['Deactivate'] == '' )unset($data['Deactivate']);
         if( $data['Language'] == '' )unset($data['Language']);
         if( $data['Theme'] == '' )unset($data['Theme']);
-        if(!$data['IsRoot']){
-            $data['IsRoot'] = 'No';
-        }
-        if(!$data['IsSystem']){
-            $data['IsSystem'] = 'No';
-        }
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
 
@@ -1054,21 +1178,6 @@ class AuthyForm extends Authy
         if(isset($data['Onglet'])){
             $e->setOnglet( ($data['Onglet'] == '' ) ? null : $data['Onglet']);
         }
-        if(isset($data['DateCreation'])){
-            $e->setDateCreation( ($data['DateCreation'] == '' || $data['DateCreation'] == 'null' || substr($data['DateCreation'],0,10) == '-0001-11-30') ? null : $data['DateCreation'] );
-        }
-        if(isset($data['DateModification'])){
-            $e->setDateModification( ($data['DateModification'] == '' || $data['DateModification'] == 'null' || substr($data['DateModification'],0,10) == '-0001-11-30') ? null : $data['DateModification'] );
-        }
-        if( isset($data['IdGroupCreation']) ){
-            $e->setIdGroupCreation(( $data['IdGroupCreation'] == '' ) ? null : $data['IdGroupCreation']);
-        }
-        if( isset($data['IdCreation']) ){
-            $e->setIdCreation(( $data['IdCreation'] == '' ) ? null : $data['IdCreation']);
-        }
-        if( isset($data['IdModification']) ){
-            $e->setIdModification(( $data['IdModification'] == '' ) ? null : $data['IdModification']);
-        }
         $e->setNew(false);
         return $e;
     }
@@ -1089,14 +1198,11 @@ class AuthyForm extends Authy
 
         $HelpDivJs = '';
         $HelpDiv = '';
-        $childTable = [];
+        $childTable = ['html' => '', 'js' => '', 'onReadyJs' => ''];
         $script_autoc_one = '';
         $ongletf = '';
         $mceInclude = '';
-        $ip_save = '';
-        $ip_save = '';
         $IdParent = 0;
-        $editDialog = ( $data['dialog'] ) ? $data['dialog'] : 'editDialog';
         $uiTabsId = ( $uiTabsId === null ) ? 'tabsContain' : $uiTabsId;
         $jet = 'tr';
 
@@ -1110,13 +1216,13 @@ class AuthyForm extends Authy
             $jet = $jsElementType;
         }
 
-        if($data['data']['ip']){
+        if(!empty($data['data']['ip'])){
             $data['ip'] = $data['data']['ip'];
-            $data['pc'] = $data['data']['pc'];
-            $data['tp'] = $data['data']['tp'];
+            $data['pc'] = $data['data']['pc'] ?? '';
+            $data['tp'] = $data['data']['tp'] ?? '';
         }
 
-        if($data['pc']) {
+        if(!empty($data['pc'])) {
             switch($data['pc']){
 
                 case 'AuthyGroup':
@@ -1143,12 +1249,12 @@ class AuthyForm extends Authy
         $this->SaveButtonJs = "";
 
         if($_SESSION[_AUTH_VAR]->hasRights('Authy', 'a') && !$this->setReadOnly) {
-            $this->formAddButton = htmlLink(_("Add new"), 'Javascript:;' , "id='addAuthy' title='"._('Add')."' class='button-link-blue add-button'");
+            $this->formAddButton = htmlLink(_("Add new"), 'Javascript:;' , "id='addAuthyForm' title='"._('Add')."' class='button-link-blue add-button'");
             $this->bindEditJs = "";
-                if ($this->formAddButton) { $this->formAddButton = str_replace("add-button'", "add-button' data-gc-add='".$this->virtualClassName."' data-gc-ip='".($IdParent ?: '')."'", $this->formAddButton); }
+                if ($this->formAddButton) { $this->formAddButton = str_replace("add-button'", "add-button' data-gc-add='".$this->virtualClassName."' data-gc-ip='".htmlspecialchars((string) ($IdParent ?: ''), ENT_QUOTES)."'", $this->formAddButton); }
         }
 
-        if($id && !$data['reload']) {
+        if($id && empty($data['reload'])) {
 
 
             $q = AuthyQuery::create()
@@ -1277,6 +1383,7 @@ $this->fields['Authy']['RightsOwner']['html'] = stdFieldRow(_("Rights (own recor
 
 
 
+        $ChildOnglet = '';
         if( !isset($this->Authy['request']['ChildHide']) ) {
 
             # define child lists 'Group'
@@ -1341,12 +1448,7 @@ $this->fields['Authy']['RightsOwner']['html'] = stdFieldRow(_("Rights (own recor
             }
         }
         }
-        $ongletf =
-            div(
-                div(button(_('User'), ' type="button" class="tab-btn is-active" role="tab" data-tab="tab_Authy" aria-selected="true" aria-controls="tab_Authy" ')
-                    .button(_('Rights'), ' type="button" class="tab-btn" role="tab" data-tab="tab_rights_all" aria-selected="false" aria-controls="tab_rights_all" '),'',"class='sw-tabnav' role='tablist'")
-            ,'cntOngletAuthy',' class="cntOnglet"')
-        ;
+
 
         $this->formSaveBtn = '';
         if(!$this->setReadOnly){
@@ -1363,6 +1465,16 @@ $this->fields['Authy']['RightsOwner']['html'] = stdFieldRow(_("Rights (own recor
                             .$this->hookListSearchButton
                         ,""," class='form-savehidden' ");
         }
+        // add_hooks: afterFormObj (always emitted — the stub lives in the FormWrapper)
+        if (method_exists($this, 'afterFormObj')) { $this->afterFormObj($data, $dataObj); }
+        // Custom drawer tabs registered by the wrapper (FormHelper::addFormTab, e.g. from afterFormObj).
+        [$gcTabNavFirst, $gcTabNavLast, $gcPanesFirst, $gcPanesLast, $gcFirstTabActive] = $this->renderFormCustomTabs();
+        $ongletf =
+            div(
+                div($gcTabNavFirst . button(_('User'), ' type="button" class="tab-btn' . ($gcFirstTabActive ? ' is-active' : '') . '" role="tab" data-tab="tab_Authy" aria-selected="' . ($gcFirstTabActive ? 'true' : 'false') . '" aria-controls="tab_Authy" ')
+                    .button(_('Rights'), ' type="button" class="tab-btn" role="tab" data-tab="tab_rights_all" aria-selected="false" aria-controls="tab_rights_all" ') . $gcTabNavLast,'',"class='sw-tabnav' role='tablist'")
+            ,'cntOngletAuthy',' class="cntOnglet"')
+        ;
 
 
 
@@ -1427,9 +1539,6 @@ $this->fields['Authy']['RightsOwner']['html'] = stdFieldRow(_("Rights (own recor
                         href('<i class="ri-arrow-left-s-line"></i>'._('User'), _SITE_URL.'Authy', "class='nav-btn'")
                         .div(
                             span(_('User'), "class='nav-title-type'")
-                            .(isset($_gcNameVal) && trim((string)$_gcNameVal) !== ''
-                                ? span(htmlspecialchars($_gcNameVal), "class='nav-title-name'")
-                                : '')
                         , '', "class='nav-title'")
                         .$this->formSaveBtn
                         .href('<i class="ri-close-line"></i>', _SITE_URL.'Authy', "class='nav-btn nav-close' title='"._('Close')."' aria-label='"._('Close')."'")
@@ -1442,8 +1551,8 @@ $this->fields['Authy']['RightsOwner']['html'] = stdFieldRow(_("Rights (own recor
 
                     $this->hookFormInnerTop
 
-                    .div('' .
-                    '<div id="tab_Authy" class="tab-pane is-active" role="tabpanel" data-tab="tab_Authy"><div class="sw-grid">'.
+                    .div('' . $gcPanesFirst .
+                    '<div id="tab_Authy" class="tab-pane' . (($gcFirstTabActive ?? true) ? ' is-active' : '') . '" role="tabpanel" data-tab="tab_Authy"' . (($gcFirstTabActive ?? true) ? '' : ' hidden') . '><div class="sw-grid">'.
 $this->fields['Authy']['Username']['html']
 .$this->fields['Authy']['Fullname']['html']
 .$this->fields['Authy']['Email']['html']
@@ -1463,7 +1572,7 @@ $this->fields['Authy']['Username']['html']
 .'</div></div><div id="tab_rights_all" class="tab-pane" role="tabpanel" data-tab="tab_rights_all" hidden><div class="sw-grid">'
 .$this->fields['Authy']['RightsAll']['html']
 .$this->fields['Authy']['RightsGroup']['html']
-.$this->fields['Authy']['RightsOwner']['html'].'</div></div>' ,'',"class='form-card'")
+.$this->fields['Authy']['RightsOwner']['html'].'</div></div>' . $gcPanesLast ,'',"class='form-card'")
 
                     .$this->formSaveBar
                     .$this->hookFormInnerBottom
@@ -1482,10 +1591,10 @@ $this->fields['Authy']['Username']['html']
         // first tab active by default; the stale session ['ogf'] value is inert.
         $tabs_act = '';
 
-        if($_SESSION['mem']['Authy']['ixmemautocapp'] and $_GET['Autocapp'] == 1) {
-            $Autocapp = $_SESSION['mem']['Authy']['ixmemautocapp'];
-            unset($_SESSION['mem']['Authy']['ixmemautocapp']);
-        }
+        // The ['ixmemautocapp'] restore block is gone: nothing in the emitter,
+        // the runtime or the template ever writes that session key, so the
+        // condition was dead — and with it an unguarded $_GET['Autocapp'] read
+        // (a warning on every form render) and an $Autocapp local nothing read.
 
         $return['js'] .= $childTable['js']
         . script($this->hookFormIncludeJs) ."
@@ -1502,7 +1611,7 @@ $this->fields['Authy']['Username']['html']
 
     if (window.gcLocationField) { gcLocationField.create({\"input\":\"LocationAddress\",\"lat\":\"LocationLat\",\"lng\":\"LocationLng\",\"zip\":null,\"country\":\"ca\"}); }
         ".$childTable['onReadyJs']."
-        ".$error['onReadyJs']."
+        ".($error['onReadyJs'] ?? '')."
         ".$tabs_act."
         ".$this->hookFormReadyJs
         .$script_autoc_one
@@ -1516,73 +1625,119 @@ $this->fields['Authy']['Username']['html']
 
     function lockFormField($fields, $dataObj)
     {
+        if($fields === 'all') {
+            $fields = array_keys($this->fields['Authy']);
+        } elseif(!is_array($fields)) {
+            return;
+        }
+        foreach($fields as $field) {
+            if(!isset($this->gcFieldRoBuilt[$field])) {
+                $this->gcFieldRoBuilt[$field] = true;
+                $this->gcBuildFieldRo($field, $dataObj);
+            }
+            $this->fields['Authy'][$field]['html'] = $this->fieldsRo['Authy'][$field]['html'] ?? '';
+        }
+    }
 
+    /** Build ONE column's read-only markup into $this->fieldsRo (A43). */
+    private function gcBuildFieldRo($field, $dataObj)
+    {
+        switch($field) {
+            case 'Username':
         $this->fieldsRo['Authy']['Username']['html'] = stdFieldRow(_("Username"), div( htmlspecialchars((string)($dataObj->getUsername()), ENT_QUOTES), 'Username_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Username', $dataObj->getUsername(), "s='d'"), 'Username', "", $this->commentsUsername, $this->commentsUsername_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Fullname':
         $this->fieldsRo['Authy']['Fullname']['html'] = stdFieldRow(_("Fullname"), div( htmlspecialchars((string)($dataObj->getFullname()), ENT_QUOTES), 'Fullname_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Fullname', $dataObj->getFullname(), "s='d'"), 'Fullname', "", $this->commentsFullname, $this->commentsFullname_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Email':
         $this->fieldsRo['Authy']['Email']['html'] = stdFieldRow(_("Email"), div( htmlspecialchars((string)($dataObj->getEmail()), ENT_QUOTES), 'Email_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Email', $dataObj->getEmail(), "s='d'"), 'Email', "", $this->commentsEmail, $this->commentsEmail_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'PasswdHash':
         $this->fieldsRo['Authy']['PasswdHash']['html'] = stdFieldRow(_("Password"), div( htmlspecialchars((string)($dataObj->getPasswdHash()), ENT_QUOTES), 'PasswdHash_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'PasswdHash', $dataObj->getPasswdHash(), "s='d'"), 'PasswdHash', "", $this->commentsPasswdHash, $this->commentsPasswdHash_css, 'readonly', ' ', 'no', 'v2');
 
+            break;
+            case 'Expire':
         $this->fieldsRo['Authy']['Expire']['html'] = stdFieldRow(_("Expiration"), div( htmlspecialchars((string)($dataObj->getExpire()), ENT_QUOTES), 'Expire_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Expire', $dataObj->getExpire(), "s='d'"), 'Expire', "", $this->commentsExpire, $this->commentsExpire_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Deactivate':
         $this->fieldsRo['Authy']['Deactivate']['html'] = stdFieldRow(_("Deactivated"), div( htmlspecialchars((string)($dataObj->getDeactivate()), ENT_QUOTES), 'Deactivate_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Deactivate', $dataObj->getDeactivate(), "s='d'"), 'Deactivate', "", $this->commentsDeactivate, $this->commentsDeactivate_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Language':
         $this->fieldsRo['Authy']['Language']['html'] = stdFieldRow(_("Language"), div( htmlspecialchars((string)($dataObj->getLanguage()), ENT_QUOTES), 'Language_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Language', $dataObj->getLanguage(), "s='d'"), 'Language', "", $this->commentsLanguage, $this->commentsLanguage_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Theme':
         $this->fieldsRo['Authy']['Theme']['html'] = stdFieldRow(_("Theme"), div( htmlspecialchars((string)($dataObj->getTheme()), ENT_QUOTES), 'Theme_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Theme', $dataObj->getTheme(), "s='d'"), 'Theme', "", $this->commentsTheme, $this->commentsTheme_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'GoogleSub':
         $this->fieldsRo['Authy']['GoogleSub']['html'] = stdFieldRow(_("Google sub"), div( htmlspecialchars((string)($dataObj->getGoogleSub()), ENT_QUOTES), 'GoogleSub_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'GoogleSub', $dataObj->getGoogleSub(), "s='d'"), 'GoogleSub', "", $this->commentsGoogleSub, $this->commentsGoogleSub_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'GoogleEmail':
         $this->fieldsRo['Authy']['GoogleEmail']['html'] = stdFieldRow(_("Google email"), div( htmlspecialchars((string)($dataObj->getGoogleEmail()), ENT_QUOTES), 'GoogleEmail_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'GoogleEmail', $dataObj->getGoogleEmail(), "s='d'"), 'GoogleEmail', "", $this->commentsGoogleEmail, $this->commentsGoogleEmail_css, 'readonly', ' ', 'no', 'v2');
 
+            break;
+            case 'ResetTokenHash':
         $this->fieldsRo['Authy']['ResetTokenHash']['html'] = stdFieldRow(_("Reset token"), div( htmlspecialchars((string)($dataObj->getResetTokenHash()), ENT_QUOTES), 'ResetTokenHash_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'ResetTokenHash', $dataObj->getResetTokenHash(), "s='d'"), 'ResetTokenHash', "", $this->commentsResetTokenHash, $this->commentsResetTokenHash_css, 'readonly', ' ', 'no', 'v2');
 
+            break;
+            case 'ResetTokenExpires':
         $this->fieldsRo['Authy']['ResetTokenExpires']['html'] = stdFieldRow(_("Reset expires"), div( htmlspecialchars((string)($dataObj->getResetTokenExpires()), ENT_QUOTES), 'ResetTokenExpires_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'ResetTokenExpires', $dataObj->getResetTokenExpires(), "s='d'"), 'ResetTokenExpires', "", $this->commentsResetTokenExpires, $this->commentsResetTokenExpires_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'IdTenant':
         $this->fieldsRo['Authy']['IdTenant']['html'] = stdFieldRow(_("Tenant"), div( htmlspecialchars((string)($dataObj->getIdTenant()), ENT_QUOTES), 'IdTenant_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'IdTenant', $dataObj->getIdTenant(), "s='d'"), 'IdTenant', "", $this->commentsIdTenant, $this->commentsIdTenant_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'LocationAddress':
         $this->fieldsRo['Authy']['LocationAddress']['html'] = stdFieldRow(_("Location Address"), div( htmlspecialchars((string)($dataObj->getLocationAddress()), ENT_QUOTES), 'LocationAddress_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'LocationAddress', $dataObj->getLocationAddress(), "s='d'"), 'LocationAddress', "", $this->commentsLocationAddress, $this->commentsLocationAddress_css, 'readonly', ' ', 'no', 'v2');
 
+            break;
+            case 'IsRoot':
         $this->fieldsRo['Authy']['IsRoot']['html'] = stdFieldRow(_("Root"), div( htmlspecialchars((string)($dataObj->getIsRoot()), ENT_QUOTES), 'IsRoot_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'IsRoot', $dataObj->getIsRoot(), "s='d'"), 'IsRoot', "", $this->commentsIsRoot, $this->commentsIsRoot_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'IdAuthyGroup':
         $this->fieldsRo['Authy']['IdAuthyGroup']['html'] = stdFieldRow(_("Primary group"), div( htmlspecialchars((string)(($dataObj->getAuthyGroupRelatedByIdAuthyGroup())?$dataObj->getAuthyGroupRelatedByIdAuthyGroup()->getName():''), ENT_QUOTES), 'IdAuthyGroup_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'IdAuthyGroup', $dataObj->getIdAuthyGroup(), "s='d'"), 'IdAuthyGroup', "", $this->commentsIdAuthyGroup, $this->commentsIdAuthyGroup_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'RightsAll':
         $this->fieldsRo['Authy']['RightsAll']['html'] = stdFieldRow(_("Rights"), div( htmlspecialchars((string)($dataObj->getRightsAll()), ENT_QUOTES), 'RightsAll_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'RightsAll', $dataObj->getRightsAll(), "s='d'"), 'RightsAll', "", $this->commentsRightsAll, $this->commentsRightsAll_css, 'readonly rightsTr half', ' ', 'no', 'v2');
 
+            break;
+            case 'RightsGroup':
         $this->fieldsRo['Authy']['RightsGroup']['html'] = stdFieldRow(_("Rights (group records)"), div( htmlspecialchars((string)($dataObj->getRightsGroup()), ENT_QUOTES), 'RightsGroup_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'RightsGroup', $dataObj->getRightsGroup(), "s='d'"), 'RightsGroup', "", $this->commentsRightsGroup, $this->commentsRightsGroup_css, 'readonly rightsTr hide half', ' ', 'no', 'v2');
 
+            break;
+            case 'RightsOwner':
         $this->fieldsRo['Authy']['RightsOwner']['html'] = stdFieldRow(_("Rights (own records)"), div( htmlspecialchars((string)($dataObj->getRightsOwner()), ENT_QUOTES), 'RightsOwner_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'RightsOwner', $dataObj->getRightsOwner(), "s='d'"), 'RightsOwner', "", $this->commentsRightsOwner, $this->commentsRightsOwner_css, 'readonly rightsTr hide half', ' ', 'no', 'v2');
 
-
-        if($fields == 'all') {
-            foreach($this->fields['Authy'] as $field => $ar) {
-                $this->fields['Authy'][$field]['html'] = $this->fieldsRo['Authy'][$field]['html'];
-            }
-        } elseif(is_array($fields)) {
-            foreach($fields as $field) {
-                $this->fields['Authy'][$field]['html'] = $this->fieldsRo['Authy'][$field]['html'];
-            }
+            break;
         }
     }
 
@@ -1597,22 +1752,31 @@ $this->fields['Authy']['Username']['html']
  $gcSbHost = is_object($obj) ? $obj : $this;
  $gcSbUseCache = $array
         && class_exists('\\ApiGoat\\Utility\\SelectBoxCache')
+        && method_exists('\\ApiGoat\\Utility\\SelectBoxCache', 'scopeToken')
         && !method_exists($gcSbHost, 'beginSelectboxAuthy_IdAuthyGroup')
         && !method_exists($gcSbHost, 'selectboxDataAuthy_IdAuthyGroup');
     if ($gcSbUseCache) {
-        $gcSbHit = \ApiGoat\Utility\SelectBoxCache::fetch('authy_group', 'Authy_IdAuthyGroup', false);
+        $gcSbHit = \ApiGoat\Utility\SelectBoxCache::fetch('authy_group', 'Authy_IdAuthyGroup', false, \ApiGoat\Utility\SelectBoxCache::scopeToken('AuthyGroup'));
         if ($gcSbHit !== null) {
             return $gcSbHit;
         }
     }
         $q = AuthyGroupQuery::create();
 
+    $gcSbSess = $_SESSION[_AUTH_VAR] ?? null;
+    if (is_object($gcSbSess) && method_exists($gcSbSess, 'applyOwnerGroupScope')) {
+        $gcSbSess->applyOwnerGroupScope($q, $gcSbSess->hasRights('AuthyGroup', 'r'));
+    }
+
     $gcSbHost = is_object($obj) ? $obj : $this;
+    $ret = null;
     if(method_exists($gcSbHost, 'beginSelectboxAuthy_IdAuthyGroup') and $array)
         $ret = $gcSbHost->beginSelectboxAuthy_IdAuthyGroup($q, $dataObj, $data, $obj);
-    if($ret !== false)
+    if($ret !== false) {
             $q->select(['Name', 'IdAuthyGroup']);
             $q->orderBy('Name', 'ASC');
+
+    }
         
             if(!$array){
                 return $q;
@@ -1630,9 +1794,9 @@ $this->fields['Authy']['Username']['html']
         if($override === false){
             $arrayOpt = $pcDataO->toArray();
 
-            $gcSbResult = assocToNum($arrayOpt , true);
+            $gcSbResult = assocToNum($arrayOpt );
             if (!empty($gcSbUseCache)) {
-                \ApiGoat\Utility\SelectBoxCache::store('authy_group', 'Authy_IdAuthyGroup', false, $gcSbResult);
+                \ApiGoat\Utility\SelectBoxCache::store('authy_group', 'Authy_IdAuthyGroup', false, $gcSbResult, \ApiGoat\Utility\SelectBoxCache::scopeToken('AuthyGroup'));
             }
             return $gcSbResult;
         }else{
@@ -1825,6 +1989,7 @@ $this->fields['Authy']['Username']['html']
 
             foreach($gcChildPcData as $data){
                 $this->listActionCellAuthyGroupX = '';
+
                 $actionRow = '';
 
 
@@ -1838,7 +2003,7 @@ $this->fields['Authy']['Username']['html']
 
 
 
-                if($searchNtNSet  || $data->getIdAuthy() == intval($IdAuthy)){
+                if(($searchNtNSet ?? '')  || $data->getIdAuthy() == intval($IdAuthy)){
                     $actionRow .= input('checkbox','check_'.$i, json_encode($checkboxPk), " checked='checked' i='".htmlspecialchars(json_encode($checkboxPk), ENT_QUOTES)."' class='hand'  j='check_multi_AuthyGroupX' ").label('','for="check_'.$i.'"');
                 }else{
                     $actionRow .=
@@ -1906,7 +2071,7 @@ $this->fields['Authy']['Username']['html']
                         ,'',' class="content" ')
                     ,'listFormChild',' class="ac-list" ')
                     .$pagerRow
-                ,'AuthyGroupXListForm', " class='va-mob proto-app' data-model='AuthyGroupX' data-table='AuthyGroupX' data-ui='cntAuthyGroupXdivChild' data-ip='".htmlspecialchars((string)$IdAuthy, ENT_QUOTES)."' data-tp='AuthyGroupX' data-parent='Authy' data-crmodel='AuthyGroup' data-gc-cbulk='".htmlspecialchars(json_encode(['model'=>'AuthyGroupX','ntn'=>1,'bu'=>0,'del'=>0,'parent'=>'Authy','table'=>'Authy','virtual'=>$this->virtualClassName,'pc'=>$parentContainer,'savedMsg'=>_('Saved'),'failMsg'=>_('Save failed'),'attentionMsg'=>_('Attention'),'checkOneMsg'=>_('Please check at least one line.'),'buTitle'=>_('Bulk Update')], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE), ENT_QUOTES)."' data-gc-sort='".$gcChildSortAttr."' ")
+                ,'AuthyGroupXListForm', " class='va-mob proto-app' data-model='AuthyGroupX' data-table='AuthyGroupX' data-gc-db='authy_group_x' data-ui='cntAuthyGroupXdivChild' data-ip='".htmlspecialchars((string)$IdAuthy, ENT_QUOTES)."' data-tp='AuthyGroupX' data-parent='Authy' data-crmodel='AuthyGroup' data-gc-cbulk='".htmlspecialchars(json_encode(['model'=>'AuthyGroupX','ntn'=>1,'bu'=>0,'del'=>0,'parent'=>'Authy','table'=>'Authy','virtual'=>$this->virtualClassName,'pc'=>$parentContainer,'savedMsg'=>_('Saved'),'failMsg'=>_('Save failed'),'attentionMsg'=>_('Attention'),'checkOneMsg'=>_('Please check at least one line.'),'buTitle'=>_('Bulk Update')], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE), ENT_QUOTES)."' data-gc-sort='".$gcChildSortAttr."' ")
             ,'cntAuthyGroupXdivChild', "class='childListWrapper'");
 
 

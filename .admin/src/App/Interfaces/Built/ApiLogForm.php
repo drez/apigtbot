@@ -91,9 +91,29 @@ class ApiLogForm extends ApiLog
     public $formSaveBtn;
     public $formSaveBar;
     public $omMap;
+    /** getEditForm()/getList() field slots, keyed [Model][Column]['html']. */
+    public $fields = [];
+    public $fieldsRo = [];
+    /** Columns whose read-only markup gcBuildFieldRo() has already built (A43). */
+    public $gcFieldRoBuilt = [];
+    /** Sort-header restore JS, rebuilt per list query. */
+    public $orderReadyJsOrder = '';
 
         public $arrayIdApiRbacOptions;
     public $arrayIdAuthyOptions;
+    public $commentsIdApiLog;
+    public $commentsIdApiLog_css;
+    public $commentsIdApiRbac;
+    public $commentsIdApiRbac_css;
+    public $commentsIdAuthy;
+    public $commentsIdAuthy_css;
+    public $commentsTime;
+    public $commentsTime_css;
+    public $commentsRawParameters;
+    public $commentsRawParameters_css;
+    public $commentsCount;
+    public $commentsCount_css;
+    public $ApiLog;
 
 
     /**
@@ -133,7 +153,7 @@ class ApiLogForm extends ApiLog
 
         $q = new ApiLogQuery();
         $q = $this->setAclFilter($q);
-        
+
 
         $q
 
@@ -143,46 +163,71 @@ class ApiLogForm extends ApiLog
                 ->leftJoinWith('Authy');
         if(is_array( $this->searchMs )){
             # main search form
-            
-            
+
+
         }else{
             ## standard list
-            
+
         }
-        
+
         $hasParent = json_decode((string) $IdParent);
         if (!empty($hasParent)) {
             $q->filterByIdApiRbac($hasParent);
         }
 
-        
+
+            $this->orderReadyJsOrder = '';
             if(!empty($this->searchOrder)){
                 $f=0;
                 foreach($this->searchOrder as $order){
                     foreach($order as $col => $sens){
                         if($sens){
                             $tOrd = explode('.',$col);
-                            if($tOrd[1]){
+                            # The ordering comes from the session (setOrderVar keeps
+                            # whatever the client last clicked, and a session can outlive
+                            # a renamed/removed column or be seeded by another list).
+                            # Propel throws on a column it cannot resolve, which turned a
+                            # stale sort key into a 500 on the whole list — fall back to
+                            # the model's default order instead, and forget the key so the
+                            # next request is clean.
+                            $gcOrdApplied = true;
+                            try {
+                            if(!empty($tOrd[1])){
                                 $q->join($tOrd[0]." order".$f);
                                 $orderBy = "use".$tOrd[0]."Query";
                                 $q->$orderBy("order".$f, 'left join')->orderBy($tOrd[1], $sens)->endUse();
                             }else{
                                 $q->orderBy($col,$sens);
                             }
+                            } catch (\Exception $gcOrdEx) {
+                                $gcOrdApplied = false;
+                                error_log('list order: dropping unresolvable column ' . (string) $col
+                                    . ' on ApiLog — ' . $gcOrdEx->getMessage());
+                                unset($_SESSION['mem']['order']['ApiLog/'],
+                                    $_SESSION['mem']['order']['ApiLog/child']);
+                            }
+                            if($gcOrdApplied){
+                            # C8: $col / $sens come from the session (setOrderVar), so they
+                            # are never interpolated raw into the JS source. JSON_HEX_* keeps
+                            # quotes/tags/ampersands out of the surrounding <script> and the
+                            # attribute selector is composed client-side from the JSON value.
+                            $gcOrdCol = json_encode((string) $col, JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP);
+                            $gcOrdSens = json_encode(strtolower((string) $sens), JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP);
                             $this->orderReadyJsOrder .="
-                                var __se=document.querySelector(\"#ApiLogListForm [th='sorted'][c='".$col."']\");if(__se){__se.setAttribute('sens', '".strtolower($sens)."');__se.setAttribute('order','on');__se.classList.add('sorted');}
+                                (function(){var __c=".$gcOrdCol.",__s=".$gcOrdSens.";var __se=document.querySelector(\"#ApiLogListForm [th='sorted'][c=\"+JSON.stringify(__c)+\"]\");if(__se){__se.setAttribute('sens', __s);__se.setAttribute('order','on');__se.classList.add('sorted');}})();
                             ";
+                            }
                         }
                         $f++;
                     }
                 }
             }
-            
-        
-        
+
+
+
 
         $this->pmpoData = $q;
-        
+
 
         return $this->pmpoData;
     }
@@ -200,8 +245,9 @@ class ApiLogForm extends ApiLog
 
         switch($act) {
             case 'head':
-                $trHead = th(_("API ACL model"), " th='sorted' c='ApiRbac.Model' title='"._('ApiRbac.Model')."' ")
-.th(_('API ACL action'), "t='mc' th='sorted' c='ApiRbac.Action'").th(_('API ACL query'), "t='mc' th='sorted' c='ApiRbac.Query'").th(_("User username"), " th='sorted' c='Authy.Username' title='"._('Authy.Username')."' ")
+                $trHead = (empty($this->IdParent) ? th(_("API ACL model"), " th='sorted' c='ApiRbac.Model' title='"._('ApiRbac.Model')."' ")
+.th(_('API ACL action'), "t='mc' th='sorted' c='ApiRbac.Action'").th(_('API ACL query'), "t='mc' th='sorted' c='ApiRbac.Query'") : '')
+.th(_("User username"), " th='sorted' c='Authy.Username' title='"._('Authy.Username')."' ")
 .th(_("Time"), " th='sorted' c='Time' title='" . _('Time')."' ")
 .th(_("Raw parameters"), " th='sorted' c='RawParameters' title='" . _('Raw parameters')."' ")
 .th(_("Count"), " th='sorted' c='Count' title='" . _('Count')."' ")
@@ -214,20 +260,20 @@ class ApiLogForm extends ApiLog
 
             case 'list-button':
                 $listButton = '';
-                
-                
+
+
                 return $listButton;
 
             case 'search':
-                
-                
-                ;
+
+
+
                 return $trSearch;
 
             case 'add':
             ###### ADD
-                 if($_SESSION[_AUTH_VAR]->hasRights('ApiLog', 'a') && !$this->setReadOnly){
-                
+                if($_SESSION[_AUTH_VAR]->hasRights('ApiLog', 'a') && !$this->setReadOnly){
+
                                 $this->listAddButton = htmlLink(
                                     _("Add new")
                                 ,_SITE_URL.$this->virtualClassName."/edit/", "id='addApiLog' title='"._('Add')."' class='button-link-blue add-button'");
@@ -260,7 +306,10 @@ class ApiLogForm extends ApiLog
         $this->in = 'getList';
         $this->isChild = '';
         $this->TableName = 'ApiLog';
-        $altValue = array (
+        # A11: the per-row reset below restores this seed instead of nulling
+        # $altValue — every `($altValue['X'] !== null) ? … : …` cell read from
+        # row 2 on was an array offset on null (one warning per cell per row).
+        $__altValueInit = array (
   'IdApiLog' => NULL,
   'IdApiRbac' => NULL,
   'IdAuthy' => NULL,
@@ -268,14 +317,16 @@ class ApiLogForm extends ApiLog
   'RawParameters' => NULL,
   'Count' => NULL,
 );
+        $altValue = $__altValueInit;
         $tr = '';
         $trDt = '';
-        $hook = [];
+        $hook = ['class' => ''];
+        $this->orderReadyJsOrder = '';
         $editEvent = '';
         $return = ['html' => '', 'js' => '', 'onReadyJs' => ''];
         $cCmoreCols = '';
 
-        
+
 
         // SECURITY (review H7): uiTabsId comes from request['ui'] and is reflected
         // raw into the list container's data-ui attribute and into the quick-add
@@ -284,22 +335,40 @@ class ApiLogForm extends ApiLog
         $uiTabsId = preg_replace('/[^A-Za-z0-9_]/', '', (string) $uiTabsId);
         $this->uiTabsId = $uiTabsId;
 
-        
+
         $this->IdParent = $IdParent;
         // Child-tab / nested list: mark context for behaviors that branch on isChild.
         if ($IdParent !== null && $IdParent !== '') {
             $this->isChild = 'ApiLog';
         }
 
+        // A22: list session key for search / order / page. $childTableName is
+        // always empty in the unified getList(), so the standalone list and every
+        // parent-scoped (child-tab) render used to share ONE key and therefore one
+        // page/sort/search state. Standalone keeps the historic '<Table>/' key;
+        // parent-scoped renders get '<Table>/child'. NOT keyed per parent id:
+        // FormHelper stores these keys unbounded, so one entry per visited parent
+        // would grow the session forever — instead the stored page is dropped when
+        // the parent id changes (search/sort intentionally carry over, matching the
+        // pre-existing '<Parent>/<Child>' desktop child-list behaviour).
+        $gcListKey = 'ApiLog/';
+        if ($IdParent !== null && $IdParent !== '') {
+            $gcListKey = 'ApiLog/child';
+            if (($_SESSION['mem']['ip'][$gcListKey] ?? null) !== (string) $IdParent) {
+                $_SESSION['mem']['ip'][$gcListKey] = (string) $IdParent;
+                unset($_SESSION['mem']['page'][$gcListKey]);
+            }
+        }
+
         // if Search params
-        $this->searchMs = $this->setSearchVar($request['ms'] ?? '', 'ApiLog/');
+        $this->searchMs = $this->setSearchVar($request['ms'] ?? '', $gcListKey);
 
         // Guideline filter chips (built from the first ENUM search col).
         $trChips = '';
-        
+
 
         // order
-        $this->searchOrder = $this->setOrderVar($request['order'] ?? '', 'ApiLog/');
+        $this->searchOrder = $this->setOrderVar($request['order'] ?? '', $gcListKey);
 
         // Clear-sort affordances (chip strip + sort-sheet row), rendered only
         // while the session carries a user ordering for this list. Both carry
@@ -307,24 +376,24 @@ class ApiLogForm extends ApiLog
         // sort handler; the server drops the whole stored ordering on '*'.
         $gcSortClear = '';
         $gcSortSheetClear = '';
-        if (!empty($_SESSION['mem']['order']['ApiLog/'])) {
+        if (!empty($_SESSION['mem']['order'][$gcListKey])) {
             $gcSortClear = div(button("<i class='ri-sort-desc'></i>"._('Sorted')."<span class='cl-active-filter-x' aria-hidden='true'>×</span>", " type='button' th='sorted' c='*' class='cl-active-filter cl-sort-clear' "), '', " class='va-mob-sortclear' ");
             $gcSortSheetClear = button("<i class='ri-arrow-go-back-line'></i> "._('Default order'), " type='button' th='sorted' c='*' class='va-mob-sortrow va-mob-sortrow-clear' ");
         }
 
         // page
-        $search['page'] = $this->setPageVar($request['pg'] ?? '', 'ApiLog/');
+        $search['page'] = $this->setPageVar($request['pg'] ?? '', $gcListKey);
 
-        
-        
+
+
         $default_order[]['Time']='DESC';
         if(empty($this->searchOrder)){
             $this->searchOrder = $default_order;
         }
-        
-        
-        
-        
+
+
+
+
 
         // Parent-scoped lists use the child pager size (same as former inlined getChildList).
         $maxPerPage = ($IdParent !== null && $IdParent !== '') ? $this->childMaxPerPage : $this->maxPerPage;
@@ -335,6 +404,7 @@ class ApiLogForm extends ApiLog
         $resultsCount = 0;
         if(empty($pmpoDataIn)) {
             $pmpoData = $this->getListSearch($IdParent, $search);
+
             $pmpoData = $pmpoData->paginate($search['page'], $maxPerPage);
             $resultsCount = $pmpoData->getNbResults();
 
@@ -360,60 +430,50 @@ class ApiLogForm extends ApiLog
             /**
             *	Main list loop
             **/
-            
+
             $i=0;
             $gcGroupCol = 'ApiRbac.Model';
             $gcGroupNorm = function($s){ return strtolower(preg_replace('/[^a-z0-9]/i','', (string) $s)); };
             $gcGroupKey = $gcGroupNorm($gcGroupCol);
-            // Use the RAW request order, not the resolved $this->searchOrder
-            // (getListSearch mutates the latter). Empty => default landing
-            // view => list is in its default (name) order => group A–Z, as
-            // the guideline screenshots show. A user sort only keeps the
-            // headers when it is the name column ascending.
-            $gcReqOrder = $request['order'] ?? '';
+            // $this->searchOrder is the ordering this list actually runs with: the
+            // session ordering for this list, or the schema default ($default_order,
+            // resolved just above) when the session carries none. A table that
+            // declares NO default order leaves it empty — the query emits no ORDER BY,
+            // so the list is NOT name-ordered and gets no headers. Only the first
+            // entry with a truthy sens decides (that is the primary sort column that
+            // getListSearch() applies); direction-agnostic, since a Z→A sort groups
+            // just as well as A→Z. Compared on the NORMALISED FULL column name so a
+            // dotted FK label ('Product.Name') matches its own sort key.
+            // Child-context lists (IdParent set) never letter-group: their order is
+            // the child ranking/FK order, not the name column.
             $gcGroupOn = false;
-            // Child-context lists (IdParent set) never letter-group: their
-            // default order is the child ranking/FK order, not the name
-            // column, so the empty-order assumption below doesn't hold and
-            // the letters render as stray one-letter rows in the drawer.
-            if (empty($IdParent)) {
-                if ($gcReqOrder === '' || $gcReqOrder === null) {
-                    $gcGroupOn = false;
-                } else {
-                    $gcOd = is_array($gcReqOrder) ? $gcReqOrder : json_decode((string) $gcReqOrder, true);
-                    if (is_array($gcOd) && isset($gcOd['col'])) {
-                        $gcFc = (string) $gcOd['col'];
-                        if (strpos($gcFc, '.') !== false) { $gcParts = explode('.', $gcFc); $gcFc = end($gcParts); }
-                        $gcSens = strtolower((string) ($gcOd['sens'] ?? ''));
-                        if ($gcGroupNorm($gcFc) === $gcGroupKey && $gcSens !== 'desc') { $gcGroupOn = true; }
+            if (empty($IdParent) && is_array($this->searchOrder)) {
+                foreach ($this->searchOrder as $gcOrdEntry) {
+                    if (!is_array($gcOrdEntry)) { continue; }
+                    foreach ($gcOrdEntry as $gcOrdCol => $gcOrdSens) {
+                        if (!$gcOrdSens) { continue; }
+                        $gcGroupOn = ($gcGroupNorm($gcOrdCol) === $gcGroupKey);
+                        break 2;
                     }
                 }
             }
             $gcGroupLetter = null;
-            
+
             if(!$this->setReadOnly && !$this->setListRemoveDelete){
                 if($_SESSION[_AUTH_VAR]->hasRights('ApiLog', 'd')){
                     $this->canDelete = htmlLink("<i class='ri-delete-bin-7-line'></i>", "Javascript:", "class='ac-delete-link' j='deleteApiLog' ");
                 }
             }
-        
+
             $gcListRows = [];
             $gcListRowsDt = [];
             foreach($pcData as $data) {
-                if ($gcGroupOn) {
-                    $gcVal = (string) ((($altValue['IdApiRbac'] !== null ) ? $altValue['IdApiRbac'] : $altValue['ApiRbac_Model']));
-                    $gcL = mb_strtoupper(mb_substr(trim($gcVal), 0, 1));
-                    if ($gcL !== '' && $gcL !== $gcGroupLetter) {
-                        $gcGroupLetter = $gcL;
-                        $tr .= div(htmlspecialchars($gcL), '', " class='va-mob-sect-head' ");
-                    }
-                }
                 # hoist the row PK encodings once — reused by the mobile + desktop row wrappers below
                 $__pkJsonEsc = htmlspecialchars(json_encode($data->getPrimaryKey()), ENT_QUOTES);
                 $__pkEsc = htmlspecialchars((string)$data->getPrimaryKey(), ENT_QUOTES);
                 $this->listActionCell = '';
-                
-                
+
+
 
         $altValue['ApiRbac_Model'] = "";
         if($data->getApiRbac()){
@@ -431,51 +491,76 @@ class ApiLogForm extends ApiLog
         if($data->getAuthy()){
             $altValue['Authy_Username'] = $data->getAuthy()->getUsername();
         }
-                
 
-                $actionCell =  td($this->canDelete . $this->listActionCell, " class='actionrow' ");
+
+                $actionInner = '' . $this->canDelete . $this->listActionCell;
+                $actionCell =  td($actionInner, " class='actionrow' ");
 
                 $gcRowHtml = div(
  ''
  . div(
-   div('' . span(htmlspecialchars((string)((($altValue['IdApiRbac'] !== null ) ? $altValue['IdApiRbac'] : $altValue['ApiRbac_Model'])))." ", "   i='" . $__pkJsonEsc . "' c='IdApiRbac' class=''  j='editApiLog'") ,''," class='name' ")
-   . div(''  . span(htmlspecialchars((string)((($altValue['IdAuthy'] !== null ) ? $altValue['IdAuthy'] : $altValue['Authy_Username'])))." ", "   i='" . $__pkJsonEsc . "' c='IdAuthy' class=''  j='editApiLog'") . span(htmlspecialchars((string)((($altValue['Time'] !== null ) ? $altValue['Time'] : $data->getTime())))." ", "   i='" . $__pkJsonEsc . "' c='Time' class=''  j='editApiLog'") . span(htmlspecialchars((string)((($altValue['RawParameters'] !== null ) ? $altValue['RawParameters'] : substr(strip_tags((string)($data->getRawParameters() ?? '')), 0, 100))))." ", "   i='" . $__pkJsonEsc . "' c='RawParameters' class=''  j='editApiLog'") . span(htmlspecialchars((string)((($altValue['Count'] !== null ) ? $altValue['Count'] : $data->getCount())))." ", "   i='" . $__pkJsonEsc . "' c='Count' class=''  j='editApiLog'") . $cCmoreCols ,''," class='meta' ")
+   div('' . (empty($this->IdParent) ? (span(htmlspecialchars((string)((($altValue['IdApiRbac'] !== null ) ? $altValue['IdApiRbac'] : $altValue['ApiRbac_Model'])))." ", "   i='" . $__pkJsonEsc . "' c='IdApiRbac' class=''  j='editApiLog'")) : (span(htmlspecialchars((string)((($altValue['IdAuthy'] !== null ) ? $altValue['IdAuthy'] : $altValue['Authy_Username'])))." ", "   i='" . $__pkJsonEsc . "' c='IdAuthy' class=''  j='editApiLog'"))) ,''," class='name' ")
+   . div(''  . (empty($this->IdParent) ? (''  . span(htmlspecialchars((string)((($altValue['IdAuthy'] !== null ) ? $altValue['IdAuthy'] : $altValue['Authy_Username'])))." ", "   i='" . $__pkJsonEsc . "' c='IdAuthy' class=''  j='editApiLog'") . span(htmlspecialchars((string)((($altValue['Time'] !== null ) ? $altValue['Time'] : $data->getTime())))." ", "   i='" . $__pkJsonEsc . "' c='Time' class=''  j='editApiLog'") . span(htmlspecialchars((string)((($altValue['RawParameters'] !== null ) ? $altValue['RawParameters'] : substr(strip_tags((string)($data->getRawParameters() ?? '')), 0, 100))))." ", "   i='" . $__pkJsonEsc . "' c='RawParameters' class=''  j='editApiLog'") . span(htmlspecialchars((string)((($altValue['Count'] !== null ) ? $altValue['Count'] : $data->getCount())))." ", "   i='" . $__pkJsonEsc . "' c='Count' class=''  j='editApiLog'")) : (''  . span(htmlspecialchars((string)((($altValue['Time'] !== null ) ? $altValue['Time'] : $data->getTime())))." ", "   i='" . $__pkJsonEsc . "' c='Time' class=''  j='editApiLog'") . span(htmlspecialchars((string)((($altValue['RawParameters'] !== null ) ? $altValue['RawParameters'] : substr(strip_tags((string)($data->getRawParameters() ?? '')), 0, 100))))." ", "   i='" . $__pkJsonEsc . "' c='RawParameters' class=''  j='editApiLog'") . span(htmlspecialchars((string)((($altValue['Count'] !== null ) ? $altValue['Count'] : $data->getCount())))." ", "   i='" . $__pkJsonEsc . "' c='Count' class=''  j='editApiLog'"))) . $cCmoreCols ,''," class='meta' ")
  ,'', " class='body' ")
 . div('' . '<i class="ri-arrow-right-s-line chev"></i>',''," class='trail' ")
-. $actionCell
-                , '', " 
+. div($actionInner, '', " class='actionrow' ")
+                , '', "
                         rid='".$__pkJsonEsc."' data-iterator='".$pcData->getPosition()."'
                         r='data'
                         class='va-mob-row ".$hook['class']." '
                         id='ApiLogRow".$__pkEsc."'")
                 ;
                 $gcDtRowHtml = tr(
+                    (empty($this->IdParent) ?
                 td(span(htmlspecialchars((string)((($altValue['IdApiRbac'] !== null ) ? $altValue['IdApiRbac'] : $altValue['ApiRbac_Model'])))." "), "  i='" . $__pkJsonEsc . "' c='IdApiRbac' class=''  j='editApiLog'") . td(span(htmlspecialchars((string)($altValue['ApiRbac_Action'])).''), " c='ApiRbac__Action' j='editApiLog' i='".$__pkJsonEsc."'").
-                            td(span(htmlspecialchars((string)($altValue['ApiRbac_Query'])).''), " c='ApiRbac__Query' j='editApiLog' i='".$__pkJsonEsc."'").
-
+                            td(span(htmlspecialchars((string)($altValue['ApiRbac_Query'])).''), " c='ApiRbac__Query' j='editApiLog' i='".$__pkJsonEsc."'") : '') .
                 td(span(htmlspecialchars((string)((($altValue['IdAuthy'] !== null ) ? $altValue['IdAuthy'] : $altValue['Authy_Username'])))." "), "  i='" . $__pkJsonEsc . "' c='IdAuthy' class=''  j='editApiLog'") .
                 td(span(htmlspecialchars((string)((($altValue['Time'] !== null ) ? $altValue['Time'] : $data->getTime())))." "), "  i='" . $__pkJsonEsc . "' c='Time' class=''  j='editApiLog'") .
                 td(span(htmlspecialchars((string)((($altValue['RawParameters'] !== null ) ? $altValue['RawParameters'] : substr(strip_tags((string)($data->getRawParameters() ?? '')), 0, 100))))." "), "  i='" . $__pkJsonEsc . "' c='RawParameters' class=''  j='editApiLog'") .
                 td(span(htmlspecialchars((string)((($altValue['Count'] !== null ) ? $altValue['Count'] : $data->getCount())))." "), "  i='" . $__pkJsonEsc . "' c='Count' class=''  j='editApiLog'") .  $actionCell, "  rid='".$__pkJsonEsc."' data-iterator='".$pcData->getPosition()."' r='data' class='va-dt-row ".$hook['class']." ' id='ApiLogDtRow".$__pkEsc."'");
-                
+
+                # A10: the letter header reads $this->listCardNameVar, which for an
+                # FK-labelled list is a local ($<Rel>_Name) or an $altValue key the
+                # row body above assigns — so it is pushed here, after the body ran
+                # and before the row itself, keeping header→row order.
+
+                if ($gcGroupOn) {
+                    $gcVal = (string) ((($altValue['IdApiRbac'] !== null ) ? $altValue['IdApiRbac'] : $altValue['ApiRbac_Model']));
+                    $gcL = mb_strtoupper(mb_substr(trim($gcVal), 0, 1));
+                    if ($gcL !== '' && $gcL !== $gcGroupLetter) {
+                        $gcGroupLetter = $gcL;
+                        $gcListRows[] = div(htmlspecialchars($gcL), '', " class='va-mob-sect-head' ");
+                    }
+                }
                 $gcListRows[] = $gcRowHtml;
                 $gcListRowsDt[] = $gcDtRowHtml;
 
                 $i++;
-                $altValue = null;
+                $altValue = $__altValueInit;
             }
             $tr .= implode('', $gcListRows);
             $trDt .= implode('', $gcListRowsDt);
             $tr .= input('hidden', 'rowCountApiLog', $i);
+
         }
 
-        
+        $gcParentRef = '';
+        $gcParentPk = json_decode((string) $IdParent);
+        if (!empty($gcParentPk) && $_SESSION[_AUTH_VAR]->hasRights('ApiRbac', 'r')) {
+            $gcParentObj = $_SESSION[_AUTH_VAR]->loadPkScoped(ApiRbacQuery::class, $gcParentPk, 'ApiRbac', 'r');
+            if ($gcParentObj) {
+                $gcParentRef = trim((string) ($gcParentObj->getModel() ?? '') . ' ' . (string) ($gcParentObj->getAction() ?? '') . ' ' . (string) ($gcParentObj->getQuery() ?? ''));
+                if ($gcParentRef === '') {
+                    $gcParentRef = is_scalar($gcParentPk) ? (string) $gcParentPk : (string) json_encode($gcParentPk);
+                }
+            }
+        }
 
         ## @Paging
         $pagerRow = $this->getPager($pmpoData, $resultsCount, $search);
         $bottomRow = div($pagerRow,'bottomPagerRow', "class='tablesorter'");
 
-        
+
 
         $controlsContent = $this->getListHeader('list-button');
 
@@ -511,7 +596,7 @@ class ApiLogForm extends ApiLog
                 ,'','class="default-controls"')
                 .div($controlsContent,'ApiLogControlsList', "class='custom-controls'")
                 .$this->hookSwHeader.$HelpDiv
-                
+
             ,'','class="sw-header"')
 
             /*.div(
@@ -527,6 +612,7 @@ class ApiLogForm extends ApiLog
                         .button("<i class='ri-sort-desc'></i>", " type='button' class='va-mob-sort-btn' aria-haspopup='true' aria-label='"._('Sort')."' ")
                         .(($_SESSION[_AUTH_VAR]->hasRights('ApiLog', 'a') && !$this->setReadOnly) ? href("<i class='ri-add-line'></i>"._('New'), _SITE_URL.$this->virtualClassName."/edit/", " class='add-btn' ") : '')
                     ,''," class='va-mob-row1' ")
+                    .($gcParentRef !== '' ? div(span(_('API ACL'), " class='va-mob-parent-type' ") . span(htmlspecialchars($gcParentRef), " class='va-mob-parent-name' "), '', " class='va-mob-parent' ") : '')
                     .div(
                         "<i class='ri-search-line'></i>"
                         .$this->getListHeader('search')
@@ -542,7 +628,7 @@ class ApiLogForm extends ApiLog
                             span(_('Sort by'), " class='sheet-title' ")
                             .button("<i class='ri-close-line'></i>", " type='button' class='sheet-close va-mob-sortsheet-close' aria-label='"._('Close')."' ")
                         ,''," class='sheet-head' ")
-                        .div("".$gcSortSheetClear . button(_("API ACL model"), " type='button' th='sorted' c='ApiRbac.Model' class='va-mob-sortrow' ") . button(_("User username"), " type='button' th='sorted' c='Authy.Username' class='va-mob-sortrow' ") . button(_("Time"), " type='button' th='sorted' c='Time' class='va-mob-sortrow' ") . button(_("Raw parameters"), " type='button' th='sorted' c='RawParameters' class='va-mob-sortrow' ") . button(_("Count"), " type='button' th='sorted' c='Count' class='va-mob-sortrow' "), '', " class='sheet-body va-mob-sortsheet-body' ")
+                        .div("".$gcSortSheetClear . (empty($this->IdParent) ? button(_("API ACL model"), " type='button' th='sorted' c='ApiRbac.Model' class='va-mob-sortrow' ") : '') . button(_("User username"), " type='button' th='sorted' c='Authy.Username' class='va-mob-sortrow' ") . button(_("Time"), " type='button' th='sorted' c='Time' class='va-mob-sortrow' ") . button(_("Raw parameters"), " type='button' th='sorted' c='RawParameters' class='va-mob-sortrow' ") . button(_("Count"), " type='button' th='sorted' c='Count' class='va-mob-sortrow' "), '', " class='sheet-body va-mob-sortsheet-body' ")
                     ,''," class='va-mob-sortsheet-panel' ")
                 ,''," class='va-mob-sortsheet' ")
                 .input('hidden', 'rowCount', $i, "s='d'")
@@ -555,9 +641,9 @@ class ApiLogForm extends ApiLog
                 ,'listForm',' class="ac-list" ')
                 .$this->hookListBottom
                 .$bottomRow
-            , 'ApiLogListForm', " class='va-mob proto-app' data-model='ApiLog' data-table='ApiLog' data-ui='".$this->uiTabsId."' " . ($IdParent !== null && $IdParent !== '' ? " data-ip='".htmlspecialchars((string)$IdParent, ENT_QUOTES)."' data-tp='ApiLog' data-parent='ApiRbac'" : ''));
+            , 'ApiLogListForm', " class='va-mob proto-app' data-model='ApiLog' data-table='ApiLog' data-gc-db='api_log' data-ui='".$this->uiTabsId."' " . ($IdParent !== null && $IdParent !== '' ? " data-ip='".htmlspecialchars((string)$IdParent, ENT_QUOTES)."' data-tp='ApiLog' data-parent='ApiRbac'" : ''));
 
-        
+
 
 
 
@@ -647,13 +733,13 @@ class ApiLogForm extends ApiLog
         });
     })();"
             ."
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         (function(){var r=document.getElementById('tabsContain');if(r&&window.gcSelectBox){gcSelectBox.bindWithin(r);}})();
         ".$this->hookListReadyJsFirst.$editEvent."
         var __ab=document.getElementById('addApiLogAutoc');
@@ -663,12 +749,12 @@ class ApiLogForm extends ApiLog
                 fetch('"._SITE_URL."GuiManager',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','X-Requested-With':'XMLHttpRequest'},body:__b.toString()}).then(function(){document.location='"._SITE_URL.$this->virtualClassName."/edit/';});
             });
         }
-        
-        
+
+
         ".$this->orderReadyJsOrder."
         ".$this->hookListReadyJs;
-        
-        $return['js'] .= script("". $this->hookListJs);
+
+        $return['js'] .= script($this->hookListJs);
         return $return;
     }
     /*
@@ -681,7 +767,7 @@ class ApiLogForm extends ApiLog
         $e = new ApiLog();
 
 
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
         #
@@ -689,7 +775,7 @@ class ApiLogForm extends ApiLog
         //foreign
         $e->setIdAuthy(( $data['IdAuthy'] == '' ) ? null : $data['IdAuthy']);
         $e->setTime( ($data['Time'] == '' || $data['Time'] == 'null' || substr($data['Time'], 0, 10) == '-0001-11-30')?date('Y-m-d'):$data['Time'] );
-        //integer not required
+        //longvarchar not required
         $e->setRawParameters( ($data['RawParameters'] == '' ) ? null : $data['RawParameters']);
         #
 
@@ -707,7 +793,7 @@ class ApiLogForm extends ApiLog
         if ($e === null) { return null; }
 
 
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
 
@@ -741,14 +827,11 @@ class ApiLogForm extends ApiLog
 
         $HelpDivJs = '';
         $HelpDiv = '';
-        $childTable = [];
+        $childTable = ['html' => '', 'js' => '', 'onReadyJs' => ''];
         $script_autoc_one = '';
         $ongletf = '';
         $mceInclude = '';
-        $ip_save = '';
-        $ip_save = '';
         $IdParent = 0;
-        $editDialog = ( $data['dialog'] ) ? $data['dialog'] : 'editDialog';
         $uiTabsId = ( $uiTabsId === null ) ? 'tabsContain' : $uiTabsId;
         $jet = 'tr';
 
@@ -762,13 +845,13 @@ class ApiLogForm extends ApiLog
             $jet = $jsElementType;
         }
 
-        if($data['data']['ip']){
+        if(!empty($data['data']['ip'])){
             $data['ip'] = $data['data']['ip'];
-            $data['pc'] = $data['data']['pc'];
-            $data['tp'] = $data['data']['tp'];
+            $data['pc'] = $data['data']['pc'] ?? '';
+            $data['tp'] = $data['data']['tp'] ?? '';
         }
 
-        if($data['pc']) {
+        if(!empty($data['pc'])) {
             switch($data['pc']){
 
                 case 'ApiRbac':
@@ -799,12 +882,12 @@ class ApiLogForm extends ApiLog
         $this->SaveButtonJs = "";
 
         if($_SESSION[_AUTH_VAR]->hasRights('ApiLog', 'a') && !$this->setReadOnly) {
-            $this->formAddButton = htmlLink(_("Add new"), 'Javascript:;' , "id='addApiLog' title='"._('Add')."' class='button-link-blue add-button'");
+            $this->formAddButton = htmlLink(_("Add new"), 'Javascript:;' , "id='addApiLogForm' title='"._('Add')."' class='button-link-blue add-button'");
             $this->bindEditJs = "";
-                if ($this->formAddButton) { $this->formAddButton = str_replace("add-button'", "add-button' data-gc-add='".$this->virtualClassName."' data-gc-ip='".($IdParent ?: '')."'", $this->formAddButton); }
+                if ($this->formAddButton) { $this->formAddButton = str_replace("add-button'", "add-button' data-gc-add='".$this->virtualClassName."' data-gc-ip='".htmlspecialchars((string) ($IdParent ?: ''), ENT_QUOTES)."'", $this->formAddButton); }
         }
 
-        if($id && !$data['reload']) {
+        if($id && empty($data['reload'])) {
 
 
             $q = ApiLogQuery::create()
@@ -865,7 +948,7 @@ class ApiLogForm extends ApiLog
 
 $this->fields['ApiLog']['IdApiRbac']['html'] = stdFieldRow(_("Rule"), selectboxCustomArray('IdApiRbac', $this->arrayIdApiRbacOptions, "", "v='ID_API_RBAC'  s='d'  val='".$dataObj->getIdApiRbac()."'", $dataObj->getIdApiRbac()), 'IdApiRbac', "", $this->commentsIdApiRbac, $this->commentsIdApiRbac_css, ' half', ' ', 'no', 'v2');
 $this->fields['ApiLog']['IdAuthy']['html'] = stdFieldRow(_("User"),
-    input('text', 'IdAuthyAutoc', $dataObj->getAuthy()?->getFullname(), " title='".str_replace("'","", (string)($dataObj->getAuthy()?->getFullname()))."' v='ID_AUTHY' rid='IdAuthy' placeholder='"._('User')."' j='autocomplete' class='ui-autocomplete-input' data-gc-autoc='{&quot;name&quot;:&quot;IdAuthy&quot;,&quot;table&quot;:&quot;ApiLog&quot;,&quot;childTable&quot;:&quot;Authy&quot;,&quot;spec&quot;:{&quot;fkt&quot;:&quot;Authy&quot;,&quot;show&quot;:[&quot;Fullname&quot;],&quot;id&quot;:&quot;IdAuthy&quot;,&quot;filter&quot;:&quot;Fullname&quot;,&quot;term&quot;:&quot;str&quot;,&quot;limit&quot;:20}}'")
+    input('text', 'IdAuthyAutoc', $dataObj->getAuthy()?->getUsername(), " title='".str_replace("'","", (string)($dataObj->getAuthy()?->getUsername()))."' v='ID_AUTHY' rid='IdAuthy' placeholder='"._('User')."' j='autocomplete' class='ui-autocomplete-input' data-gc-autoc='{&quot;name&quot;:&quot;IdAuthy&quot;,&quot;table&quot;:&quot;ApiLog&quot;,&quot;childTable&quot;:&quot;Authy&quot;,&quot;spec&quot;:{&quot;fkt&quot;:&quot;Authy&quot;,&quot;show&quot;:[&quot;Username&quot;],&quot;id&quot;:&quot;IdAuthy&quot;,&quot;filter&quot;:&quot;Username&quot;,&quot;term&quot;:&quot;str&quot;,&quot;limit&quot;:20}}'")
     .input('hidden', 'IdAuthy', $dataObj->getIdAuthy(), "s='d'"), 'IdAuthy', "", $this->commentsIdAuthy, $this->commentsIdAuthy_css, '', ' ', 'no', 'v2');
 $this->fields['ApiLog']['Time']['html'] = stdFieldRow(_("Time"), input('datetime-local', 'Time', $dataObj->getTime(), "  j='date' autocomplete='off' placeholder='YYYY-MM-DD hh:mm:ss' size='30'  s='d' class='req' title='Time'"), 'Time', "", $this->commentsTime, $this->commentsTime_css, ' half', ' ', 'no', 'v2');
 $this->fields['ApiLog']['RawParameters']['html'] = stdFieldRow(_("Raw parameters"), textarea('RawParameters', htmlentities((string)($dataObj->getRawParameters() ?? '')) ,"placeholder='".str_replace("'","&#39;",_('Raw parameters'))."' cols='71' v='RAW_PARAMETERS' s='d'  class=' ' style='' spellcheck='false'"), 'RawParameters', "", $this->commentsRawParameters, $this->commentsRawParameters_css, '', ' ', 'no', 'v2');
@@ -901,6 +984,13 @@ $this->fields['ApiLog']['Count']['html'] = stdFieldRow(_("Count"), input('number
                             .$this->hookListSearchButton
                         ,""," class='form-savehidden' ");
         }
+        // add_hooks: afterFormObj (always emitted — the stub lives in the FormWrapper)
+        if (method_exists($this, 'afterFormObj')) { $this->afterFormObj($data, $dataObj); }
+        $gcFirstTabActive = true;
+        if (!empty($this->formCustomTabs)) {
+            throw new \LogicException('ApiLog: addFormTab() needs add_tab_columns (without add_field_groups) on the table — there is no tab strip to put the tab in');
+        }
+
 
 
 
@@ -955,9 +1045,6 @@ $this->fields['ApiLog']['Count']['html'] = stdFieldRow(_("Count"), input('number
                         href('<i class="ri-arrow-left-s-line"></i>'._('API log'), _SITE_URL.'ApiLog', "class='nav-btn'")
                         .div(
                             span(_('API log'), "class='nav-title-type'")
-                            .(isset($_gcNameVal) && trim((string)$_gcNameVal) !== ''
-                                ? span(htmlspecialchars($_gcNameVal), "class='nav-title-name'")
-                                : '')
                         , '', "class='nav-title'")
                         .$this->formSaveBtn
                         .href('<i class="ri-close-line"></i>', _SITE_URL.'ApiLog', "class='nav-btn nav-close' title='"._('Close')."' aria-label='"._('Close')."'")
@@ -994,10 +1081,10 @@ $this->fields['ApiLog']['IdApiRbac']['html']
         // first tab active by default; the stale session ['ogf'] value is inert.
         $tabs_act = '';
 
-        if($_SESSION['mem']['ApiLog']['ixmemautocapp'] and $_GET['Autocapp'] == 1) {
-            $Autocapp = $_SESSION['mem']['ApiLog']['ixmemautocapp'];
-            unset($_SESSION['mem']['ApiLog']['ixmemautocapp']);
-        }
+        // The ['ixmemautocapp'] restore block is gone: nothing in the emitter,
+        // the runtime or the template ever writes that session key, so the
+        // condition was dead — and with it an unguarded $_GET['Autocapp'] read
+        // (a warning on every form render) and an $Autocapp local nothing read.
 
         $return['js'] .= $childTable['js']
         . script($this->hookFormIncludeJs) ."
@@ -1011,7 +1098,7 @@ $this->fields['ApiLog']['IdApiRbac']['html']
         ".$this->SaveButtonJs."
 
         ".$childTable['onReadyJs']."
-        ".$error['onReadyJs']."
+        ".($error['onReadyJs'] ?? '')."
         ".$tabs_act."
         ".$this->hookFormReadyJs
         .$script_autoc_one
@@ -1025,31 +1112,49 @@ $this->fields['ApiLog']['IdApiRbac']['html']
 
     function lockFormField($fields, $dataObj)
     {
+        if($fields === 'all') {
+            $fields = array_keys($this->fields['ApiLog']);
+        } elseif(!is_array($fields)) {
+            return;
+        }
+        foreach($fields as $field) {
+            if(!isset($this->gcFieldRoBuilt[$field])) {
+                $this->gcFieldRoBuilt[$field] = true;
+                $this->gcBuildFieldRo($field, $dataObj);
+            }
+            $this->fields['ApiLog'][$field]['html'] = $this->fieldsRo['ApiLog'][$field]['html'] ?? '';
+        }
+    }
 
+    /** Build ONE column's read-only markup into $this->fieldsRo (A43). */
+    private function gcBuildFieldRo($field, $dataObj)
+    {
+        switch($field) {
+            case 'IdApiRbac':
         $this->fieldsRo['ApiLog']['IdApiRbac']['html'] = stdFieldRow(_("Rule"), div( htmlspecialchars((string)(($dataObj->getApiRbac())?($dataObj->getApiRbac()->getModel().' '.$dataObj->getApiRbac()->getAction().' '.$dataObj->getApiRbac()->getQuery()):''), ENT_QUOTES), 'IdApiRbac_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'IdApiRbac', $dataObj->getIdApiRbac(), "s='d'"), 'IdApiRbac', "", $this->commentsIdApiRbac, $this->commentsIdApiRbac_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'IdAuthy':
         $this->fieldsRo['ApiLog']['IdAuthy']['html'] = stdFieldRow(_("User"), div( htmlspecialchars((string)(($dataObj->getAuthy())?($dataObj->getAuthy()->getUsername()):''), ENT_QUOTES), 'IdAuthy_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'IdAuthy', $dataObj->getIdAuthy(), "s='d'"), 'IdAuthy', "", $this->commentsIdAuthy, $this->commentsIdAuthy_css, 'readonly', ' ', 'no', 'v2');
 
+            break;
+            case 'Time':
         $this->fieldsRo['ApiLog']['Time']['html'] = stdFieldRow(_("Time"), div( htmlspecialchars((string)($dataObj->getTime()), ENT_QUOTES), 'Time_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Time', $dataObj->getTime(), "s='d'"), 'Time', "", $this->commentsTime, $this->commentsTime_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'RawParameters':
         $this->fieldsRo['ApiLog']['RawParameters']['html'] = stdFieldRow(_("Raw parameters"), div( htmlspecialchars((string)($dataObj->getRawParameters()), ENT_QUOTES), 'RawParameters_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'RawParameters', $dataObj->getRawParameters(), "s='d'"), 'RawParameters', "", $this->commentsRawParameters, $this->commentsRawParameters_css, 'readonly', ' ', 'no', 'v2');
 
+            break;
+            case 'Count':
         $this->fieldsRo['ApiLog']['Count']['html'] = stdFieldRow(_("Count"), div( htmlspecialchars((string)($dataObj->getCount()), ENT_QUOTES), 'Count_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Count', $dataObj->getCount(), "s='d'"), 'Count', "", $this->commentsCount, $this->commentsCount_css, 'readonly half', ' ', 'no', 'v2');
 
-
-        if($fields == 'all') {
-            foreach($this->fields['ApiLog'] as $field => $ar) {
-                $this->fields['ApiLog'][$field]['html'] = $this->fieldsRo['ApiLog'][$field]['html'];
-            }
-        } elseif(is_array($fields)) {
-            foreach($fields as $field) {
-                $this->fields['ApiLog'][$field]['html'] = $this->fieldsRo['ApiLog'][$field]['html'];
-            }
+            break;
         }
     }
 
@@ -1064,23 +1169,32 @@ $this->fields['ApiLog']['IdApiRbac']['html']
  $gcSbHost = is_object($obj) ? $obj : $this;
  $gcSbUseCache = $array
         && class_exists('\\ApiGoat\\Utility\\SelectBoxCache')
+        && method_exists('\\ApiGoat\\Utility\\SelectBoxCache', 'scopeToken')
         && !method_exists($gcSbHost, 'beginSelectboxApiLog_IdApiRbac')
         && !method_exists($gcSbHost, 'selectboxDataApiLog_IdApiRbac');
     if ($gcSbUseCache) {
-        $gcSbHit = \ApiGoat\Utility\SelectBoxCache::fetch('api_rbac', 'ApiLog_IdApiRbac', false);
+        $gcSbHit = \ApiGoat\Utility\SelectBoxCache::fetch('api_rbac', 'ApiLog_IdApiRbac', false, \ApiGoat\Utility\SelectBoxCache::scopeToken('ApiRbac'));
         if ($gcSbHit !== null) {
             return $gcSbHit;
         }
     }
         $q = ApiRbacQuery::create();
 
+    $gcSbSess = $_SESSION[_AUTH_VAR] ?? null;
+    if (is_object($gcSbSess) && method_exists($gcSbSess, 'applyOwnerGroupScope')) {
+        $gcSbSess->applyOwnerGroupScope($q, $gcSbSess->hasRights('ApiRbac', 'r'));
+    }
+
     $gcSbHost = is_object($obj) ? $obj : $this;
+    $ret = null;
     if(method_exists($gcSbHost, 'beginSelectboxApiLog_IdApiRbac') and $array)
         $ret = $gcSbHost->beginSelectboxApiLog_IdApiRbac($q, $dataObj, $data, $obj);
-    if($ret !== false)
+    if($ret !== false) {
             $q->addAsColumn('selDisplay', 'CONCAT_WS ( ", ", '.ApiRbacPeer::MODEL.', '.ApiRbacPeer::ACTION.', '.ApiRbacPeer::QUERY.' )');
             $q->select(['selDisplay', 'IdApiRbac']);
             $q->orderBy('selDisplay', 'ASC');
+
+    }
         
             if(!$array){
                 return $q;
@@ -1098,9 +1212,9 @@ $this->fields['ApiLog']['IdApiRbac']['html']
         if($override === false){
             $arrayOpt = $pcDataO->toArray();
 
-            $gcSbResult = assocToNum($arrayOpt , true);
+            $gcSbResult = assocToNum($arrayOpt );
             if (!empty($gcSbUseCache)) {
-                \ApiGoat\Utility\SelectBoxCache::store('api_rbac', 'ApiLog_IdApiRbac', false, $gcSbResult);
+                \ApiGoat\Utility\SelectBoxCache::store('api_rbac', 'ApiLog_IdApiRbac', false, $gcSbResult, \ApiGoat\Utility\SelectBoxCache::scopeToken('ApiRbac'));
             }
             return $gcSbResult;
         }else{
@@ -1119,23 +1233,32 @@ $this->fields['ApiLog']['IdApiRbac']['html']
  $gcSbHost = is_object($obj) ? $obj : $this;
  $gcSbUseCache = $array
         && class_exists('\\ApiGoat\\Utility\\SelectBoxCache')
+        && method_exists('\\ApiGoat\\Utility\\SelectBoxCache', 'scopeToken')
         && !method_exists($gcSbHost, 'beginSelectboxApiLog_IdAuthy')
         && !method_exists($gcSbHost, 'selectboxDataApiLog_IdAuthy');
     if ($gcSbUseCache) {
-        $gcSbHit = \ApiGoat\Utility\SelectBoxCache::fetch('authy', 'ApiLog_IdAuthy', true);
+        $gcSbHit = \ApiGoat\Utility\SelectBoxCache::fetch('authy', 'ApiLog_IdAuthy', true, \ApiGoat\Utility\SelectBoxCache::scopeToken('Authy'));
         if ($gcSbHit !== null) {
             return $gcSbHit;
         }
     }
         $q = AuthyQuery::create();
 
+    $gcSbSess = $_SESSION[_AUTH_VAR] ?? null;
+    if (is_object($gcSbSess) && method_exists($gcSbSess, 'applyOwnerGroupScope')) {
+        $gcSbSess->applyOwnerGroupScope($q, $gcSbSess->hasRights('Authy', 'r'));
+    }
+
     $gcSbHost = is_object($obj) ? $obj : $this;
+    $ret = null;
     if(method_exists($gcSbHost, 'beginSelectboxApiLog_IdAuthy') and $array)
         $ret = $gcSbHost->beginSelectboxApiLog_IdAuthy($q, $dataObj, $data, $obj);
-    if($ret !== false)
+    if($ret !== false) {
             $q->addAsColumn('selDisplay', ''.AuthyPeer::USERNAME.'');
             $q->select(['selDisplay', 'IdAuthy']);
             $q->orderBy('selDisplay', 'ASC');
+
+    }
         
             if(!$array){
                 return $q;
@@ -1155,7 +1278,7 @@ $this->fields['ApiLog']['IdApiRbac']['html']
 
             $gcSbResult = assocToNum($arrayOpt , true);
             if (!empty($gcSbUseCache)) {
-                \ApiGoat\Utility\SelectBoxCache::store('authy', 'ApiLog_IdAuthy', true, $gcSbResult);
+                \ApiGoat\Utility\SelectBoxCache::store('authy', 'ApiLog_IdAuthy', true, $gcSbResult, \ApiGoat\Utility\SelectBoxCache::scopeToken('Authy'));
             }
             return $gcSbResult;
         }else{

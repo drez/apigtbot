@@ -34,15 +34,10 @@ class GtbotMarketTool extends AbstractGtbotBase
 
     public function description(): string
     {
-        return 'Read-only market signal for choosing a grid: per-timeframe (1h/4h/1d) EMA20/50/200, RSI14, '
-            . 'ATR (abs + %), ADX14 (trend strength: <20 ranging/grid-friendly, >30 trending), ATR% '
-            . 'percentile rank (is volatility spiking vs its own history), taker buy ratio + volume '
-            . 'z-score (aggression/participation), trend classification and recent swing high/low — served '
-            . 'from the database (collected on a schedule) — plus the current LIVE price and where it sits '
-            . 'in the run trading THAT symbol (active_run.refit_pending=true means your last refit has not '
-            . 'applied yet — do not stack another). Use this to form a directional/volatility view, then '
-            . 'set the grid with gtbot_set_grid. Signals are analytics, not a guarantee — the risk caps + '
-            . 'kill switch remain the backstop. If a timeframe reads stale, the collector cron may be behind.';
+        return 'Read-only market signal per timeframe (1h/4h/1d): EMA20/50/200, RSI14, ATR, ADX14, ATR% rank, '
+            . 'taker ratio, vol z-score, ER/chop, trend, swings — from the DB (collector cron) + live price and '
+            . 'where it sits in the run trading that symbol (active_run.refit_pending=true: do not stack a refit). '
+            . 'Drill-down behind gtbot_routine_brief.';
     }
 
     public function inputSchema(): array

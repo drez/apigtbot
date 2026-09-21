@@ -23,6 +23,12 @@ use ApiGoat\Api\Api;
 
 class AuthyGroupService
 {
+    // A40/C7: halt() replaces every die() this class used to end a
+    // short-circuit branch with, so the response still travels back out
+    // through the middleware stack (CORS, security headers, server timing,
+    // session release). The generated services are plain classes, so the
+    // helper comes in as a trait rather than from a base class.
+    use \ApiGoat\Services\Concerns\HaltsResponses;
 
     /**
      * return abstract
@@ -51,7 +57,31 @@ class AuthyGroupService
      *
      * @var array
      */
-    public $customActions;
+    public $customActions = [];
+    /**
+     * Custom actions ($customActions KEYS) that are READS and may therefore be
+     * reached over a cookie-auth GET.
+     *
+     * I-5: Service::MUTATING_ACTIONS only inventories the case labels this
+     * emitter writes, so a project-registered custom action is invisible to it
+     * and used to be fail-OPEN — a cross-site <a href=".../Model/myAction/42">
+     * ran it on the SameSite=Lax session cookie. An unknown custom action is now
+     * treated as MUTATING on GET and answered with "This action requires POST";
+     * list a genuine read here to opt it back in (case-insensitive):
+     *
+     *     public $readOnlyCustomActions = ['agingReport'];
+     *
+     * @var array
+     */
+    public $readOnlyCustomActions = [];
+    /**
+     * PhpName of the model this service serves. Passed to PropelErrorHandler
+     * (which scopes the validation-error highlight to #form{Class} when the
+     * request carries no drawer container).
+     *
+     * @var string
+     */
+    public $virtualClassName = 'AuthyGroup';
     public $rawRequest;
     public $Form;
     public $contentType;
@@ -85,7 +115,30 @@ class AuthyGroupService
      */
     public function getResponse()
     {
-        $this->content = "Unknown method";
+        // Mutating actions must never be reachable by a GET navigation. The
+        // generated HTML route is registered for GET as well as POST and this
+        // switch dispatches purely off the {a} URL segment, so without this a
+        // cross-site <a href=".../Model/delete/42"> ran the write on the
+        // SameSite=Lax session cookie. AuthyMiddleware::checkMutatingGet()
+        // refuses these first; this is defence in depth at the controller, and
+        // it shares ONE action inventory with the middleware
+        // (ApiGoat\Services\Service::MUTATING_ACTIONS) so the two can never
+        // drift. There are no exemptions any more: every mutating action is
+        // POST-only. Refusal shape matches the middleware's
+        // ApiResponse body (status/data/errors), not a die().
+        if (method_exists('\ApiGoat\Services\Service', 'mutatingGetRefusal')
+            && \ApiGoat\Services\Service::mutatingGetRefusal($this->request, $this->rawRequest)) {
+            error_log('mutating GET refused (service): ' . ($this->request['route'] ?? '')
+                . ' action=' . ($this->request['a'] ?? '')
+                . ' from ' . ($_SERVER['REMOTE_ADDR'] ?? '?'));
+            $this->contentType = 'application/json';
+            return json_encode(['status' => 'failure', 'data' => null, 'errors' => [_('This action requires POST')]]);
+        }
+
+        // Same shape as every other $this->content assignment (and the runtime
+        // base Service): a bare string reaches BuilderLayout::render() as an
+        // array offset read on a string.
+        $this->content = ['html' => 'Unknown method', 'js' => '', 'onReadyJs' => ''];
 
         switch($this->request['a']){
             case '':
@@ -107,10 +160,17 @@ class AuthyGroupService
                     $this->content = $this->edit();
                 }
             break;
+            // A26: only 'update' is emitted. Nothing sends a=insert — the
+            // client posts {Model}/update for both create and update (see
+            // template public/js/app/screens.js) — and the unreachable arm
+            // dispatched to BuilderReturn::insert_return(). It stays on the
+            // runtime's MUTATING_ACTIONS list, so a hand-crafted /insert is
+            // still refused on GET before it reaches the default arm.
             case 'update':
-            case 'insert':
                 $this->content = $this->saveUpdate();
-                $this->content['onReadyJs'] .= ($this->content['error'] != 'yes')?"sw_message('".addslashes(_('Saved'))."');":'';
+                // BuilderReturn only sets ['error'] on a failure, so the bare read
+                // warned on every successful save.
+                $this->content['onReadyJs'] .= (($this->content['error'] ?? '') != 'yes')?"sw_message('".addslashes(_('Saved'))."');":'';
                 return $this->BuilderLayout->renderXHR($this->content);
             case 'delete':
                 $this->content = $this->deleteOne();
@@ -130,8 +190,31 @@ class AuthyGroupService
 
 
 
+
+
             default:
-                if (method_exists($this, $this->customActions[$this->request['a']])) {
+                // Guarded like getApiResponse(): $customActions is empty on
+                // most services, so the bare read was a null array offset plus
+                // method_exists(null) on every unknown action.
+                if (isset($this->customActions[$this->request['a']])
+                    && method_exists($this, $this->customActions[$this->request['a']])) {
+                    // I-5: a PROJECT-defined action is invisible to
+                    // Service::MUTATING_ACTIONS (that inventory only lists the
+                    // case labels this emitter writes), so the refusal above
+                    // never fired for it and a cross-site
+                    // <a href=".../Model/approveInvoice/42"> ran the write on
+                    // the SameSite=Lax session cookie. Fail CLOSED here instead:
+                    // on a cookie-auth GET an unknown custom action is treated
+                    // as mutating unless the wrapper declares it read-only in
+                    // $readOnlyCustomActions (see ApiGoat\Services\Service).
+                    if (method_exists('\ApiGoat\Services\Service', 'customActionGetRefusal')
+                        && \ApiGoat\Services\Service::customActionGetRefusal($this, $this->request, $this->rawRequest)) {
+                        error_log('custom action GET refused (service): ' . ($this->request['route'] ?? '')
+                            . ' action=' . ($this->request['a'] ?? '')
+                            . ' from ' . ($_SERVER['REMOTE_ADDR'] ?? '?'));
+                        $this->contentType = 'application/json';
+                        return json_encode(['status' => 'failure', 'data' => null, 'errors' => [_('This action requires POST')]]);
+                    }
                     $callable = $this->customActions[$this->request['a']];
                     $this->content = $this->$callable($this->request);
                 }
@@ -139,7 +222,7 @@ class AuthyGroupService
 
 
 
-        if($this->request['ui']){
+        if(!empty($this->request['ui'])){
             return $this->BuilderLayout->renderXHR($this->content);
         }else{
             return $this->BuilderLayout->render($this->content);
@@ -153,7 +236,7 @@ class AuthyGroupService
     public function getApiResponse()
     {
         $this->body = ['status' => 'failure', 'errors' => ['Unknown method'], 'data' => null, 'messages' => null];
-        $Api = new Api('AuthyGroup', $this, ['Name', 'Desc', 'DefaultGroup', 'Admin', 'RightsAll', 'RightsOwner', 'RightsGroup']);
+        $Api = new Api('AuthyGroup', $this, ['Name', 'Desc', 'DefaultGroup', 'Admin']);
 
         if (isset($this->customActions[$this->request['a']]) && method_exists($this, $this->customActions[$this->request['a']])) {
             $callable = $this->customActions[$this->request['a']];
@@ -161,8 +244,14 @@ class AuthyGroupService
         }else{
             switch($this->request['method']){
                 case 'AUTH':
-                    $dispatch = $this->request['a'];
-                    $this->body = $this->$dispatch();
+                    // The action segment is request-controlled; without the
+                    // guard an unknown one is a fatal call to an undefined
+                    // method. RouteHelper::reassertTrustedArgs is the other
+                    // half of this (it fixes what the action may be).
+                    $dispatch = (string) $this->request['a'];
+                    if ($dispatch !== '' && method_exists($this, $dispatch)) {
+                        $this->body = $this->$dispatch();
+                    }
                     break;
                 case 'GET':
                     $this->body = $Api->getJson($this->request);
@@ -204,6 +293,7 @@ class AuthyGroupService
 
 
 
+
     public function deleteOne()
     {
         $error = [];
@@ -211,89 +301,55 @@ class AuthyGroupService
 
         $obj = $_SESSION[_AUTH_VAR]->loadPkScoped(AuthyGroupQuery::class, json_decode($this->request['i']), 'AuthyGroup', 'd');
         if ($obj) {
-
-
-            if($obj->countAuthiesRelatedByIdGroupCreation()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'User'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countPushDevices()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'Push device'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countCountries()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'Country'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countGridRuns()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'Grid Run'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countBotOrders()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'Order'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countTradeCycles()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'Trade Cycle'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countBotEvents()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'Event'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countBotCommands()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'Command'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countSimWallets()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'Paper Wallet'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countMarketSummaries()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'Market Data'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countMarketRegimes()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'Regime History'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countBotDecisions()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'Refit Decision'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countAuthyGroupsRelatedByIdAuthyGroup()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'Group'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countAuthyGroupxesRelatedByIdGroupCreation()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'Group'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countConfigs()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'Setting'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countApiRbacs()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'API ACL'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countTemplates()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'Template'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countTemplateFiles()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." 'File'. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countAuthyRefreshTokens()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." ''. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countOauthClients()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." ''. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countOauthAuthCodes()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." ''. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countOauthAccessTokens()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." ''. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countOauthRefreshTokens()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." ''. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-            if($obj->countMessageI18ns()){
-                $error = handleNotOkResponse(_("This entry cannot be deleted. It is in use in ")." ''. ", '', true,'Group'); die( $error['onReadyJs'] );
-            }
-
-        $obj->delete();
-
-
-
+            $this->gcDeleteRow($obj, $error, $messages);
         }
 
         $BuilderReturn = new BuilderReturn($this->request, $error, $messages);
         return $BuilderReturn->return();
+    }
+
+    /**
+     * Delete ONE already-loaded (ACL-scoped) row through the guarded path:
+     * referential guard, BeforeDelete/AfterDelete hooks, upload file cleanup.
+     * A refusal halts (HaltResponse) — deleteOne() lets it reach the client,
+     * massDelete() catches it per row.
+     */
+    protected function gcDeleteRow($obj, &$error, &$messages)
+    {
+
+
+
+        try {
+            $obj->delete();
+        } catch (\Exception $gcDelErr) {
+            // A39: the pre-delete guard deliberately does not probe the audit
+            // FKs (id_creation / id_modification / id_group_creation), so a row
+            // still referenced only from an audit trail now reaches InnoDB and
+            // comes back as a RESTRICT violation (SQLSTATE 23000 / errno 1451).
+            // Answer with the same refusal the guard would have produced instead
+            // of a 500; anything else is a real error and is re-thrown.
+            $gcDelMsg = $gcDelErr->getMessage();
+            for ($gcDelPrev = $gcDelErr->getPrevious(); $gcDelPrev !== null; $gcDelPrev = $gcDelPrev->getPrevious()) {
+                $gcDelMsg .= ' ' . $gcDelPrev->getMessage();
+            }
+            if (strpos($gcDelMsg, '1451') === false && strpos($gcDelMsg, '23000') === false) {
+                throw $gcDelErr;
+            }
+            error_log('AuthyGroup delete refused by a foreign key: ' . $gcDelMsg);
+            // F5: name the blocking table when MySQL said which one it was. The
+            // audit FKs are not in the pre-delete guard list, so this literal is
+            // the only place their label can come from.
+            $gcFkBlocker = \ApiGoat\Orm\ReferentialGuard::blockerFromMessage($gcDelMsg, ['authy'=>'User','push_device'=>'Push device','grid_run'=>'Grid Run','fleet_slot'=>'Fleet slot','regime_episode'=>'Regime episode','bot_order'=>'Order','trade_cycle'=>'Trade Cycle','bot_event'=>'Event','bot_command'=>'Command','sim_wallet'=>'Paper Wallet','market_summary'=>'Market Data','market_regime'=>'Regime History','market_candle'=>'Candles','bot_decision'=>'Refit Decision','market_outlook'=>'Market Outlook','market_outlook_state'=>'Outlook State','wallet_nav'=>'Wallet NAV','authy_group'=>'Group','authy_group_x'=>'Group','config'=>'Setting','api_rbac'=>'API ACL','template'=>'Template','template_file'=>'File','grid_run_audit'=>'Change history','country'=>'Country']);
+            $error = handleNotOkResponse(
+                $gcFkBlocker !== null
+                    ? _("This entry cannot be deleted. It is in use in ")." '".$gcFkBlocker."'. "
+                    : _("This entry cannot be deleted. It is still referenced by other records."),
+                '', true,'Group');
+            $this->halt($error['onReadyJs']);
+        }
+
+
+
     }
 
     public function saveUpdate(): array
@@ -307,7 +363,6 @@ class AuthyGroupService
         $data['i'] = ( $data['IdAuthyGroup'] ) ? $data['IdAuthyGroup'] : $this->request['i'];
         $data['ip'] = urldecode($this->request['data']['ip'] ?? '');
         $data['pc'] = urldecode($this->request['data']['pc'] ?? '');
-        $this->AuthyGroup['request'] = $this->request;
 
         if(!empty($data['i'])) {
             ## Save
@@ -361,9 +416,12 @@ class AuthyGroupService
     */
     private function edit()
     {
-        $this->AuthyGroup['request'] = $this->request;
-        $this->AuthyGroup['parentId'] = $this->request['data']['ip'];
-
+        // A27: the parent prefill that used to be built here ($relData['Id<Parent>']
+        // / ['ip'] / ['pc'] from $this->request['data']) was overwritten by
+        // $relData = $this->request on the very next line and never reached the
+        // form. getEditForm() does the prefill itself, off $data['data']['ip']
+        // (Form.php: $data['ip']/['pc'] then the $data['pc'] switch), so the
+        // request array alone is all it needs.
 
         // Crossref (NtN) far-record view: ro=1 renders the whole form via the
         // dormant setReadOnly='all' switch — fields locked to fieldsRo, no
@@ -373,7 +431,7 @@ class AuthyGroupService
         }
 
         $relData = $this->request;
-        $output = $this->Form->getEditForm($this->request['i'], $this->request['ui'], $relData, '', $this->request['data']['je'], $this->request['data']['jet']);
+        $output = $this->Form->getEditForm($this->request['i'], $this->request['ui'] ?? '', $relData, '', $this->request['data']['je'] ?? '', $this->request['data']['jet'] ?? '');
 
         return $output;
     }

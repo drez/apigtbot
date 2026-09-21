@@ -71,30 +71,6 @@ Push device
 - `id_creation` &rarr; `authy.id_authy`
 - `id_modification` &rarr; `authy.id_authy`
 
-### `country` &mdash; Country
-
-Country
-
-| Column | Type | Nullable | Default | Description |
-| --- | --- | --- | --- | --- |
-| `id_country` | INTEGER(11) | no | null |  |
-| `name` | VARCHAR(100) | yes | null | Name |
-| `code` | VARCHAR(3) | yes | null | Code |
-| `timezone` | VARCHAR(20) | yes | null | Timezone |
-| `timezone_code` | VARCHAR(50) | yes | null | Timezone code |
-| `priority` | INTEGER(10) | yes | null | Priority |
-| `date_creation` | TIMESTAMP | yes | null |  |
-| `date_modification` | TIMESTAMP | yes | null |  |
-| `id_group_creation` | INTEGER | yes | null |  |
-| `id_creation` | INTEGER | yes | null |  |
-| `id_modification` | INTEGER | yes | null |  |
-
-**Foreign keys:**
-
-- `id_group_creation` &rarr; `authy_group.id_authy_group`
-- `id_creation` &rarr; `authy.id_authy`
-- `id_modification` &rarr; `authy.id_authy`
-
 ### `grid_run` &mdash; GridRun
 
 Grid Run
@@ -116,11 +92,14 @@ Grid Run
 | `allocation` | ENUM | no | 'EqualQuote' | Allocation |
 | `budget_quote` | DECIMAL(18) | no | null | Budget (USDT) |
 | `deploy_pct` | INTEGER(10) | yes | 100 | Deployed budget % |
+| `alloc_mode` | ENUM | no | 'Auto' | Allocation mode |
 | `fee_pct` | DECIMAL(9) | no | 0.001 | Fee per side |
 | `max_position_quote` | DECIMAL(18) | no | null | Max position (USDT) |
 | `max_order_quote` | DECIMAL(18) | no | null | Max per-order (USDT) |
 | `daily_loss_limit_quote` | DECIMAL(18) | no | null | Daily loss limit |
 | `max_unrealized_loss_quote` | DECIMAL(18) | yes | null | Max unrealized loss |
+| `sell_at_loss` | BOOLEAN(10) | yes | false | Sell at loss |
+| `sell_when_starved` | BOOLEAN(10) | yes | false | Sell at loss when starved |
 | `breakout_buffer_pct` | DECIMAL(9) | yes | 0.02 | Breakout buffer |
 | `breakout_policy` | ENUM | no | 'HaltAndHold' | On breakout |
 | `max_open_orders` | INTEGER(10) | yes | 60 | Max open orders |
@@ -132,6 +111,8 @@ Grid Run
 | `atr_period` | INTEGER(10) | yes | 14 | ATR period |
 | `atr_stop_mult` | DECIMAL(9) | yes | null | Trail stop x ATR |
 | `atr_initial_mult` | DECIMAL(9) | yes | null | Initial stop x ATR |
+| `trend_stop_floor_pct` | DECIMAL(9) | yes | 0.015 | Trail stop floor (fraction of HWM) |
+| `trend_signal` | ENUM | no | 'Donchian' | Trend entry signal |
 | `reentry_cooldown` | INTEGER(10) | yes | null | Re-entry cooldown (bars) |
 | `engine_state` | LONGVARCHAR(1023) | yes | null | Engine state (daemon-managed) |
 | `last_tick_at` | TIMESTAMP | yes | null | Last tick |
@@ -151,6 +132,78 @@ Grid Run
 
 **Foreign keys:**
 
+- `id_group_creation` &rarr; `authy_group.id_authy_group`
+- `id_creation` &rarr; `authy.id_authy`
+- `id_modification` &rarr; `authy.id_authy`
+
+### `fleet_slot` &mdash; FleetSlot
+
+Fleet slot
+
+| Column | Type | Nullable | Default | Description |
+| --- | --- | --- | --- | --- |
+| `id_fleet_slot` | INTEGER(11) | no | null |  |
+| `symbol` | VARCHAR(20) | no | null | Symbol |
+| `algo` | ENUM | no | 'Trend' | Algorithm |
+| `target_slice` | DECIMAL(20) | no | 350 | Target slice (USDT) |
+| `enabled` | BOOLEAN(10) | yes | true | Enabled |
+| `state` | ENUM | no | 'idle' | Arm state |
+| `confirm_up` | INTEGER(10) | yes | 0 | Consecutive TREND_UP passes |
+| `confirm_down` | INTEGER(10) | yes | 0 | Consecutive non-TREND_UP passes |
+| `last_verdict` | VARCHAR(16) | yes | null | Last verdict |
+| `verdict_at` | TIMESTAMP | yes | null | Verdict at |
+| `episode_started_at` | TIMESTAMP | yes | null | TREND_UP episode started |
+| `activation` | LONGVARCHAR(1023) | yes | null | Activation payload |
+| `id_grid_run` | INTEGER(11) | yes | null | Run |
+| `last_empty_alert_at` | TIMESTAMP | yes | null | Empty alerted at |
+| `last_parked_alert_at` | TIMESTAMP | yes | null | Parked alerted at |
+| `date_creation` | TIMESTAMP | yes | null |  |
+| `date_modification` | TIMESTAMP | yes | null |  |
+| `id_group_creation` | INTEGER | yes | null |  |
+| `id_creation` | INTEGER | yes | null |  |
+| `id_modification` | INTEGER | yes | null |  |
+
+**Foreign keys:**
+
+- `id_grid_run` &rarr; `grid_run.id_grid_run`
+- `id_group_creation` &rarr; `authy_group.id_authy_group`
+- `id_creation` &rarr; `authy.id_authy`
+- `id_modification` &rarr; `authy.id_authy`
+
+### `regime_episode` &mdash; RegimeEpisode
+
+Regime episode
+
+| Column | Type | Nullable | Default | Description |
+| --- | --- | --- | --- | --- |
+| `id_regime_episode` | INTEGER(11) | no | null |  |
+| `symbol` | VARCHAR(20) | no | null | Symbol |
+| `algo` | ENUM | no | 'Trend' | Algorithm |
+| `id_fleet_slot` | INTEGER(11) | yes | null | Slot |
+| `id_grid_run` | INTEGER(11) | yes | null | Run |
+| `verdict` | VARCHAR(16) | no | null | Verdict |
+| `opened_at` | TIMESTAMP | no | null | Opened at |
+| `closed_at` | TIMESTAMP | yes | null | Closed at |
+| `price_open` | DECIMAL(20) | no | null | Price at open |
+| `price_close` | DECIMAL(20) | yes | null | Price at close |
+| `engaged_pct_tw` | DECIMAL(8) | yes | null | Engaged % (time-weighted) |
+| `samples` | INTEGER(10) | yes | 0 | Samples |
+| `realized` | DECIMAL(20) | yes | 0 | Realized (USDT) |
+| `mtm_close` | DECIMAL(20) | yes | null | Mark-to-market at close |
+| `hodl_pct` | DECIMAL(8) | yes | null | HODL move % |
+| `captured_pct` | DECIMAL(8) | yes | null | Captured % of HODL |
+| `idle_samples` | INTEGER(10) | yes | 0 | Consecutive sub-floor samples |
+| `idle_alerted_at` | TIMESTAMP | yes | null | Idle alerted at |
+| `date_creation` | TIMESTAMP | yes | null |  |
+| `date_modification` | TIMESTAMP | yes | null |  |
+| `id_group_creation` | INTEGER | yes | null |  |
+| `id_creation` | INTEGER | yes | null |  |
+| `id_modification` | INTEGER | yes | null |  |
+
+**Foreign keys:**
+
+- `id_fleet_slot` &rarr; `fleet_slot.id_fleet_slot`
+- `id_grid_run` &rarr; `grid_run.id_grid_run`
 - `id_group_creation` &rarr; `authy_group.id_authy_group`
 - `id_creation` &rarr; `authy.id_authy`
 - `id_modification` &rarr; `authy.id_authy`
@@ -367,6 +420,33 @@ Regime History
 - `id_creation` &rarr; `authy.id_authy`
 - `id_modification` &rarr; `authy.id_authy`
 
+### `market_candle` &mdash; MarketCandle
+
+Candles
+
+| Column | Type | Nullable | Default | Description |
+| --- | --- | --- | --- | --- |
+| `id_market_candle` | INTEGER(11) | no | null |  |
+| `symbol` | VARCHAR(20) | no | null | Symbol |
+| `tf` | ENUM | no | null | Timeframe |
+| `open_time` | INTEGER(10) | no | null | Open time (epoch s) |
+| `open` | DECIMAL(18) | no | null | Open |
+| `high` | DECIMAL(18) | no | null | High |
+| `low` | DECIMAL(18) | no | null | Low |
+| `close` | DECIMAL(18) | no | null | Close |
+| `volume` | DECIMAL(24) | yes | 0 | Volume |
+| `date_creation` | TIMESTAMP | yes | null |  |
+| `date_modification` | TIMESTAMP | yes | null |  |
+| `id_group_creation` | INTEGER | yes | null |  |
+| `id_creation` | INTEGER | yes | null |  |
+| `id_modification` | INTEGER | yes | null |  |
+
+**Foreign keys:**
+
+- `id_group_creation` &rarr; `authy_group.id_authy_group`
+- `id_creation` &rarr; `authy.id_authy`
+- `id_modification` &rarr; `authy.id_authy`
+
 ### `bot_decision` &mdash; BotDecision
 
 Refit Decision
@@ -390,6 +470,11 @@ Refit Decision
 | `realized_delta` | DECIMAL(18) | yes | null | P/L after |
 | `price_move_pct` | DECIMAL(9) | yes | null | Price move % |
 | `verdict` | ENUM | yes | null | Verdict |
+| `counterfactual_delta` | DECIMAL(18) | yes | null | vs no-change (sim) |
+| `candidate_delta` | ENUM | yes | null | vs candidate |
+| `requested_json` | LONGVARCHAR(1023) | yes | null | Requested (pre-gate) |
+| `clamps_json` | LONGVARCHAR(1023) | yes | null | Clamp trail |
+| `brief_json` | LONGVARCHAR(1023) | yes | null | Brief snapshot |
 | `date_creation` | TIMESTAMP | yes | null |  |
 | `date_modification` | TIMESTAMP | yes | null |  |
 | `id_group_creation` | INTEGER | yes | null |  |
@@ -399,6 +484,93 @@ Refit Decision
 **Foreign keys:**
 
 - `id_grid_run` &rarr; `grid_run.id_grid_run`
+- `id_group_creation` &rarr; `authy_group.id_authy_group`
+- `id_creation` &rarr; `authy.id_authy`
+- `id_modification` &rarr; `authy.id_authy`
+
+### `market_outlook` &mdash; MarketOutlook
+
+Market Outlook
+
+| Column | Type | Nullable | Default | Description |
+| --- | --- | --- | --- | --- |
+| `id_market_outlook` | INTEGER(11) | no | null |  |
+| `symbol` | VARCHAR(20) | no | null | Symbol |
+| `kind` | VARCHAR(10) | no | 'Change' | Kind |
+| `verdict` | VARCHAR(16) | no | null | Verdict |
+| `prev_verdict` | VARCHAR(16) | yes | null | Previous |
+| `price_at` | DECIMAL(18) | no | null | Price at call |
+| `called_at` | TIMESTAMP | no | null | Called at |
+| `detail` | LONGVARCHAR(1023) | yes | null | Detail |
+| `eval_status` | VARCHAR(10) | no | 'Pending' | Eval |
+| `price_7d` | DECIMAL(18) | yes | null | Price +7d |
+| `price_30d` | DECIMAL(18) | yes | null | Price +30d |
+| `ret_7d` | DECIMAL(9) | yes | null | Return 7d % |
+| `ret_30d` | DECIMAL(9) | yes | null | Return 30d % |
+| `max_adverse_pct` | DECIMAL(9) | yes | null | Max adverse 30d % |
+| `hit_7d` | BOOLEAN(10) | yes | null | Hit 7d |
+| `hit_30d` | BOOLEAN(10) | yes | null | Hit 30d |
+| `scored_at` | TIMESTAMP | yes | null | Scored at |
+| `date_creation` | TIMESTAMP | yes | null |  |
+| `date_modification` | TIMESTAMP | yes | null |  |
+| `id_group_creation` | INTEGER | yes | null |  |
+| `id_creation` | INTEGER | yes | null |  |
+| `id_modification` | INTEGER | yes | null |  |
+
+**Foreign keys:**
+
+- `id_group_creation` &rarr; `authy_group.id_authy_group`
+- `id_creation` &rarr; `authy.id_authy`
+- `id_modification` &rarr; `authy.id_authy`
+
+### `market_outlook_state` &mdash; MarketOutlookState
+
+Outlook State
+
+| Column | Type | Nullable | Default | Description |
+| --- | --- | --- | --- | --- |
+| `id_market_outlook_state` | INTEGER(11) | no | null |  |
+| `symbol` | VARCHAR(20) | no | null | Symbol |
+| `verdict` | VARCHAR(16) | yes | null | Verdict |
+| `verdict_since` | TIMESTAMP | yes | null | Since |
+| `price_at_verdict` | DECIMAL(18) | yes | null | Price at verdict |
+| `candidate` | VARCHAR(16) | yes | null | Candidate |
+| `candidate_passes` | INTEGER(10) | no | 0 | Candidate passes |
+| `last_raw` | VARCHAR(16) | yes | null | Last raw read |
+| `last_pass_at` | TIMESTAMP | yes | null | Last pass |
+| `date_creation` | TIMESTAMP | yes | null |  |
+| `date_modification` | TIMESTAMP | yes | null |  |
+| `id_group_creation` | INTEGER | yes | null |  |
+| `id_creation` | INTEGER | yes | null |  |
+| `id_modification` | INTEGER | yes | null |  |
+
+**Foreign keys:**
+
+- `id_group_creation` &rarr; `authy_group.id_authy_group`
+- `id_creation` &rarr; `authy.id_authy`
+- `id_modification` &rarr; `authy.id_authy`
+
+### `wallet_nav` &mdash; WalletNav
+
+Wallet NAV
+
+| Column | Type | Nullable | Default | Description |
+| --- | --- | --- | --- | --- |
+| `id_wallet_nav` | INTEGER(11) | no | null |  |
+| `mode` | ENUM | no | 'sim' | Mode |
+| `equity_quote` | DECIMAL(18) | no | null | Equity (USDT) |
+| `budget_quote` | DECIMAL(18) | no | null | Shared budget |
+| `ref_symbol` | VARCHAR(20) | yes | null | HODL reference |
+| `ref_price` | DECIMAL(18) | yes | null | Reference price |
+| `unpriced` | VARCHAR(100) | yes | null | Unpriced assets |
+| `date_creation` | TIMESTAMP | yes | null |  |
+| `date_modification` | TIMESTAMP | yes | null |  |
+| `id_group_creation` | INTEGER | yes | null |  |
+| `id_creation` | INTEGER | yes | null |  |
+| `id_modification` | INTEGER | yes | null |  |
+
+**Foreign keys:**
+
 - `id_group_creation` &rarr; `authy_group.id_authy_group`
 - `id_creation` &rarr; `authy.id_authy`
 - `id_modification` &rarr; `authy.id_authy`
@@ -624,6 +796,56 @@ File
 **Foreign keys:**
 
 - `id_authy` &rarr; `authy.id_authy`
+- `id_group_creation` &rarr; `authy_group.id_authy_group`
+- `id_creation` &rarr; `authy.id_authy`
+- `id_modification` &rarr; `authy.id_authy`
+
+### `grid_run_audit` &mdash; GridRunAudit
+
+Change history
+
+| Column | Type | Nullable | Default | Description |
+| --- | --- | --- | --- | --- |
+| `id_grid_run_audit` | INTEGER(11) | no | null |  |
+| `id_grid_run` | INTEGER | no | null | Record |
+| `field` | VARCHAR(64) | no | null | Field |
+| `value_from` | LONGVARCHAR | yes | null | From |
+| `value_to` | LONGVARCHAR | yes | null | To |
+| `actor` | VARCHAR(128) | yes | null | Actor |
+| `source` | ENUM | yes | 'gui' | Source |
+| `date_creation` | TIMESTAMP | yes | null |  |
+| `date_modification` | TIMESTAMP | yes | null |  |
+| `id_group_creation` | INTEGER | yes | null |  |
+| `id_creation` | INTEGER | yes | null |  |
+| `id_modification` | INTEGER | yes | null |  |
+
+**Foreign keys:**
+
+- `id_grid_run` &rarr; `grid_run.id_grid_run`
+- `id_group_creation` &rarr; `authy_group.id_authy_group`
+- `id_creation` &rarr; `authy.id_authy`
+- `id_modification` &rarr; `authy.id_authy`
+
+### `country` &mdash; Country
+
+Country
+
+| Column | Type | Nullable | Default | Description |
+| --- | --- | --- | --- | --- |
+| `id_country` | INTEGER(11) | no | null |  |
+| `name` | VARCHAR(100) | yes | null | Name |
+| `code` | VARCHAR(3) | yes | null | Code |
+| `timezone` | VARCHAR(20) | yes | null | Timezone |
+| `timezone_code` | VARCHAR(50) | yes | null | Timezone code |
+| `priority` | INTEGER(10) | yes | null | Priority |
+| `date_creation` | TIMESTAMP | yes | null |  |
+| `date_modification` | TIMESTAMP | yes | null |  |
+| `id_group_creation` | INTEGER | yes | null |  |
+| `id_creation` | INTEGER | yes | null |  |
+| `id_modification` | INTEGER | yes | null |  |
+
+**Foreign keys:**
+
 - `id_group_creation` &rarr; `authy_group.id_authy_group`
 - `id_creation` &rarr; `authy.id_authy`
 - `id_modification` &rarr; `authy.id_authy`

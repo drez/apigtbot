@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseAuthyGroupXQuery;
 
-require 'om/BaseAuthyGroupXQuery.php';
+require_once __DIR__ . '/om/BaseAuthyGroupXQuery.php';
 
 
 /**

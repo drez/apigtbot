@@ -39,13 +39,13 @@ abstract class BaseBotDecisionPeer
     const TM_CLASS = 'App\\map\\BotDecisionTableMap';
 
     /** The total number of columns. */
-    const NUM_COLUMNS = 22;
+    const NUM_COLUMNS = 27;
 
     /** The number of lazy-loaded columns. */
     const NUM_LAZY_LOAD_COLUMNS = 0;
 
     /** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
-    const NUM_HYDRATE_COLUMNS = 22;
+    const NUM_HYDRATE_COLUMNS = 27;
 
     /** the column name for the id_bot_decision field */
     const ID_BOT_DECISION = 'bot_decision.id_bot_decision';
@@ -98,6 +98,21 @@ abstract class BaseBotDecisionPeer
     /** the column name for the verdict field */
     const VERDICT = 'bot_decision.verdict';
 
+    /** the column name for the counterfactual_delta field */
+    const COUNTERFACTUAL_DELTA = 'bot_decision.counterfactual_delta';
+
+    /** the column name for the candidate_delta field */
+    const CANDIDATE_DELTA = 'bot_decision.candidate_delta';
+
+    /** the column name for the requested_json field */
+    const REQUESTED_JSON = 'bot_decision.requested_json';
+
+    /** the column name for the clamps_json field */
+    const CLAMPS_JSON = 'bot_decision.clamps_json';
+
+    /** the column name for the brief_json field */
+    const BRIEF_JSON = 'bot_decision.brief_json';
+
     /** the column name for the date_creation field */
     const DATE_CREATION = 'bot_decision.date_creation';
 
@@ -127,6 +142,12 @@ abstract class BaseBotDecisionPeer
     const VERDICT_FLAT = 'Flat';
     const VERDICT_LOSS = 'Loss';
     const VERDICT_SUPERSEDED = 'Superseded';
+    const VERDICT_WORSE = 'Worse';
+
+    /** The enumerated values for the candidate_delta field */
+    const CANDIDATE_DELTA_SAME = 'same';
+    const CANDIDATE_DELTA_DEVIATED = 'deviated';
+    const CANDIDATE_DELTA_NONE = 'none';
 
     /** The default string format for model objects of the related table **/
     const DEFAULT_STRING_FORMAT = 'YAML';
@@ -147,12 +168,12 @@ abstract class BaseBotDecisionPeer
      * e.g. BotDecisionPeer::$fieldNames[BotDecisionPeer::TYPE_PHPNAME][0] = 'Id'
      */
     protected static $fieldNames = array (
-        BasePeer::TYPE_PHPNAME => array ('IdBotDecision', 'IdGridRun', 'Source', 'PLow', 'PHigh', 'NLevels', 'DeployPct', 'Reason', 'PriceAt', 'RealizedBefore', 'EvalStatus', 'EvalAt', 'AppliedAt', 'CyclesDelta', 'RealizedDelta', 'PriceMovePct', 'Verdict', 'DateCreation', 'DateModification', 'IdGroupCreation', 'IdCreation', 'IdModification', ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('idBotDecision', 'idGridRun', 'source', 'pLow', 'pHigh', 'nLevels', 'deployPct', 'reason', 'priceAt', 'realizedBefore', 'evalStatus', 'evalAt', 'appliedAt', 'cyclesDelta', 'realizedDelta', 'priceMovePct', 'verdict', 'dateCreation', 'dateModification', 'idGroupCreation', 'idCreation', 'idModification', ),
-        BasePeer::TYPE_COLNAME => array (BotDecisionPeer::ID_BOT_DECISION, BotDecisionPeer::ID_GRID_RUN, BotDecisionPeer::SOURCE, BotDecisionPeer::P_LOW, BotDecisionPeer::P_HIGH, BotDecisionPeer::N_LEVELS, BotDecisionPeer::DEPLOY_PCT, BotDecisionPeer::REASON, BotDecisionPeer::PRICE_AT, BotDecisionPeer::REALIZED_BEFORE, BotDecisionPeer::EVAL_STATUS, BotDecisionPeer::EVAL_AT, BotDecisionPeer::APPLIED_AT, BotDecisionPeer::CYCLES_DELTA, BotDecisionPeer::REALIZED_DELTA, BotDecisionPeer::PRICE_MOVE_PCT, BotDecisionPeer::VERDICT, BotDecisionPeer::DATE_CREATION, BotDecisionPeer::DATE_MODIFICATION, BotDecisionPeer::ID_GROUP_CREATION, BotDecisionPeer::ID_CREATION, BotDecisionPeer::ID_MODIFICATION, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID_BOT_DECISION', 'ID_GRID_RUN', 'SOURCE', 'P_LOW', 'P_HIGH', 'N_LEVELS', 'DEPLOY_PCT', 'REASON', 'PRICE_AT', 'REALIZED_BEFORE', 'EVAL_STATUS', 'EVAL_AT', 'APPLIED_AT', 'CYCLES_DELTA', 'REALIZED_DELTA', 'PRICE_MOVE_PCT', 'VERDICT', 'DATE_CREATION', 'DATE_MODIFICATION', 'ID_GROUP_CREATION', 'ID_CREATION', 'ID_MODIFICATION', ),
-        BasePeer::TYPE_FIELDNAME => array ('id_bot_decision', 'id_grid_run', 'source', 'p_low', 'p_high', 'n_levels', 'deploy_pct', 'reason', 'price_at', 'realized_before', 'eval_status', 'eval_at', 'applied_at', 'cycles_delta', 'realized_delta', 'price_move_pct', 'verdict', 'date_creation', 'date_modification', 'id_group_creation', 'id_creation', 'id_modification', ),
-        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, )
+        BasePeer::TYPE_PHPNAME => array ('IdBotDecision', 'IdGridRun', 'Source', 'PLow', 'PHigh', 'NLevels', 'DeployPct', 'Reason', 'PriceAt', 'RealizedBefore', 'EvalStatus', 'EvalAt', 'AppliedAt', 'CyclesDelta', 'RealizedDelta', 'PriceMovePct', 'Verdict', 'CounterfactualDelta', 'CandidateDelta', 'RequestedJson', 'ClampsJson', 'BriefJson', 'DateCreation', 'DateModification', 'IdGroupCreation', 'IdCreation', 'IdModification', ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('idBotDecision', 'idGridRun', 'source', 'pLow', 'pHigh', 'nLevels', 'deployPct', 'reason', 'priceAt', 'realizedBefore', 'evalStatus', 'evalAt', 'appliedAt', 'cyclesDelta', 'realizedDelta', 'priceMovePct', 'verdict', 'counterfactualDelta', 'candidateDelta', 'requestedJson', 'clampsJson', 'briefJson', 'dateCreation', 'dateModification', 'idGroupCreation', 'idCreation', 'idModification', ),
+        BasePeer::TYPE_COLNAME => array (BotDecisionPeer::ID_BOT_DECISION, BotDecisionPeer::ID_GRID_RUN, BotDecisionPeer::SOURCE, BotDecisionPeer::P_LOW, BotDecisionPeer::P_HIGH, BotDecisionPeer::N_LEVELS, BotDecisionPeer::DEPLOY_PCT, BotDecisionPeer::REASON, BotDecisionPeer::PRICE_AT, BotDecisionPeer::REALIZED_BEFORE, BotDecisionPeer::EVAL_STATUS, BotDecisionPeer::EVAL_AT, BotDecisionPeer::APPLIED_AT, BotDecisionPeer::CYCLES_DELTA, BotDecisionPeer::REALIZED_DELTA, BotDecisionPeer::PRICE_MOVE_PCT, BotDecisionPeer::VERDICT, BotDecisionPeer::COUNTERFACTUAL_DELTA, BotDecisionPeer::CANDIDATE_DELTA, BotDecisionPeer::REQUESTED_JSON, BotDecisionPeer::CLAMPS_JSON, BotDecisionPeer::BRIEF_JSON, BotDecisionPeer::DATE_CREATION, BotDecisionPeer::DATE_MODIFICATION, BotDecisionPeer::ID_GROUP_CREATION, BotDecisionPeer::ID_CREATION, BotDecisionPeer::ID_MODIFICATION, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID_BOT_DECISION', 'ID_GRID_RUN', 'SOURCE', 'P_LOW', 'P_HIGH', 'N_LEVELS', 'DEPLOY_PCT', 'REASON', 'PRICE_AT', 'REALIZED_BEFORE', 'EVAL_STATUS', 'EVAL_AT', 'APPLIED_AT', 'CYCLES_DELTA', 'REALIZED_DELTA', 'PRICE_MOVE_PCT', 'VERDICT', 'COUNTERFACTUAL_DELTA', 'CANDIDATE_DELTA', 'REQUESTED_JSON', 'CLAMPS_JSON', 'BRIEF_JSON', 'DATE_CREATION', 'DATE_MODIFICATION', 'ID_GROUP_CREATION', 'ID_CREATION', 'ID_MODIFICATION', ),
+        BasePeer::TYPE_FIELDNAME => array ('id_bot_decision', 'id_grid_run', 'source', 'p_low', 'p_high', 'n_levels', 'deploy_pct', 'reason', 'price_at', 'realized_before', 'eval_status', 'eval_at', 'applied_at', 'cycles_delta', 'realized_delta', 'price_move_pct', 'verdict', 'counterfactual_delta', 'candidate_delta', 'requested_json', 'clamps_json', 'brief_json', 'date_creation', 'date_modification', 'id_group_creation', 'id_creation', 'id_modification', ),
+        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, )
     );
 
     /**
@@ -162,12 +183,12 @@ abstract class BaseBotDecisionPeer
      * e.g. BotDecisionPeer::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
      */
     protected static $fieldKeys = array (
-        BasePeer::TYPE_PHPNAME => array ('IdBotDecision' => 0, 'IdGridRun' => 1, 'Source' => 2, 'PLow' => 3, 'PHigh' => 4, 'NLevels' => 5, 'DeployPct' => 6, 'Reason' => 7, 'PriceAt' => 8, 'RealizedBefore' => 9, 'EvalStatus' => 10, 'EvalAt' => 11, 'AppliedAt' => 12, 'CyclesDelta' => 13, 'RealizedDelta' => 14, 'PriceMovePct' => 15, 'Verdict' => 16, 'DateCreation' => 17, 'DateModification' => 18, 'IdGroupCreation' => 19, 'IdCreation' => 20, 'IdModification' => 21, ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('idBotDecision' => 0, 'idGridRun' => 1, 'source' => 2, 'pLow' => 3, 'pHigh' => 4, 'nLevels' => 5, 'deployPct' => 6, 'reason' => 7, 'priceAt' => 8, 'realizedBefore' => 9, 'evalStatus' => 10, 'evalAt' => 11, 'appliedAt' => 12, 'cyclesDelta' => 13, 'realizedDelta' => 14, 'priceMovePct' => 15, 'verdict' => 16, 'dateCreation' => 17, 'dateModification' => 18, 'idGroupCreation' => 19, 'idCreation' => 20, 'idModification' => 21, ),
-        BasePeer::TYPE_COLNAME => array (BotDecisionPeer::ID_BOT_DECISION => 0, BotDecisionPeer::ID_GRID_RUN => 1, BotDecisionPeer::SOURCE => 2, BotDecisionPeer::P_LOW => 3, BotDecisionPeer::P_HIGH => 4, BotDecisionPeer::N_LEVELS => 5, BotDecisionPeer::DEPLOY_PCT => 6, BotDecisionPeer::REASON => 7, BotDecisionPeer::PRICE_AT => 8, BotDecisionPeer::REALIZED_BEFORE => 9, BotDecisionPeer::EVAL_STATUS => 10, BotDecisionPeer::EVAL_AT => 11, BotDecisionPeer::APPLIED_AT => 12, BotDecisionPeer::CYCLES_DELTA => 13, BotDecisionPeer::REALIZED_DELTA => 14, BotDecisionPeer::PRICE_MOVE_PCT => 15, BotDecisionPeer::VERDICT => 16, BotDecisionPeer::DATE_CREATION => 17, BotDecisionPeer::DATE_MODIFICATION => 18, BotDecisionPeer::ID_GROUP_CREATION => 19, BotDecisionPeer::ID_CREATION => 20, BotDecisionPeer::ID_MODIFICATION => 21, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID_BOT_DECISION' => 0, 'ID_GRID_RUN' => 1, 'SOURCE' => 2, 'P_LOW' => 3, 'P_HIGH' => 4, 'N_LEVELS' => 5, 'DEPLOY_PCT' => 6, 'REASON' => 7, 'PRICE_AT' => 8, 'REALIZED_BEFORE' => 9, 'EVAL_STATUS' => 10, 'EVAL_AT' => 11, 'APPLIED_AT' => 12, 'CYCLES_DELTA' => 13, 'REALIZED_DELTA' => 14, 'PRICE_MOVE_PCT' => 15, 'VERDICT' => 16, 'DATE_CREATION' => 17, 'DATE_MODIFICATION' => 18, 'ID_GROUP_CREATION' => 19, 'ID_CREATION' => 20, 'ID_MODIFICATION' => 21, ),
-        BasePeer::TYPE_FIELDNAME => array ('id_bot_decision' => 0, 'id_grid_run' => 1, 'source' => 2, 'p_low' => 3, 'p_high' => 4, 'n_levels' => 5, 'deploy_pct' => 6, 'reason' => 7, 'price_at' => 8, 'realized_before' => 9, 'eval_status' => 10, 'eval_at' => 11, 'applied_at' => 12, 'cycles_delta' => 13, 'realized_delta' => 14, 'price_move_pct' => 15, 'verdict' => 16, 'date_creation' => 17, 'date_modification' => 18, 'id_group_creation' => 19, 'id_creation' => 20, 'id_modification' => 21, ),
-        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, )
+        BasePeer::TYPE_PHPNAME => array ('IdBotDecision' => 0, 'IdGridRun' => 1, 'Source' => 2, 'PLow' => 3, 'PHigh' => 4, 'NLevels' => 5, 'DeployPct' => 6, 'Reason' => 7, 'PriceAt' => 8, 'RealizedBefore' => 9, 'EvalStatus' => 10, 'EvalAt' => 11, 'AppliedAt' => 12, 'CyclesDelta' => 13, 'RealizedDelta' => 14, 'PriceMovePct' => 15, 'Verdict' => 16, 'CounterfactualDelta' => 17, 'CandidateDelta' => 18, 'RequestedJson' => 19, 'ClampsJson' => 20, 'BriefJson' => 21, 'DateCreation' => 22, 'DateModification' => 23, 'IdGroupCreation' => 24, 'IdCreation' => 25, 'IdModification' => 26, ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('idBotDecision' => 0, 'idGridRun' => 1, 'source' => 2, 'pLow' => 3, 'pHigh' => 4, 'nLevels' => 5, 'deployPct' => 6, 'reason' => 7, 'priceAt' => 8, 'realizedBefore' => 9, 'evalStatus' => 10, 'evalAt' => 11, 'appliedAt' => 12, 'cyclesDelta' => 13, 'realizedDelta' => 14, 'priceMovePct' => 15, 'verdict' => 16, 'counterfactualDelta' => 17, 'candidateDelta' => 18, 'requestedJson' => 19, 'clampsJson' => 20, 'briefJson' => 21, 'dateCreation' => 22, 'dateModification' => 23, 'idGroupCreation' => 24, 'idCreation' => 25, 'idModification' => 26, ),
+        BasePeer::TYPE_COLNAME => array (BotDecisionPeer::ID_BOT_DECISION => 0, BotDecisionPeer::ID_GRID_RUN => 1, BotDecisionPeer::SOURCE => 2, BotDecisionPeer::P_LOW => 3, BotDecisionPeer::P_HIGH => 4, BotDecisionPeer::N_LEVELS => 5, BotDecisionPeer::DEPLOY_PCT => 6, BotDecisionPeer::REASON => 7, BotDecisionPeer::PRICE_AT => 8, BotDecisionPeer::REALIZED_BEFORE => 9, BotDecisionPeer::EVAL_STATUS => 10, BotDecisionPeer::EVAL_AT => 11, BotDecisionPeer::APPLIED_AT => 12, BotDecisionPeer::CYCLES_DELTA => 13, BotDecisionPeer::REALIZED_DELTA => 14, BotDecisionPeer::PRICE_MOVE_PCT => 15, BotDecisionPeer::VERDICT => 16, BotDecisionPeer::COUNTERFACTUAL_DELTA => 17, BotDecisionPeer::CANDIDATE_DELTA => 18, BotDecisionPeer::REQUESTED_JSON => 19, BotDecisionPeer::CLAMPS_JSON => 20, BotDecisionPeer::BRIEF_JSON => 21, BotDecisionPeer::DATE_CREATION => 22, BotDecisionPeer::DATE_MODIFICATION => 23, BotDecisionPeer::ID_GROUP_CREATION => 24, BotDecisionPeer::ID_CREATION => 25, BotDecisionPeer::ID_MODIFICATION => 26, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID_BOT_DECISION' => 0, 'ID_GRID_RUN' => 1, 'SOURCE' => 2, 'P_LOW' => 3, 'P_HIGH' => 4, 'N_LEVELS' => 5, 'DEPLOY_PCT' => 6, 'REASON' => 7, 'PRICE_AT' => 8, 'REALIZED_BEFORE' => 9, 'EVAL_STATUS' => 10, 'EVAL_AT' => 11, 'APPLIED_AT' => 12, 'CYCLES_DELTA' => 13, 'REALIZED_DELTA' => 14, 'PRICE_MOVE_PCT' => 15, 'VERDICT' => 16, 'COUNTERFACTUAL_DELTA' => 17, 'CANDIDATE_DELTA' => 18, 'REQUESTED_JSON' => 19, 'CLAMPS_JSON' => 20, 'BRIEF_JSON' => 21, 'DATE_CREATION' => 22, 'DATE_MODIFICATION' => 23, 'ID_GROUP_CREATION' => 24, 'ID_CREATION' => 25, 'ID_MODIFICATION' => 26, ),
+        BasePeer::TYPE_FIELDNAME => array ('id_bot_decision' => 0, 'id_grid_run' => 1, 'source' => 2, 'p_low' => 3, 'p_high' => 4, 'n_levels' => 5, 'deploy_pct' => 6, 'reason' => 7, 'price_at' => 8, 'realized_before' => 9, 'eval_status' => 10, 'eval_at' => 11, 'applied_at' => 12, 'cycles_delta' => 13, 'realized_delta' => 14, 'price_move_pct' => 15, 'verdict' => 16, 'counterfactual_delta' => 17, 'candidate_delta' => 18, 'requested_json' => 19, 'clamps_json' => 20, 'brief_json' => 21, 'date_creation' => 22, 'date_modification' => 23, 'id_group_creation' => 24, 'id_creation' => 25, 'id_modification' => 26, ),
+        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, )
     );
 
     /** The enumerated values for this table */
@@ -186,6 +207,12 @@ abstract class BaseBotDecisionPeer
             BotDecisionPeer::VERDICT_FLAT,
             BotDecisionPeer::VERDICT_LOSS,
             BotDecisionPeer::VERDICT_SUPERSEDED,
+            BotDecisionPeer::VERDICT_WORSE,
+        ),
+        BotDecisionPeer::CANDIDATE_DELTA => array(
+            BotDecisionPeer::CANDIDATE_DELTA_SAME,
+            BotDecisionPeer::CANDIDATE_DELTA_DEVIATED,
+            BotDecisionPeer::CANDIDATE_DELTA_NONE,
         ),
     );
 
@@ -322,6 +349,11 @@ abstract class BaseBotDecisionPeer
             $criteria->addSelectColumn(BotDecisionPeer::REALIZED_DELTA);
             $criteria->addSelectColumn(BotDecisionPeer::PRICE_MOVE_PCT);
             $criteria->addSelectColumn(BotDecisionPeer::VERDICT);
+            $criteria->addSelectColumn(BotDecisionPeer::COUNTERFACTUAL_DELTA);
+            $criteria->addSelectColumn(BotDecisionPeer::CANDIDATE_DELTA);
+            $criteria->addSelectColumn(BotDecisionPeer::REQUESTED_JSON);
+            $criteria->addSelectColumn(BotDecisionPeer::CLAMPS_JSON);
+            $criteria->addSelectColumn(BotDecisionPeer::BRIEF_JSON);
             $criteria->addSelectColumn(BotDecisionPeer::DATE_CREATION);
             $criteria->addSelectColumn(BotDecisionPeer::DATE_MODIFICATION);
             $criteria->addSelectColumn(BotDecisionPeer::ID_GROUP_CREATION);
@@ -345,6 +377,11 @@ abstract class BaseBotDecisionPeer
             $criteria->addSelectColumn($alias . '.realized_delta');
             $criteria->addSelectColumn($alias . '.price_move_pct');
             $criteria->addSelectColumn($alias . '.verdict');
+            $criteria->addSelectColumn($alias . '.counterfactual_delta');
+            $criteria->addSelectColumn($alias . '.candidate_delta');
+            $criteria->addSelectColumn($alias . '.requested_json');
+            $criteria->addSelectColumn($alias . '.clamps_json');
+            $criteria->addSelectColumn($alias . '.brief_json');
             $criteria->addSelectColumn($alias . '.date_creation');
             $criteria->addSelectColumn($alias . '.date_modification');
             $criteria->addSelectColumn($alias . '.id_group_creation');
@@ -681,6 +718,17 @@ abstract class BaseBotDecisionPeer
     public static function getVerdictSqlValue($enumVal)
     {
         return BotDecisionPeer::getSqlValueForEnum(BotDecisionPeer::VERDICT, $enumVal);
+    }
+
+    /**
+     * Gets the SQL value for CandidateDelta ENUM value
+     *
+     * @param  string $enumVal ENUM value to get SQL value for
+     * @return int SQL value
+     */
+    public static function getCandidateDeltaSqlValue($enumVal)
+    {
+        return BotDecisionPeer::getSqlValueForEnum(BotDecisionPeer::CANDIDATE_DELTA, $enumVal);
     }
 
 
@@ -2292,6 +2340,18 @@ abstract class BaseBotDecisionPeer
 
         if ($obj->isNew() || $obj->isColumnModified(BotDecisionPeer::VERDICT))
             $columns[BotDecisionPeer::VERDICT] = $obj->getVerdict();
+
+        if ($obj->isNew() || $obj->isColumnModified(BotDecisionPeer::CANDIDATE_DELTA))
+            $columns[BotDecisionPeer::CANDIDATE_DELTA] = $obj->getCandidateDelta();
+
+        if ($obj->isNew() || $obj->isColumnModified(BotDecisionPeer::REQUESTED_JSON))
+            $columns[BotDecisionPeer::REQUESTED_JSON] = $obj->getRequestedJson();
+
+        if ($obj->isNew() || $obj->isColumnModified(BotDecisionPeer::CLAMPS_JSON))
+            $columns[BotDecisionPeer::CLAMPS_JSON] = $obj->getClampsJson();
+
+        if ($obj->isNew() || $obj->isColumnModified(BotDecisionPeer::BRIEF_JSON))
+            $columns[BotDecisionPeer::BRIEF_JSON] = $obj->getBriefJson();
 
         }
 

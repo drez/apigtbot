@@ -231,6 +231,67 @@ return function (App $app) {
         return $json(['status' => 'ok', 'command' => $map[$action]], 200);
     })->setName('Dashboard/command');
 
+    // Hold/Release funds: park a run in Halted (its slice leaves the shared
+    // pool) or bring a held run back to Live (BudgetGuard re-checked — the
+    // freed slice may have been taken meanwhile). Logic lives in
+    // App\Domains\Bot\FundsHold; same auth/CSRF posture as Dashboard/command.
+    $app->post(_SUB_DIR_URL . 'Dashboard/funds', function (Request $request, Response $response, $args) {
+        $json = static function (array $out, int $status) use ($response) {
+            $response->getBody()->write(json_encode($out));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus($status);
+        };
+        $session = $_SESSION[_AUTH_VAR] ?? null;
+        if (!$session || $session->get('connected') !== 'YES') {
+            return $json(['status' => 'unauthenticated'], 401);
+        }
+        if (!$session->isAdmin() && $session->hasRights('GridRun', 'w') === false) {
+            return $json(['status' => 'forbidden'], 403);
+        }
+        $body = json_decode((string) $request->getBody(), true) ?: [];
+        $action = (string) ($body['action'] ?? '');
+        if (!in_array($action, ['hold', 'release'], true)) {
+            return $json(['status' => 'unknown_action'], 400);
+        }
+        $run = \App\GridRunQuery::create()->findPk((int) ($body['run'] ?? 0));
+        if (!$run) {
+            return $json(['status' => 'unknown_run'], 404);
+        }
+        $res = $action === 'hold'
+            ? \App\Domains\Bot\FundsHold::hold($run)
+            : \App\Domains\Bot\FundsHold::release($run);
+        if (!$res['ok']) {
+            return $json(['status' => 'refused', 'message' => $res['message']], 409);
+        }
+        return $json(['status' => 'ok', 'message' => $res['message']], 200);
+    })->setName('Dashboard/funds');
+
+    // Edit the shared budget from the dashboard Budget tile: writes
+    // gtbot_shared_budget_quote and Reloads every active run (paper wallet
+    // re-seeds at boot). Slices resize at the next refit, not here. Logic in
+    // App\Domains\Bot\BudgetPool; same auth/CSRF posture as Dashboard/funds.
+    $app->post(_SUB_DIR_URL . 'Dashboard/budget', function (Request $request, Response $response, $args) {
+        $json = static function (array $out, int $status) use ($response) {
+            $response->getBody()->write(json_encode($out));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus($status);
+        };
+        $session = $_SESSION[_AUTH_VAR] ?? null;
+        if (!$session || $session->get('connected') !== 'YES') {
+            return $json(['status' => 'unauthenticated'], 401);
+        }
+        if (!$session->isAdmin() && $session->hasRights('GridRun', 'w') === false) {
+            return $json(['status' => 'forbidden'], 403);
+        }
+        if (\App\Domains\Bot\BudgetPool::useAllFunds()) {
+            return $json(['status' => 'refused', 'message' => 'the budget follows the wallet while gtbot_use_all_funds is on — turn it off in Settings › Config first'], 409);
+        }
+        $body = json_decode((string) $request->getBody(), true) ?: [];
+        $res = \App\Domains\Bot\BudgetPool::set((string) ($body['budget'] ?? ''));
+        if (!$res['ok']) {
+            return $json(['status' => 'refused', 'message' => $res['message']], 400);
+        }
+        return $json(['status' => 'ok'] + $res, 200);
+    })->setName('Dashboard/budget');
+
     // Global simulated/real switch — the system trades ONE shared wallet, so
     // the mode flips for ALL non-Done runs at once (mixed modes would
     // double-commit capital). Same auth/CSRF posture as Dashboard/command.
@@ -254,6 +315,39 @@ return function (App $app) {
         $res = \App\Domains\Dashboard\ModeSwitch::flipAll($mode === 'simulated');
         return $json(['status' => 'ok'] + $res, 200);
     })->setName('Dashboard/mode');
+
+    // Dashboard trading chart feed: candles for the run's symbol + timeframe
+    // (CandleStore, collector-fed — no exchange call) with the run's fills,
+    // working ladder, grid geometry, trend lines and lifecycle markers.
+    // Read-only GET: session + GridRun read right, no CSRF (AuthyMiddleware
+    // only enforces it on writes). no-store: the newest bar changes every
+    // minute and the client polls.
+    $app->get(_SUB_DIR_URL . 'Dashboard/chart', function (Request $request, Response $response, $args) {
+        $json = static function (array $out, int $status) use ($response) {
+            $response->getBody()->write(json_encode($out));
+            return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withHeader('Cache-Control', 'no-store')
+                ->withStatus($status);
+        };
+        $session = $_SESSION[_AUTH_VAR] ?? null;
+        if (!$session || $session->get('connected') !== 'YES') {
+            return $json(['status' => 'unauthenticated'], 401);
+        }
+        if (!$session->isAdmin() && $session->hasRights('GridRun', 'r') === false) {
+            return $json(['status' => 'forbidden'], 403);
+        }
+        $q = $request->getQueryParams();
+        $tf = (string) ($q['tf'] ?? '1h');
+        if (!in_array($tf, \App\Domains\Dashboard\DashboardData::CHART_TFS, true)) {
+            return $json(['status' => 'unknown_tf', 'allowed' => \App\Domains\Dashboard\DashboardData::CHART_TFS], 400);
+        }
+        $run = \App\GridRunQuery::create()->findPk((int) ($q['run'] ?? 0));
+        if (!$run) {
+            return $json(['status' => 'unknown_run'], 404);
+        }
+        return $json(['status' => 'ok'] + (new \App\Domains\Dashboard\DashboardData($run))->chartModel($tf), 200);
+    })->setName('Dashboard/chart');
 
     /* declare new routes here */
     /*$app->map(['POST'], _SUB_DIR_URL . 'RefreshStats', function (Request $request, Response $response, array $args) {

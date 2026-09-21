@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseGridRunPeer;
 
-require 'om/BaseGridRunPeer.php';
+require_once __DIR__ . '/om/BaseGridRunPeer.php';
 
 
 /**

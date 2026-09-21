@@ -25,13 +25,23 @@ class TelegramNotifier
     private const MIN_INTERVAL = 300;
     /** A digest never carries more than this many queued lines. */
     private const MAX_QUEUE = 50;
+    /**
+     * Window in which an URGENT line that says the same thing is sent once.
+     * sendNow() has no budget of its own, and its producers repeat: the same
+     * 'kill' on every boot of a restart loop, the same 'exit_shrunk' on every
+     * chase tick, the same 'api_rate_limited' on every flap. Telegram answers
+     * a burst with its own 429, and the message that gets dropped is as likely
+     * to be the stop as the noise — so identical urgent text inside this
+     * window is collapsed instead of racing the limit.
+     */
+    private const URGENT_DEDUPE = 60;
 
     /** @var callable fn(string $url, array $post): array{status:int, body:string} */
     private $transport;
     /** @var callable fn(): int */
     private $clock;
-    /** @var array{last:int, queue:string[]} fallback state when no file is usable */
-    private array $memState = ['last' => 0, 'queue' => []];
+    /** @var array{last:int, queue:string[], now:array<string,int>} fallback state when no file is usable */
+    private array $memState = ['last' => 0, 'queue' => [], 'now' => []];
 
     public function __construct(
         private readonly string $botToken,
@@ -103,10 +113,17 @@ class TelegramNotifier
         }
         $dropped = 0;
         if (count($claimed) > self::MAX_QUEUE) {
+            // Keep the OLDEST and drop the newest. An urgent line Telegram
+            // refused is requeued here (sendNow), and it is by construction
+            // the oldest thing in the queue — trimming to the newest dropped
+            // precisely the one message that may not be lost, in favour of
+            // fifty copies of the storm that follows a stop. For a channel
+            // whose job is stops, the first N lines of an incident are the
+            // ones worth the budget.
             $dropped = count($claimed) - self::MAX_QUEUE;
-            $claimed = array_slice($claimed, -self::MAX_QUEUE);
+            $claimed = array_slice($claimed, 0, self::MAX_QUEUE);
         }
-        $digest = ($dropped > 0 ? "(… {$dropped} older notifications dropped)\n" : '')
+        $digest = ($dropped > 0 ? "(… {$dropped} newer notifications dropped)\n" : '')
             . implode("\n", $claimed);
         if ($this->deliver($digest)) {
             return true;
@@ -123,11 +140,55 @@ class TelegramNotifier
      * Deliver immediately, EXEMPT from the 5-min budget: no queue, no window
      * check, and the window state is left untouched so throttled traffic
      * keeps its schedule. Reserved for the few messages the operator wants
-     * the instant they happen (closed-cycle results).
+     * the instant they happen (closed-cycle results, stops — see
+     * EventLog::URGENT_KINDS).
+     *
+     * Two rules the plain deliver() did not have, because "exempt from the
+     * budget" turned into "silently dropped" the moment the channel hiccuped:
+     *  - a caller that passes $dedupe gets at most one send per identical key
+     *    inside URGENT_DEDUPE (a restart loop re-announcing the same kill must
+     *    not spend the channel). Callers with genuinely repeating content —
+     *    two grid cycles at the same level print byte-identical text — pass
+     *    nothing and are never collapsed;
+     *  - a FAILED send is queued, not lost. It then rides the next throttled
+     *    flush — late, which is bad, instead of never, which is worse. (Only
+     *    flush() ever requeued; a stop that hit Telegram's own 429 was gone.)
      */
-    public function sendNow(string $text): bool
+    public function sendNow(string $text, ?string $dedupe = null): bool
     {
-        return $this->deliver($text);
+        if ($dedupe === null) {
+            if ($this->deliver($text)) {
+                return true;
+            }
+            $this->buffer($text);
+            return false;
+        }
+        $key = md5($dedupe);
+        $now = ($this->clock)();
+        $duplicate = false;
+        $this->mutate(function (array $s) use ($key, $now, &$duplicate): array {
+            $s['now'] = array_filter($s['now'], static fn (int $at): bool => $now - $at < self::URGENT_DEDUPE);
+            $duplicate = isset($s['now'][$key]);
+            if (!$duplicate) {
+                $s['now'][$key] = $now;
+            }
+            return $s;
+        });
+        if ($duplicate) {
+            return true;
+        }
+        if ($this->deliver($text)) {
+            return true;
+        }
+        // failed: it must still reach the operator, so hand it to the queue
+        // the next due flush() drains (and forget the dedupe stamp, or the
+        // retry would be swallowed as its own duplicate)
+        $this->mutate(static function (array $s) use ($key, $text): array {
+            unset($s['now'][$key]);
+            $s['queue'][] = $text;
+            return $s;
+        });
+        return false;
     }
 
     /** One raw Telegram API call. */
@@ -151,7 +212,7 @@ class TelegramNotifier
      * cron and web workers share one budget. Any file trouble falls back to
      * in-process state — alerting must never take the caller down.
      *
-     * @param callable(array{last:int, queue:string[]}): array $fn
+     * @param callable(array{last:int, queue:string[], now:array<string,int>}): array $fn
      */
     private function mutate(callable $fn): void
     {
@@ -175,6 +236,10 @@ class TelegramNotifier
                     'queue' => array_values(array_filter(
                         is_array($s) ? (array) ($s['queue'] ?? []) : [],
                         'is_string'
+                    )),
+                    'now' => array_map('intval', array_filter(
+                        is_array($s) ? (array) ($s['now'] ?? []) : [],
+                        'is_numeric'
                     )),
                 ];
                 $state = $fn($state);

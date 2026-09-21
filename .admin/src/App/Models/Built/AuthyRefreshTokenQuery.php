@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseAuthyRefreshTokenQuery;
 
-require 'om/BaseAuthyRefreshTokenQuery.php';
+require_once __DIR__ . '/om/BaseAuthyRefreshTokenQuery.php';
 
 
 /**

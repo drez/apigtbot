@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseGridRunQuery;
 
-require 'om/BaseGridRunQuery.php';
+require_once __DIR__ . '/om/BaseGridRunQuery.php';
 
 
 /**

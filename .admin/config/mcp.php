@@ -12,6 +12,10 @@
  * without exploratory calls. Omitted/empty => a generic built-in default.
  */
 return [
+    // serverInfo shown to MCP clients (runtime 0dbba9b: per-project, no longer the
+    // hardcoded 'apicrm-mcp'); name is an identifier, title is for humans
+    'name' => 'apigtbot',
+    'title' => 'apigtbot trading bot (grid + trend runs, PnL, refit)',
     'tools' => [],     // e.g. \App\Mcp\Tools\LlteqConvertQuote::class
     'disabled' => [],  // e.g. 'crm_delete' to turn off a built-in
     // 'instructions' => 'MyApp CRM. Start with crm_describe; ...',

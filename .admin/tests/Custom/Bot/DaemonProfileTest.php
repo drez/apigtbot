@@ -141,6 +141,8 @@ class DaemonProfileTest extends TestCase
     public function testFlattenCommandAllowedForBalanced(): void
     {
         $run = $this->makeRun(['profile' => 'Balanced', 'budget_quote' => '400']);
+        $run->setSellAtLoss(true); // the run switch is gated separately (SellAtLossTest)
+        $run->save();
         $cmd = new \App\BotCommand();
         $cmd->setIdGridRun((int) $run->getIdGridRun());
         $cmd->setCommand('Flatten');

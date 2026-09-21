@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseTradeCycleQuery;
 
-require 'om/BaseTradeCycleQuery.php';
+require_once __DIR__ . '/om/BaseTradeCycleQuery.php';
 
 
 /**

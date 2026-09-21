@@ -155,6 +155,16 @@ class GtbotCreateRunToolTest extends TestCase
         $this->assertNotNull($e);
     }
 
+    public function testSellAtLossArgIsStampedAndDefaultsOff(): void
+    {
+        $out = $this->decode($this->tool()->handle(['confirm' => true] + $this->baseArgs(), $this->session()));
+        $this->assertFalse((bool) GridRunQuery::create()->findPk($out['id_grid_run'])->getSellAtLoss(), 'default OFF');
+
+        $args = ['sell_at_loss' => true, 'confirm' => true, 'label' => 'sal-on-' . bin2hex(random_bytes(3))] + $this->baseArgs();
+        $out = $this->decode($this->tool()->handle($args, $this->session()));
+        $this->assertTrue((bool) GridRunQuery::create()->findPk($out['id_grid_run'])->getSellAtLoss());
+    }
+
     public function testExplicitProfileStampsItsOwnCaps(): void
     {
         $args = ['profile' => 'Cautious', 'confirm' => true] + $this->baseArgs();

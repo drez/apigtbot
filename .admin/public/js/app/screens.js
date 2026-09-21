@@ -610,6 +610,14 @@
                 gcSelectBox.bindWithin(screen);
             }
         } catch (e) { /* selectbox.js absent; nothing to bind */ }
+        // Live parent -> child select cascade (data-gc-cascade on the child
+        // label). MUST run AFTER gcSelectBox.bindWithin above: the widget's
+        // bind-time auto-pick fires a 'change' on the hidden input, and the
+        // cascade binder snapshots its source values when it binds -- binding
+        // it second means that echo lands before any cascade listener exists.
+        try {
+            if (window.gcCascade) { gcCascade.bindWithin(screen); }
+        } catch (e) { /* cascade.js absent; nothing to bind */ }
         try {
             if (window.gcColorField) { gcColorField.bindWithin(screen); }
         } catch (e) { /* colorfield.js absent; nothing to bind */ }
@@ -771,6 +779,13 @@
         // its textarea before destroying.
         if (window.gcEditor) {
             try { gcEditor.destroyWithin(screen); } catch (e) {}
+        }
+        // Same story for quick-add: gcQuickAddInit parks its modal on
+        // document.body (outside this screen), so removing the screen alone
+        // leaks the modal — and its duplicate gcqa_* ids outlive the form
+        // they belong to. Hand it back before the screen goes.
+        if (window.gcQuickAdd && typeof window.gcQuickAdd.destroyWithin === 'function') {
+            try { window.gcQuickAdd.destroyWithin(screen); } catch (e) {}
         }
         if (stack.length === 0) { document.body.classList.remove('screen-open'); }
         screen.classList.add('exit');
@@ -1120,6 +1135,17 @@
     }
 
     function save(screen) {
+        // One save in flight per screen: a double click/tap on a NEW record
+        // POSTed twice (two inserts), and the second success popped a screen
+        // already off the stack — popAfterSave() then closed the PARENT drawer
+        // and threw away its unsaved edits.
+        if (screen.__gcSaving) { return; }
+        screen.__gcSaving = true;
+        screen.setAttribute('data-gc-saving', '1');
+        function done() {
+            screen.__gcSaving = false;
+            screen.removeAttribute('data-gc-saving');
+        }
         var model = screen.getAttribute('data-model');
         var body = new URLSearchParams();
         body.set('d', serializeData(screen));
@@ -1138,7 +1164,11 @@
             },
             body: body.toString()
         }).then(function (res) {
+            done();
             if (!res) { return; }
+            // The screen left the stack while the request ran (back, a second
+            // response): its outcome must not pop anything else.
+            if (stack.indexOf(screen) < 0) { return; }
             var text = res.text || '';
             // S4 — structured envelope (sent X-GC-Envelope): decode the outcome
             // directly. Falls through to the legacy scrape below when the server
@@ -1181,7 +1211,7 @@
             } else {
                 toast('Save failed');
             }
-        }).catch(function () { toast('Save failed'); });
+        }).catch(function () { done(); toast('Save failed'); });
     }
 
     function closeSheet() {

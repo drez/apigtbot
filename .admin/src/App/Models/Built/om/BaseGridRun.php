@@ -27,9 +27,15 @@ use App\BotEvent;
 use App\BotEventQuery;
 use App\BotOrder;
 use App\BotOrderQuery;
+use App\FleetSlot;
+use App\FleetSlotQuery;
 use App\GridRun;
+use App\GridRunAudit;
+use App\GridRunAuditQuery;
 use App\GridRunPeer;
 use App\GridRunQuery;
+use App\RegimeEpisode;
+use App\RegimeEpisodeQuery;
 use App\TradeCycle;
 use App\TradeCycleQuery;
 
@@ -162,6 +168,13 @@ abstract class BaseGridRun extends BaseObject implements Persistent
     protected $deploy_pct;
 
     /**
+     * The value for the alloc_mode field.
+     * Note: this column has a database default value of: 0
+     * @var        int
+     */
+    protected $alloc_mode;
+
+    /**
      * The value for the fee_pct field.
      * Note: this column has a database default value of: '0.001'
      * @var        string
@@ -191,6 +204,20 @@ abstract class BaseGridRun extends BaseObject implements Persistent
      * @var        string
      */
     protected $max_unrealized_loss_quote;
+
+    /**
+     * The value for the sell_at_loss field.
+     * Note: this column has a database default value of: false
+     * @var        boolean
+     */
+    protected $sell_at_loss;
+
+    /**
+     * The value for the sell_when_starved field.
+     * Note: this column has a database default value of: false
+     * @var        boolean
+     */
+    protected $sell_when_starved;
 
     /**
      * The value for the breakout_buffer_pct field.
@@ -265,6 +292,20 @@ abstract class BaseGridRun extends BaseObject implements Persistent
      * @var        string
      */
     protected $atr_initial_mult;
+
+    /**
+     * The value for the trend_stop_floor_pct field.
+     * Note: this column has a database default value of: '0.015'
+     * @var        string
+     */
+    protected $trend_stop_floor_pct;
+
+    /**
+     * The value for the trend_signal field.
+     * Note: this column has a database default value of: 0
+     * @var        int
+     */
+    protected $trend_signal;
 
     /**
      * The value for the reentry_cooldown field.
@@ -378,6 +419,18 @@ abstract class BaseGridRun extends BaseObject implements Persistent
     protected $aAuthyRelatedByIdModification;
 
     /**
+     * @var        PropelObjectCollection|FleetSlot[] Collection to store aggregation of FleetSlot objects.
+     */
+    protected $collFleetSlots;
+    protected $collFleetSlotsPartial;
+
+    /**
+     * @var        PropelObjectCollection|RegimeEpisode[] Collection to store aggregation of RegimeEpisode objects.
+     */
+    protected $collRegimeEpisodes;
+    protected $collRegimeEpisodesPartial;
+
+    /**
      * @var        PropelObjectCollection|BotOrder[] Collection to store aggregation of BotOrder objects.
      */
     protected $collBotOrders;
@@ -408,6 +461,12 @@ abstract class BaseGridRun extends BaseObject implements Persistent
     protected $collBotDecisionsPartial;
 
     /**
+     * @var        PropelObjectCollection|GridRunAudit[] Collection to store aggregation of GridRunAudit objects.
+     */
+    protected $collGridRunAudits;
+    protected $collGridRunAuditsPartial;
+
+    /**
      * Flag to prevent endless save loop, if this object is referenced
      * by another object which falls in this transaction.
      * @var        boolean
@@ -426,6 +485,23 @@ abstract class BaseGridRun extends BaseObject implements Persistent
      * @var        boolean
      */
     protected $alreadyInClearAllReferencesDeep = false;
+
+    // GoatCheese behavior
+
+        /** add_audit: change entries captured in preSave, written in postSave. */
+        public $gcAuditPending = array();
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $fleetSlotsScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $regimeEpisodesScheduledForDeletion = null;
 
     /**
      * An array of objects scheduled for deletion.
@@ -458,6 +534,12 @@ abstract class BaseGridRun extends BaseObject implements Persistent
     protected $botDecisionsScheduledForDeletion = null;
 
     /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $gridRunAuditsScheduledForDeletion = null;
+
+    /**
      * Applies default values to this object.
      * This method should be called from the object's constructor (or
      * equivalent initialization method).
@@ -475,7 +557,10 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         $this->spacing = 0;
         $this->allocation = 0;
         $this->deploy_pct = 100;
+        $this->alloc_mode = 0;
         $this->fee_pct = '0.001';
+        $this->sell_at_loss = false;
+        $this->sell_when_starved = false;
         $this->breakout_buffer_pct = '0.02';
         $this->breakout_policy = 0;
         $this->max_open_orders = 60;
@@ -484,6 +569,8 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         $this->trend_ema_fast = 20;
         $this->trend_ema_slow = 50;
         $this->atr_period = 14;
+        $this->trend_stop_floor_pct = '0.015';
+        $this->trend_signal = 0;
     }
 
     /**
@@ -718,6 +805,26 @@ abstract class BaseGridRun extends BaseObject implements Persistent
 
     /**
      * @Field()
+     * Get the [alloc_mode] column value.
+     * Allocation mode
+     * @return int
+     * @throws PropelException - if the stored enum key is unknown.
+     */
+    public function getAllocMode()
+    {
+        if (null === $this->alloc_mode) {
+            return null;
+        }
+        $valueSet = GridRunPeer::getValueSet(GridRunPeer::ALLOC_MODE);
+        if (!isset($valueSet[$this->alloc_mode])) {
+            throw new PropelException('Unknown stored enum key: ' . $this->alloc_mode);
+        }
+
+        return $valueSet[$this->alloc_mode];
+    }
+
+    /**
+     * @Field()
      * Get the [fee_pct] column value.
      * Fee per side
      * @return string
@@ -774,6 +881,30 @@ abstract class BaseGridRun extends BaseObject implements Persistent
     {
 
         return $this->max_unrealized_loss_quote;
+    }
+
+    /**
+     * @Field()
+     * Get the [sell_at_loss] column value.
+     * Sell at loss
+     * @return boolean
+     */
+    public function getSellAtLoss()
+    {
+
+        return $this->sell_at_loss;
+    }
+
+    /**
+     * @Field()
+     * Get the [sell_when_starved] column value.
+     * Sell at loss when starved
+     * @return boolean
+     */
+    public function getSellWhenStarved()
+    {
+
+        return $this->sell_when_starved;
     }
 
     /**
@@ -926,6 +1057,38 @@ abstract class BaseGridRun extends BaseObject implements Persistent
 
     /**
      * @Field()
+     * Get the [trend_stop_floor_pct] column value.
+     * Trail stop floor (fraction of HWM)
+     * @return string
+     */
+    public function getTrendStopFloorPct()
+    {
+
+        return $this->trend_stop_floor_pct;
+    }
+
+    /**
+     * @Field()
+     * Get the [trend_signal] column value.
+     * Trend entry signal
+     * @return int
+     * @throws PropelException - if the stored enum key is unknown.
+     */
+    public function getTrendSignal()
+    {
+        if (null === $this->trend_signal) {
+            return null;
+        }
+        $valueSet = GridRunPeer::getValueSet(GridRunPeer::TREND_SIGNAL);
+        if (!isset($valueSet[$this->trend_signal])) {
+            throw new PropelException('Unknown stored enum key: ' . $this->trend_signal);
+        }
+
+        return $valueSet[$this->trend_signal];
+    }
+
+    /**
+     * @Field()
      * Get the [reentry_cooldown] column value.
      * Re-entry cooldown (bars)
      * @return int
@@ -982,7 +1145,7 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         }
 
         if (strpos($format, '%') !== false) {
-            return strftime($format, $dt->format('U'));
+            return self::formatStrftime($format, $dt);
         }
 
         return $dt->format($format);
@@ -1107,7 +1270,7 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         }
 
         if (strpos($format, '%') !== false) {
-            return strftime($format, $dt->format('U'));
+            return self::formatStrftime($format, $dt);
         }
 
         return $dt->format($format);
@@ -1148,7 +1311,7 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         }
 
         if (strpos($format, '%') !== false) {
-            return strftime($format, $dt->format('U'));
+            return self::formatStrftime($format, $dt);
         }
 
         return $dt->format($format);
@@ -1189,7 +1352,7 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         }
 
         if (strpos($format, '%') !== false) {
-            return strftime($format, $dt->format('U'));
+            return self::formatStrftime($format, $dt);
         }
 
         return $dt->format($format);
@@ -1230,6 +1393,97 @@ abstract class BaseGridRun extends BaseObject implements Persistent
     {
 
         return $this->id_modification;
+    }
+
+    /**
+     * strftime()-compatible formatting for the temporal accessors above.
+     *
+     * strftime() is deprecated as of PHP 8.1 and removed in PHP 9, so the
+     * conversion specifiers are expanded here instead. The expansion follows the
+     * C/POSIX locale, which is what these accessors have always resolved to in
+     * practice. Anything not in the tables below -- including the %E / %O locale
+     * modifiers and a trailing bare '%' -- raises rather than silently
+     * mis-formatting.
+     *
+     * The one deliberate divergence from strftime() is %s: PHP's strftime()
+     * double-applies the timezone offset for that specifier, this returns the
+     * true Unix timestamp.
+     *
+     * @param  string   $format A strftime()-style format string.
+     * @param  DateTime $dt     The value to format.
+     * @return string
+     * @throws PropelException If the format uses an unsupported conversion specifier.
+     */
+    protected static function formatStrftime($format, $dt)
+    {
+        // Composite specifiers, expanded to their C/POSIX-locale definitions.
+        static $composite = array(
+            'c' => '%a %b %e %H:%M:%S %Y',
+            'D' => '%m/%d/%y',
+            'F' => '%Y-%m-%d',
+            'r' => '%I:%M:%S %p',
+            'R' => '%H:%M',
+            'T' => '%H:%M:%S',
+            'x' => '%m/%d/%y',
+            'X' => '%H:%M:%S',
+        );
+        // Specifiers that are exactly one date() format character.
+        static $direct = array(
+            'a' => 'D', 'A' => 'l', 'b' => 'M', 'h' => 'M', 'B' => 'F',
+            'd' => 'd', 'H' => 'H', 'I' => 'h', 'm' => 'm', 'M' => 'i',
+            'p' => 'A', 'P' => 'a', 's' => 'U', 'S' => 's', 'u' => 'N',
+            'w' => 'w', 'y' => 'y', 'Y' => 'Y', 'G' => 'o', 'z' => 'O',
+            'Z' => 'T',
+        );
+        // Literal passthroughs.
+        static $literal = array('n' => "\n", 't' => "\t", '%' => '%');
+
+        $out = '';
+        $len = strlen($format);
+
+        for ($i = 0; $i < $len; $i++) {
+            if ('%' !== $format[$i]) {
+                $out .= $format[$i];
+                continue;
+            }
+            if (++$i === $len) {
+                throw new PropelException("Malformed strftime() format string (trailing '%'): " . var_export($format, true));
+            }
+
+            $c = $format[$i];
+
+            if (isset($composite[$c])) {
+                $out .= self::formatStrftime($composite[$c], $dt);
+            } elseif (isset($direct[$c])) {
+                $out .= $dt->format($direct[$c]);
+            } elseif (isset($literal[$c])) {
+                $out .= $literal[$c];
+            } elseif ('e' === $c) {
+                $out .= sprintf('%2d', $dt->format('j'));                // space-padded day of the month
+            } elseif ('k' === $c) {
+                $out .= sprintf('%2d', $dt->format('G'));                // space-padded hour, 24h clock
+            } elseif ('l' === $c) {
+                $out .= sprintf('%2d', $dt->format('g'));                // space-padded hour, 12h clock
+            } elseif ('j' === $c) {
+                $out .= sprintf('%03d', $dt->format('z') + 1);           // day of the year, 001-366
+            } elseif ('V' === $c) {
+                $out .= sprintf('%02d', $dt->format('W'));               // ISO-8601 week number
+            } elseif ('C' === $c) {
+                $out .= sprintf('%02d', (int) ($dt->format('Y') / 100)); // century
+            } elseif ('g' === $c) {
+                $out .= substr('0' . $dt->format('o'), -2);              // 2-digit ISO-8601 year
+            } elseif ('U' === $c) {
+                // Week of the year, Sunday as the first day: (yday + 7 - wday) / 7.
+                $out .= sprintf('%02d', (int) (($dt->format('z') + 7 - $dt->format('w')) / 7));
+            } elseif ('W' === $c) {
+                // Week of the year, Monday as the first day: (yday + 7 - (wday + 6) % 7) / 7.
+                $out .= sprintf('%02d', (int) (($dt->format('z') + 7 - ($dt->format('N') - 1)) / 7));
+            } else {
+                throw new PropelException("Unsupported strftime() conversion specifier '%" . $c . "' in format " . var_export($format, true));
+            }
+        }
+
+        return $out;
     }
 
     /**
@@ -1589,6 +1843,32 @@ abstract class BaseGridRun extends BaseObject implements Persistent
     } // setDeployPct()
 
     /**
+     * Set the value of [alloc_mode] column.
+     * Allocation mode
+     * @param  int $v new value
+     * @return GridRun The current object (for fluent API support)
+     * @throws PropelException - if the value is not accepted by this enum.
+     */
+    public function setAllocMode($v)
+    {
+        if ($v !== null) {
+            $valueSet = GridRunPeer::getValueSet(GridRunPeer::ALLOC_MODE);
+            if (!in_array($v, $valueSet)) {
+                throw new PropelException(sprintf('Value "%s" is not accepted in this enumerated column', $v));
+            }
+            $v = array_search($v, $valueSet);
+        }
+
+        if ($this->alloc_mode !== $v) {
+            $this->alloc_mode = $v;
+            $this->modifiedColumns[] = GridRunPeer::ALLOC_MODE;
+        }
+
+
+        return $this;
+    } // setAllocMode()
+
+    /**
      * Set the value of [fee_pct] column.
      * Fee per side
      * @param  string $v new value
@@ -1692,6 +1972,64 @@ abstract class BaseGridRun extends BaseObject implements Persistent
 
         return $this;
     } // setMaxUnrealizedLossQuote()
+
+    /**
+     * Sets the value of the [sell_at_loss] column.
+     * Non-boolean arguments are converted using the following rules:
+     *   * 1, '1', 'true',  'on',  and 'yes' are converted to boolean true
+     *   * 0, '0', 'false', 'off', and 'no'  are converted to boolean false
+     * Check on string values is case insensitive (so 'FaLsE' is seen as 'false').
+     * Sell at loss
+     * @param boolean|integer|string $v The new value
+     * @return GridRun The current object (for fluent API support)
+     */
+    public function setSellAtLoss($v)
+    {
+        if ($v !== null) {
+            if (is_string($v)) {
+                $v = in_array(strtolower($v), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+            } else {
+                $v = (boolean) $v;
+            }
+        }
+
+        if ($this->sell_at_loss !== $v) {
+            $this->sell_at_loss = $v;
+            $this->modifiedColumns[] = GridRunPeer::SELL_AT_LOSS;
+        }
+
+
+        return $this;
+    } // setSellAtLoss()
+
+    /**
+     * Sets the value of the [sell_when_starved] column.
+     * Non-boolean arguments are converted using the following rules:
+     *   * 1, '1', 'true',  'on',  and 'yes' are converted to boolean true
+     *   * 0, '0', 'false', 'off', and 'no'  are converted to boolean false
+     * Check on string values is case insensitive (so 'FaLsE' is seen as 'false').
+     * Sell at loss when starved
+     * @param boolean|integer|string $v The new value
+     * @return GridRun The current object (for fluent API support)
+     */
+    public function setSellWhenStarved($v)
+    {
+        if ($v !== null) {
+            if (is_string($v)) {
+                $v = in_array(strtolower($v), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+            } else {
+                $v = (boolean) $v;
+            }
+        }
+
+        if ($this->sell_when_starved !== $v) {
+            $this->sell_when_starved = $v;
+            $this->modifiedColumns[] = GridRunPeer::SELL_WHEN_STARVED;
+        }
+
+
+        return $this;
+    } // setSellWhenStarved()
 
     /**
      * Set the value of [breakout_buffer_pct] column.
@@ -1933,6 +2271,53 @@ abstract class BaseGridRun extends BaseObject implements Persistent
 
         return $this;
     } // setAtrInitialMult()
+
+    /**
+     * Set the value of [trend_stop_floor_pct] column.
+     * Trail stop floor (fraction of HWM)
+     * @param  string $v new value
+     * @return GridRun The current object (for fluent API support)
+     */
+    public function setTrendStopFloorPct($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (string) $v;
+        }
+
+        if ($this->trend_stop_floor_pct !== $v) {
+            $this->trend_stop_floor_pct = $v;
+            $this->modifiedColumns[] = GridRunPeer::TREND_STOP_FLOOR_PCT;
+        }
+
+
+        return $this;
+    } // setTrendStopFloorPct()
+
+    /**
+     * Set the value of [trend_signal] column.
+     * Trend entry signal
+     * @param  int $v new value
+     * @return GridRun The current object (for fluent API support)
+     * @throws PropelException - if the value is not accepted by this enum.
+     */
+    public function setTrendSignal($v)
+    {
+        if ($v !== null) {
+            $valueSet = GridRunPeer::getValueSet(GridRunPeer::TREND_SIGNAL);
+            if (!in_array($v, $valueSet)) {
+                throw new PropelException(sprintf('Value "%s" is not accepted in this enumerated column', $v));
+            }
+            $v = array_search($v, $valueSet);
+        }
+
+        if ($this->trend_signal !== $v) {
+            $this->trend_signal = $v;
+            $this->modifiedColumns[] = GridRunPeer::TREND_SIGNAL;
+        }
+
+
+        return $this;
+    } // setTrendSignal()
 
     /**
      * Set the value of [reentry_cooldown] column.
@@ -2340,7 +2725,19 @@ abstract class BaseGridRun extends BaseObject implements Persistent
                 return false;
             }
 
+            if ($this->alloc_mode !== 0) {
+                return false;
+            }
+
             if ($this->fee_pct !== '0.001') {
+                return false;
+            }
+
+            if ($this->sell_at_loss !== false) {
+                return false;
+            }
+
+            if ($this->sell_when_starved !== false) {
                 return false;
             }
 
@@ -2373,6 +2770,14 @@ abstract class BaseGridRun extends BaseObject implements Persistent
             }
 
             if ($this->atr_period !== 14) {
+                return false;
+            }
+
+            if ($this->trend_stop_floor_pct !== '0.015') {
+                return false;
+            }
+
+            if ($this->trend_signal !== 0) {
                 return false;
             }
 
@@ -2413,38 +2818,43 @@ abstract class BaseGridRun extends BaseObject implements Persistent
             $this->allocation = ($row[$startcol + 12] !== null) ? (int) $row[$startcol + 12] : null;
             $this->budget_quote = ($row[$startcol + 13] !== null) ? (string) $row[$startcol + 13] : null;
             $this->deploy_pct = ($row[$startcol + 14] !== null) ? (int) $row[$startcol + 14] : null;
-            $this->fee_pct = ($row[$startcol + 15] !== null) ? (string) $row[$startcol + 15] : null;
-            $this->max_position_quote = ($row[$startcol + 16] !== null) ? (string) $row[$startcol + 16] : null;
-            $this->max_order_quote = ($row[$startcol + 17] !== null) ? (string) $row[$startcol + 17] : null;
-            $this->daily_loss_limit_quote = ($row[$startcol + 18] !== null) ? (string) $row[$startcol + 18] : null;
-            $this->max_unrealized_loss_quote = ($row[$startcol + 19] !== null) ? (string) $row[$startcol + 19] : null;
-            $this->breakout_buffer_pct = ($row[$startcol + 20] !== null) ? (string) $row[$startcol + 20] : null;
-            $this->breakout_policy = ($row[$startcol + 21] !== null) ? (int) $row[$startcol + 21] : null;
-            $this->max_open_orders = ($row[$startcol + 22] !== null) ? (int) $row[$startcol + 22] : null;
-            $this->max_buy_levels_below = ($row[$startcol + 23] !== null) ? (int) $row[$startcol + 23] : null;
-            $this->trend_tf = ($row[$startcol + 24] !== null) ? (int) $row[$startcol + 24] : null;
-            $this->donchian_period = ($row[$startcol + 25] !== null) ? (int) $row[$startcol + 25] : null;
-            $this->trend_ema_fast = ($row[$startcol + 26] !== null) ? (int) $row[$startcol + 26] : null;
-            $this->trend_ema_slow = ($row[$startcol + 27] !== null) ? (int) $row[$startcol + 27] : null;
-            $this->atr_period = ($row[$startcol + 28] !== null) ? (int) $row[$startcol + 28] : null;
-            $this->atr_stop_mult = ($row[$startcol + 29] !== null) ? (string) $row[$startcol + 29] : null;
-            $this->atr_initial_mult = ($row[$startcol + 30] !== null) ? (string) $row[$startcol + 30] : null;
-            $this->reentry_cooldown = ($row[$startcol + 31] !== null) ? (int) $row[$startcol + 31] : null;
-            $this->engine_state = ($row[$startcol + 32] !== null) ? (string) $row[$startcol + 32] : null;
-            $this->last_tick_at = ($row[$startcol + 33] !== null) ? (string) $row[$startcol + 33] : null;
-            $this->last_price = ($row[$startcol + 34] !== null) ? (string) $row[$startcol + 34] : null;
-            $this->bal_base = ($row[$startcol + 35] !== null) ? (string) $row[$startcol + 35] : null;
-            $this->bal_quote = ($row[$startcol + 36] !== null) ? (string) $row[$startcol + 36] : null;
-            $this->sim_bal_base = ($row[$startcol + 37] !== null) ? (string) $row[$startcol + 37] : null;
-            $this->sim_bal_quote = ($row[$startcol + 38] !== null) ? (string) $row[$startcol + 38] : null;
-            $this->run_uid = ($row[$startcol + 39] !== null) ? (string) $row[$startcol + 39] : null;
-            $this->applied_geometry = ($row[$startcol + 40] !== null) ? (string) $row[$startcol + 40] : null;
-            $this->ledger_reset_at = ($row[$startcol + 41] !== null) ? (string) $row[$startcol + 41] : null;
-            $this->date_creation = ($row[$startcol + 42] !== null) ? (string) $row[$startcol + 42] : null;
-            $this->date_modification = ($row[$startcol + 43] !== null) ? (string) $row[$startcol + 43] : null;
-            $this->id_group_creation = ($row[$startcol + 44] !== null) ? (int) $row[$startcol + 44] : null;
-            $this->id_creation = ($row[$startcol + 45] !== null) ? (int) $row[$startcol + 45] : null;
-            $this->id_modification = ($row[$startcol + 46] !== null) ? (int) $row[$startcol + 46] : null;
+            $this->alloc_mode = ($row[$startcol + 15] !== null) ? (int) $row[$startcol + 15] : null;
+            $this->fee_pct = ($row[$startcol + 16] !== null) ? (string) $row[$startcol + 16] : null;
+            $this->max_position_quote = ($row[$startcol + 17] !== null) ? (string) $row[$startcol + 17] : null;
+            $this->max_order_quote = ($row[$startcol + 18] !== null) ? (string) $row[$startcol + 18] : null;
+            $this->daily_loss_limit_quote = ($row[$startcol + 19] !== null) ? (string) $row[$startcol + 19] : null;
+            $this->max_unrealized_loss_quote = ($row[$startcol + 20] !== null) ? (string) $row[$startcol + 20] : null;
+            $this->sell_at_loss = ($row[$startcol + 21] !== null) ? (boolean) $row[$startcol + 21] : null;
+            $this->sell_when_starved = ($row[$startcol + 22] !== null) ? (boolean) $row[$startcol + 22] : null;
+            $this->breakout_buffer_pct = ($row[$startcol + 23] !== null) ? (string) $row[$startcol + 23] : null;
+            $this->breakout_policy = ($row[$startcol + 24] !== null) ? (int) $row[$startcol + 24] : null;
+            $this->max_open_orders = ($row[$startcol + 25] !== null) ? (int) $row[$startcol + 25] : null;
+            $this->max_buy_levels_below = ($row[$startcol + 26] !== null) ? (int) $row[$startcol + 26] : null;
+            $this->trend_tf = ($row[$startcol + 27] !== null) ? (int) $row[$startcol + 27] : null;
+            $this->donchian_period = ($row[$startcol + 28] !== null) ? (int) $row[$startcol + 28] : null;
+            $this->trend_ema_fast = ($row[$startcol + 29] !== null) ? (int) $row[$startcol + 29] : null;
+            $this->trend_ema_slow = ($row[$startcol + 30] !== null) ? (int) $row[$startcol + 30] : null;
+            $this->atr_period = ($row[$startcol + 31] !== null) ? (int) $row[$startcol + 31] : null;
+            $this->atr_stop_mult = ($row[$startcol + 32] !== null) ? (string) $row[$startcol + 32] : null;
+            $this->atr_initial_mult = ($row[$startcol + 33] !== null) ? (string) $row[$startcol + 33] : null;
+            $this->trend_stop_floor_pct = ($row[$startcol + 34] !== null) ? (string) $row[$startcol + 34] : null;
+            $this->trend_signal = ($row[$startcol + 35] !== null) ? (int) $row[$startcol + 35] : null;
+            $this->reentry_cooldown = ($row[$startcol + 36] !== null) ? (int) $row[$startcol + 36] : null;
+            $this->engine_state = ($row[$startcol + 37] !== null) ? (string) $row[$startcol + 37] : null;
+            $this->last_tick_at = ($row[$startcol + 38] !== null) ? (string) $row[$startcol + 38] : null;
+            $this->last_price = ($row[$startcol + 39] !== null) ? (string) $row[$startcol + 39] : null;
+            $this->bal_base = ($row[$startcol + 40] !== null) ? (string) $row[$startcol + 40] : null;
+            $this->bal_quote = ($row[$startcol + 41] !== null) ? (string) $row[$startcol + 41] : null;
+            $this->sim_bal_base = ($row[$startcol + 42] !== null) ? (string) $row[$startcol + 42] : null;
+            $this->sim_bal_quote = ($row[$startcol + 43] !== null) ? (string) $row[$startcol + 43] : null;
+            $this->run_uid = ($row[$startcol + 44] !== null) ? (string) $row[$startcol + 44] : null;
+            $this->applied_geometry = ($row[$startcol + 45] !== null) ? (string) $row[$startcol + 45] : null;
+            $this->ledger_reset_at = ($row[$startcol + 46] !== null) ? (string) $row[$startcol + 46] : null;
+            $this->date_creation = ($row[$startcol + 47] !== null) ? (string) $row[$startcol + 47] : null;
+            $this->date_modification = ($row[$startcol + 48] !== null) ? (string) $row[$startcol + 48] : null;
+            $this->id_group_creation = ($row[$startcol + 49] !== null) ? (int) $row[$startcol + 49] : null;
+            $this->id_creation = ($row[$startcol + 50] !== null) ? (int) $row[$startcol + 50] : null;
+            $this->id_modification = ($row[$startcol + 51] !== null) ? (int) $row[$startcol + 51] : null;
             $this->resetModified();
 
             $this->setNew(false);
@@ -2454,7 +2864,7 @@ abstract class BaseGridRun extends BaseObject implements Persistent
             }
             $this->postHydrate($row, $startcol, $rehydrate);
 
-            return $startcol + 47; // 47 = GridRunPeer::NUM_HYDRATE_COLUMNS.
+            return $startcol + 52; // 52 = GridRunPeer::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException("Error populating GridRun object", $e);
@@ -2528,6 +2938,10 @@ abstract class BaseGridRun extends BaseObject implements Persistent
             $this->aAuthyGroup = null;
             $this->aAuthyRelatedByIdCreation = null;
             $this->aAuthyRelatedByIdModification = null;
+            $this->collFleetSlots = null;
+
+            $this->collRegimeEpisodes = null;
+
             $this->collBotOrders = null;
 
             $this->collTradeCycles = null;
@@ -2537,6 +2951,8 @@ abstract class BaseGridRun extends BaseObject implements Persistent
             $this->collBotCommands = null;
 
             $this->collBotDecisions = null;
+
+            $this->collGridRunAudits = null;
 
         } // if (deep)
     }
@@ -2570,7 +2986,7 @@ abstract class BaseGridRun extends BaseObject implements Persistent
                 $deleteQuery->delete($con);
                 $this->postDelete($con);
                 // GoatCheese behavior
-                
+
                             if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                                 \ApiGoat\Utility\TableVersion::bump('grid_run');
                             }
@@ -2613,17 +3029,63 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         $isInsert = $this->isNew();
         try {
             $ret = $this->preSave($con);
+            // GoatCheese behavior
+
+                        // add_audit behavior
+                        $this->gcAuditPending = array();
+                        if (class_exists('\\ApiGoat\\Audit\\AuditContext')) {
+                            if ($isInsert) {
+                                $this->gcAuditPending = \ApiGoat\Audit\AuditContext::createdRow();
+                            } elseif ($this->isColumnModified(\App\GridRunPeer::STATUS)
+                                || $this->isColumnModified(\App\GridRunPeer::BUDGET_QUOTE)
+                                || $this->isColumnModified(\App\GridRunPeer::DEPLOY_PCT)
+                                || $this->isColumnModified(\App\GridRunPeer::KILL_SWITCH)
+                                || $this->isColumnModified(\App\GridRunPeer::ALLOC_MODE)
+                                || $this->isColumnModified(\App\GridRunPeer::ALGO)
+                                || $this->isColumnModified(\App\GridRunPeer::SELL_AT_LOSS)
+                                || $this->isColumnModified(\App\GridRunPeer::SELL_WHEN_STARVED)
+                                || $this->isColumnModified(\App\GridRunPeer::LABEL)) {
+                                $this->gcAuditPending = \ApiGoat\Audit\AuditContext::diff(
+                                    $con,
+                                    'grid_run',
+                                    'id_grid_run',
+                                    $this->getIdGridRun(),
+                                    array(
+                                'status' => $this->getStatus(),
+                                'budget_quote' => $this->getBudgetQuote(),
+                                'deploy_pct' => $this->getDeployPct(),
+                                'kill_switch' => $this->getKillSwitch(),
+                                'alloc_mode' => $this->getAllocMode(),
+                                'algo' => $this->getAlgo(),
+                                'sell_at_loss' => $this->getSellAtLoss(),
+                                'sell_when_starved' => $this->getSellWhenStarved(),
+                                'label' => $this->getLabel(),
+                                    ),
+                                    array(
+                                'status' => array('enum', array('Draft', 'DryRun', 'Testnet', 'Live', 'Halted', 'Done', 'Retiring')),
+                                'budget_quote' => array('num', array()),
+                                'deploy_pct' => array('num', array()),
+                                'kill_switch' => array('bool', array()),
+                                'alloc_mode' => array('enum', array('Auto', 'Fixed')),
+                                'algo' => array('enum', array('Grid', 'Trend')),
+                                'sell_at_loss' => array('bool', array()),
+                                'sell_when_starved' => array('bool', array()),
+                                'label' => array('text', array()),
+                                    )
+                                );
+                            }
+                        }
             if ($isInsert) {
                 $ret = $ret && $this->preInsert($con);
                 // add_tablestamp behavior
 
                     $this->setDateCreation(time());
                     $this->setDateModification(time());
-                    $this->setIdGroupCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
+                    $this->setIdGroupCreation( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
                     if(!$this->getIdCreation())
-                        $this->setIdCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                        $this->setIdCreation( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
                     if(!$this->getIdModification())
-                        $this->setIdModification( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                        $this->setIdModification( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
 
             } else {
                 $ret = $ret && $this->preUpdate($con);
@@ -2631,11 +3093,11 @@ abstract class BaseGridRun extends BaseObject implements Persistent
                 if ($this->isModified() ) {
                     $this->setDateCreation( $this->getDateCreation() );
                     $this->setDateModification(time());
-                    $this->setIdGroupCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
+                    $this->setIdGroupCreation( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
                     if(!$this->getIdCreation())
-                        $this->setIdCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                        $this->setIdCreation( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
                     if(!$this->getIdModification())
-                        $this->setIdModification( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                        $this->setIdModification( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
                 }
             }
             if ($ret) {
@@ -2647,9 +3109,33 @@ abstract class BaseGridRun extends BaseObject implements Persistent
                 }
                 $this->postSave($con);
                 // GoatCheese behavior
-                
+
                             if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                                 \ApiGoat\Utility\TableVersion::bump('grid_run');
+                            }
+                            // add_audit behavior
+                            if (!empty($this->gcAuditPending)) {
+                                $gcAuditRows = $this->gcAuditPending;
+                                $this->gcAuditPending = array();
+                                try {
+                                    \ApiGoat\Audit\AuditContext::write(
+                                        $con,
+                                        'grid_run_audit',
+                                        'id_grid_run',
+                                        $this->getIdGridRun(),
+                                        $gcAuditRows,
+                                        array(),
+                                        array('id_creation', 'id_group_creation')
+                                    );
+                                } catch (\Throwable $gcAuditErr) {
+                                    // A history row is never worth failing the write it
+                                    // describes. A raw INSERT cannot poison the parent's
+                                    // transaction (a nested model save() would), so catching
+                                    // here really does leave the parent row committable — a
+                                    // project that has not rebuilt its database yet simply has
+                                    // no grid_run_audit table.
+                                    error_log('add_audit grid_run: ' . $gcAuditErr->getMessage());
+                                }
                             }
                 GridRunPeer::addInstanceToPool($this);
             } else {
@@ -2716,6 +3202,42 @@ abstract class BaseGridRun extends BaseObject implements Persistent
                 }
                 $affectedRows += 1;
                 $this->resetModified();
+            }
+
+            if ($this->fleetSlotsScheduledForDeletion !== null) {
+                if (!$this->fleetSlotsScheduledForDeletion->isEmpty()) {
+                    foreach ($this->fleetSlotsScheduledForDeletion as $fleetSlot) {
+                        // need to save related object because we set the relation to null
+                        $fleetSlot->save($con);
+                    }
+                    $this->fleetSlotsScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collFleetSlots !== null) {
+                foreach ($this->collFleetSlots as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->regimeEpisodesScheduledForDeletion !== null) {
+                if (!$this->regimeEpisodesScheduledForDeletion->isEmpty()) {
+                    foreach ($this->regimeEpisodesScheduledForDeletion as $regimeEpisode) {
+                        // need to save related object because we set the relation to null
+                        $regimeEpisode->save($con);
+                    }
+                    $this->regimeEpisodesScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collRegimeEpisodes !== null) {
+                foreach ($this->collRegimeEpisodes as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
             }
 
             if ($this->botOrdersScheduledForDeletion !== null) {
@@ -2803,6 +3325,23 @@ abstract class BaseGridRun extends BaseObject implements Persistent
                 }
             }
 
+            if ($this->gridRunAuditsScheduledForDeletion !== null) {
+                if (!$this->gridRunAuditsScheduledForDeletion->isEmpty()) {
+                    GridRunAuditQuery::create()
+                        ->filterByPrimaryKeys($this->gridRunAuditsScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->gridRunAuditsScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collGridRunAudits !== null) {
+                foreach ($this->collGridRunAudits as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
             $this->alreadyInSave = false;
 
         }
@@ -2874,6 +3413,9 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         if ($this->isColumnModified(GridRunPeer::DEPLOY_PCT)) {
             $modifiedColumns[':p' . $index++]  = '`deploy_pct`';
         }
+        if ($this->isColumnModified(GridRunPeer::ALLOC_MODE)) {
+            $modifiedColumns[':p' . $index++]  = '`alloc_mode`';
+        }
         if ($this->isColumnModified(GridRunPeer::FEE_PCT)) {
             $modifiedColumns[':p' . $index++]  = '`fee_pct`';
         }
@@ -2888,6 +3430,12 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         }
         if ($this->isColumnModified(GridRunPeer::MAX_UNREALIZED_LOSS_QUOTE)) {
             $modifiedColumns[':p' . $index++]  = '`max_unrealized_loss_quote`';
+        }
+        if ($this->isColumnModified(GridRunPeer::SELL_AT_LOSS)) {
+            $modifiedColumns[':p' . $index++]  = '`sell_at_loss`';
+        }
+        if ($this->isColumnModified(GridRunPeer::SELL_WHEN_STARVED)) {
+            $modifiedColumns[':p' . $index++]  = '`sell_when_starved`';
         }
         if ($this->isColumnModified(GridRunPeer::BREAKOUT_BUFFER_PCT)) {
             $modifiedColumns[':p' . $index++]  = '`breakout_buffer_pct`';
@@ -2921,6 +3469,12 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         }
         if ($this->isColumnModified(GridRunPeer::ATR_INITIAL_MULT)) {
             $modifiedColumns[':p' . $index++]  = '`atr_initial_mult`';
+        }
+        if ($this->isColumnModified(GridRunPeer::TREND_STOP_FLOOR_PCT)) {
+            $modifiedColumns[':p' . $index++]  = '`trend_stop_floor_pct`';
+        }
+        if ($this->isColumnModified(GridRunPeer::TREND_SIGNAL)) {
+            $modifiedColumns[':p' . $index++]  = '`trend_signal`';
         }
         if ($this->isColumnModified(GridRunPeer::REENTRY_COOLDOWN)) {
             $modifiedColumns[':p' . $index++]  = '`reentry_cooldown`';
@@ -3026,6 +3580,9 @@ abstract class BaseGridRun extends BaseObject implements Persistent
                     case '`deploy_pct`':
                         $stmt->bindValue($identifier, $this->deploy_pct, PDO::PARAM_INT);
                         break;
+                    case '`alloc_mode`':
+                        $stmt->bindValue($identifier, $this->alloc_mode, PDO::PARAM_INT);
+                        break;
                     case '`fee_pct`':
                         $stmt->bindValue($identifier, $this->fee_pct, PDO::PARAM_STR);
                         break;
@@ -3040,6 +3597,12 @@ abstract class BaseGridRun extends BaseObject implements Persistent
                         break;
                     case '`max_unrealized_loss_quote`':
                         $stmt->bindValue($identifier, $this->max_unrealized_loss_quote, PDO::PARAM_STR);
+                        break;
+                    case '`sell_at_loss`':
+                        $stmt->bindValue($identifier, (int) $this->sell_at_loss, PDO::PARAM_INT);
+                        break;
+                    case '`sell_when_starved`':
+                        $stmt->bindValue($identifier, (int) $this->sell_when_starved, PDO::PARAM_INT);
                         break;
                     case '`breakout_buffer_pct`':
                         $stmt->bindValue($identifier, $this->breakout_buffer_pct, PDO::PARAM_STR);
@@ -3073,6 +3636,12 @@ abstract class BaseGridRun extends BaseObject implements Persistent
                         break;
                     case '`atr_initial_mult`':
                         $stmt->bindValue($identifier, $this->atr_initial_mult, PDO::PARAM_STR);
+                        break;
+                    case '`trend_stop_floor_pct`':
+                        $stmt->bindValue($identifier, $this->trend_stop_floor_pct, PDO::PARAM_STR);
+                        break;
+                    case '`trend_signal`':
+                        $stmt->bindValue($identifier, $this->trend_signal, PDO::PARAM_INT);
                         break;
                     case '`reentry_cooldown`':
                         $stmt->bindValue($identifier, $this->reentry_cooldown, PDO::PARAM_INT);
@@ -3245,6 +3814,22 @@ abstract class BaseGridRun extends BaseObject implements Persistent
             }
 
 
+                if ($this->collFleetSlots !== null) {
+                    foreach ($this->collFleetSlots as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collRegimeEpisodes !== null) {
+                    foreach ($this->collRegimeEpisodes as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
                 if ($this->collBotOrders !== null) {
                     foreach ($this->collBotOrders as $referrerFK) {
                         if (!$referrerFK->validate($columns)) {
@@ -3279,6 +3864,14 @@ abstract class BaseGridRun extends BaseObject implements Persistent
 
                 if ($this->collBotDecisions !== null) {
                     foreach ($this->collBotDecisions as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collGridRunAudits !== null) {
+                    foreach ($this->collGridRunAudits as $referrerFK) {
                         if (!$referrerFK->validate($columns)) {
                             $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
                         }
@@ -3348,38 +3941,43 @@ abstract class BaseGridRun extends BaseObject implements Persistent
             $keys[12] => $this->getAllocation(),
             $keys[13] => $this->getBudgetQuote(),
             $keys[14] => $this->getDeployPct(),
-            $keys[15] => $this->getFeePct(),
-            $keys[16] => $this->getMaxPositionQuote(),
-            $keys[17] => $this->getMaxOrderQuote(),
-            $keys[18] => $this->getDailyLossLimitQuote(),
-            $keys[19] => $this->getMaxUnrealizedLossQuote(),
-            $keys[20] => $this->getBreakoutBufferPct(),
-            $keys[21] => $this->getBreakoutPolicy(),
-            $keys[22] => $this->getMaxOpenOrders(),
-            $keys[23] => $this->getMaxBuyLevelsBelow(),
-            $keys[24] => $this->getTrendTf(),
-            $keys[25] => $this->getDonchianPeriod(),
-            $keys[26] => $this->getTrendEmaFast(),
-            $keys[27] => $this->getTrendEmaSlow(),
-            $keys[28] => $this->getAtrPeriod(),
-            $keys[29] => $this->getAtrStopMult(),
-            $keys[30] => $this->getAtrInitialMult(),
-            $keys[31] => $this->getReentryCooldown(),
-            $keys[32] => $this->getEngineState(),
-            $keys[33] => $this->getLastTickAt(),
-            $keys[34] => $this->getLastPrice(),
-            $keys[35] => $this->getBalBase(),
-            $keys[36] => $this->getBalQuote(),
-            $keys[37] => $this->getSimBalBase(),
-            $keys[38] => $this->getSimBalQuote(),
-            $keys[39] => $this->getRunUid(),
-            $keys[40] => $this->getAppliedGeometry(),
-            $keys[41] => $this->getLedgerResetAt(),
-            $keys[42] => $this->getDateCreation(),
-            $keys[43] => $this->getDateModification(),
-            $keys[44] => $this->getIdGroupCreation(),
-            $keys[45] => $this->getIdCreation(),
-            $keys[46] => $this->getIdModification(),
+            $keys[15] => $this->getAllocMode(),
+            $keys[16] => $this->getFeePct(),
+            $keys[17] => $this->getMaxPositionQuote(),
+            $keys[18] => $this->getMaxOrderQuote(),
+            $keys[19] => $this->getDailyLossLimitQuote(),
+            $keys[20] => $this->getMaxUnrealizedLossQuote(),
+            $keys[21] => $this->getSellAtLoss(),
+            $keys[22] => $this->getSellWhenStarved(),
+            $keys[23] => $this->getBreakoutBufferPct(),
+            $keys[24] => $this->getBreakoutPolicy(),
+            $keys[25] => $this->getMaxOpenOrders(),
+            $keys[26] => $this->getMaxBuyLevelsBelow(),
+            $keys[27] => $this->getTrendTf(),
+            $keys[28] => $this->getDonchianPeriod(),
+            $keys[29] => $this->getTrendEmaFast(),
+            $keys[30] => $this->getTrendEmaSlow(),
+            $keys[31] => $this->getAtrPeriod(),
+            $keys[32] => $this->getAtrStopMult(),
+            $keys[33] => $this->getAtrInitialMult(),
+            $keys[34] => $this->getTrendStopFloorPct(),
+            $keys[35] => $this->getTrendSignal(),
+            $keys[36] => $this->getReentryCooldown(),
+            $keys[37] => $this->getEngineState(),
+            $keys[38] => $this->getLastTickAt(),
+            $keys[39] => $this->getLastPrice(),
+            $keys[40] => $this->getBalBase(),
+            $keys[41] => $this->getBalQuote(),
+            $keys[42] => $this->getSimBalBase(),
+            $keys[43] => $this->getSimBalQuote(),
+            $keys[44] => $this->getRunUid(),
+            $keys[45] => $this->getAppliedGeometry(),
+            $keys[46] => $this->getLedgerResetAt(),
+            $keys[47] => $this->getDateCreation(),
+            $keys[48] => $this->getDateModification(),
+            $keys[49] => $this->getIdGroupCreation(),
+            $keys[50] => $this->getIdCreation(),
+            $keys[51] => $this->getIdModification(),
         );
         $virtualColumns = $this->virtualColumns;
         foreach ($virtualColumns as $key => $virtualColumn) {
@@ -3396,6 +3994,12 @@ abstract class BaseGridRun extends BaseObject implements Persistent
             if (null !== $this->aAuthyRelatedByIdModification) {
                 $result['AuthyRelatedByIdModification'] = $this->aAuthyRelatedByIdModification->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
             }
+            if (null !== $this->collFleetSlots) {
+                $result['FleetSlots'] = $this->collFleetSlots->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collRegimeEpisodes) {
+                $result['RegimeEpisodes'] = $this->collRegimeEpisodes->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
             if (null !== $this->collBotOrders) {
                 $result['BotOrders'] = $this->collBotOrders->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
@@ -3410,6 +4014,9 @@ abstract class BaseGridRun extends BaseObject implements Persistent
             }
             if (null !== $this->collBotDecisions) {
                 $result['BotDecisions'] = $this->collBotDecisions->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collGridRunAudits) {
+                $result['GridRunAudits'] = $this->collGridRunAudits->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
         }
 
@@ -3511,107 +4118,130 @@ abstract class BaseGridRun extends BaseObject implements Persistent
                 $this->setDeployPct($value);
                 break;
             case 15:
-                $this->setFeePct($value);
+                $valueSet = GridRunPeer::getValueSet(GridRunPeer::ALLOC_MODE);
+                if (isset($valueSet[$value])) {
+                    $value = $valueSet[$value];
+                }
+                $this->setAllocMode($value);
                 break;
             case 16:
-                $this->setMaxPositionQuote($value);
+                $this->setFeePct($value);
                 break;
             case 17:
-                $this->setMaxOrderQuote($value);
+                $this->setMaxPositionQuote($value);
                 break;
             case 18:
-                $this->setDailyLossLimitQuote($value);
+                $this->setMaxOrderQuote($value);
                 break;
             case 19:
-                $this->setMaxUnrealizedLossQuote($value);
+                $this->setDailyLossLimitQuote($value);
                 break;
             case 20:
-                $this->setBreakoutBufferPct($value);
+                $this->setMaxUnrealizedLossQuote($value);
                 break;
             case 21:
+                $this->setSellAtLoss($value);
+                break;
+            case 22:
+                $this->setSellWhenStarved($value);
+                break;
+            case 23:
+                $this->setBreakoutBufferPct($value);
+                break;
+            case 24:
                 $valueSet = GridRunPeer::getValueSet(GridRunPeer::BREAKOUT_POLICY);
                 if (isset($valueSet[$value])) {
                     $value = $valueSet[$value];
                 }
                 $this->setBreakoutPolicy($value);
                 break;
-            case 22:
+            case 25:
                 $this->setMaxOpenOrders($value);
                 break;
-            case 23:
+            case 26:
                 $this->setMaxBuyLevelsBelow($value);
                 break;
-            case 24:
+            case 27:
                 $valueSet = GridRunPeer::getValueSet(GridRunPeer::TREND_TF);
                 if (isset($valueSet[$value])) {
                     $value = $valueSet[$value];
                 }
                 $this->setTrendTf($value);
                 break;
-            case 25:
+            case 28:
                 $this->setDonchianPeriod($value);
                 break;
-            case 26:
+            case 29:
                 $this->setTrendEmaFast($value);
                 break;
-            case 27:
+            case 30:
                 $this->setTrendEmaSlow($value);
                 break;
-            case 28:
+            case 31:
                 $this->setAtrPeriod($value);
                 break;
-            case 29:
+            case 32:
                 $this->setAtrStopMult($value);
                 break;
-            case 30:
+            case 33:
                 $this->setAtrInitialMult($value);
                 break;
-            case 31:
-                $this->setReentryCooldown($value);
-                break;
-            case 32:
-                $this->setEngineState($value);
-                break;
-            case 33:
-                $this->setLastTickAt($value);
-                break;
             case 34:
-                $this->setLastPrice($value);
+                $this->setTrendStopFloorPct($value);
                 break;
             case 35:
-                $this->setBalBase($value);
+                $valueSet = GridRunPeer::getValueSet(GridRunPeer::TREND_SIGNAL);
+                if (isset($valueSet[$value])) {
+                    $value = $valueSet[$value];
+                }
+                $this->setTrendSignal($value);
                 break;
             case 36:
-                $this->setBalQuote($value);
+                $this->setReentryCooldown($value);
                 break;
             case 37:
-                $this->setSimBalBase($value);
+                $this->setEngineState($value);
                 break;
             case 38:
-                $this->setSimBalQuote($value);
+                $this->setLastTickAt($value);
                 break;
             case 39:
-                $this->setRunUid($value);
+                $this->setLastPrice($value);
                 break;
             case 40:
-                $this->setAppliedGeometry($value);
+                $this->setBalBase($value);
                 break;
             case 41:
-                $this->setLedgerResetAt($value);
+                $this->setBalQuote($value);
                 break;
             case 42:
-                $this->setDateCreation($value);
+                $this->setSimBalBase($value);
                 break;
             case 43:
-                $this->setDateModification($value);
+                $this->setSimBalQuote($value);
                 break;
             case 44:
-                $this->setIdGroupCreation($value);
+                $this->setRunUid($value);
                 break;
             case 45:
-                $this->setIdCreation($value);
+                $this->setAppliedGeometry($value);
                 break;
             case 46:
+                $this->setLedgerResetAt($value);
+                break;
+            case 47:
+                $this->setDateCreation($value);
+                break;
+            case 48:
+                $this->setDateModification($value);
+                break;
+            case 49:
+                $this->setIdGroupCreation($value);
+                break;
+            case 50:
+                $this->setIdCreation($value);
+                break;
+            case 51:
                 $this->setIdModification($value);
                 break;
         } // switch()
@@ -3653,38 +4283,43 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         if (array_key_exists($keys[12], $arr)) $this->setAllocation($arr[$keys[12]]);
         if (array_key_exists($keys[13], $arr)) $this->setBudgetQuote($arr[$keys[13]]);
         if (array_key_exists($keys[14], $arr)) $this->setDeployPct($arr[$keys[14]]);
-        if (array_key_exists($keys[15], $arr)) $this->setFeePct($arr[$keys[15]]);
-        if (array_key_exists($keys[16], $arr)) $this->setMaxPositionQuote($arr[$keys[16]]);
-        if (array_key_exists($keys[17], $arr)) $this->setMaxOrderQuote($arr[$keys[17]]);
-        if (array_key_exists($keys[18], $arr)) $this->setDailyLossLimitQuote($arr[$keys[18]]);
-        if (array_key_exists($keys[19], $arr)) $this->setMaxUnrealizedLossQuote($arr[$keys[19]]);
-        if (array_key_exists($keys[20], $arr)) $this->setBreakoutBufferPct($arr[$keys[20]]);
-        if (array_key_exists($keys[21], $arr)) $this->setBreakoutPolicy($arr[$keys[21]]);
-        if (array_key_exists($keys[22], $arr)) $this->setMaxOpenOrders($arr[$keys[22]]);
-        if (array_key_exists($keys[23], $arr)) $this->setMaxBuyLevelsBelow($arr[$keys[23]]);
-        if (array_key_exists($keys[24], $arr)) $this->setTrendTf($arr[$keys[24]]);
-        if (array_key_exists($keys[25], $arr)) $this->setDonchianPeriod($arr[$keys[25]]);
-        if (array_key_exists($keys[26], $arr)) $this->setTrendEmaFast($arr[$keys[26]]);
-        if (array_key_exists($keys[27], $arr)) $this->setTrendEmaSlow($arr[$keys[27]]);
-        if (array_key_exists($keys[28], $arr)) $this->setAtrPeriod($arr[$keys[28]]);
-        if (array_key_exists($keys[29], $arr)) $this->setAtrStopMult($arr[$keys[29]]);
-        if (array_key_exists($keys[30], $arr)) $this->setAtrInitialMult($arr[$keys[30]]);
-        if (array_key_exists($keys[31], $arr)) $this->setReentryCooldown($arr[$keys[31]]);
-        if (array_key_exists($keys[32], $arr)) $this->setEngineState($arr[$keys[32]]);
-        if (array_key_exists($keys[33], $arr)) $this->setLastTickAt($arr[$keys[33]]);
-        if (array_key_exists($keys[34], $arr)) $this->setLastPrice($arr[$keys[34]]);
-        if (array_key_exists($keys[35], $arr)) $this->setBalBase($arr[$keys[35]]);
-        if (array_key_exists($keys[36], $arr)) $this->setBalQuote($arr[$keys[36]]);
-        if (array_key_exists($keys[37], $arr)) $this->setSimBalBase($arr[$keys[37]]);
-        if (array_key_exists($keys[38], $arr)) $this->setSimBalQuote($arr[$keys[38]]);
-        if (array_key_exists($keys[39], $arr)) $this->setRunUid($arr[$keys[39]]);
-        if (array_key_exists($keys[40], $arr)) $this->setAppliedGeometry($arr[$keys[40]]);
-        if (array_key_exists($keys[41], $arr)) $this->setLedgerResetAt($arr[$keys[41]]);
-        if (array_key_exists($keys[42], $arr)) $this->setDateCreation($arr[$keys[42]]);
-        if (array_key_exists($keys[43], $arr)) $this->setDateModification($arr[$keys[43]]);
-        if (array_key_exists($keys[44], $arr)) $this->setIdGroupCreation($arr[$keys[44]]);
-        if (array_key_exists($keys[45], $arr)) $this->setIdCreation($arr[$keys[45]]);
-        if (array_key_exists($keys[46], $arr)) $this->setIdModification($arr[$keys[46]]);
+        if (array_key_exists($keys[15], $arr)) $this->setAllocMode($arr[$keys[15]]);
+        if (array_key_exists($keys[16], $arr)) $this->setFeePct($arr[$keys[16]]);
+        if (array_key_exists($keys[17], $arr)) $this->setMaxPositionQuote($arr[$keys[17]]);
+        if (array_key_exists($keys[18], $arr)) $this->setMaxOrderQuote($arr[$keys[18]]);
+        if (array_key_exists($keys[19], $arr)) $this->setDailyLossLimitQuote($arr[$keys[19]]);
+        if (array_key_exists($keys[20], $arr)) $this->setMaxUnrealizedLossQuote($arr[$keys[20]]);
+        if (array_key_exists($keys[21], $arr)) $this->setSellAtLoss($arr[$keys[21]]);
+        if (array_key_exists($keys[22], $arr)) $this->setSellWhenStarved($arr[$keys[22]]);
+        if (array_key_exists($keys[23], $arr)) $this->setBreakoutBufferPct($arr[$keys[23]]);
+        if (array_key_exists($keys[24], $arr)) $this->setBreakoutPolicy($arr[$keys[24]]);
+        if (array_key_exists($keys[25], $arr)) $this->setMaxOpenOrders($arr[$keys[25]]);
+        if (array_key_exists($keys[26], $arr)) $this->setMaxBuyLevelsBelow($arr[$keys[26]]);
+        if (array_key_exists($keys[27], $arr)) $this->setTrendTf($arr[$keys[27]]);
+        if (array_key_exists($keys[28], $arr)) $this->setDonchianPeriod($arr[$keys[28]]);
+        if (array_key_exists($keys[29], $arr)) $this->setTrendEmaFast($arr[$keys[29]]);
+        if (array_key_exists($keys[30], $arr)) $this->setTrendEmaSlow($arr[$keys[30]]);
+        if (array_key_exists($keys[31], $arr)) $this->setAtrPeriod($arr[$keys[31]]);
+        if (array_key_exists($keys[32], $arr)) $this->setAtrStopMult($arr[$keys[32]]);
+        if (array_key_exists($keys[33], $arr)) $this->setAtrInitialMult($arr[$keys[33]]);
+        if (array_key_exists($keys[34], $arr)) $this->setTrendStopFloorPct($arr[$keys[34]]);
+        if (array_key_exists($keys[35], $arr)) $this->setTrendSignal($arr[$keys[35]]);
+        if (array_key_exists($keys[36], $arr)) $this->setReentryCooldown($arr[$keys[36]]);
+        if (array_key_exists($keys[37], $arr)) $this->setEngineState($arr[$keys[37]]);
+        if (array_key_exists($keys[38], $arr)) $this->setLastTickAt($arr[$keys[38]]);
+        if (array_key_exists($keys[39], $arr)) $this->setLastPrice($arr[$keys[39]]);
+        if (array_key_exists($keys[40], $arr)) $this->setBalBase($arr[$keys[40]]);
+        if (array_key_exists($keys[41], $arr)) $this->setBalQuote($arr[$keys[41]]);
+        if (array_key_exists($keys[42], $arr)) $this->setSimBalBase($arr[$keys[42]]);
+        if (array_key_exists($keys[43], $arr)) $this->setSimBalQuote($arr[$keys[43]]);
+        if (array_key_exists($keys[44], $arr)) $this->setRunUid($arr[$keys[44]]);
+        if (array_key_exists($keys[45], $arr)) $this->setAppliedGeometry($arr[$keys[45]]);
+        if (array_key_exists($keys[46], $arr)) $this->setLedgerResetAt($arr[$keys[46]]);
+        if (array_key_exists($keys[47], $arr)) $this->setDateCreation($arr[$keys[47]]);
+        if (array_key_exists($keys[48], $arr)) $this->setDateModification($arr[$keys[48]]);
+        if (array_key_exists($keys[49], $arr)) $this->setIdGroupCreation($arr[$keys[49]]);
+        if (array_key_exists($keys[50], $arr)) $this->setIdCreation($arr[$keys[50]]);
+        if (array_key_exists($keys[51], $arr)) $this->setIdModification($arr[$keys[51]]);
     }
 
     /**
@@ -3711,11 +4346,14 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         if ($this->isColumnModified(GridRunPeer::ALLOCATION)) $criteria->add(GridRunPeer::ALLOCATION, $this->allocation);
         if ($this->isColumnModified(GridRunPeer::BUDGET_QUOTE)) $criteria->add(GridRunPeer::BUDGET_QUOTE, $this->budget_quote);
         if ($this->isColumnModified(GridRunPeer::DEPLOY_PCT)) $criteria->add(GridRunPeer::DEPLOY_PCT, $this->deploy_pct);
+        if ($this->isColumnModified(GridRunPeer::ALLOC_MODE)) $criteria->add(GridRunPeer::ALLOC_MODE, $this->alloc_mode);
         if ($this->isColumnModified(GridRunPeer::FEE_PCT)) $criteria->add(GridRunPeer::FEE_PCT, $this->fee_pct);
         if ($this->isColumnModified(GridRunPeer::MAX_POSITION_QUOTE)) $criteria->add(GridRunPeer::MAX_POSITION_QUOTE, $this->max_position_quote);
         if ($this->isColumnModified(GridRunPeer::MAX_ORDER_QUOTE)) $criteria->add(GridRunPeer::MAX_ORDER_QUOTE, $this->max_order_quote);
         if ($this->isColumnModified(GridRunPeer::DAILY_LOSS_LIMIT_QUOTE)) $criteria->add(GridRunPeer::DAILY_LOSS_LIMIT_QUOTE, $this->daily_loss_limit_quote);
         if ($this->isColumnModified(GridRunPeer::MAX_UNREALIZED_LOSS_QUOTE)) $criteria->add(GridRunPeer::MAX_UNREALIZED_LOSS_QUOTE, $this->max_unrealized_loss_quote);
+        if ($this->isColumnModified(GridRunPeer::SELL_AT_LOSS)) $criteria->add(GridRunPeer::SELL_AT_LOSS, $this->sell_at_loss);
+        if ($this->isColumnModified(GridRunPeer::SELL_WHEN_STARVED)) $criteria->add(GridRunPeer::SELL_WHEN_STARVED, $this->sell_when_starved);
         if ($this->isColumnModified(GridRunPeer::BREAKOUT_BUFFER_PCT)) $criteria->add(GridRunPeer::BREAKOUT_BUFFER_PCT, $this->breakout_buffer_pct);
         if ($this->isColumnModified(GridRunPeer::BREAKOUT_POLICY)) $criteria->add(GridRunPeer::BREAKOUT_POLICY, $this->breakout_policy);
         if ($this->isColumnModified(GridRunPeer::MAX_OPEN_ORDERS)) $criteria->add(GridRunPeer::MAX_OPEN_ORDERS, $this->max_open_orders);
@@ -3727,6 +4365,8 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         if ($this->isColumnModified(GridRunPeer::ATR_PERIOD)) $criteria->add(GridRunPeer::ATR_PERIOD, $this->atr_period);
         if ($this->isColumnModified(GridRunPeer::ATR_STOP_MULT)) $criteria->add(GridRunPeer::ATR_STOP_MULT, $this->atr_stop_mult);
         if ($this->isColumnModified(GridRunPeer::ATR_INITIAL_MULT)) $criteria->add(GridRunPeer::ATR_INITIAL_MULT, $this->atr_initial_mult);
+        if ($this->isColumnModified(GridRunPeer::TREND_STOP_FLOOR_PCT)) $criteria->add(GridRunPeer::TREND_STOP_FLOOR_PCT, $this->trend_stop_floor_pct);
+        if ($this->isColumnModified(GridRunPeer::TREND_SIGNAL)) $criteria->add(GridRunPeer::TREND_SIGNAL, $this->trend_signal);
         if ($this->isColumnModified(GridRunPeer::REENTRY_COOLDOWN)) $criteria->add(GridRunPeer::REENTRY_COOLDOWN, $this->reentry_cooldown);
         if ($this->isColumnModified(GridRunPeer::ENGINE_STATE)) $criteria->add(GridRunPeer::ENGINE_STATE, $this->engine_state);
         if ($this->isColumnModified(GridRunPeer::LAST_TICK_AT)) $criteria->add(GridRunPeer::LAST_TICK_AT, $this->last_tick_at);
@@ -3820,11 +4460,14 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         $copyObj->setAllocation($this->getAllocation());
         $copyObj->setBudgetQuote($this->getBudgetQuote());
         $copyObj->setDeployPct($this->getDeployPct());
+        $copyObj->setAllocMode($this->getAllocMode());
         $copyObj->setFeePct($this->getFeePct());
         $copyObj->setMaxPositionQuote($this->getMaxPositionQuote());
         $copyObj->setMaxOrderQuote($this->getMaxOrderQuote());
         $copyObj->setDailyLossLimitQuote($this->getDailyLossLimitQuote());
         $copyObj->setMaxUnrealizedLossQuote($this->getMaxUnrealizedLossQuote());
+        $copyObj->setSellAtLoss($this->getSellAtLoss());
+        $copyObj->setSellWhenStarved($this->getSellWhenStarved());
         $copyObj->setBreakoutBufferPct($this->getBreakoutBufferPct());
         $copyObj->setBreakoutPolicy($this->getBreakoutPolicy());
         $copyObj->setMaxOpenOrders($this->getMaxOpenOrders());
@@ -3836,6 +4479,8 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         $copyObj->setAtrPeriod($this->getAtrPeriod());
         $copyObj->setAtrStopMult($this->getAtrStopMult());
         $copyObj->setAtrInitialMult($this->getAtrInitialMult());
+        $copyObj->setTrendStopFloorPct($this->getTrendStopFloorPct());
+        $copyObj->setTrendSignal($this->getTrendSignal());
         $copyObj->setReentryCooldown($this->getReentryCooldown());
         $copyObj->setEngineState($this->getEngineState());
         $copyObj->setLastTickAt($this->getLastTickAt());
@@ -3859,6 +4504,18 @@ abstract class BaseGridRun extends BaseObject implements Persistent
             $copyObj->setNew(false);
             // store object hash to prevent cycle
             $this->startCopy = true;
+
+            foreach ($this->getFleetSlots() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addFleetSlot($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getRegimeEpisodes() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addRegimeEpisode($relObj->copy($deepCopy));
+                }
+            }
 
             foreach ($this->getBotOrders() as $relObj) {
                 if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
@@ -3887,6 +4544,12 @@ abstract class BaseGridRun extends BaseObject implements Persistent
             foreach ($this->getBotDecisions() as $relObj) {
                 if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
                     $copyObj->addBotDecision($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getGridRunAudits() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addGridRunAudit($relObj->copy($deepCopy));
                 }
             }
 
@@ -4107,6 +4770,12 @@ abstract class BaseGridRun extends BaseObject implements Persistent
      */
     public function initRelation($relationName)
     {
+        if ('FleetSlot' == $relationName) {
+            $this->initFleetSlots();
+        }
+        if ('RegimeEpisode' == $relationName) {
+            $this->initRegimeEpisodes();
+        }
         if ('BotOrder' == $relationName) {
             $this->initBotOrders();
         }
@@ -4122,6 +4791,578 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         if ('BotDecision' == $relationName) {
             $this->initBotDecisions();
         }
+        if ('GridRunAudit' == $relationName) {
+            $this->initGridRunAudits();
+        }
+    }
+
+    /**
+     * Clears out the collFleetSlots collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return GridRun The current object (for fluent API support)
+     * @see        addFleetSlots()
+     */
+    public function clearFleetSlots()
+    {
+        $this->collFleetSlots = null; // important to set this to null since that means it is uninitialized
+        $this->collFleetSlotsPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collFleetSlots collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialFleetSlots($v = true)
+    {
+        $this->collFleetSlotsPartial = $v;
+    }
+
+    /**
+     * Initializes the collFleetSlots collection.
+     *
+     * By default this just sets the collFleetSlots collection to an empty array (like clearcollFleetSlots());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initFleetSlots($overrideExisting = true)
+    {
+        if (null !== $this->collFleetSlots && !$overrideExisting) {
+            return;
+        }
+        $this->collFleetSlots = new PropelObjectCollection();
+        $this->collFleetSlots->setModel('FleetSlot');
+    }
+
+    /**
+     * Gets an array of FleetSlot objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this GridRun is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|FleetSlot[] List of FleetSlot objects
+     * @throws PropelException
+     */
+    public function getFleetSlots($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collFleetSlotsPartial && !$this->isNew();
+        if (null === $this->collFleetSlots || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collFleetSlots) {
+                // return empty collection
+                $this->initFleetSlots();
+            } else {
+                $collFleetSlots = FleetSlotQuery::create(null, $criteria)
+                    ->filterByGridRun($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collFleetSlotsPartial && count($collFleetSlots)) {
+                      $this->initFleetSlots(false);
+
+                      foreach ($collFleetSlots as $obj) {
+                        if (false == $this->collFleetSlots->contains($obj)) {
+                          $this->collFleetSlots->append($obj);
+                        }
+                      }
+
+                      $this->collFleetSlotsPartial = true;
+                    }
+
+                    $collFleetSlots->getInternalIterator()->rewind();
+
+                    return $collFleetSlots;
+                }
+
+                if ($partial && $this->collFleetSlots) {
+                    foreach ($this->collFleetSlots as $obj) {
+                        if ($obj->isNew()) {
+                            $collFleetSlots[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collFleetSlots = $collFleetSlots;
+                $this->collFleetSlotsPartial = false;
+            }
+        }
+
+        return $this->collFleetSlots;
+    }
+
+    /**
+     * Sets a collection of FleetSlot objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $fleetSlots A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return GridRun The current object (for fluent API support)
+     */
+    public function setFleetSlots(PropelCollection $fleetSlots, ?PropelPDO $con = null)
+    {
+        $fleetSlotsToDelete = $this->getFleetSlots(new Criteria(), $con)->diff($fleetSlots);
+
+
+        $this->fleetSlotsScheduledForDeletion = $fleetSlotsToDelete;
+
+        foreach ($fleetSlotsToDelete as $fleetSlotRemoved) {
+            $fleetSlotRemoved->setGridRun(null);
+        }
+
+        $this->collFleetSlots = null;
+        foreach ($fleetSlots as $fleetSlot) {
+            $this->addFleetSlot($fleetSlot);
+        }
+
+        $this->collFleetSlots = $fleetSlots;
+        $this->collFleetSlotsPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related FleetSlot objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related FleetSlot objects.
+     * @throws PropelException
+     */
+    public function countFleetSlots(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collFleetSlotsPartial && !$this->isNew();
+        if (null === $this->collFleetSlots || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collFleetSlots) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getFleetSlots());
+            }
+            $query = FleetSlotQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByGridRun($this)
+                ->count($con);
+        }
+
+        return count($this->collFleetSlots);
+    }
+
+    /**
+     * Method called to associate a FleetSlot object to this object
+     * through the FleetSlot foreign key attribute.
+     *
+     * @param    FleetSlot $l FleetSlot
+     * @return GridRun The current object (for fluent API support)
+     */
+    public function addFleetSlot(FleetSlot $l)
+    {
+        if ($this->collFleetSlots === null) {
+            $this->initFleetSlots();
+            $this->collFleetSlotsPartial = true;
+        }
+
+        if (!in_array($l, $this->collFleetSlots->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddFleetSlot($l);
+
+            if ($this->fleetSlotsScheduledForDeletion and $this->fleetSlotsScheduledForDeletion->contains($l)) {
+                $this->fleetSlotsScheduledForDeletion->remove($this->fleetSlotsScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	FleetSlot $fleetSlot The fleetSlot object to add.
+     */
+    protected function doAddFleetSlot($fleetSlot)
+    {
+        $this->collFleetSlots[]= $fleetSlot;
+        $fleetSlot->setGridRun($this);
+    }
+
+    /**
+     * @param	FleetSlot $fleetSlot The fleetSlot object to remove.
+     * @return GridRun The current object (for fluent API support)
+     */
+    public function removeFleetSlot($fleetSlot)
+    {
+        if ($this->getFleetSlots()->contains($fleetSlot)) {
+            $this->collFleetSlots->remove($this->collFleetSlots->search($fleetSlot));
+            if (null === $this->fleetSlotsScheduledForDeletion) {
+                $this->fleetSlotsScheduledForDeletion = clone $this->collFleetSlots;
+                $this->fleetSlotsScheduledForDeletion->clear();
+            }
+            $this->fleetSlotsScheduledForDeletion[]= $fleetSlot;
+            $fleetSlot->setGridRun(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|FleetSlot[] List of FleetSlot objects
+     */
+    public function getFleetSlotsJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = FleetSlotQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getFleetSlots($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|FleetSlot[] List of FleetSlot objects
+     */
+    public function getFleetSlotsJoinAuthyRelatedByIdCreation($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = FleetSlotQuery::create(null, $criteria);
+        $query->joinWith('AuthyRelatedByIdCreation', $join_behavior);
+
+        return $this->getFleetSlots($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|FleetSlot[] List of FleetSlot objects
+     */
+    public function getFleetSlotsJoinAuthyRelatedByIdModification($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = FleetSlotQuery::create(null, $criteria);
+        $query->joinWith('AuthyRelatedByIdModification', $join_behavior);
+
+        return $this->getFleetSlots($query, $con);
+    }
+
+    /**
+     * Clears out the collRegimeEpisodes collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return GridRun The current object (for fluent API support)
+     * @see        addRegimeEpisodes()
+     */
+    public function clearRegimeEpisodes()
+    {
+        $this->collRegimeEpisodes = null; // important to set this to null since that means it is uninitialized
+        $this->collRegimeEpisodesPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collRegimeEpisodes collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialRegimeEpisodes($v = true)
+    {
+        $this->collRegimeEpisodesPartial = $v;
+    }
+
+    /**
+     * Initializes the collRegimeEpisodes collection.
+     *
+     * By default this just sets the collRegimeEpisodes collection to an empty array (like clearcollRegimeEpisodes());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initRegimeEpisodes($overrideExisting = true)
+    {
+        if (null !== $this->collRegimeEpisodes && !$overrideExisting) {
+            return;
+        }
+        $this->collRegimeEpisodes = new PropelObjectCollection();
+        $this->collRegimeEpisodes->setModel('RegimeEpisode');
+    }
+
+    /**
+     * Gets an array of RegimeEpisode objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this GridRun is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|RegimeEpisode[] List of RegimeEpisode objects
+     * @throws PropelException
+     */
+    public function getRegimeEpisodes($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collRegimeEpisodesPartial && !$this->isNew();
+        if (null === $this->collRegimeEpisodes || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collRegimeEpisodes) {
+                // return empty collection
+                $this->initRegimeEpisodes();
+            } else {
+                $collRegimeEpisodes = RegimeEpisodeQuery::create(null, $criteria)
+                    ->filterByGridRun($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collRegimeEpisodesPartial && count($collRegimeEpisodes)) {
+                      $this->initRegimeEpisodes(false);
+
+                      foreach ($collRegimeEpisodes as $obj) {
+                        if (false == $this->collRegimeEpisodes->contains($obj)) {
+                          $this->collRegimeEpisodes->append($obj);
+                        }
+                      }
+
+                      $this->collRegimeEpisodesPartial = true;
+                    }
+
+                    $collRegimeEpisodes->getInternalIterator()->rewind();
+
+                    return $collRegimeEpisodes;
+                }
+
+                if ($partial && $this->collRegimeEpisodes) {
+                    foreach ($this->collRegimeEpisodes as $obj) {
+                        if ($obj->isNew()) {
+                            $collRegimeEpisodes[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collRegimeEpisodes = $collRegimeEpisodes;
+                $this->collRegimeEpisodesPartial = false;
+            }
+        }
+
+        return $this->collRegimeEpisodes;
+    }
+
+    /**
+     * Sets a collection of RegimeEpisode objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $regimeEpisodes A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return GridRun The current object (for fluent API support)
+     */
+    public function setRegimeEpisodes(PropelCollection $regimeEpisodes, ?PropelPDO $con = null)
+    {
+        $regimeEpisodesToDelete = $this->getRegimeEpisodes(new Criteria(), $con)->diff($regimeEpisodes);
+
+
+        $this->regimeEpisodesScheduledForDeletion = $regimeEpisodesToDelete;
+
+        foreach ($regimeEpisodesToDelete as $regimeEpisodeRemoved) {
+            $regimeEpisodeRemoved->setGridRun(null);
+        }
+
+        $this->collRegimeEpisodes = null;
+        foreach ($regimeEpisodes as $regimeEpisode) {
+            $this->addRegimeEpisode($regimeEpisode);
+        }
+
+        $this->collRegimeEpisodes = $regimeEpisodes;
+        $this->collRegimeEpisodesPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related RegimeEpisode objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related RegimeEpisode objects.
+     * @throws PropelException
+     */
+    public function countRegimeEpisodes(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collRegimeEpisodesPartial && !$this->isNew();
+        if (null === $this->collRegimeEpisodes || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collRegimeEpisodes) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getRegimeEpisodes());
+            }
+            $query = RegimeEpisodeQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByGridRun($this)
+                ->count($con);
+        }
+
+        return count($this->collRegimeEpisodes);
+    }
+
+    /**
+     * Method called to associate a RegimeEpisode object to this object
+     * through the RegimeEpisode foreign key attribute.
+     *
+     * @param    RegimeEpisode $l RegimeEpisode
+     * @return GridRun The current object (for fluent API support)
+     */
+    public function addRegimeEpisode(RegimeEpisode $l)
+    {
+        if ($this->collRegimeEpisodes === null) {
+            $this->initRegimeEpisodes();
+            $this->collRegimeEpisodesPartial = true;
+        }
+
+        if (!in_array($l, $this->collRegimeEpisodes->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddRegimeEpisode($l);
+
+            if ($this->regimeEpisodesScheduledForDeletion and $this->regimeEpisodesScheduledForDeletion->contains($l)) {
+                $this->regimeEpisodesScheduledForDeletion->remove($this->regimeEpisodesScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	RegimeEpisode $regimeEpisode The regimeEpisode object to add.
+     */
+    protected function doAddRegimeEpisode($regimeEpisode)
+    {
+        $this->collRegimeEpisodes[]= $regimeEpisode;
+        $regimeEpisode->setGridRun($this);
+    }
+
+    /**
+     * @param	RegimeEpisode $regimeEpisode The regimeEpisode object to remove.
+     * @return GridRun The current object (for fluent API support)
+     */
+    public function removeRegimeEpisode($regimeEpisode)
+    {
+        if ($this->getRegimeEpisodes()->contains($regimeEpisode)) {
+            $this->collRegimeEpisodes->remove($this->collRegimeEpisodes->search($regimeEpisode));
+            if (null === $this->regimeEpisodesScheduledForDeletion) {
+                $this->regimeEpisodesScheduledForDeletion = clone $this->collRegimeEpisodes;
+                $this->regimeEpisodesScheduledForDeletion->clear();
+            }
+            $this->regimeEpisodesScheduledForDeletion[]= $regimeEpisode;
+            $regimeEpisode->setGridRun(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|RegimeEpisode[] List of RegimeEpisode objects
+     */
+    public function getRegimeEpisodesJoinFleetSlot($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = RegimeEpisodeQuery::create(null, $criteria);
+        $query->joinWith('FleetSlot', $join_behavior);
+
+        return $this->getRegimeEpisodes($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|RegimeEpisode[] List of RegimeEpisode objects
+     */
+    public function getRegimeEpisodesJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = RegimeEpisodeQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getRegimeEpisodes($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|RegimeEpisode[] List of RegimeEpisode objects
+     */
+    public function getRegimeEpisodesJoinAuthyRelatedByIdCreation($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = RegimeEpisodeQuery::create(null, $criteria);
+        $query->joinWith('AuthyRelatedByIdCreation', $join_behavior);
+
+        return $this->getRegimeEpisodes($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|RegimeEpisode[] List of RegimeEpisode objects
+     */
+    public function getRegimeEpisodesJoinAuthyRelatedByIdModification($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = RegimeEpisodeQuery::create(null, $criteria);
+        $query->joinWith('AuthyRelatedByIdModification', $join_behavior);
+
+        return $this->getRegimeEpisodes($query, $con);
     }
 
     /**
@@ -5505,6 +6746,282 @@ abstract class BaseGridRun extends BaseObject implements Persistent
     }
 
     /**
+     * Clears out the collGridRunAudits collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return GridRun The current object (for fluent API support)
+     * @see        addGridRunAudits()
+     */
+    public function clearGridRunAudits()
+    {
+        $this->collGridRunAudits = null; // important to set this to null since that means it is uninitialized
+        $this->collGridRunAuditsPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collGridRunAudits collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialGridRunAudits($v = true)
+    {
+        $this->collGridRunAuditsPartial = $v;
+    }
+
+    /**
+     * Initializes the collGridRunAudits collection.
+     *
+     * By default this just sets the collGridRunAudits collection to an empty array (like clearcollGridRunAudits());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initGridRunAudits($overrideExisting = true)
+    {
+        if (null !== $this->collGridRunAudits && !$overrideExisting) {
+            return;
+        }
+        $this->collGridRunAudits = new PropelObjectCollection();
+        $this->collGridRunAudits->setModel('GridRunAudit');
+    }
+
+    /**
+     * Gets an array of GridRunAudit objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this GridRun is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|GridRunAudit[] List of GridRunAudit objects
+     * @throws PropelException
+     */
+    public function getGridRunAudits($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collGridRunAuditsPartial && !$this->isNew();
+        if (null === $this->collGridRunAudits || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collGridRunAudits) {
+                // return empty collection
+                $this->initGridRunAudits();
+            } else {
+                $collGridRunAudits = GridRunAuditQuery::create(null, $criteria)
+                    ->filterByGridRun($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collGridRunAuditsPartial && count($collGridRunAudits)) {
+                      $this->initGridRunAudits(false);
+
+                      foreach ($collGridRunAudits as $obj) {
+                        if (false == $this->collGridRunAudits->contains($obj)) {
+                          $this->collGridRunAudits->append($obj);
+                        }
+                      }
+
+                      $this->collGridRunAuditsPartial = true;
+                    }
+
+                    $collGridRunAudits->getInternalIterator()->rewind();
+
+                    return $collGridRunAudits;
+                }
+
+                if ($partial && $this->collGridRunAudits) {
+                    foreach ($this->collGridRunAudits as $obj) {
+                        if ($obj->isNew()) {
+                            $collGridRunAudits[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collGridRunAudits = $collGridRunAudits;
+                $this->collGridRunAuditsPartial = false;
+            }
+        }
+
+        return $this->collGridRunAudits;
+    }
+
+    /**
+     * Sets a collection of GridRunAudit objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $gridRunAudits A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return GridRun The current object (for fluent API support)
+     */
+    public function setGridRunAudits(PropelCollection $gridRunAudits, ?PropelPDO $con = null)
+    {
+        $gridRunAuditsToDelete = $this->getGridRunAudits(new Criteria(), $con)->diff($gridRunAudits);
+
+
+        $this->gridRunAuditsScheduledForDeletion = $gridRunAuditsToDelete;
+
+        foreach ($gridRunAuditsToDelete as $gridRunAuditRemoved) {
+            $gridRunAuditRemoved->setGridRun(null);
+        }
+
+        $this->collGridRunAudits = null;
+        foreach ($gridRunAudits as $gridRunAudit) {
+            $this->addGridRunAudit($gridRunAudit);
+        }
+
+        $this->collGridRunAudits = $gridRunAudits;
+        $this->collGridRunAuditsPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related GridRunAudit objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related GridRunAudit objects.
+     * @throws PropelException
+     */
+    public function countGridRunAudits(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collGridRunAuditsPartial && !$this->isNew();
+        if (null === $this->collGridRunAudits || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collGridRunAudits) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getGridRunAudits());
+            }
+            $query = GridRunAuditQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByGridRun($this)
+                ->count($con);
+        }
+
+        return count($this->collGridRunAudits);
+    }
+
+    /**
+     * Method called to associate a GridRunAudit object to this object
+     * through the GridRunAudit foreign key attribute.
+     *
+     * @param    GridRunAudit $l GridRunAudit
+     * @return GridRun The current object (for fluent API support)
+     */
+    public function addGridRunAudit(GridRunAudit $l)
+    {
+        if ($this->collGridRunAudits === null) {
+            $this->initGridRunAudits();
+            $this->collGridRunAuditsPartial = true;
+        }
+
+        if (!in_array($l, $this->collGridRunAudits->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddGridRunAudit($l);
+
+            if ($this->gridRunAuditsScheduledForDeletion and $this->gridRunAuditsScheduledForDeletion->contains($l)) {
+                $this->gridRunAuditsScheduledForDeletion->remove($this->gridRunAuditsScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	GridRunAudit $gridRunAudit The gridRunAudit object to add.
+     */
+    protected function doAddGridRunAudit($gridRunAudit)
+    {
+        $this->collGridRunAudits[]= $gridRunAudit;
+        $gridRunAudit->setGridRun($this);
+    }
+
+    /**
+     * @param	GridRunAudit $gridRunAudit The gridRunAudit object to remove.
+     * @return GridRun The current object (for fluent API support)
+     */
+    public function removeGridRunAudit($gridRunAudit)
+    {
+        if ($this->getGridRunAudits()->contains($gridRunAudit)) {
+            $this->collGridRunAudits->remove($this->collGridRunAudits->search($gridRunAudit));
+            if (null === $this->gridRunAuditsScheduledForDeletion) {
+                $this->gridRunAuditsScheduledForDeletion = clone $this->collGridRunAudits;
+                $this->gridRunAuditsScheduledForDeletion->clear();
+            }
+            $this->gridRunAuditsScheduledForDeletion[]= clone $gridRunAudit;
+            $gridRunAudit->setGridRun(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|GridRunAudit[] List of GridRunAudit objects
+     */
+    public function getGridRunAuditsJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = GridRunAuditQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getGridRunAudits($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|GridRunAudit[] List of GridRunAudit objects
+     */
+    public function getGridRunAuditsJoinAuthyRelatedByIdCreation($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = GridRunAuditQuery::create(null, $criteria);
+        $query->joinWith('AuthyRelatedByIdCreation', $join_behavior);
+
+        return $this->getGridRunAudits($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|GridRunAudit[] List of GridRunAudit objects
+     */
+    public function getGridRunAuditsJoinAuthyRelatedByIdModification($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = GridRunAuditQuery::create(null, $criteria);
+        $query->joinWith('AuthyRelatedByIdModification', $join_behavior);
+
+        return $this->getGridRunAudits($query, $con);
+    }
+
+    /**
      * Clears the current object and sets all attributes to their default values
      */
     public function clear()
@@ -5524,11 +7041,14 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         $this->allocation = null;
         $this->budget_quote = null;
         $this->deploy_pct = null;
+        $this->alloc_mode = null;
         $this->fee_pct = null;
         $this->max_position_quote = null;
         $this->max_order_quote = null;
         $this->daily_loss_limit_quote = null;
         $this->max_unrealized_loss_quote = null;
+        $this->sell_at_loss = null;
+        $this->sell_when_starved = null;
         $this->breakout_buffer_pct = null;
         $this->breakout_policy = null;
         $this->max_open_orders = null;
@@ -5540,6 +7060,8 @@ abstract class BaseGridRun extends BaseObject implements Persistent
         $this->atr_period = null;
         $this->atr_stop_mult = null;
         $this->atr_initial_mult = null;
+        $this->trend_stop_floor_pct = null;
+        $this->trend_signal = null;
         $this->reentry_cooldown = null;
         $this->engine_state = null;
         $this->last_tick_at = null;
@@ -5579,6 +7101,16 @@ abstract class BaseGridRun extends BaseObject implements Persistent
     {
         if ($deep && !$this->alreadyInClearAllReferencesDeep) {
             $this->alreadyInClearAllReferencesDeep = true;
+            if ($this->collFleetSlots) {
+                foreach ($this->collFleetSlots as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collRegimeEpisodes) {
+                foreach ($this->collRegimeEpisodes as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
             if ($this->collBotOrders) {
                 foreach ($this->collBotOrders as $o) {
                     $o->clearAllReferences($deep);
@@ -5604,6 +7136,11 @@ abstract class BaseGridRun extends BaseObject implements Persistent
                     $o->clearAllReferences($deep);
                 }
             }
+            if ($this->collGridRunAudits) {
+                foreach ($this->collGridRunAudits as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
             if ($this->aAuthyGroup instanceof Persistent) {
               $this->aAuthyGroup->clearAllReferences($deep);
             }
@@ -5617,6 +7154,14 @@ abstract class BaseGridRun extends BaseObject implements Persistent
             $this->alreadyInClearAllReferencesDeep = false;
         } // if ($deep)
 
+        if ($this->collFleetSlots instanceof PropelCollection) {
+            $this->collFleetSlots->clearIterator();
+        }
+        $this->collFleetSlots = null;
+        if ($this->collRegimeEpisodes instanceof PropelCollection) {
+            $this->collRegimeEpisodes->clearIterator();
+        }
+        $this->collRegimeEpisodes = null;
         if ($this->collBotOrders instanceof PropelCollection) {
             $this->collBotOrders->clearIterator();
         }
@@ -5637,6 +7182,10 @@ abstract class BaseGridRun extends BaseObject implements Persistent
             $this->collBotDecisions->clearIterator();
         }
         $this->collBotDecisions = null;
+        if ($this->collGridRunAudits instanceof PropelCollection) {
+            $this->collGridRunAudits->clearIterator();
+        }
+        $this->collGridRunAudits = null;
         $this->aAuthyGroup = null;
         $this->aAuthyRelatedByIdCreation = null;
         $this->aAuthyRelatedByIdModification = null;

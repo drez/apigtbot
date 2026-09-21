@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseOauthRefreshTokenPeer;
 
-require 'om/BaseOauthRefreshTokenPeer.php';
+require_once __DIR__ . '/om/BaseOauthRefreshTokenPeer.php';
 
 
 /**

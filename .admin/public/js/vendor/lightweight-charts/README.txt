@@ -1,0 +1,1 @@
+lightweight-charts 5.2.1 (Apache-2.0) — TradingView. Standalone UMD build copied from the npm package (dist/lightweight-charts.standalone.production.js); not template-managed. Used by public/js/project.js for the dashboard trading chart.

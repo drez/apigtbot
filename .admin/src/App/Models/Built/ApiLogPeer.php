@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseApiLogPeer;
 
-require 'om/BaseApiLogPeer.php';
+require_once __DIR__ . '/om/BaseApiLogPeer.php';
 
 
 /**

@@ -1,0 +1,122 @@
+#!/usr/bin/env php
+<?php
+/**
+ * gtbot-trend-activate — the machine-scaled fleet pass. Cron it every 15 minutes:
+ *
+ *   3,18,33,48 * * * * /usr/bin/php8.4 <project>/.admin/bin/gtbot-trend-activate >/dev/null 2>&1
+ *
+ * The unit of work is a fleet SLOT, not a Live run. Every pass:
+ *
+ *   1. reconcile the declared fleet from the runs that exist (idempotent —
+ *      FleetSlots::reconcileFromRuns; this is also the one-time migration of
+ *      the pre-slot bot_event state chain);
+ *   2. for every slot: classify the stored 4h+1d summaries (TrendRegime — the
+ *      allocation-sweep TREND_UP rule with the routine's 1d-EMA-reclaim
+ *      re-entry gate), journal the verdict, and on a confirmed regime change
+ *      raise/lower the arm's slice and deploy_pct against the grids
+ *      (TrendActivator: decreases first, BudgetGuard-checked, Reload for every
+ *      run it touched, Telegram on every transition).
+ *
+ * A symbol with no arm gets one (a parked Draft) and an alert; an arm that is
+ * parked or killed through a confirmed uptrend gets an alert too. Before the
+ * slots, both of those were silence. Operator directive 2026-08-19: no human
+ * in the scaling loop.
+ *
+ *   --dry   reconcile nothing, classify + decide, write nothing
+ */
+
+$admin = dirname(__DIR__);
+require $admin . '/vendor/autoload.php';
+(new \Ahc\Env\Loader())->load($admin . '/.env');
+require $admin . '/config/Built/config.php';
+require $admin . '/config/Built/propel.php';
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
+$_SESSION[_AUTH_VAR] = new \ApiGoat\Sessions\AuthySession();
+
+use App\Domains\Bot\Allocator;
+use App\Domains\Bot\FleetSlots;
+use App\Domains\Bot\TelegramNotifier;
+use App\Domains\Bot\TrendActivator;
+
+$dry = in_array('--dry', $argv, true);
+$notifier = $dry ? null : TelegramNotifier::fromEnv();
+
+// SERIALISE AGAINST THE ALLOCATOR (2026-09-21, round 2). bin/gtbot-allocate
+// has always taken this lock and its comment has always said it serialises
+// the two — but this script never took it, so the only thing standing between
+// a trend activation and a pool rebalance planning off the same slices was the
+// 5-minute cron offset. Both plan from hydrated reads and BudgetGuard reads
+// raw rows, so a collision degrades to a refused write and a rolled-back pass
+// with an Alert; cheap to prevent, so prevent it.
+$con = \Propel::getConnection();
+$lockStmt = $con->prepare('SELECT GET_LOCK(?, 5)');
+$lockStmt->execute([Allocator::LOCK]);
+if ((int) $lockStmt->fetchColumn() !== 1) {
+    echo "an allocator pass holds the lock — skipping this pass\n";
+    exit(0);
+}
+$releaseLock = static function () use ($con): void {
+    $con->prepare('SELECT RELEASE_LOCK(?)')->execute([Allocator::LOCK]);
+};
+register_shutdown_function($releaseLock);
+
+if ($dry) {
+    echo "[dry] reconcile skipped — classifying the slots that already exist\n";
+} else {
+    foreach (FleetSlots::reconcileFromRuns() as $slot) {
+        echo sprintf(
+            "declared %s/%s slot #%d%s\n",
+            $slot->getSymbol(),
+            $slot->getAlgo(),
+            (int) $slot->getIdFleetSlot(),
+            $slot->getIdGridRun() !== null ? ' (run ' . (int) $slot->getIdGridRun() . ', ' . $slot->getState() . ')' : ' (empty)'
+        );
+    }
+}
+
+$slots = FleetSlots::all();
+if ($slots === []) {
+    echo "no fleet slot — nothing to scale\n";
+    exit(0);
+}
+
+$exit = 0;
+foreach ($slots as $slot) {
+    try {
+        $r = TrendActivator::pass($slot, $notifier, $dry);
+    } catch (\Throwable $e) {
+        // STDERR alone is /dev/null under the cron line at the top of this
+        // file: a slot that stops being scaled has to reach the event feed
+        // (and Telegram) too, throttled per slot so a permanent fault is one
+        // alert an hour and not one every 15 minutes.
+        fwrite(STDERR, sprintf("slot %d (%s): %s\n", (int) $slot->getIdFleetSlot(), $slot->getSymbol(), $e->getMessage()));
+        $alert = $dry ? null : TrendActivator::reportPassFailure($slot, $e, $notifier);
+        echo sprintf(
+            "%s %s slot=%d: PASS FAILED — %s%s\n",
+            $slot->getSymbol(),
+            $slot->getAlgo(),
+            (int) $slot->getIdFleetSlot(),
+            $e->getMessage(),
+            $alert === null ? '' : ' (alerted)'
+        );
+        $exit = 1;
+        continue;
+    }
+    echo sprintf(
+        "%s %s run=%s: state=%s verdict=%s decision=%s%s%s\n",
+        $r['symbol'],
+        $r['algo'],
+        $r['run'] ?? '-',
+        $r['state'],
+        $r['verdict'] ?? 'stale',
+        $r['decision'],
+        $r['reasserted'] ? ' (re-asserted)' : '',
+        $dry ? ' [dry]' : ''
+    );
+    foreach ($r['notes'] as $n) {
+        echo "  - $n\n";
+    }
+}
+exit($exit);

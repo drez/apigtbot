@@ -29,7 +29,7 @@ Feature emitters keyed off a parameter. Attach via
 | `AutoValue` | &mdash; | Legacy/dormant auto-value behavior — no functional emit in the current codebase. |  |
 | `BulkUpdate` | `bulk_update` | Checkbox multi-select in the list plus a bulk-update dialog for editing many rows. |  |
 | `ChildColumns` | `set_child_colunms` | Show derived columns from related FK tables in list and edit views. | ✓ |
-| `ChildSelect` | `child_select` | DORMANT (cascade non-functional) — was cascading dependent dropdowns. The Region->City cascade is dead on both ends (no fields-shaped emit + no mod/act tra... |  |
+| `ChildSelect` | &mdash; | The LIVE selectbox cascade: when a parent select changes on screen, every dependent select reloads its options — N levels deep, no jQuery. There is NO key... |  |
 | `CloneEntry` | `clone_entry` | Adds a "Duplicate" action that copies a record (and optionally its children). |  |
 | `CryptedField` | `is_crypted_colunms` | Encrypt/decrypt specified columns at save/display time. |  |
 | `ExportChild` | `export_child` | DORMANT — export_child is NOT converter-whitelisted, so it is dropped before reaching the emitter and emits nothing. Do NOT rely on it. (Was: Excel .xls ex... |  |
@@ -49,21 +49,25 @@ Keys you set under `parameters:`; each has a dedicated
 
 | Parameter (HJSON key) | Summary | Used here |
 | --- | --- | --- |
+| `add_audit` | Generic per-column change history: a read-only "<table>_audit" child plus a capture spliced into the parent model's save(), so an UPDATE records one row per... | ✓ |
 | `add_crossref_filter` | Filter a cross-reference (junction) child table with field/value/operator tuples. |  |
 | `add_hooks` | Register lifecycle hooks (beforeSave, afterSave, beforeDelete, afterList, ...). | ✓ |
 | `add_mass_action` | Bulk row actions (Delete, Archive, custom) on selected list rows. |  |
 | `add_menu` | Add this table's admin form to the left-hand menu (with model/route/parent). |  |
 | `add_prune_action` | Adds a "Prune" select in the list header that deletes every row older than a chosen age window (log-retention UX for audit/log tables). | ✓ |
+| `add_row_action` | Per-row ACTION button in the list action cell (main list + child lists) that POSTs to a project handler on the row's Service and refreshes the list — the r... |  |
 | `add_row_link` | Per-row external link (icon button) in the list action cell, e.g. "preview on the public site". |  |
 | `add_total` | Sum numeric columns and show row totals in the list footer. | ✓ |
 | `format_date_columns` | Show date/datetime columns human-readable in list cells (browser locale) while keeping ISO values in the database and form inputs. |  |
 | `format_phone_columns` | Normalize phone fields to digits-only in the database while displaying them with spaces in the UI (input + list cells). |  |
+| `is_cross_ref` | Mark a table as a pure many-to-many junction; forces add_tablestamp exclude="all" on it. |  |
 | `is_drive_backed` | Declare an entity with no MySQL persistence; CRUD targets a FileStorageInterface (Google Drive in v1). The emitter generates a list/edit/upload/delete UX bac... |  |
 | `is_file_upload_table` | Enable the gcUpload file-upload UI with size/mime limits and image thumbnails. | ✓ |
 | `set_autocomplete` | Turn an FK column into a text-autocomplete input with optional multi-field display, cascade filters, and JS defaults. |  |
 | `set_child_link` | Declared on the parent table: turns a child list's Add/Delete into LINK/UNLINK of existing child rows — "Add" becomes a search picker that sets the child's... |  |
 | `set_comment_columns` | Render a column's input inside the previous column's form row (the comment slot) instead of its own row. |  |
 | `set_date_cascade_delete` | When a row is deleted, detect date-linked sibling rows (same project/user/date) in other tables and prompt to delete them too. |  |
+| `set_list_threaded` | Collapse the MAIN list into one row per conversation, grouped by a thread column, showing each thread's newest message and full size. |  |
 | `set_menu` | Configure a drawer menu group: default folding, icon, color, sidebar position (order), and an optional dashboard deep-link. | ✓ |
 | `set_menu_icon` | Per-table sidebar glyph (a RemixIcon class). | ✓ |
 | `set_menu_priority` | Control this table's sort order within its menu group. | ✓ |
@@ -76,18 +80,23 @@ Keys you set under `parameters:`; each has a dedicated
 | `set_summary_cards` | KPI/aggregate cards rendered atop a list — each card is a count/sum/avg/min/max over the table, optionally under a static equality/IN filter, computed serv... | ✓ |
 | `sync_accounting` | Declares how one table maps to the accounting provider (role(s), field map, lines, taxes) and emits the post-save/post-delete service hooks that enqueue sync... |  |
 | `with_accounting_sync` | Database-level: emits the accounting-sync (QuickBooks & friends) storage tables — acct_connection (headless: provider UNIQUE, realm_id, encrypted tokens, s... |  |
+| `with_ai` | Standard outbound-AI plumbing: one gateway, one key ladder, one call log, one quota. |  |
 | `with_authy_user` | Provision a linked authy login when a row of the host table is created: injects a unique id_authy FK, adds username/password fields to the edit form, creates... |  |
 | `with_child_tables` | Declare child one-to-many / many-to-many relations rendered as nested lists/tabs. | ✓ |
-| `with_country` | Auto-create a country reference table with locale columns. |  |
+| `with_country` | Auto-create a country reference table with locale columns. | ✓ |
 | `with_i18n` | Per-locale sibling columns: for each listed column injects a `<col>_fr` sibling mirroring its type/size (base column stays the en value), emits an ->i18n('<c... |  |
+| `with_job_queue` | Database-level: emits job_queue — the acct_sync_job column set (kind, payload_json, run_after, attempts, state ENUM(Pending,Running,Done,Failed), last_erro... |  |
 | `with_legacy_hash` | On the auth table: accept a pre-bcrypt (md5/sha1) imported password hash at login, once — on first successful legacy match the password is re-hashed to bcr... |  |
+| `with_mailbox` | Database-level: emits mailbox (tenant-scoped IMAP / Gmail-DWD / Gmail-OAuth connection rows — NO password column) as an admin grid, secret_store (owner_typ... |  |
 | `with_mcp` | Database-level: emits the OAuth 2.1 Authorization Server storage tables (oauth_client, oauth_auth_code, oauth_access_token, oauth_refresh_token) — headless... | ✓ |
-| `with_mobile` | Marks a project as mobile-enabled and guards that the OAuth 2.1 AS storage exists (so the Expo app's authorization_code + S256 PKCE flow has somewhere to per... |  |
+| `with_mobile` | Marks a project as mobile-enabled, guards that the OAuth 2.1 AS storage exists (so the Expo app's authorization_code + S256 PKCE flow has somewhere to persis... |  |
 | `with_multi_tenant` | Flag a tenant-id column for multi-tenant isolation. |  |
+| `with_notify` | Declare a reminder sweep on this table: an anchor date column, offsets in days, and how idempotency is tracked. |  |
 | `with_pdf` | Standard record-PDF capability: template-driven rendering (header/footer from Template-entity rows, seeded pdf_<type> presets), saved copies in an auto-injec... |  |
 | `with_refresh_tokens` | On the authy table: emits a headless `authy_refresh_token` table (family_id INDEX, token_hash UNIQUE, expires/family_expires, revoked ENUM, created_at/last_u... | ✓ |
 | `with_register` | Public user registration form with email-confirmation flow. |  |
 | `with_stripe` | Standard Stripe integration: declared per payable table, it promotes to database scope on the schema pass (run-once scan, the with_pdf pattern) to inject the... |  |
+| `with_tenant_company` | Database-level: emits the tenant ROOT table the id_tenant convention points at — company (id_company PK = the tenant id, self-FK id_tenant, name, slug, sta... |  |
 | `with_vector` | Bundle MariaDB (11.7+) vector similarity search onto a table: (re)creates the HNSW VECTOR index each build and emits a findNearest() Service method plus pack... |  |
 
 ## Inline parameters
@@ -111,12 +120,12 @@ dedicated `Parameters/*.php` file.
 | `checkbox_all_child` | Adds a per-row selection checkbox column plus an "Un/Check all" control to a child list, enabling mass actions on child rows. | ✓ |
 | `child_remove_add_link` | Suppress the "Add new" link in the listed child tables' UI. |  |
 | `child_remove_edit_link` | Suppress the "Edit" link in the listed child tables' UI. |  |
-| `child_select` | DORMANT / non-functional. Was meant to drive cascading dependent dropdowns (Region -> City); the cascade is dead on both ends and emits no working JS. |  |
-| `child_table_read_only` | Marks one or more child lists as read-only — suppresses their Add, Delete and bulk controls and forces read-only child forms. |  |
+| `child_select` | Per-column OPT-OUT of the live selectbox cascade (ChildSelect). It never turns a cascade ON — a column cascades because `set_selectbox_filters` points it a... |  |
+| `child_table_read_only` | Marks one or more child lists as read-only — suppresses their Add, Delete and bulk controls and forces read-only child forms. | ✓ |
 | `clone_entry` | Adds a "Clone"/"Duplicate" action that deep-copies a row (and selected child tables / fields) into a new editable record (drives the CloneEntry behavior). |  |
 | `comment_columns` | Legacy alias of set_comment_columns — renders a column's input inside the PREVIOUS column's form row (comment slot); still read as a fallback. |  |
 | `common_filter` | Table-level filter (array of tuples) auto-applied to this table's query whenever it is loaded as the foreign/related table of an FK select or child list. |  |
-| `copy_link` | Converter alias (=> add_child_insert_wysiwyg_tables); the "To editor" copy-to-WYSIWYG link on image-upload child tables is gated by image upload + WYSIWYG co... |  |
+| `copy_link` | DORMANT converter alias (=> add_child_insert_wysiwyg_tables). The "To editor" copy-to-WYSIWYG link it described lived in Classes/include/upload_child.php, wh... |  |
 | `filter_select` | Legacy alias of set_selectbox_filters (per-FK-column dropdown filters); whitelisted but read only under the new name. |  |
 | `i18n_langs` | Declares the locales for which translated (Propel i18n) columns get their own form fields/tabs in the edit view. | ✓ |
 | `is_builder` | Database-level flag read while generating config/config.php; marks the database/project as a builder instance. |  |
@@ -149,8 +158,9 @@ dedicated `Parameters/*.php` file.
 | `set_order_list_columns` | Sets the default sort order of the main list view as an ordered array of [column, "ASC"\|"DESC"] pairs. | ✓ |
 | `set_pills` | Renders selected columns as colored status "pill" badges in list rows / cards, keyed column -> pill type. |  |
 | `set_readonly_columns` | Renders the named columns as read-only (locked) in the edit form while still displaying their values; also excluded from API writes. | ✓ |
-| `set_selectbox_filters` | Filter a selectbox column's options by a parent FK. |  |
+| `set_selectbox_filters` | Filter a selectbox column's options — and, when the filter names `%obj%.<host col>`, make that column cascade LIVE from the field on screen. |  |
 | `set_top_nav` | Intended to drive the TopNav behavior (custom top-navigation bar config); whitelisted by the converter but currently has no live reader. |  |
+| `set_trusted_html_columns` | WYSIWYG columns stored verbatim — bypass the authoritative HtmlSanitizer pass that the generated preSave applies to every is_wysiwyg_colunms value. For adm... | ✓ |
 | `total_columns` | Legacy main-list column-totals parameter — DORMANT: superseded by add_total; its only read is commented out. |  |
 | `total_columns_child` | Legacy child-list column-totals parameter — DORMANT: its read is commented out, so it produces no footer totals. |  |
 | `unit_caption` | Legacy/whitelisted key for per-column unit captions; NOT read by the current emitter (which reads set_form_unit_caption instead). |  |
@@ -186,24 +196,46 @@ Parameters actually set on each table's `GoatCheese` behavior
 - `set_menu_priority`: `210`
 - `set_child_colunms`: `{"id_authy":["username"]}`
 
-### `country` (Country)
-
-- `i18n_langs`: `["en_US"]`
-- `logo_url`: `""`
-- `set_parent_menu`: `Settings`
-
 ### `grid_run` (GridRun)
 
 - `i18n_langs`: `["en_US"]`
 - `logo_url`: `""`
 - `set_menu_icon`: `ri-line-chart-line`
 - `set_parent_menu`: `Trading`
-- `with_child_tables`: `["bot_order","trade_cycle","bot_event","bot_command"]`
+- `with_child_tables`: `["bot_order","trade_cycle","bot_event","bot_command","grid_run_audit"]`
 - `add_total`: `{"trade_cycle":[["realized_pnl","$"],["fees_total","$"]]}`
 - `set_order_list_columns`: `[["date_creation","DESC"]]`
 - `set_list_hide_columns`: `["run_uid","breakout_buffer_pct","max_open_orders","last_tick_at","sim_bal_base","sim_bal_quote","engine_state"]`
 - `set_readonly_columns`: `["daily_loss_limit_quote","max_unrealized_loss_quote","max_position_quote","max_order_quote","breakout_policy","atr_stop_mult","atr_initial_mult","reentry_cooldown","engine_state"]`
 - `add_tab_columns`: `{"Grid + budget":"p_low","Risk limits":"max_position_quote","Trend settings":"trend_tf","Telemetry":"last_tick_at"}`
+- `add_audit`: `["status","budget_quote","deploy_pct","kill_switch","alloc_mode","algo","sell_at_loss","sell_when_starved","label"]`
+- `child_table_read_only`: `["grid_run_audit"]`
+
+### `fleet_slot` (FleetSlot)
+
+- `i18n_langs`: `["en_US"]`
+- `logo_url`: `""`
+- `set_menu_icon`: `ri-layout-grid-line`
+- `set_parent_menu`: `Trading`
+- `set_menu_priority`: `2`
+- `set_child_colunms`: `{"id_grid_run":["label"]}`
+- `set_order_list_columns`: `[["symbol","ASC"]]`
+- `set_readonly_columns`: `["state","confirm_up","confirm_down","last_verdict","verdict_at","episode_started_at","activation","last_empty_alert_at","last_parked_alert_at"]`
+- `set_list_hide_columns`: `["activation","confirm_up","confirm_down","last_empty_alert_at","last_parked_alert_at"]`
+- `add_search_columns`: `{"Symbol":[["symbol","%val"]],"Algorithm":[["algo","%val","multiple"]],"State":[["state","%val","multiple"]]}`
+
+### `regime_episode` (RegimeEpisode)
+
+- `i18n_langs`: `["en_US"]`
+- `logo_url`: `""`
+- `set_menu_icon`: `ri-timer-flash-line`
+- `set_parent_menu`: `Trading`
+- `set_menu_priority`: `3`
+- `set_child_colunms`: `{"id_grid_run":["label"],"id_fleet_slot":["symbol","algo"]}`
+- `set_order_list_columns`: `[["opened_at","DESC"]]`
+- `set_readonly_columns`: `["symbol","algo","verdict","opened_at","closed_at","price_open","price_close","engaged_pct_tw","samples","realized","mtm_close","hodl_pct","captured_pct","idle_samples","idle_alerted_at"]`
+- `set_list_hide_columns`: `["algo","idle_samples","idle_alerted_at"]`
+- `add_search_columns`: `{"Symbol":[["symbol","%val"]],"Algorithm":[["algo","%val","multiple"]],"Verdict":[["verdict","%val"]]}`
 
 ### `bot_order` (BotOrder)
 
@@ -270,6 +302,16 @@ Parameters actually set on each table's `GoatCheese` behavior
 - `set_order_list_columns`: `[["date_creation","DESC"]]`
 - `set_readonly_columns`: `["symbol","tf","price","trend","rsi14","atr_pct","adx14","atr_pct_rank","taker_buy_ratio","vol_zscore","funding_rate","depth_imbalance","depth_imbalance_avg","er20","chop14","funding_pct"]`
 
+### `market_candle` (MarketCandle)
+
+- `i18n_langs`: `["en_US"]`
+- `logo_url`: `""`
+- `set_parent_menu`: `Settings`
+- `set_menu_priority`: `8`
+- `set_order_list_columns`: `[["open_time","DESC"]]`
+- `set_readonly_columns`: `["symbol","tf","open_time","open","high","low","close","volume"]`
+- `add_search_columns`: `{"Symbol":[["symbol","%val"]],"Timeframe":[["tf","%val","multiple"]]}`
+
 ### `bot_decision` (BotDecision)
 
 - `i18n_langs`: `["en_US"]`
@@ -277,7 +319,36 @@ Parameters actually set on each table's `GoatCheese` behavior
 - `set_parent_table`: `grid_run`
 - `set_child_colunms`: `{"id_grid_run":["label"]}`
 - `set_order_child_list_columns`: `[["date_creation","DESC"]]`
-- `set_readonly_columns`: `["source","p_low","p_high","n_levels","reason","price_at","realized_before","eval_status","eval_at","applied_at","cycles_delta","realized_delta","price_move_pct","verdict"]`
+- `set_readonly_columns`: `["source","p_low","p_high","n_levels","reason","price_at","realized_before","eval_status","eval_at","applied_at","cycles_delta","realized_delta","price_move_pct","verdict","counterfactual_delta","c...`
+- `set_list_hide_columns`: `["requested_json","clamps_json","brief_json"]`
+
+### `market_outlook` (MarketOutlook)
+
+- `i18n_langs`: `["en_US"]`
+- `logo_url`: `""`
+- `set_parent_menu`: `Settings`
+- `set_menu_priority`: `9`
+- `set_order_list_columns`: `[["called_at","DESC"]]`
+- `set_list_hide_columns`: `["detail"]`
+- `set_readonly_columns`: `["symbol","kind","verdict","prev_verdict","price_at","called_at","detail","eval_status","price_7d","price_30d","ret_7d","ret_30d","max_adverse_pct","hit_7d","hit_30d","scored_at"]`
+- `add_search_columns`: `{"Symbol":[["symbol","%val"]],"Kind":[["kind","%val"]],"Verdict":[["verdict","%val"]]}`
+
+### `market_outlook_state` (MarketOutlookState)
+
+- `i18n_langs`: `["en_US"]`
+- `logo_url`: `""`
+- `set_parent_menu`: `Settings`
+- `set_menu_priority`: `10`
+- `set_readonly_columns`: `["symbol","verdict","verdict_since","price_at_verdict","candidate","candidate_passes","last_raw","last_pass_at"]`
+
+### `wallet_nav` (WalletNav)
+
+- `i18n_langs`: `["en_US"]`
+- `logo_url`: `""`
+- `set_parent_menu`: `Settings`
+- `set_menu_priority`: `7`
+- `set_order_list_columns`: `[["date_creation","DESC"]]`
+- `set_readonly_columns`: `["mode","equity_quote","budget_quote","ref_symbol","ref_price","unpriced"]`
 
 ### `authy_group` (AuthyGroup)
 
@@ -347,6 +418,7 @@ Parameters actually set on each table's `GoatCheese` behavior
 - `add_search_columns`: `{"Name": [["name", "%val"]]}`
 - `set_order_list_columns`: `[["date_creation", "DESC"]]`
 - `is_wysiwyg_colunms`: `["body", "footer"]`
+- `set_trusted_html_columns`: `["body", "footer"]`
 - `set_list_hide_columns`: `["color_1", "color_2", "color_3", "body", "footer"]`
 - `with_child_tables`: `["template_file"]`
 - `add_child_insert_wysiwyg_tables`: `["template_file"]`
@@ -359,3 +431,15 @@ Parameters actually set on each table's `GoatCheese` behavior
                     "max_file_size" : "10mb"
             },
             "image_support":"yes"}`
+
+### `grid_run_audit` (GridRunAudit)
+
+- `set_parent_table`: `grid_run`
+- `set_order_list_columns`: `[["date_creation", "DESC"]]`
+- `set_child_colunms`: `{"id_grid_run":["label"]}`
+
+### `country` (Country)
+
+- `i18n_langs`: `["en_US"]`
+- `logo_url`: `""`
+- `set_parent_menu`: `Settings`

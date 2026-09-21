@@ -14,7 +14,7 @@ final class GridRunFormTest extends GeneratedTestCase
     private const FQCN = '\\App\\GridRunForm';
     private const TABLE_NAME = 'grid_run';
     private const PHP_NAME = 'GridRun';
-    private const CHILD_TABLES = ['BotOrder', 'TradeCycle', 'BotEvent', 'BotCommand'];
+    private const CHILD_TABLES = ['BotOrder', 'TradeCycle', 'BotEvent', 'BotCommand', 'GridRunAudit'];
     private const CORE_METHODS = ['getList', 'getListSearch', 'getListHeader', 'getEditForm', 'setCreateDefaultsGridRun', 'setUpdateDefaultsGridRun'];
     private const SELECTBOX_PREFIX = 'selectBoxGridRun_';
 

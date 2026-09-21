@@ -1,0 +1,25 @@
+#!/usr/bin/env php
+<?php
+/**
+ * gtbot-golive — is the fleet ready for real money? Read-only; prints each
+ * gate (App\Domains\Bot\GoLiveGate) and exits 0 only when all pass.
+ *
+ *   php bin/gtbot-golive [--json]
+ */
+
+$admin = dirname(__DIR__);
+require $admin . '/vendor/autoload.php';
+(new \Ahc\Env\Loader())->load($admin . '/.env');
+require $admin . '/config/Built/config.php';
+require $admin . '/config/Built/propel.php';
+
+$res = \App\Domains\Bot\GoLiveGate::evaluate();
+if (in_array('--json', $argv, true)) {
+    fwrite(STDOUT, json_encode($res, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+} else {
+    foreach ($res['gates'] as $g) {
+        fwrite(STDOUT, sprintf("%s  %-24s %s\n", $g['pass'] ? 'PASS' : 'FAIL', $g['gate'], $g['detail']));
+    }
+    fwrite(STDOUT, $res['ready'] ? "\nREADY — every gate passes. Real money is still a human act.\n" : "\nNOT READY\n");
+}
+exit($res['ready'] ? 0 : 1);

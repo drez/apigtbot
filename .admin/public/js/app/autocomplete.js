@@ -153,11 +153,16 @@ window.gcAutocomplete = (function () {
         // Browse mode (empty-term focus/click): show the first few options
         // alphabetically so a small FK set behaves like a selectbox.
         if (browse) { data0.limit = 10; }
+        // Replies can land out of order: a late one for an older term must
+        // neither repaint the menu nor (count==1) commit an id nobody chose.
+        var seq = state.seq = (state.seq || 0) + 1;
         fetchResults(state.url, data0).then(function (data) {
-            if (!data) { return; }
+            if (!data || seq !== state.seq) { return; }
             // count==1 → autofill immediately (legacy behaviour) — but never
-            // from browse mode: focusing a field must not commit a value.
-            if (!browse && data.count === 1 && data.data && data.data[0]) {
+            // from browse mode: focusing a field must not commit a value, and
+            // only while the box still holds the term that was searched.
+            if (!browse && data.count === 1 && data.data && data.data[0]
+                    && state.input.value === term) {
                 setValue(state, data.data[0].show, data.data[0].id);
             }
             var results = (data.count && data.data) ? data.data.map(function (it) {
@@ -228,9 +233,20 @@ window.gcAutocomplete = (function () {
     // canonical target the emitter sets) via getElementById, which tolerates
     // the "[]" of multi-select search fields (e.g. IdCompany[]) that a CSS
     // "#IdCompany[]" selector cannot. Fall back to the computed hiddenSel.
+    // Look inside the input's own form first: the list's search form and a
+    // pushed edit form both carry the same ids (e.g. IdSeller), and a
+    // page-global getElementById returns the first one in the DOM — the edit
+    // form's autocomplete then wrote its pick into the list's search filter.
     function resolveHidden(input, hiddenSel) {
         var rid = input.getAttribute('rid');
         if (rid) {
+            var form = input.closest ? input.closest('form') : null;
+            if (form) {
+                for (var i = 0; i < form.elements.length; i++) {
+                    var el = form.elements[i];
+                    if (el.id === rid && el !== input) { return el; }
+                }
+            }
             var byId = document.getElementById(rid);
             if (byId && byId !== input) { return byId; }
         }
@@ -257,9 +273,13 @@ window.gcAutocomplete = (function () {
         input.addEventListener('input', function () {
             clearTimeout(state.timer);
             var term = input.value;
+            // Typing over a picked value un-commits it: the hidden id used to
+            // survive ("Beta" on screen, the FK of "Acme" saved). Blur-resolve
+            // re-commits a unique match, or clears the orphan text.
+            clearValue(state);
+            state.seq = (state.seq || 0) + 1; // orphan any reply still in flight
             if (term.length < state.minLength) {
                 closeMenu(state);
-                if (term === '') { clearValue(state); }
                 return;
             }
             state.timer = setTimeout(function () { runSearch(state, term); }, DEBOUNCE_MS);

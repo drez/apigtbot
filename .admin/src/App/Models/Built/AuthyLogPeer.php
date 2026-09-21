@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseAuthyLogPeer;
 
-require 'om/BaseAuthyLogPeer.php';
+require_once __DIR__ . '/om/BaseAuthyLogPeer.php';
 
 
 /**

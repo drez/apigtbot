@@ -1,0 +1,147 @@
+#!/usr/bin/env php
+<?php
+/**
+ * gtbot-outlook — the long-horizon market outlook (MarketOutlook /
+ * MarketOutlookStore). Cron it hourly, two minutes after a collector pass:
+ *
+ *   12 * * * * /usr/bin/php8.4 <project>/.admin/bin/gtbot-outlook >/dev/null 2>&1
+ *
+ * Three independent stages, each isolated — a failure in one is logged and
+ * the others still run, and the script always exits 0 so it can never take
+ * a neighbour down:
+ *
+ *   PASS    per watched symbol: read the stored 1d + 1w summaries, classify,
+ *           advance the hysteresis; a CONFIRMED change writes a market_outlook
+ *           Change row and (config gtbot_outlook_alerts: off | major | all)
+ *           sends one Telegram message.
+ *   SCORE   fill the 7d / 30d outcome of every earlier call from the stored
+ *           daily bars. No API call.
+ *   DIGEST  first pass of each UTC day: one Daily row per symbol + one
+ *           digest message.
+ *
+ * DETECTION, NOT FORECAST. refit-evidence §16: no long-horizon state tested
+ * predicts 30-90d direction on both symbols. Nothing in the fleet acts on
+ * the verdict; the routine brief carries it as context.
+ *
+ *   --dry      classify and print, write nothing, send nothing
+ *   --fetch    (with --dry) read 1d/1w klines straight from the public API
+ *              instead of market_summary — the way to look at it on a dev
+ *              box, where the collector must never run
+ */
+
+$admin = dirname(__DIR__);
+require $admin . '/vendor/autoload.php';
+(new \Ahc\Env\Loader())->load($admin . '/.env');
+require $admin . '/config/Built/config.php';
+require $admin . '/config/Built/propel.php';
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
+$_SESSION[_AUTH_VAR] = new \ApiGoat\Sessions\AuthySession();
+
+use App\Domains\Bot\Indicators;
+use App\Domains\Bot\MarketCollector;
+use App\Domains\Bot\MarketOutlookStore;
+use App\Domains\Bot\TelegramNotifier;
+
+$dry = in_array('--dry', $argv, true);
+$fetch = in_array('--fetch', $argv, true);
+if ($fetch && !$dry) {
+    fwrite(STDERR, "--fetch is a look, not a run: it needs --dry\n");
+    exit(2);
+}
+
+$con = \Propel::getConnection();
+if (!$dry) {
+    $lock = $con->prepare('SELECT GET_LOCK(?, 0)');
+    $lock->execute(['gtbot_outlook']);
+    if ((int) $lock->fetchColumn() !== 1) {
+        echo "another gtbot-outlook holds the lock — skipping\n";
+        exit(0);
+    }
+}
+
+$now = time();
+$messages = [];
+$inputs = null;
+try {
+    $symbols = MarketCollector::watchedSymbols();
+} catch (\Throwable $e) {
+    error_log('gtbot-outlook symbols: ' . $e->getMessage());
+    $symbols = ['BTCUSDT'];
+}
+
+if ($fetch) {
+    $gw = MarketCollector::analysisGateway();
+    $inputs = [];
+    foreach ($symbols as $symbol) {
+        try {
+            $frame = static function (string $tf) use ($gw, $symbol): array {
+                $candles = $gw->klines($symbol, $tf, 1000);
+                $keep = array_slice($candles, -300);
+                return [Indicators::summary($candles) + ['stale' => false, 'candles_used' => count($keep), 'funding_pct' => null], $keep];
+            };
+            [$s1d, $c1d] = $frame('1d');
+            [$s1w, $c1w] = $frame('1w');
+            $inputs[$symbol] = ['s1d' => $s1d, 's1w' => $s1w, 'c1d' => $c1d, 'c1w' => $c1w];
+        } catch (\Throwable $e) {
+            error_log("gtbot-outlook fetch $symbol: " . $e->getMessage());
+        }
+    }
+}
+
+// ---- PASS
+foreach ($symbols as $symbol) {
+    try {
+        $r = MarketOutlookStore::pass($symbol, $now, $inputs[$symbol] ?? null, $dry);
+        printf(
+            "%s: raw %s · confirmed %s%s%s\n   %s\n",
+            $symbol,
+            $r['raw'] ?? 'no read',
+            $r['verdict'] ?? 'none',
+            $r['candidate'] ? sprintf(' · candidate %s %d passes', $r['candidate'], $r['candidate_passes']) : '',
+            $r['changed'] ? ' · CHANGED' : '',
+            implode('; ', $r['reasons'])
+        );
+        if ($r['message'] !== null) {
+            $messages[] = $r['message'];
+        }
+    } catch (\Throwable $e) {
+        error_log("gtbot-outlook pass $symbol: " . $e->getMessage());
+    }
+}
+
+// ---- SCORE
+if (!$dry) {
+    try {
+        $n = MarketOutlookStore::scorePending($now);
+        if ($n > 0) {
+            echo "scored $n earlier call(s)\n";
+        }
+    } catch (\Throwable $e) {
+        error_log('gtbot-outlook score: ' . $e->getMessage());
+    }
+}
+
+// ---- DIGEST
+try {
+    $digest = MarketOutlookStore::digest($symbols, $now, $inputs, $dry);
+    if ($digest !== null) {
+        echo $digest, "\n";
+        $messages[] = $digest;
+    }
+} catch (\Throwable $e) {
+    error_log('gtbot-outlook digest: ' . $e->getMessage());
+}
+
+if (!$dry && $messages) {
+    try {
+        $tg = TelegramNotifier::fromEnv();
+        foreach ($messages as $m) {
+            $tg?->send($m); // throttled + queued: late at worst, never dropped
+        }
+    } catch (\Throwable $e) {
+        error_log('gtbot-outlook telegram: ' . $e->getMessage());
+    }
+}
+exit(0);

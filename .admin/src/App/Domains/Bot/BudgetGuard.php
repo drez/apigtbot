@@ -31,17 +31,32 @@ final class BudgetGuard
     public static function check(?int $excludeRunId = null, ?string $candidateBudget = null, ?string $candidateStatus = null): ?array
     {
         $sum = '0';
-        foreach (GridRunQuery::create()->filterByStatus(self::ACTIVE_STATUSES, \Criteria::IN)->find() as $r) {
-            if ($excludeRunId !== null && (int) $r->getIdGridRun() === $excludeRunId) {
+        // select(): raw rows, never pooled objects. Propel does not re-hydrate
+        // an instance already in its pool, so a hydrated walk inside the
+        // long-lived daemon would sum the slices as of boot and miss every
+        // reallocation until restart (prod 2026-09-05→09: both grids halted
+        // four days after the slices fit again).
+        $rows = GridRunQuery::create()
+            ->filterByStatus(self::ACTIVE_STATUSES, \Criteria::IN)
+            ->select(['IdGridRun', 'BudgetQuote'])
+            ->find();
+        foreach ($rows as $r) {
+            if ($excludeRunId !== null && (int) $r['IdGridRun'] === $excludeRunId) {
                 continue;
             }
-            $sum = bcadd($sum, (string) $r->getBudgetQuote(), self::SCALE);
+            $sum = bcadd($sum, (string) $r['BudgetQuote'], self::SCALE);
         }
         if ($candidateBudget !== null
             && ($candidateStatus === null || in_array($candidateStatus, self::ACTIVE_STATUSES, true))) {
             $sum = bcadd($sum, $candidateBudget, self::SCALE);
         }
-        $budget = SimWallet::sharedBudget();
+        // cap(), never allocatable(): the guard is the hard ceiling, and
+        // gtbot_pool_reserve_pct deliberately does NOT move it (2026-09-21).
+        // The reserve is slack the automatic allocators refuse to plan
+        // against so that rounding and mark-to-market drift cannot push them
+        // into this refusal; making it a second, tighter tripwire would
+        // recreate the very fail-closed-fleet failure it exists to prevent.
+        $budget = BudgetPool::cap();
         if (bccomp($sum, $budget, self::SCALE) <= 0) {
             return null;
         }
@@ -53,9 +68,9 @@ final class BudgetGuard
     {
         return sprintf(
             'Budget overcommit refused: active run slices would sum to %s but the shared budget is %s (excess %s). Lower another run\'s budget first, or raise gtbot_shared_budget_quote.',
-            rtrim(rtrim($over['sum'], '0'), '.'),
-            rtrim(rtrim($over['budget'], '0'), '.'),
-            rtrim(rtrim($over['excess'], '0'), '.')
+            BudgetPool::fmt($over['sum']),
+            BudgetPool::fmt($over['budget']),
+            BudgetPool::fmt($over['excess'])
         );
     }
 }

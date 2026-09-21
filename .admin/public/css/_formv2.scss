@@ -2314,6 +2314,19 @@ body:has(#login-form) .wCtFooter { display: none; }
     overflow-y: auto !important;
     z-index: 220 !important;
 }
+/* Closed menus must not take part in layout. The legacy widget hides a
+ * closed list with visibility:hidden/opacity:0 only, so every select keeps a
+ * ~140px box hanging under its field. The card clips those (overflow:hidden)
+ * until a select opens and .form-card:has(.select-label.show) relaxes the
+ * clip — then the hidden lists of the LAST row spill past the card into the
+ * scrollable .sw-body: a scrollbar appears, the grid reflows and the right
+ * column jumps (the "Response detail pops when Suggest follow-ups opens" bug).
+ * display:none until .show; selectbox.js reveals the selected <li> after the
+ * class flips, so the list has offsets by then. */
+.sw-drawer.proto-form .sw-body .form-row .js-select-label:not(.show) ul.scrollable.select-element,
+.sw-drawer.proto-form .sw-body .form-row .js-select-label:not(.show) ul.select-element {
+    display: none !important;
+}
 /* Viewport flip: selectbox.js adds .show-top when the dropdown would
  * overflow the bottom of the viewport — open it above the field instead. */
 .sw-drawer.proto-form .sw-body .form-row .js-select-label.show-top ul.scrollable.select-element,

@@ -14,7 +14,7 @@ final class GridRunServiceTest extends GeneratedTestCase
     private const TABLE_NAME = 'grid_run';
     private const PHP_NAME = 'GridRun';
     private const HAS_API = false;
-    private const CHILD_TABLES = ['BotOrder', 'TradeCycle', 'BotEvent', 'BotCommand'];
+    private const CHILD_TABLES = ['BotOrder', 'TradeCycle', 'BotEvent', 'BotCommand', 'GridRunAudit'];
     private const CORE_METHODS = ['getResponse', 'deleteOne', 'saveUpdate', 'edit', 'list'];
 
     public function test_class_is_loadable(): void

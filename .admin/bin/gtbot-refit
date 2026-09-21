@@ -30,9 +30,11 @@ use App\Domains\Bot\Backtester;
 use App\Domains\Bot\DecisionScorer;
 use App\Domains\Bot\Gateway\BinanceGateway;
 use App\Domains\Bot\Indicators;
+use App\Domains\Bot\MechanicalRefit;
 use App\Domains\Bot\RangeFitter;
 use App\Domains\Bot\RefitPlanner;
 use App\Domains\Bot\RegimeGate;
+use App\Domains\Bot\RiskManager;
 use App\Domains\Bot\RoutineLiveness;
 use App\Domains\Bot\TelegramNotifier;
 
@@ -48,7 +50,7 @@ if (!$dry) {
             echo "scored $scored refit decision(s)\n";
         }
         $con = \Propel::getConnection();
-        $con->exec("DELETE FROM bot_event WHERE kind IN ('boot','reloading','refit_pending','command','would_place','heartbeat') AND date_creation < DATE_SUB(NOW(), INTERVAL 30 DAY)");
+        $con->exec("DELETE FROM bot_event WHERE kind IN ('boot','reloading','refit_pending','command','would_place','heartbeat','trend_regime') AND date_creation < DATE_SUB(NOW(), INTERVAL 30 DAY)");
         $con->exec("DELETE FROM api_log WHERE time < DATE_SUB(NOW(), INTERVAL 90 DAY)");
         $con->exec("DELETE FROM market_regime WHERE date_creation < DATE_SUB(NOW(), INTERVAL 365 DAY)");
     } catch (\Throwable $e) {
@@ -79,9 +81,34 @@ $gw = new BinanceGateway($base, '', ''); // public klines only
 // early here is what used to front-run the routine with quantile grids it
 // then spent its slot reverting. Only a silent routine hands control over.
 $routineAlive = !$dry && !RoutineLiveness::isSilent(2 * 3600);
-if ($routineAlive) {
+// Deploy ownership is narrower than routine liveness, and is decided PER RUN
+// further down: any gtbot_* call (e.g. an operator's gtbot_status) counts as
+// routine activity, and even a gtbot_set_grid CALL proves nothing — the audit
+// row is written in a finally, so a refused (ToolError) or dry_run call logs
+// exactly like a real write. Only a bot_decision row with source Claude is
+// written after a successful set_grid, so that is what ownership keys on.
+// When the cloud routine stalls while someone pokes the MCP by hand, the cron
+// must still write the hostile-regime cap instead of re-anchoring at deploy 100.
+const DEPLOY_OWNERSHIP_WINDOW = 2 * 3600;
+// The daemon applies a queued geometry within a tick (5s). A cron decision
+// still un-applied after this long is orphaned — the daemon rejected it and
+// never stamped it, or a routine write stole the stamp — not pending, so the
+// cron must resume writing instead of holding this run forever.
+const PENDING_APPLY_GRACE = 900;
+// Mechanical mode (2026-09-09, config gtbot_grid_refit_mode): the cron OWNS
+// grid geometry — a fixed-shape ladder re-anchored on a clock or when price
+// leaves the range (MechanicalRefit) — and the routine keeps regime/deploy
+// only (gtbot_set_grid refuses geometry changes in this mode). The liveness
+// deferral above is a routine-mode rule.
+$mechanical = MechanicalRefit::isMechanical();
+if ($routineAlive && !$mechanical) {
     echo "refit routine is alive (gtbot MCP activity < 2h) — cron deferring on all runs\n";
     exit(0);
+}
+if ($mechanical) {
+    printf("grid refit mode: MECHANICAL — ±%s%% × %d, clock %dh; cron owns grid geometry%s\n",
+        bcmul(MechanicalRefit::halfWidth(), '100', 1), MechanicalRefit::levels(), MechanicalRefit::refitHours(),
+        $routineAlive ? ' (routine alive: it keeps deploy/regime)' : '');
 }
 
 foreach ($runs as $run) {
@@ -105,6 +132,38 @@ if (!$last || (time() - (int) $last) > 180) {
     continue;
 }
 
+// This run's cron decision journal, read ONCE. The newest row decides whether
+// a previous write is still in flight; the newest APPLIED row anchors the
+// mechanical clock. Filtering by source matters for the clock: the daemon
+// stamps applied_at on the routine's deploy-only set_grid calls too (deploy_pct
+// is a geometry key, so a deploy move re-anchors the ladder and stamps the
+// newest matching decision), and keying the clock on ANY applied decision would
+// restart the 72h window every time the routine moved deploy.
+$newestCron = \App\BotDecisionQuery::create()
+    ->filterByIdGridRun((int) $run->getIdGridRun())
+    ->filterBySource('Cron')
+    ->orderByIdBotDecision(\Criteria::DESC)
+    ->findOne();
+// A cron write the daemon has not applied yet must not be re-written (each
+// rewrite is a fresh Telegram and orphans the previous row). Bounded by
+// PENDING_APPLY_GRACE: the daemon applies within a tick, so an older un-applied
+// row is orphaned — a geometry it REJECTED, or one whose stamp a routine write
+// took — and holding on it would freeze this run's re-anchors for good.
+if ($newestCron
+    && $newestCron->getAppliedAt('U') === null
+    && (time() - (int) $newestCron->getDateCreation('U')) <= PENDING_APPLY_GRACE) {
+    echo "run {$run->getIdGridRun()} a cron geometry is still pending daemon apply — holding (no rewrite)\n";
+    continue;
+}
+$lastAppliedCron = ($newestCron && $newestCron->getAppliedAt('U') !== null)
+    ? $newestCron
+    : \App\BotDecisionQuery::create()
+        ->filterByIdGridRun((int) $run->getIdGridRun())
+        ->filterBySource('Cron')
+        ->filterByAppliedAt(null, \Criteria::ISNOTNULL)
+        ->orderByIdBotDecision(\Criteria::DESC)
+        ->findOne();
+
 $symbol = (string) $run->getSymbol();
 $candles = $gw->klines($symbol, '4h', 180);
 if (count($candles) < 30) {
@@ -112,15 +171,89 @@ if (count($candles) < 30) {
     continue;
 }
 $price = end($candles)['close'];
+$trend4h = Indicators::trend(array_column($candles, 'close')); // blocks low-side chasing in a downtrend
 
-$candidates = RangeFitter::candidates($candles, (string) $run->getFeePct(), (string) $run->getBudgetQuote());
-$decision = RefitPlanner::decide(
-    ['p_low' => (string) $run->getPLow(), 'p_high' => (string) $run->getPHigh()],
-    $price,
-    $candidates,
-    Indicators::trend(array_column($candles, 'close')) // 4h — blocks low-side chasing in a downtrend
-);
+// Sweep-validated hostile-regime cap (RegimeGate): a refit written into a 4h
+// down-family trend or ADX>=30 tape deploys at most 25% — computed from the
+// same fresh mainnet candles the fit used, so no staleness question here.
+// Computed BEFORE the mechanical clamp so the clamp and the write both use
+// the same effective deploy (the capped one when the cron owns deploy).
+$adx4h = Indicators::adx(array_column($candles, 'high'), array_column($candles, 'low'), array_column($candles, 'close'));
+$gate = RegimeGate::capDeployPct((int) ($run->getDeployPct() ?? 100), $trend4h, $adx4h);
 
+// Deploy ownership for THIS run: a journaled Claude decision (written only
+// after a set_grid that actually applied) inside the window means the routine
+// is managing this run's deploy and the cron must not fight it. Otherwise the
+// dead-man's switch writes the sweep-validated hostile cap.
+$lastClaude = \App\BotDecisionQuery::create()
+    ->filterByIdGridRun((int) $run->getIdGridRun())
+    ->filterBySource('Claude')
+    ->orderByIdBotDecision(\Criteria::DESC)
+    ->findOne();
+$routineManagesDeploy = !$dry
+    && $lastClaude !== null
+    && (time() - (int) $lastClaude->getDateCreation('U')) <= DEPLOY_OWNERSHIP_WINDOW;
+
+// One definition of the effective deploy, used by the min-notional clamp, the
+// RiskManager pre-check and the write below — three copies of this expression
+// could size the ladder for three different deploys.
+$minNotional = '5';
+$effectiveDeploy = ($gate['capped'] && !$routineManagesDeploy)
+    ? $gate['pct']
+    : (int) ($run->getDeployPct() ?? 100);
+
+if ($mechanical) {
+    $lastAppliedAt = $lastAppliedCron ? $lastAppliedCron->getAppliedAt('Y-m-d H:i:s') : null;
+    $atr = Indicators::atr(array_column($candles, 'high'), array_column($candles, 'low'), array_column($candles, 'close'));
+    $atrPct = (float) $price > 0 ? sprintf('%.12F', $atr / (float) $price) : '0';
+    $due = MechanicalRefit::due(
+        ['p_low' => (string) $run->getPLow(), 'p_high' => (string) $run->getPHigh()],
+        $price,
+        $lastAppliedAt,
+        date('Y-m-d H:i:s'),
+        MechanicalRefit::refitHours(),
+        $trend4h
+    );
+    $c = MechanicalRefit::candidate($price, $atrPct, MechanicalRefit::halfWidth(), MechanicalRefit::levels());
+    // The daemon refuses a ladder whose per-level deployed quote is under
+    // the exchange minimum notional. Clamp BEFORE the row is written so the
+    // run never holds geometry the daemon rejects (which set_grid then
+    // refuses to fix in mechanical mode). min_notional is the exchange
+    // spot floor for both prod symbols; the daemon re-derives it from
+    // live exchange filters and the Backtester sanity below uses the same.
+    // The clamp must use the SAME effective deploy as the write below:
+    // the gate-capped value when the cron owns deploy, the routine's value
+    // when it manages deploy. deploy 0 is a legal FLAT position the daemon
+    // accepts — skip the clamp there so a flat run still re-anchors on the
+    // clock and isn't left on a stale range when deploy returns.
+    if ($effectiveDeploy > 0) {
+        $deployedQuote = bcdiv(bcmul((string) $run->getBudgetQuote(), (string) $effectiveDeploy, 12), '100', 12);
+        $c['n_levels'] = MechanicalRefit::clampLevels((int) $c['n_levels'], $deployedQuote, $minNotional);
+        if ($c['n_levels'] < 2) {
+            $decision = [
+                'action' => 'hold',
+                'candidate' => $c,
+                'reason' => sprintf('mechanical: per-level deployed budget %s/%d under min notional %s (deploy %d%%, slice %s) — holding geometry',
+                    $deployedQuote, max(1, (int) $c['n_levels']), $minNotional, $effectiveDeploy, (string) $run->getBudgetQuote()),
+            ];
+            echo "run {$run->getIdGridRun()} price=$price decision={$decision['action']}: {$decision['reason']}\n";
+            continue;
+        }
+    }
+    $decision = [
+        'action' => $due['due'] ? 'refit' : 'hold',
+        'candidate' => $c,
+        'reason' => 'mechanical: ' . $due['reason'] . ($due['due'] && $c['widened'] ? sprintf(' — half-width widened to %s%% (4 × 4h ATR)', bcmul($c['half_width'], '100', 1)) : ''),
+    ];
+} else {
+    $candidates = RangeFitter::candidates($candles, (string) $run->getFeePct(), (string) $run->getBudgetQuote());
+    $decision = RefitPlanner::decide(
+        ['p_low' => (string) $run->getPLow(), 'p_high' => (string) $run->getPHigh()],
+        $price,
+        $candidates,
+        $trend4h
+    );
+}
 echo "run {$run->getIdGridRun()} price=$price decision={$decision['action']}: {$decision['reason']}\n";
 
 if ($decision['action'] !== 'refit') {
@@ -129,25 +262,41 @@ if ($decision['action'] !== 'refit') {
 
 $c = $decision['candidate'];
 
-// Sweep-validated hostile-regime cap (RegimeGate): a refit written into a 4h
-// down-family trend or ADX>=30 tape deploys at most 25% — computed from the
-// same fresh mainnet candles the fit used, so no staleness question here.
-$adx4h = Indicators::adx(array_column($candles, 'high'), array_column($candles, 'low'), array_column($candles, 'close'));
-$gate = RegimeGate::capDeployPct((int) ($run->getDeployPct() ?? 100), Indicators::trend(array_column($candles, 'close')), $adx4h);
+// Validate the candidate with the SAME gate the daemon runs at boot/refit
+// (RiskManager::validateRunConfig). Writing first and hoping is what left
+// runs holding geometry the daemon rejects — which set_grid then refuses to
+// fix in mechanical mode. Invalid here = never written = never Telegrammed.
+$cfgCheck = [
+    'p_low' => $c['p_low'], 'p_high' => $c['p_high'], 'n_levels' => (int) $c['n_levels'],
+    'spacing' => 'Geometric', 'budget_quote' => (string) $run->getBudgetQuote(),
+    'fee_pct' => (string) $run->getFeePct(),
+    'deploy_pct' => $effectiveDeploy,
+    'min_notional' => $minNotional,
+];
+$cfgErrors = RiskManager::validateRunConfig($cfgCheck);
+if ($cfgErrors) {
+    echo "run {$run->getIdGridRun()} candidate rejected: " . implode('; ', $cfgErrors) . " — holding (nothing written)\n";
+    continue;
+}
 
 // sanity: backtest the candidate over the window; skip if it wouldn't have traded
-$bt = Backtester::run([
-    'p_low' => $c['p_low'], 'p_high' => $c['p_high'], 'n_levels' => (int) $c['n_levels'],
-    'spacing' => 'Geometric', 'allocation' => (string) $run->getAllocation(),
-    'budget_quote' => (string) $run->getBudgetQuote(), 'fee_pct' => (string) $run->getFeePct(),
-    'max_position_quote' => (string) $run->getMaxPositionQuote(),
-    'max_order_quote' => (string) $run->getMaxOrderQuote(),
-    'daily_loss_limit_quote' => (string) $run->getDailyLossLimitQuote(),
-    'breakout_buffer_pct' => (string) $run->getBreakoutBufferPct(),
-    'breakout_policy' => (string) $run->getBreakoutPolicy(),
-    'max_open_orders' => (int) $run->getMaxOpenOrders(),
-    'min_notional' => '5',
-], array_column($candles, 'close'));
+try {
+    $bt = Backtester::run([
+        'p_low' => $c['p_low'], 'p_high' => $c['p_high'], 'n_levels' => (int) $c['n_levels'],
+        'spacing' => 'Geometric', 'allocation' => (string) $run->getAllocation(),
+        'budget_quote' => (string) $run->getBudgetQuote(), 'fee_pct' => (string) $run->getFeePct(),
+        'max_position_quote' => (string) $run->getMaxPositionQuote(),
+        'max_order_quote' => (string) $run->getMaxOrderQuote(),
+        'daily_loss_limit_quote' => (string) $run->getDailyLossLimitQuote(),
+        'breakout_buffer_pct' => (string) $run->getBreakoutBufferPct(),
+        'breakout_policy' => (string) $run->getBreakoutPolicy(),
+        'max_open_orders' => (int) $run->getMaxOpenOrders(),
+        'min_notional' => $minNotional,
+    ], array_column($candles, 'close'));
+} catch (\Throwable $e) {
+    echo "run {$run->getIdGridRun()} backtest failed: " . $e->getMessage() . " — holding (nothing written)\n";
+    continue;
+}
 
 $summary = sprintf(
     "🔄 gtbot refit — run %d (%s)\nre-centering: [%s, %s] → [%s, %s] × %d levels\nprice %s · backtest %d cycles, %.2f P/L (in-sample)\napplies within a tick; held inventory rides out as legacy exits.",
@@ -163,7 +312,9 @@ $summary = sprintf(
     (float) $bt['realized_pnl']
 );
 if ($gate['capped']) {
-    $summary .= "\n⚠️ " . $gate['why'];
+    $summary .= $mechanical && $routineManagesDeploy
+        ? "\n⚠️ " . $gate['why'] . "\n(cron does not own deploy_pct while the routine is applying set_grid writes — the routine's next write applies the cap)"
+        : "\n⚠️ " . $gate['why'];
 }
 
 if ($dry) {
@@ -177,12 +328,18 @@ $run->setPLow($c['p_low']);
 $run->setPHigh($c['p_high']);
 $run->setNLevels((int) $c['n_levels']);
 $run->setSpacing('Geometric');
-if ($gate['capped']) {
-    $run->setDeployPct($gate['pct']);
+// Deploy ownership: while the routine is demonstrably managing deploy (a
+// journaled set_grid write within the window) it owns deploy_pct — the cron
+// writing the cap under it would be reverted on the routine's next pass, with
+// a cancel/re-ladder each way. A stalled routine (or a manual gtbot_status
+// from an operator session) must NOT suppress the cap: the switch writes it.
+$deployWritten = $effectiveDeploy;
+if ($gate['capped'] && !$routineManagesDeploy) {
+    $run->setDeployPct($effectiveDeploy);
 }
 $run->save();
 
-DecisionScorer::record($run, 'Cron', $c['p_low'], $c['p_high'], (int) $c['n_levels'], $decision['reason'] . ($gate['capped'] ? ' [' . $gate['why'] . ']' : ''), $price, (int) ($run->getDeployPct() ?? 100));
+DecisionScorer::record($run, 'Cron', $c['p_low'], $c['p_high'], (int) $c['n_levels'], $decision['reason'] . ($gate['capped'] ? ' [' . $gate['why'] . ']' : ''), $price, $deployWritten);
 
 $e = new \App\BotEvent();
 $e->setIdGridRun((int) $run->getIdGridRun());

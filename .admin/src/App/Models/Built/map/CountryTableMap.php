@@ -54,7 +54,7 @@ class CountryTableMap extends TableMap
         $this->addForeignKey('id_creation', 'IdCreation', 'INTEGER', 'authy', 'id_authy', false, null, null);
         $this->addForeignKey('id_modification', 'IdModification', 'INTEGER', 'authy', 'id_authy', false, null, null);
         // validators
-        $this->addValidator('name', 'required', 'propel.validator.RequiredValidator', '', 'coutry_name_required');
+        $this->addValidator('name', 'required', 'propel.validator.RequiredValidator', '', ('coutry_name_required'));
         $this->addValidator('id_country', 'required', 'propel.validator.RequiredValidator', '', ('Country_IdCountry_required'));
         $this->addValidator('id_country', 'match', 'propel.validator.MatchValidator', '/^(?:[0-9]*|null)$/', ('Country_IdCountry_match_/^(?:[0-9]*|null)$/'));
         $this->addValidator('name', 'type', 'propel.validator.TypeValidator', 'string', ('Country_Name_type_string'));

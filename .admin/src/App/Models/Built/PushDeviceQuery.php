@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BasePushDeviceQuery;
 
-require 'om/BasePushDeviceQuery.php';
+require_once __DIR__ . '/om/BasePushDeviceQuery.php';
 
 
 /**

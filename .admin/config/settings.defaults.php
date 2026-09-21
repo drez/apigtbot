@@ -8,9 +8,45 @@ use PHPMailer\PHPMailer\SMTP;
 // Error reporting. Detailed error output is OFF by default (production-safe);
 // set APP_DEBUG=true in a project's .env to turn it on for local development.
 // (review T1 — shipping display_error_details=true leaked stack traces + SQL.)
+//
+// $gcDebug MUST be computed before error_reporting()/ini_set() below — it used
+// to be read one line too late, so the level never actually depended on it.
 $gcDebug = in_array(strtolower((string) env('APP_DEBUG')), ['1', 'true', 'on', 'yes'], true);
-error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED ^ E_WARNING);
+
+// Report EVERYTHING (review T5). The old mask —
+// `E_ALL ^ E_NOTICE ^ E_DEPRECATED ^ E_WARNING` — silenced undefined array keys,
+// undefined variables and undefined properties, which is exactly how hundreds of
+// real bugs in emitted code stayed invisible for years. Deprecations stay off
+// outside debug because vendor code (Propel 1) emits them by the thousand and
+// they are not actionable from a project.
+error_reporting($gcDebug ? E_ALL : E_ALL & ~E_DEPRECATED);
+
+// Reported != displayed. Diagnostics NEVER reach the response body in production
+// (display_errors off); they are written to the log instead.
 ini_set('display_errors', $gcDebug ? '1' : '0');
+ini_set('display_startup_errors', $gcDebug ? '1' : '0');
+ini_set('log_errors', '1');
+
+// Per-project PHP error log. Without an explicit destination, log_errors sends
+// everything to the SAPI default — one shared Apache/PHP-FPM error log for the
+// whole host — where a single project's warnings are unfindable. On prod the
+// app runs as the site owner, so tmp/logs is writable and this takes effect;
+// where it is not writable (a dev box where the web user differs from the file
+// owner) we leave the SAPI default alone rather than silently losing the log.
+$gcLogDir  = __DIR__ . '/../tmp/logs';
+$gcLogFile = $gcLogDir . '/php-error.log';
+if (!is_dir($gcLogDir)) {
+    @mkdir($gcLogDir, 0775, true);
+}
+// Size cap (added by gc build): rotate once at bootstrap past 20 MB so a
+// noisy warning loop cannot fill the disk. One generation is kept (.1).
+if (is_file($gcLogFile) && @filesize($gcLogFile) > 20 * 1024 * 1024) {
+    @rename($gcLogFile, $gcLogFile . '.1');
+}
+if (is_file($gcLogFile) ? is_writable($gcLogFile) : (is_dir($gcLogDir) && is_writable($gcLogDir))) {
+    ini_set('error_log', $gcLogFile);
+}
+unset($gcLogDir, $gcLogFile);
 
 
 // Settings

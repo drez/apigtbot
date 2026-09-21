@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseBotOrderQuery;
 
-require 'om/BaseBotOrderQuery.php';
+require_once __DIR__ . '/om/BaseBotOrderQuery.php';
 
 
 /**

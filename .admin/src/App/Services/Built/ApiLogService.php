@@ -23,6 +23,12 @@ use ApiGoat\Api\Api;
 
 class ApiLogService
 {
+    // A40/C7: halt() replaces every die() this class used to end a
+    // short-circuit branch with, so the response still travels back out
+    // through the middleware stack (CORS, security headers, server timing,
+    // session release). The generated services are plain classes, so the
+    // helper comes in as a trait rather than from a base class.
+    use \ApiGoat\Services\Concerns\HaltsResponses;
 
     /**
      * return abstract
@@ -51,7 +57,31 @@ class ApiLogService
      *
      * @var array
      */
-    public $customActions;
+    public $customActions = [];
+    /**
+     * Custom actions ($customActions KEYS) that are READS and may therefore be
+     * reached over a cookie-auth GET.
+     *
+     * I-5: Service::MUTATING_ACTIONS only inventories the case labels this
+     * emitter writes, so a project-registered custom action is invisible to it
+     * and used to be fail-OPEN — a cross-site <a href=".../Model/myAction/42">
+     * ran it on the SameSite=Lax session cookie. An unknown custom action is now
+     * treated as MUTATING on GET and answered with "This action requires POST";
+     * list a genuine read here to opt it back in (case-insensitive):
+     *
+     *     public $readOnlyCustomActions = ['agingReport'];
+     *
+     * @var array
+     */
+    public $readOnlyCustomActions = [];
+    /**
+     * PhpName of the model this service serves. Passed to PropelErrorHandler
+     * (which scopes the validation-error highlight to #form{Class} when the
+     * request carries no drawer container).
+     *
+     * @var string
+     */
+    public $virtualClassName = 'ApiLog';
     public $rawRequest;
     public $Form;
     public $contentType;
@@ -85,7 +115,30 @@ class ApiLogService
      */
     public function getResponse()
     {
-        $this->content = "Unknown method";
+        // Mutating actions must never be reachable by a GET navigation. The
+        // generated HTML route is registered for GET as well as POST and this
+        // switch dispatches purely off the {a} URL segment, so without this a
+        // cross-site <a href=".../Model/delete/42"> ran the write on the
+        // SameSite=Lax session cookie. AuthyMiddleware::checkMutatingGet()
+        // refuses these first; this is defence in depth at the controller, and
+        // it shares ONE action inventory with the middleware
+        // (ApiGoat\Services\Service::MUTATING_ACTIONS) so the two can never
+        // drift. There are no exemptions any more: every mutating action is
+        // POST-only. Refusal shape matches the middleware's
+        // ApiResponse body (status/data/errors), not a die().
+        if (method_exists('\ApiGoat\Services\Service', 'mutatingGetRefusal')
+            && \ApiGoat\Services\Service::mutatingGetRefusal($this->request, $this->rawRequest)) {
+            error_log('mutating GET refused (service): ' . ($this->request['route'] ?? '')
+                . ' action=' . ($this->request['a'] ?? '')
+                . ' from ' . ($_SERVER['REMOTE_ADDR'] ?? '?'));
+            $this->contentType = 'application/json';
+            return json_encode(['status' => 'failure', 'data' => null, 'errors' => [_('This action requires POST')]]);
+        }
+
+        // Same shape as every other $this->content assignment (and the runtime
+        // base Service): a bare string reaches BuilderLayout::render() as an
+        // array offset read on a string.
+        $this->content = ['html' => 'Unknown method', 'js' => '', 'onReadyJs' => ''];
 
         switch($this->request['a']){
             case '':
@@ -107,10 +160,17 @@ class ApiLogService
                     $this->content = $this->edit();
                 }
             break;
+            // A26: only 'update' is emitted. Nothing sends a=insert — the
+            // client posts {Model}/update for both create and update (see
+            // template public/js/app/screens.js) — and the unreachable arm
+            // dispatched to BuilderReturn::insert_return(). It stays on the
+            // runtime's MUTATING_ACTIONS list, so a hand-crafted /insert is
+            // still refused on GET before it reaches the default arm.
             case 'update':
-            case 'insert':
                 $this->content = $this->saveUpdate();
-                $this->content['onReadyJs'] .= ($this->content['error'] != 'yes')?"sw_message('".addslashes(_('Saved'))."');":'';
+                // BuilderReturn only sets ['error'] on a failure, so the bare read
+                // warned on every successful save.
+                $this->content['onReadyJs'] .= (($this->content['error'] ?? '') != 'yes')?"sw_message('".addslashes(_('Saved'))."');":'';
                 return $this->BuilderLayout->renderXHR($this->content);
             case 'delete':
                 $this->content = $this->deleteOne();
@@ -122,7 +182,7 @@ class ApiLogService
             $this->body = $this->autocomplete();
             $this->contentType = 'application/json';
             return json_encode($this->body, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
-        break;
+
 
 
 
@@ -140,8 +200,30 @@ class ApiLogService
 
 
 
+
             default:
-                if (method_exists($this, $this->customActions[$this->request['a']])) {
+                // Guarded like getApiResponse(): $customActions is empty on
+                // most services, so the bare read was a null array offset plus
+                // method_exists(null) on every unknown action.
+                if (isset($this->customActions[$this->request['a']])
+                    && method_exists($this, $this->customActions[$this->request['a']])) {
+                    // I-5: a PROJECT-defined action is invisible to
+                    // Service::MUTATING_ACTIONS (that inventory only lists the
+                    // case labels this emitter writes), so the refusal above
+                    // never fired for it and a cross-site
+                    // <a href=".../Model/approveInvoice/42"> ran the write on
+                    // the SameSite=Lax session cookie. Fail CLOSED here instead:
+                    // on a cookie-auth GET an unknown custom action is treated
+                    // as mutating unless the wrapper declares it read-only in
+                    // $readOnlyCustomActions (see ApiGoat\Services\Service).
+                    if (method_exists('\ApiGoat\Services\Service', 'customActionGetRefusal')
+                        && \ApiGoat\Services\Service::customActionGetRefusal($this, $this->request, $this->rawRequest)) {
+                        error_log('custom action GET refused (service): ' . ($this->request['route'] ?? '')
+                            . ' action=' . ($this->request['a'] ?? '')
+                            . ' from ' . ($_SERVER['REMOTE_ADDR'] ?? '?'));
+                        $this->contentType = 'application/json';
+                        return json_encode(['status' => 'failure', 'data' => null, 'errors' => [_('This action requires POST')]]);
+                    }
                     $callable = $this->customActions[$this->request['a']];
                     $this->content = $this->$callable($this->request);
                 }
@@ -149,7 +231,7 @@ class ApiLogService
 
 
 
-        if($this->request['ui']){
+        if(!empty($this->request['ui'])){
             return $this->BuilderLayout->renderXHR($this->content);
         }else{
             return $this->BuilderLayout->render($this->content);
@@ -171,8 +253,14 @@ class ApiLogService
         }else{
             switch($this->request['method']){
                 case 'AUTH':
-                    $dispatch = $this->request['a'];
-                    $this->body = $this->$dispatch();
+                    // The action segment is request-controlled; without the
+                    // guard an unknown one is a fatal call to an undefined
+                    // method. RouteHelper::reassertTrustedArgs is the other
+                    // half of this (it fixes what the action may be).
+                    $dispatch = (string) $this->request['a'];
+                    if ($dispatch !== '' && method_exists($this, $dispatch)) {
+                        $this->body = $this->$dispatch();
+                    }
                     break;
                 case 'GET':
                     $this->body = $Api->getJson($this->request);
@@ -204,149 +292,9 @@ class ApiLogService
 
 
 
-        function autocomplete()
-    {
-        $body = ['data' => [], 'count' => 0, 'status' => 'error'];
 
-        $fkt    = $this->request['data']['fkt']    ?? null;
-        $show   = $this->request['data']['show']   ?? null;
-        $id     = $this->request['data']['id']     ?? null;
-        $filter = $this->request['data']['filter'] ?? null;
-        $str    = $this->request['data']['str']    ?? '';
-        $limit  = (int)($this->request['data']['limit'] ?? 20);
-        if ($limit <= 0 || $limit > 100) { $limit = 20; }
+    use \ApiGoat\Services\Concerns\HandlesAutocomplete;
 
-        if (!$fkt || !$id || !$filter || !$show) {
-            $body['error'] = 'missing parameter';
-            return $body;
-        }
-        if (!is_array($show)) {
-            $show = array_values(array_filter(array_map('trim', explode(',', (string)$show)), 'strlen'));
-        }
-        if (!$show) {
-            $body['error'] = 'empty show';
-            return $body;
-        }
-
-        // SECURITY: require an authenticated session and bind fkt/show/id to the
-        // build-time allowlist (autocAllowlist) of THIS form's own autocompletes.
-        // Without this a logged-in user could select arbitrary columns of any
-        // model (e.g. Authy.PasswdHash).
-        if (!is_object($_SESSION[_AUTH_VAR] ?? null)) {
-            $body['error'] = 'unauthenticated';
-            return $body;
-        }
-        $allow = $this->autocAllowlist();
-        if (!isset($allow[$fkt])) {
-            $body['error'] = 'table not allowed';
-            return $body;
-        }
-        $show = array_values(array_intersect($show, $allow[$fkt]['cols']));
-        if (!$show) {
-            $body['error'] = 'no allowed columns';
-            return $body;
-        }
-        if (!in_array($id, $allow[$fkt]['ids'], true)) {
-            $body['error'] = 'id not allowed';
-            return $body;
-        }
-
-        $Model = '\\App\\' . $fkt . 'Query';
-        if (!class_exists($Model)) {
-            $body['error'] = 'unknown table';
-            return $body;
-        }
-
-        $select = array_values(array_unique(array_merge($show, [$id])));
-        $q = $Model::create()->select($select)->orderBy($show[0], 'ASC');
-
-        // The text search may only filter on a column the picker actually
-        // shows. Restricting to $show stops a crafted request from using
-        // filter[] as a value-confirmation oracle on arbitrary columns.
-        if (is_array($filter)) {
-            foreach ($filter as $field => $val) {
-                if (!in_array($field, $show, true)) { continue; }
-                $method = 'filterBy' . $field;
-                if (!method_exists($Model, $method)) { continue; }
-                if (is_array($val)) {
-                    $q->$method('%' . $val[0] . '%');
-                    if (($val[1] ?? null) === 'or') { $q->_or(); }
-                } else {
-                    $q->$method('%' . $val . '%');
-                }
-            }
-        } else {
-            if (in_array($filter, $show, true)) {
-                $method = 'filterBy' . $filter;
-                if (method_exists($Model, $method)) {
-                    $q->$method('%' . $str . '%');
-                }
-            }
-        }
-
-        // depends_on constraints: equality filters on the FK table, sent as
-        // where{ColPhpName: value}. Empty values are ignored so an unset
-        // source field leaves the lookup unconstrained. Bound to the columns
-        // THIS form's autocompletes declare as depends_on sources (allowlist
-        // 'where') so a crafted request can't equality-probe arbitrary FK-model
-        // columns (a value-confirmation oracle) — the same guard $filter has.
-        $where = $this->request['data']['where'] ?? null;
-        if (is_array($where)) {
-            $allowWhere = $allow[$fkt]['where'] ?? [];
-            foreach ($where as $field => $val) {
-                $val = trim((string)$val);
-                if ($val === '') { continue; }
-                $fieldPhp = preg_replace('/[^A-Za-z0-9_]/', '', (string)$field);
-                if (!in_array($fieldPhp, $allowWhere, true)) { continue; }
-                $method = 'filterBy' . $fieldPhp;
-                if (method_exists($Model, $method)) {
-                    $q->$method($val);
-                }
-            }
-        }
-
-        // Ownership scope: when the caller's read right on the FK target is
-        // Owner/Group-scoped, autocomplete only the rows they may access
-        // (mirrors Api::setAclFilter). method_exists guards mean ungoverned
-        // reference tables (no id_creation column, e.g. Country) and "All"
-        // rights are unaffected — browse stays open there.
-        $s = $_SESSION[_AUTH_VAR] ?? null;
-        // Tenant row-scoping: mirror AuthyACL::setAclFilter so autocomplete can't
-        // surface FK-target rows from other tenants (non-root users).
-        if (is_object($s) && method_exists($s, 'get')
-            && !$s->get('isRoot') && $s->get('id_tenant')
-            && method_exists($Model, 'filterByIdTenant')) {
-            $q->filterByIdTenant($s->get('id_tenant'));
-        }
-        if (is_object($s) && method_exists($s, 'hasRights')) {
-            $scope = $s->hasRights($fkt, 'r');
-            if (is_array($scope)) {
-                if (in_array('Owner', $scope, true) && method_exists($Model, 'filterByIdCreation')) {
-                    $q->filterByIdCreation($s->getIdAuthy());
-                    if (in_array('Group', $scope, true) && method_exists($Model, 'filterByIdGroupCreation')) {
-                        $q->_or()->filterByIdGroupCreation($s->getGroups(), \Criteria::IN);
-                    }
-                } elseif (in_array('Group', $scope, true) && method_exists($Model, 'filterByIdGroupCreation')) {
-                    $q->filterByIdGroupCreation($s->getGroups(), \Criteria::IN);
-                }
-            }
-        }
-
-        $q->limit($limit);
-        $results = $q->find();
-
-        foreach ($results as $row) {
-            $row = (array)$row;
-            $parts = [];
-            foreach ($show as $f) {
-                if (isset($row[$f]) && strlen((string)$row[$f])) { $parts[] = $row[$f]; }
-            }
-            $body['data'][] = ['show' => implode(' ', $parts), 'id' => $row[$id] ?? null];
-        }
-        $body['count'] = count($body['data']);
-        $body['status'] = 'success';
-        return $body;
-    }
     private function autocAllowlist()
     {
         return array (
@@ -354,7 +302,7 @@ class ApiLogService
   array (
     'cols' =>
     array (
-      0 => 'Fullname',
+      0 => 'Username',
       1 => 'IdAuthy',
     ),
     'ids' =>
@@ -397,9 +345,9 @@ class ApiLogService
             }
 
             $cutoff = date('Y-m-d H:i:s', strtotime($allowed[$olderThan]));
-            $affected = (int) ApiLogQuery::create()
-                ->filterByTime($cutoff, \Criteria::LESS_THAN)
-                ->delete();
+            $q = ApiLogQuery::create()
+                ->filterByTime($cutoff, \Criteria::LESS_THAN);
+            $affected = (int) $q->delete();
 
             return [
                 'error' => 'no',
@@ -409,6 +357,7 @@ class ApiLogService
         }
 
 
+
     public function deleteOne()
     {
         $error = [];
@@ -416,17 +365,55 @@ class ApiLogService
 
         $obj = $_SESSION[_AUTH_VAR]->loadPkScoped(ApiLogQuery::class, json_decode($this->request['i']), 'ApiLog', 'd');
         if ($obj) {
-
-
-
-        $obj->delete();
-
-
-
+            $this->gcDeleteRow($obj, $error, $messages);
         }
 
         $BuilderReturn = new BuilderReturn($this->request, $error, $messages);
         return $BuilderReturn->return();
+    }
+
+    /**
+     * Delete ONE already-loaded (ACL-scoped) row through the guarded path:
+     * referential guard, BeforeDelete/AfterDelete hooks, upload file cleanup.
+     * A refusal halts (HaltResponse) — deleteOne() lets it reach the client,
+     * massDelete() catches it per row.
+     */
+    protected function gcDeleteRow($obj, &$error, &$messages)
+    {
+
+
+
+        try {
+            $obj->delete();
+        } catch (\Exception $gcDelErr) {
+            // A39: the pre-delete guard deliberately does not probe the audit
+            // FKs (id_creation / id_modification / id_group_creation), so a row
+            // still referenced only from an audit trail now reaches InnoDB and
+            // comes back as a RESTRICT violation (SQLSTATE 23000 / errno 1451).
+            // Answer with the same refusal the guard would have produced instead
+            // of a 500; anything else is a real error and is re-thrown.
+            $gcDelMsg = $gcDelErr->getMessage();
+            for ($gcDelPrev = $gcDelErr->getPrevious(); $gcDelPrev !== null; $gcDelPrev = $gcDelPrev->getPrevious()) {
+                $gcDelMsg .= ' ' . $gcDelPrev->getMessage();
+            }
+            if (strpos($gcDelMsg, '1451') === false && strpos($gcDelMsg, '23000') === false) {
+                throw $gcDelErr;
+            }
+            error_log('ApiLog delete refused by a foreign key: ' . $gcDelMsg);
+            // F5: name the blocking table when MySQL said which one it was. The
+            // audit FKs are not in the pre-delete guard list, so this literal is
+            // the only place their label can come from.
+            $gcFkBlocker = \ApiGoat\Orm\ReferentialGuard::blockerFromMessage($gcDelMsg, []);
+            $error = handleNotOkResponse(
+                $gcFkBlocker !== null
+                    ? _("This entry cannot be deleted. It is in use in ")." '".$gcFkBlocker."'. "
+                    : _("This entry cannot be deleted. It is still referenced by other records."),
+                '', true,'API log');
+            $this->halt($error['onReadyJs']);
+        }
+
+
+
     }
 
     public function saveUpdate(): array
@@ -440,7 +427,6 @@ class ApiLogService
         $data['i'] = ( $data['IdApiLog'] ) ? $data['IdApiLog'] : $this->request['i'];
         $data['ip'] = urldecode($this->request['data']['ip'] ?? '');
         $data['pc'] = urldecode($this->request['data']['pc'] ?? '');
-        $this->ApiLog['request'] = $this->request;
 
         if(!empty($data['i'])) {
             ## Save
@@ -497,14 +483,12 @@ class ApiLogService
     */
     private function edit()
     {
-        $this->ApiLog['request'] = $this->request;
-        $this->ApiLog['parentId'] = $this->request['data']['ip'];
-
-            if($this->request['data']['ip']){
-                $relData['IdApiRbac'] = $this->request['data']['ip'];
-                $relData['ip'] = json_decode($this->request['data']['ip']);
-                $relData['pc'] = $this->request['data']['pc'];
-            }
+        // A27: the parent prefill that used to be built here ($relData['Id<Parent>']
+        // / ['ip'] / ['pc'] from $this->request['data']) was overwritten by
+        // $relData = $this->request on the very next line and never reached the
+        // form. getEditForm() does the prefill itself, off $data['data']['ip']
+        // (Form.php: $data['ip']/['pc'] then the $data['pc'] switch), so the
+        // request array alone is all it needs.
 
         // Crossref (NtN) far-record view: ro=1 renders the whole form via the
         // dormant setReadOnly='all' switch — fields locked to fieldsRo, no
@@ -514,7 +498,7 @@ class ApiLogService
         }
 
         $relData = $this->request;
-        $output = $this->Form->getEditForm($this->request['i'], $this->request['ui'], $relData, '', $this->request['data']['je'], $this->request['data']['jet']);
+        $output = $this->Form->getEditForm($this->request['i'], $this->request['ui'] ?? '', $relData, '', $this->request['data']['je'] ?? '', $this->request['data']['jet'] ?? '');
 
         return $output;
     }

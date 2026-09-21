@@ -101,6 +101,21 @@ class GtbotStatusGeometryTest extends TestCase
         $this->assertSame(4, (int) $out['geometry']['applied']['n_levels']);
     }
 
+    public function testStatusHeldRunHeartbeatIsNotStale(): void
+    {
+        $run = $this->makeRun(); // never ticked
+        $run->setStatus('Halted');
+        $run->save();
+        $out = $this->decode((new GtbotStatusTool())->handle(['run' => (int) $run->getIdGridRun()], $this->createMock(AuthySession::class)));
+        $this->assertTrue($out['heartbeat']['held'], 'Halted = parked, no daemon by design');
+        $this->assertFalse($out['heartbeat']['stale']);
+
+        $live = $this->makeRun(); // Testnet, never ticked → genuinely stale
+        $out = $this->decode((new GtbotStatusTool())->handle(['run' => (int) $live->getIdGridRun()], $this->createMock(AuthySession::class)));
+        $this->assertFalse($out['heartbeat']['held']);
+        $this->assertTrue($out['heartbeat']['stale']);
+    }
+
     public function testStatusReportsAppliedGeometryInSync(): void
     {
         $run = $this->makeRun();

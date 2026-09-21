@@ -1,0 +1,82 @@
+// Page-wide background-health notices, rendered by
+// ApiGoat\Utility\BuilderLayout under the topbar on every admin page.
+// Emitted only when a project registers a LayoutNotices provider, so this
+// block is inert everywhere else.
+@use 'tokensv2' as *;
+
+/* ============================================================
+   .gc-notices — "something you cannot see from this screen is broken"
+   Deliberately NOT dismissible: the condition it reports (a dead
+   mailbox, a stopped worker) stays true until someone fixes it, and a
+   banner you can close is a banner that gets closed and forgotten.
+============================================================ */
+
+.gc-notices {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 10px 16px 0;
+}
+
+.gc-notice {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 9px 12px;
+	border: 1px solid $line;
+	border-left-width: 3px;
+	border-radius: $radius;
+	background: $surface;
+	color: $text;
+	font-size: 0.82rem;
+	line-height: 1.35;
+
+	i {
+		flex: 0 0 auto;
+		font-size: 1.05rem;
+		line-height: 1;
+	}
+
+	span {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	a {
+		flex: 0 0 auto;
+		font-weight: 600;
+		text-decoration: underline;
+		color: inherit;
+	}
+}
+
+.gc-notice.is-error {
+	border-color: $danger;
+	background: $danger-50;
+
+	i, a { color: $danger; }
+}
+
+.gc-notice.is-warn {
+	border-color: $warning;
+	background: $warning-50;
+
+	i, a { color: $warning; }
+}
+
+.gc-notice.is-info {
+	border-color: $mint;
+	background: $mint-50;
+
+	i, a { color: $mint-700; }
+}
+
+@media (max-width: 640px) {
+	.gc-notices { padding: 8px 10px 0; }
+
+	.gc-notice {
+		align-items: flex-start;
+		flex-wrap: wrap;
+		font-size: 0.78rem;
+	}
+}

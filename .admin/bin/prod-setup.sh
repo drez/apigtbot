@@ -54,13 +54,25 @@ $SUDO systemctl daemon-reload
 $SUDO systemctl enable --now "gtbot@${RUN_ID}"
 
 # 2. crons for the app owner: watchdog (1 min), market collect (10 min),
-#    auto-refit + scoring/housekeeping (hourly), DB backup (daily 03:00)
+#    chart candles (1 min, --candles: dashboard 1m/5m/15m freshness),
+#    auto-refit + scoring/housekeeping (hourly), DB backup (daily 03:00),
+#    trend-arm activator (every 15 min, 3 min after the :00/:10/:20… collector
+#    passes so it reads fresh summaries; removes the retired gtbot-ab-watch)
 WATCH_LINE="* * * * * $PHP_BIN $ADMIN/bin/gtbot-watchdog >/dev/null 2>&1"
 COLLECT_LINE="*/10 * * * * $PHP_BIN $ADMIN/bin/gtbot-market-collect >/dev/null 2>&1"
+CANDLE_LINE="* * * * * $PHP_BIN $ADMIN/bin/gtbot-market-collect --candles >/dev/null 2>&1"
 REFIT_LINE="0 * * * * $PHP_BIN $ADMIN/bin/gtbot-refit >/dev/null 2>&1"
 BACKUP_LINE="0 3 * * * $PHP_BIN $ADMIN/bin/gtbot-backup >/dev/null 2>&1"
+TREND_LINE="3,18,33,48 * * * * $PHP_BIN $ADMIN/bin/gtbot-trend-activate >/dev/null 2>&1"
+# 5 minutes after the trend activator, so the arm's slice is settled before the
+# allocator reads it. Separate script on purpose: gtbot-trend-activate exits
+# early when there is no Live Trend run, and allocation must still happen.
+ALLOC_LINE="8,23,38,53 * * * * $PHP_BIN $ADMIN/bin/gtbot-allocate >/dev/null 2>&1"
+# long-horizon market outlook (1d + 1w detection, Telegram warning + daily
+# digest, scored log) — hourly, 2 minutes after the :10 collector pass
+OUTLOOK_LINE="12 * * * * $PHP_BIN $ADMIN/bin/gtbot-outlook >/dev/null 2>&1"
 install_cron() { # $1 = crontab command prefix
-    ( $1 -l 2>/dev/null | grep -vF "gtbot-watchdog" | grep -vF "gtbot-market-collect" | grep -vF "gtbot-refit" | grep -vF "gtbot-backup" || true; echo "$WATCH_LINE"; echo "$COLLECT_LINE"; echo "$REFIT_LINE"; echo "$BACKUP_LINE" ) | $1 -
+    ( $1 -l 2>/dev/null | grep -vF "gtbot-watchdog" | grep -vF "gtbot-market-collect" | grep -vF "gtbot-refit" | grep -vF "gtbot-backup" | grep -vF "gtbot-trend-activate" | grep -vF "gtbot-allocate" | grep -vF "gtbot-outlook" | grep -vF "gtbot-ab-watch" || true; echo "$WATCH_LINE"; echo "$COLLECT_LINE"; echo "$CANDLE_LINE"; echo "$REFIT_LINE"; echo "$BACKUP_LINE"; echo "$TREND_LINE"; echo "$ALLOC_LINE"; echo "$OUTLOOK_LINE" ) | $1 -
 }
 if [ "$(id -u)" -eq 0 ] && [ "$RUN_USER" != "root" ]; then
     install_cron "crontab -u $RUN_USER"

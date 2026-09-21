@@ -91,8 +91,58 @@ class BotOrderForm extends BotOrder
     public $formSaveBtn;
     public $formSaveBar;
     public $omMap;
+    /** getEditForm()/getList() field slots, keyed [Model][Column]['html']. */
+    public $fields = [];
+    public $fieldsRo = [];
+    /** Columns whose read-only markup gcBuildFieldRo() has already built (A43). */
+    public $gcFieldRoBuilt = [];
+    /** Sort-header restore JS, rebuilt per list query. */
+    public $orderReadyJsOrder = '';
 
         public $arrayIdGridRunOptions;
+    public $commentsIdBotOrder;
+    public $commentsIdBotOrder_css;
+    public $commentsIdGridRun;
+    public $commentsIdGridRun_css;
+    public $commentsClientOrderId;
+    public $commentsClientOrderId_css;
+    public $commentsExchangeOrderId;
+    public $commentsExchangeOrderId_css;
+    public $commentsLevelIdx;
+    public $commentsLevelIdx_css;
+    public $commentsSide;
+    public $commentsSide_css;
+    public $commentsState;
+    public $commentsState_css;
+    public $commentsPrice;
+    public $commentsPrice_css;
+    public $commentsQty;
+    public $commentsQty_css;
+    public $commentsFilledQty;
+    public $commentsFilledQty_css;
+    public $commentsFeePaid;
+    public $commentsFeePaid_css;
+    public $commentsFeeAsset;
+    public $commentsFeeAsset_css;
+    public $commentsIsLegacy;
+    public $commentsIsLegacy_css;
+    public $commentsLegacyBuyPrice;
+    public $commentsLegacyBuyPrice_css;
+    public $commentsLegacyBuyFee;
+    public $commentsLegacyBuyFee_css;
+    public $commentsSimulated;
+    public $commentsSimulated_css;
+    public $commentsDateCreation;
+    public $commentsDateCreation_css;
+    public $commentsDateModification;
+    public $commentsDateModification_css;
+    public $commentsIdGroupCreation;
+    public $commentsIdGroupCreation_css;
+    public $commentsIdCreation;
+    public $commentsIdCreation_css;
+    public $commentsIdModification;
+    public $commentsIdModification_css;
+    public $BotOrder;
 
 
     /**
@@ -132,7 +182,7 @@ class BotOrderForm extends BotOrder
 
         $q = new BotOrderQuery();
         $q = $this->setAclFilter($q);
-        
+
 
         $q
 
@@ -167,45 +217,70 @@ class BotOrderForm extends BotOrder
 
             $q->filterBySimulated($value);
         }
-            
+
         }else{
             ## standard list
-            
+
         }
-        
+
         $hasParent = json_decode((string) $IdParent);
         if (!empty($hasParent)) {
             $q->filterByIdGridRun($hasParent);
         }
 
-        
+
+            $this->orderReadyJsOrder = '';
             if(!empty($this->searchOrder)){
                 $f=0;
                 foreach($this->searchOrder as $order){
                     foreach($order as $col => $sens){
                         if($sens){
                             $tOrd = explode('.',$col);
-                            if($tOrd[1]){
+                            # The ordering comes from the session (setOrderVar keeps
+                            # whatever the client last clicked, and a session can outlive
+                            # a renamed/removed column or be seeded by another list).
+                            # Propel throws on a column it cannot resolve, which turned a
+                            # stale sort key into a 500 on the whole list — fall back to
+                            # the model's default order instead, and forget the key so the
+                            # next request is clean.
+                            $gcOrdApplied = true;
+                            try {
+                            if(!empty($tOrd[1])){
                                 $q->join($tOrd[0]." order".$f);
                                 $orderBy = "use".$tOrd[0]."Query";
                                 $q->$orderBy("order".$f, 'left join')->orderBy($tOrd[1], $sens)->endUse();
                             }else{
                                 $q->orderBy($col,$sens);
                             }
+                            } catch (\Exception $gcOrdEx) {
+                                $gcOrdApplied = false;
+                                error_log('list order: dropping unresolvable column ' . (string) $col
+                                    . ' on BotOrder — ' . $gcOrdEx->getMessage());
+                                unset($_SESSION['mem']['order']['BotOrder/'],
+                                    $_SESSION['mem']['order']['BotOrder/child']);
+                            }
+                            if($gcOrdApplied){
+                            # C8: $col / $sens come from the session (setOrderVar), so they
+                            # are never interpolated raw into the JS source. JSON_HEX_* keeps
+                            # quotes/tags/ampersands out of the surrounding <script> and the
+                            # attribute selector is composed client-side from the JSON value.
+                            $gcOrdCol = json_encode((string) $col, JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP);
+                            $gcOrdSens = json_encode(strtolower((string) $sens), JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP);
                             $this->orderReadyJsOrder .="
-                                var __se=document.querySelector(\"#BotOrderListForm [th='sorted'][c='".$col."']\");if(__se){__se.setAttribute('sens', '".strtolower($sens)."');__se.setAttribute('order','on');__se.classList.add('sorted');}
+                                (function(){var __c=".$gcOrdCol.",__s=".$gcOrdSens.";var __se=document.querySelector(\"#BotOrderListForm [th='sorted'][c=\"+JSON.stringify(__c)+\"]\");if(__se){__se.setAttribute('sens', __s);__se.setAttribute('order','on');__se.classList.add('sorted');}})();
                             ";
+                            }
                         }
                         $f++;
                     }
                 }
             }
-            
-        
-        
+
+
+
 
         $this->pmpoData = $q;
-        
+
 
         return $this->pmpoData;
     }
@@ -223,7 +298,7 @@ class BotOrderForm extends BotOrder
 
         switch($act) {
             case 'head':
-                $trHead = th(_("Grid Run label"), " th='sorted' c='GridRun.Label' title='"._('GridRun.Label')."' ")
+                $trHead = (empty($this->IdParent) ? th(_("Grid Run label"), " th='sorted' c='GridRun.Label' title='"._('GridRun.Label')."' ") : '')
 .th(_("Client order id"), " th='sorted' c='ClientOrderId' title='" . _('Client order id')."' ")
 .th(_("Exchange id"), " th='sorted' c='ExchangeOrderId' title='" . _('Exchange id')."' ")
 .th(_("Level"), " th='sorted' c='LevelIdx' title='" . _('Level')."' ")
@@ -245,21 +320,16 @@ class BotOrderForm extends BotOrder
 
             case 'list-button':
                 $listButton = '';
-                
-                
+
+
                 return $listButton;
 
             case 'search':
-                
-                $data = [];
-                $data['ClientOrderId'] = ( !empty( $this->searchMs['ClientOrderId'])) ? $this->searchMs['ClientOrderId']:'';
-            $data['Side'] = ( !empty( $this->searchMs['Side'])) ? $this->searchMs['Side']:'';
-            $data['State'] = ( !empty( $this->searchMs['State'])) ? $this->searchMs['State']:'';
-            $data['Simulated'] = ( !empty( $this->searchMs['Simulated'])) ? $this->searchMs['Simulated']:'';
-            
+
+
 
                 $trSearch = ''
-                .form(div(div(input('text', 'ClientOrderId', $this->searchMs['ClientOrderId'], '  title="'._('Client order id').'" placeholder="'._('Search').' '._('Client order id').'"',''),'','class="ac-search-item"'), '', " class='va-mob-search-inline' ").$this->hookListSearchTop.button("<i class='ri-filter-3-line'></i>", " type='button' class='va-mob-filter-btn' aria-haspopup='dialog' aria-label='"._('Filter')."' ").div(
+                .form(div(div(input('text', 'ClientOrderId', $this->searchMs['ClientOrderId'] ?? '', '  title="'._('Client order id').'" placeholder="'._('Search').' '._('Client order id').'"',''),'','class="ac-search-item"'), '', " class='va-mob-search-inline' ").$this->hookListSearchTop.button("<i class='ri-filter-3-line'></i>", " type='button' class='va-mob-filter-btn' aria-haspopup='dialog' aria-label='"._('Filter')."' ").div(
                     div('',''," class='va-filter-dim' ")
                     .div(
                         div("",''," class='sheet-handle' ")
@@ -273,14 +343,14 @@ class BotOrderForm extends BotOrder
                     ,''," class='va-fblock' data-block='search' ").div(
                         div(_('Side'),''," class='va-fblock-lbl' ")
                         .div((function(){ $_gcOpt=''; foreach( [ '0' => ['0'=>_("Buy"), '1'=>"Buy"],'1' => ['0'=>_("Sell"), '1'=>"Sell"], ] as $_gcO ){ $_gcV = is_array($_gcO)?(string)$_gcO[1]:(string)$_gcO; $_gcL = is_array($_gcO)?(string)$_gcO[0]:(string)$_gcO; $_gcOpt .= button(span(htmlspecialchars($_gcL))," type='button' class='va-fchip' data-msval='".htmlspecialchars($_gcV)."' "); } return $_gcOpt; })(),''," class='va-fchips va-fchips-multi' data-msfield='Side[]' ")
-                        .div(selectboxCustomArray('Side[]', [ '0' => ['0'=>_("Buy"), '1'=>"Buy"],'1' => ['0'=>_("Sell"), '1'=>"Sell"], ], _('Side'), '  size="1" t="1"   multiple  ', $this->searchMs['Side']), '', 'class="multiple-select ac-search-item"  title="'._('Side').'"')
+                        .div(selectboxCustomArray('Side[]', [ '0' => ['0'=>_("Buy"), '1'=>"Buy"],'1' => ['0'=>_("Sell"), '1'=>"Sell"], ], _('Side'), '  size="1" t="1"   multiple  ', $this->searchMs['Side'] ?? ''), '', 'class="multiple-select ac-search-item"  title="'._('Side').'"')
                     ,''," class='va-fblock va-fblock-multi' data-block='multi' ").div(
                         div(_('State'),''," class='va-fblock-lbl' ")
                         .div((function(){ $_gcOpt=''; foreach( [ '0' => ['0'=>_("Intended"), '1'=>"Intended"],'1' => ['0'=>_("Vetoed"), '1'=>"Vetoed"],'2' => ['0'=>_("BUY_OPEN"), '1'=>"BUY_OPEN"],'3' => ['0'=>_("SELL_OPEN"), '1'=>"SELL_OPEN"],'4' => ['0'=>_("Filled"), '1'=>"Filled"],'5' => ['0'=>_("PartFilled"), '1'=>"PartFilled"],'6' => ['0'=>_("Canceled"), '1'=>"Canceled"],'7' => ['0'=>_("Rejected"), '1'=>"Rejected"],'8' => ['0'=>_("Lost"), '1'=>"Lost"], ] as $_gcO ){ $_gcV = is_array($_gcO)?(string)$_gcO[1]:(string)$_gcO; $_gcL = is_array($_gcO)?(string)$_gcO[0]:(string)$_gcO; $_gcOpt .= button(span(htmlspecialchars($_gcL))," type='button' class='va-fchip' data-msval='".htmlspecialchars($_gcV)."' "); } return $_gcOpt; })(),''," class='va-fchips va-fchips-multi' data-msfield='State[]' ")
-                        .div(selectboxCustomArray('State[]', [ '0' => ['0'=>_("Intended"), '1'=>"Intended"],'1' => ['0'=>_("Vetoed"), '1'=>"Vetoed"],'2' => ['0'=>_("BUY_OPEN"), '1'=>"BUY_OPEN"],'3' => ['0'=>_("SELL_OPEN"), '1'=>"SELL_OPEN"],'4' => ['0'=>_("Filled"), '1'=>"Filled"],'5' => ['0'=>_("PartFilled"), '1'=>"PartFilled"],'6' => ['0'=>_("Canceled"), '1'=>"Canceled"],'7' => ['0'=>_("Rejected"), '1'=>"Rejected"],'8' => ['0'=>_("Lost"), '1'=>"Lost"], ], _('State'), '  size="1" t="1"   multiple  ', $this->searchMs['State']), '', 'class="multiple-select ac-search-item"  title="'._('State').'"')
+                        .div(selectboxCustomArray('State[]', [ '0' => ['0'=>_("Intended"), '1'=>"Intended"],'1' => ['0'=>_("Vetoed"), '1'=>"Vetoed"],'2' => ['0'=>_("BUY_OPEN"), '1'=>"BUY_OPEN"],'3' => ['0'=>_("SELL_OPEN"), '1'=>"SELL_OPEN"],'4' => ['0'=>_("Filled"), '1'=>"Filled"],'5' => ['0'=>_("PartFilled"), '1'=>"PartFilled"],'6' => ['0'=>_("Canceled"), '1'=>"Canceled"],'7' => ['0'=>_("Rejected"), '1'=>"Rejected"],'8' => ['0'=>_("Lost"), '1'=>"Lost"], ], _('State'), '  size="1" t="1"   multiple  ', $this->searchMs['State'] ?? ''), '', 'class="multiple-select ac-search-item"  title="'._('State').'"')
                     ,''," class='va-fblock va-fblock-multi' data-block='multi' ").div(_('More filters'),''," class='va-fgroup-cap' ").div(
                         div(_('Simulated'),''," class='va-fblock-lbl' ")
-                        .div(div(selectboxCustomArray('Simulated', [ '0' => ['0' => _('Yes'), '1' => 'yes'], '1' => ['0' => _('No'), '1' => 'no'] ], _('Simulated'), '  size="1" t="1"  ', $this->searchMs['Simulated']), '', 'class="ac-search-item" title="'._('Simulated').'"'),''," class='va-fselect' ")
+                        .div(div(selectboxCustomArray('Simulated', [ '0' => ['0' => _('Yes'), '1' => 'yes'], '1' => ['0' => _('No'), '1' => 'no'] ], _('Simulated'), '  size="1" t="1"  ', $this->searchMs['Simulated'] ?? ''), '', 'class="ac-search-item" title="'._('Simulated').'"'),''," class='va-fselect' ")
                     ,''," class='va-fblock va-fblock-select' data-block='select' "),''," class='sheet-body' ")
                         .div(
                         button(span(_('Clear all'))," type='button' class='va-fclear' ")
@@ -291,15 +361,14 @@ class BotOrderForm extends BotOrder
                 ,''," class='va-filter-surface' role='dialog' aria-modal='true' aria-label='"._('Filter')." "._('BotOrder')."' hidden ").div(
                            button(span(_("Search")),'id="msBotOrderBt" title="'._('Search').'" class="icon search"')
                            .button(span(_("Clear")),' title="'._('Clear search').'" id="msBotOrderBtClear"')
-                           .input('hidden', 'Seq', $data['Seq'] )
                         ,'','class="ac-search-item ac-action-buttons"')
-                ,"id='formMsBotOrder' class='va-mob-searchform' data-entity='BotOrder'");;
+                ,"id='formMsBotOrder' class='va-mob-searchform' data-entity='BotOrder'");
                 return $trSearch;
 
             case 'add':
             ###### ADD
-                 if($_SESSION[_AUTH_VAR]->hasRights('BotOrder', 'a') && !$this->setReadOnly){
-                
+                if($_SESSION[_AUTH_VAR]->hasRights('BotOrder', 'a') && !$this->setReadOnly){
+
                                 $this->listAddButton = htmlLink(
                                     _("Add new")
                                 ,_SITE_URL.$this->virtualClassName."/edit/", "id='addBotOrder' title='"._('Add')."' class='button-link-blue add-button'");
@@ -332,7 +401,10 @@ class BotOrderForm extends BotOrder
         $this->in = 'getList';
         $this->isChild = '';
         $this->TableName = 'BotOrder';
-        $altValue = array (
+        # A11: the per-row reset below restores this seed instead of nulling
+        # $altValue — every `($altValue['X'] !== null) ? … : …` cell read from
+        # row 2 on was an array offset on null (one warning per cell per row).
+        $__altValueInit = array (
   'IdBotOrder' => NULL,
   'IdGridRun' => NULL,
   'ClientOrderId' => NULL,
@@ -355,14 +427,16 @@ class BotOrderForm extends BotOrder
   'IdCreation' => NULL,
   'IdModification' => NULL,
 );
+        $altValue = $__altValueInit;
         $tr = '';
         $trDt = '';
-        $hook = [];
+        $hook = ['class' => ''];
+        $this->orderReadyJsOrder = '';
         $editEvent = '';
         $return = ['html' => '', 'js' => '', 'onReadyJs' => ''];
         $cCmoreCols = '';
 
-        
+
 
         // SECURITY (review H7): uiTabsId comes from request['ui'] and is reflected
         // raw into the list container's data-ui attribute and into the quick-add
@@ -371,15 +445,33 @@ class BotOrderForm extends BotOrder
         $uiTabsId = preg_replace('/[^A-Za-z0-9_]/', '', (string) $uiTabsId);
         $this->uiTabsId = $uiTabsId;
 
-        
+
         $this->IdParent = $IdParent;
         // Child-tab / nested list: mark context for behaviors that branch on isChild.
         if ($IdParent !== null && $IdParent !== '') {
             $this->isChild = 'BotOrder';
         }
 
+        // A22: list session key for search / order / page. $childTableName is
+        // always empty in the unified getList(), so the standalone list and every
+        // parent-scoped (child-tab) render used to share ONE key and therefore one
+        // page/sort/search state. Standalone keeps the historic '<Table>/' key;
+        // parent-scoped renders get '<Table>/child'. NOT keyed per parent id:
+        // FormHelper stores these keys unbounded, so one entry per visited parent
+        // would grow the session forever — instead the stored page is dropped when
+        // the parent id changes (search/sort intentionally carry over, matching the
+        // pre-existing '<Parent>/<Child>' desktop child-list behaviour).
+        $gcListKey = 'BotOrder/';
+        if ($IdParent !== null && $IdParent !== '') {
+            $gcListKey = 'BotOrder/child';
+            if (($_SESSION['mem']['ip'][$gcListKey] ?? null) !== (string) $IdParent) {
+                $_SESSION['mem']['ip'][$gcListKey] = (string) $IdParent;
+                unset($_SESSION['mem']['page'][$gcListKey]);
+            }
+        }
+
         // if Search params
-        $this->searchMs = $this->setSearchVar($request['ms'] ?? '', 'BotOrder/');
+        $this->searchMs = $this->setSearchVar($request['ms'] ?? '', $gcListKey);
 
         // Guideline filter chips (built from the first ENUM search col).
         $trChips = '';
@@ -394,7 +486,7 @@ class BotOrderForm extends BotOrder
             $trChips = div($_gcChips, '', " class='va-mob-chips' ");
 
         // order
-        $this->searchOrder = $this->setOrderVar($request['order'] ?? '', 'BotOrder/');
+        $this->searchOrder = $this->setOrderVar($request['order'] ?? '', $gcListKey);
 
         // Clear-sort affordances (chip strip + sort-sheet row), rendered only
         // while the session carries a user ordering for this list. Both carry
@@ -402,20 +494,20 @@ class BotOrderForm extends BotOrder
         // sort handler; the server drops the whole stored ordering on '*'.
         $gcSortClear = '';
         $gcSortSheetClear = '';
-        if (!empty($_SESSION['mem']['order']['BotOrder/'])) {
+        if (!empty($_SESSION['mem']['order'][$gcListKey])) {
             $gcSortClear = div(button("<i class='ri-sort-desc'></i>"._('Sorted')."<span class='cl-active-filter-x' aria-hidden='true'>×</span>", " type='button' th='sorted' c='*' class='cl-active-filter cl-sort-clear' "), '', " class='va-mob-sortclear' ");
             $gcSortSheetClear = button("<i class='ri-arrow-go-back-line'></i> "._('Default order'), " type='button' th='sorted' c='*' class='va-mob-sortrow va-mob-sortrow-clear' ");
         }
 
         // page
-        $search['page'] = $this->setPageVar($request['pg'] ?? '', 'BotOrder/');
+        $search['page'] = $this->setPageVar($request['pg'] ?? '', $gcListKey);
 
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
 
         // Parent-scoped lists use the child pager size (same as former inlined getChildList).
         $maxPerPage = ($IdParent !== null && $IdParent !== '') ? $this->childMaxPerPage : $this->maxPerPage;
@@ -426,6 +518,7 @@ class BotOrderForm extends BotOrder
         $resultsCount = 0;
         if(empty($pmpoDataIn)) {
             $pmpoData = $this->getListSearch($IdParent, $search);
+
             $pmpoData = $pmpoData->paginate($search['page'], $maxPerPage);
             $resultsCount = $pmpoData->getNbResults();
 
@@ -451,85 +544,77 @@ class BotOrderForm extends BotOrder
             /**
             *	Main list loop
             **/
-            
+
             $i=0;
             $gcGroupCol = 'GridRun.Label';
             $gcGroupNorm = function($s){ return strtolower(preg_replace('/[^a-z0-9]/i','', (string) $s)); };
             $gcGroupKey = $gcGroupNorm($gcGroupCol);
-            // Use the RAW request order, not the resolved $this->searchOrder
-            // (getListSearch mutates the latter). Empty => default landing
-            // view => list is in its default (name) order => group A–Z, as
-            // the guideline screenshots show. A user sort only keeps the
-            // headers when it is the name column ascending.
-            $gcReqOrder = $request['order'] ?? '';
+            // $this->searchOrder is the ordering this list actually runs with: the
+            // session ordering for this list, or the schema default ($default_order,
+            // resolved just above) when the session carries none. A table that
+            // declares NO default order leaves it empty — the query emits no ORDER BY,
+            // so the list is NOT name-ordered and gets no headers. Only the first
+            // entry with a truthy sens decides (that is the primary sort column that
+            // getListSearch() applies); direction-agnostic, since a Z→A sort groups
+            // just as well as A→Z. Compared on the NORMALISED FULL column name so a
+            // dotted FK label ('Product.Name') matches its own sort key.
+            // Child-context lists (IdParent set) never letter-group: their order is
+            // the child ranking/FK order, not the name column.
             $gcGroupOn = false;
-            // Child-context lists (IdParent set) never letter-group: their
-            // default order is the child ranking/FK order, not the name
-            // column, so the empty-order assumption below doesn't hold and
-            // the letters render as stray one-letter rows in the drawer.
-            if (empty($IdParent)) {
-                if ($gcReqOrder === '' || $gcReqOrder === null) {
-                    $gcGroupOn = true;
-                } else {
-                    $gcOd = is_array($gcReqOrder) ? $gcReqOrder : json_decode((string) $gcReqOrder, true);
-                    if (is_array($gcOd) && isset($gcOd['col'])) {
-                        $gcFc = (string) $gcOd['col'];
-                        if (strpos($gcFc, '.') !== false) { $gcParts = explode('.', $gcFc); $gcFc = end($gcParts); }
-                        $gcSens = strtolower((string) ($gcOd['sens'] ?? ''));
-                        if ($gcGroupNorm($gcFc) === $gcGroupKey && $gcSens !== 'desc') { $gcGroupOn = true; }
+            if (empty($IdParent) && is_array($this->searchOrder)) {
+                foreach ($this->searchOrder as $gcOrdEntry) {
+                    if (!is_array($gcOrdEntry)) { continue; }
+                    foreach ($gcOrdEntry as $gcOrdCol => $gcOrdSens) {
+                        if (!$gcOrdSens) { continue; }
+                        $gcGroupOn = ($gcGroupNorm($gcOrdCol) === $gcGroupKey);
+                        break 2;
                     }
                 }
             }
             $gcGroupLetter = null;
-            
+
             if(!$this->setReadOnly && !$this->setListRemoveDelete){
                 if($_SESSION[_AUTH_VAR]->hasRights('BotOrder', 'd')){
                     $this->canDelete = htmlLink("<i class='ri-delete-bin-7-line'></i>", "Javascript:", "class='ac-delete-link' j='deleteBotOrder' ");
                 }
             }
-        
+
             $gcListRows = [];
             $gcListRowsDt = [];
             foreach($pcData as $data) {
-                if ($gcGroupOn) {
-                    $gcVal = (string) ((($altValue['IdGridRun'] !== null ) ? $altValue['IdGridRun'] : $altValue['GridRun_Label']));
-                    $gcL = mb_strtoupper(mb_substr(trim($gcVal), 0, 1));
-                    if ($gcL !== '' && $gcL !== $gcGroupLetter) {
-                        $gcGroupLetter = $gcL;
-                        $tr .= div(htmlspecialchars($gcL), '', " class='va-mob-sect-head' ");
-                    }
-                }
                 # hoist the row PK encodings once — reused by the mobile + desktop row wrappers below
                 $__pkJsonEsc = htmlspecialchars(json_encode($data->getPrimaryKey()), ENT_QUOTES);
                 $__pkEsc = htmlspecialchars((string)$data->getPrimaryKey(), ENT_QUOTES);
                 $this->listActionCell = '';
-                
-                
+
+
 
         $altValue['GridRun_Label'] = "";
         if($data->getGridRun()){
             $altValue['GridRun_Label'] = $data->getGridRun()->getLabel();
         }
-                
 
-                $actionCell =  td($this->canDelete . $this->listActionCell, " class='actionrow' ");
+
+                $actionInner = '' . $this->canDelete . $this->listActionCell;
+                $actionCell =  td($actionInner, " class='actionrow' ");
 
                 $gcRowHtml = div(
  ''
  . div(
-   div('' . span(htmlspecialchars((string)((($altValue['IdGridRun'] !== null ) ? $altValue['IdGridRun'] : $altValue['GridRun_Label'])))." ", "   i='" . $__pkJsonEsc . "' c='IdGridRun' class=''  j='editBotOrder'") ,''," class='name' ")
-   . div(''  . span(htmlspecialchars((string)((($altValue['ClientOrderId'] !== null ) ? $altValue['ClientOrderId'] : $data->getClientOrderId())))." ", "   i='" . $__pkJsonEsc . "' c='ClientOrderId' class=''  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['ExchangeOrderId'] !== null ) ? $altValue['ExchangeOrderId'] : $data->getExchangeOrderId())))." ", "   i='" . $__pkJsonEsc . "' c='ExchangeOrderId' class=''  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['LevelIdx'] !== null ) ? $altValue['LevelIdx'] : $data->getLevelIdx())))." ", "   i='" . $__pkJsonEsc . "' c='LevelIdx' class=''  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['Side'] !== null ) ? $altValue['Side'] : isntPo($data->getSide()))))." ", "   i='" . $__pkJsonEsc . "' c='Side' class='center'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['State'] !== null ) ? $altValue['State'] : isntPo($data->getState()))))." ", "   i='" . $__pkJsonEsc . "' c='State' class='center'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['Price'] !== null ) ? $altValue['Price'] : str_replace(',', '.', (string)($data->getPrice() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Price' class='right'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['Qty'] !== null ) ? $altValue['Qty'] : str_replace(',', '.', (string)($data->getQty() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Qty' class='right'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['FilledQty'] !== null ) ? $altValue['FilledQty'] : str_replace(',', '.', (string)($data->getFilledQty() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='FilledQty' class='right'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['FeePaid'] !== null ) ? $altValue['FeePaid'] : str_replace(',', '.', (string)($data->getFeePaid() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='FeePaid' class='right'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['FeeAsset'] !== null ) ? $altValue['FeeAsset'] : $data->getFeeAsset())))." ", "   i='" . $__pkJsonEsc . "' c='FeeAsset' class=''  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['IsLegacy'] !== null ) ? $altValue['IsLegacy'] : ($data->getIsLegacy() ? 'Yes' : 'No'))))." ", "   i='" . $__pkJsonEsc . "' c='IsLegacy' class=''  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['Simulated'] !== null ) ? $altValue['Simulated'] : ($data->getSimulated() ? 'Yes' : 'No'))))." ", "   i='" . $__pkJsonEsc . "' c='Simulated' class=''  j='editBotOrder'") . $cCmoreCols ,''," class='meta' ")
+   div('' . (empty($this->IdParent) ? (span(htmlspecialchars((string)((($altValue['IdGridRun'] !== null ) ? $altValue['IdGridRun'] : $altValue['GridRun_Label'])))." ", "   i='" . $__pkJsonEsc . "' c='IdGridRun' class=''  j='editBotOrder'")) : (span(htmlspecialchars((string)((($altValue['ClientOrderId'] !== null ) ? $altValue['ClientOrderId'] : $data->getClientOrderId())))." ", "   i='" . $__pkJsonEsc . "' c='ClientOrderId' class=''  j='editBotOrder'"))) ,''," class='name' ")
+   . div(''  . (empty($this->IdParent) ? (''  . span(htmlspecialchars((string)((($altValue['ClientOrderId'] !== null ) ? $altValue['ClientOrderId'] : $data->getClientOrderId())))." ", "   i='" . $__pkJsonEsc . "' c='ClientOrderId' class=''  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['ExchangeOrderId'] !== null ) ? $altValue['ExchangeOrderId'] : $data->getExchangeOrderId())))." ", "   i='" . $__pkJsonEsc . "' c='ExchangeOrderId' class=''  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['LevelIdx'] !== null ) ? $altValue['LevelIdx'] : $data->getLevelIdx())))." ", "   i='" . $__pkJsonEsc . "' c='LevelIdx' class=''  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['Side'] !== null ) ? $altValue['Side'] : isntPo($data->getSide()))))." ", "   i='" . $__pkJsonEsc . "' c='Side' class='center'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['State'] !== null ) ? $altValue['State'] : isntPo($data->getState()))))." ", "   i='" . $__pkJsonEsc . "' c='State' class='center'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['Price'] !== null ) ? $altValue['Price'] : str_replace(',', '.', (string)($data->getPrice() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Price' class='right'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['Qty'] !== null ) ? $altValue['Qty'] : str_replace(',', '.', (string)($data->getQty() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Qty' class='right'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['FilledQty'] !== null ) ? $altValue['FilledQty'] : str_replace(',', '.', (string)($data->getFilledQty() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='FilledQty' class='right'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['FeePaid'] !== null ) ? $altValue['FeePaid'] : str_replace(',', '.', (string)($data->getFeePaid() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='FeePaid' class='right'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['FeeAsset'] !== null ) ? $altValue['FeeAsset'] : $data->getFeeAsset())))." ", "   i='" . $__pkJsonEsc . "' c='FeeAsset' class=''  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['IsLegacy'] !== null ) ? $altValue['IsLegacy'] : ($data->getIsLegacy() ? 'Yes' : 'No'))))." ", "   i='" . $__pkJsonEsc . "' c='IsLegacy' class=''  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['Simulated'] !== null ) ? $altValue['Simulated'] : ($data->getSimulated() ? 'Yes' : 'No'))))." ", "   i='" . $__pkJsonEsc . "' c='Simulated' class=''  j='editBotOrder'")) : (''  . span(htmlspecialchars((string)((($altValue['ExchangeOrderId'] !== null ) ? $altValue['ExchangeOrderId'] : $data->getExchangeOrderId())))." ", "   i='" . $__pkJsonEsc . "' c='ExchangeOrderId' class=''  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['LevelIdx'] !== null ) ? $altValue['LevelIdx'] : $data->getLevelIdx())))." ", "   i='" . $__pkJsonEsc . "' c='LevelIdx' class=''  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['Side'] !== null ) ? $altValue['Side'] : isntPo($data->getSide()))))." ", "   i='" . $__pkJsonEsc . "' c='Side' class='center'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['State'] !== null ) ? $altValue['State'] : isntPo($data->getState()))))." ", "   i='" . $__pkJsonEsc . "' c='State' class='center'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['Price'] !== null ) ? $altValue['Price'] : str_replace(',', '.', (string)($data->getPrice() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Price' class='right'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['Qty'] !== null ) ? $altValue['Qty'] : str_replace(',', '.', (string)($data->getQty() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Qty' class='right'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['FilledQty'] !== null ) ? $altValue['FilledQty'] : str_replace(',', '.', (string)($data->getFilledQty() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='FilledQty' class='right'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['FeePaid'] !== null ) ? $altValue['FeePaid'] : str_replace(',', '.', (string)($data->getFeePaid() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='FeePaid' class='right'  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['FeeAsset'] !== null ) ? $altValue['FeeAsset'] : $data->getFeeAsset())))." ", "   i='" . $__pkJsonEsc . "' c='FeeAsset' class=''  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['IsLegacy'] !== null ) ? $altValue['IsLegacy'] : ($data->getIsLegacy() ? 'Yes' : 'No'))))." ", "   i='" . $__pkJsonEsc . "' c='IsLegacy' class=''  j='editBotOrder'") . span(htmlspecialchars((string)((($altValue['Simulated'] !== null ) ? $altValue['Simulated'] : ($data->getSimulated() ? 'Yes' : 'No'))))." ", "   i='" . $__pkJsonEsc . "' c='Simulated' class=''  j='editBotOrder'"))) . $cCmoreCols ,''," class='meta' ")
  ,'', " class='body' ")
 . div('' . '<i class="ri-arrow-right-s-line chev"></i>',''," class='trail' ")
-. $actionCell
-                , '', " 
+. div($actionInner, '', " class='actionrow' ")
+                , '', "
                         rid='".$__pkJsonEsc."' data-iterator='".$pcData->getPosition()."'
                         r='data'
                         class='va-mob-row ".$hook['class']." '
                         id='BotOrderRow".$__pkEsc."'")
                 ;
                 $gcDtRowHtml = tr(
-                td(span(htmlspecialchars((string)((($altValue['IdGridRun'] !== null ) ? $altValue['IdGridRun'] : $altValue['GridRun_Label'])))." "), "  i='" . $__pkJsonEsc . "' c='IdGridRun' class=''  j='editBotOrder'") .
+                    (empty($this->IdParent) ?
+                td(span(htmlspecialchars((string)((($altValue['IdGridRun'] !== null ) ? $altValue['IdGridRun'] : $altValue['GridRun_Label'])))." "), "  i='" . $__pkJsonEsc . "' c='IdGridRun' class=''  j='editBotOrder'") : '') .
                 td(span(htmlspecialchars((string)((($altValue['ClientOrderId'] !== null ) ? $altValue['ClientOrderId'] : $data->getClientOrderId())))." "), "  i='" . $__pkJsonEsc . "' c='ClientOrderId' class=''  j='editBotOrder'") .
                 td(span(htmlspecialchars((string)((($altValue['ExchangeOrderId'] !== null ) ? $altValue['ExchangeOrderId'] : $data->getExchangeOrderId())))." "), "  i='" . $__pkJsonEsc . "' c='ExchangeOrderId' class=''  j='editBotOrder'") .
                 td(span(htmlspecialchars((string)((($altValue['LevelIdx'] !== null ) ? $altValue['LevelIdx'] : $data->getLevelIdx())))." "), "  i='" . $__pkJsonEsc . "' c='LevelIdx' class=''  j='editBotOrder'") .
@@ -542,25 +627,49 @@ class BotOrderForm extends BotOrder
                 td(span(htmlspecialchars((string)((($altValue['FeeAsset'] !== null ) ? $altValue['FeeAsset'] : $data->getFeeAsset())))." "), "  i='" . $__pkJsonEsc . "' c='FeeAsset' class=''  j='editBotOrder'") .
                 td(span(htmlspecialchars((string)((($altValue['IsLegacy'] !== null ) ? $altValue['IsLegacy'] : ($data->getIsLegacy() ? 'Yes' : 'No'))))." "), "  i='" . $__pkJsonEsc . "' c='IsLegacy' class=''  j='editBotOrder'") .
                 td(span(htmlspecialchars((string)((($altValue['Simulated'] !== null ) ? $altValue['Simulated'] : ($data->getSimulated() ? 'Yes' : 'No'))))." "), "  i='" . $__pkJsonEsc . "' c='Simulated' class=''  j='editBotOrder'") .  $actionCell, "  rid='".$__pkJsonEsc."' data-iterator='".$pcData->getPosition()."' r='data' class='va-dt-row ".$hook['class']." ' id='BotOrderDtRow".$__pkEsc."'");
-                
+
+                # A10: the letter header reads $this->listCardNameVar, which for an
+                # FK-labelled list is a local ($<Rel>_Name) or an $altValue key the
+                # row body above assigns — so it is pushed here, after the body ran
+                # and before the row itself, keeping header→row order.
+
+                if ($gcGroupOn) {
+                    $gcVal = (string) ((($altValue['IdGridRun'] !== null ) ? $altValue['IdGridRun'] : $altValue['GridRun_Label']));
+                    $gcL = mb_strtoupper(mb_substr(trim($gcVal), 0, 1));
+                    if ($gcL !== '' && $gcL !== $gcGroupLetter) {
+                        $gcGroupLetter = $gcL;
+                        $gcListRows[] = div(htmlspecialchars($gcL), '', " class='va-mob-sect-head' ");
+                    }
+                }
                 $gcListRows[] = $gcRowHtml;
                 $gcListRowsDt[] = $gcDtRowHtml;
 
                 $i++;
-                $altValue = null;
+                $altValue = $__altValueInit;
             }
             $tr .= implode('', $gcListRows);
             $trDt .= implode('', $gcListRowsDt);
             $tr .= input('hidden', 'rowCountBotOrder', $i);
+
         }
 
-        
+        $gcParentRef = '';
+        $gcParentPk = json_decode((string) $IdParent);
+        if (!empty($gcParentPk) && $_SESSION[_AUTH_VAR]->hasRights('GridRun', 'r')) {
+            $gcParentObj = $_SESSION[_AUTH_VAR]->loadPkScoped(GridRunQuery::class, $gcParentPk, 'GridRun', 'r');
+            if ($gcParentObj) {
+                $gcParentRef = trim((string) ($gcParentObj->getLabel() ?? ''));
+                if ($gcParentRef === '') {
+                    $gcParentRef = is_scalar($gcParentPk) ? (string) $gcParentPk : (string) json_encode($gcParentPk);
+                }
+            }
+        }
 
         ## @Paging
         $pagerRow = $this->getPager($pmpoData, $resultsCount, $search);
         $bottomRow = div($pagerRow,'bottomPagerRow', "class='tablesorter'");
 
-        
+
 
         $controlsContent = $this->getListHeader('list-button');
 
@@ -570,11 +679,11 @@ class BotOrderForm extends BotOrder
                 div(
                     href(span(_('Open/close menu')),'javascript:','class="toggle-menu button-link-blue trigger-menu"')
                     .$this->getListHeader('add')
-                    
+
                 ,'','class="default-controls"')
                 .div($controlsContent,'BotOrderControlsList', "class='custom-controls'")
                 .$this->hookSwHeader.$HelpDiv
-                
+
             ,'','class="sw-header"')
 
             /*.div(
@@ -590,6 +699,7 @@ class BotOrderForm extends BotOrder
                         .button("<i class='ri-sort-desc'></i>", " type='button' class='va-mob-sort-btn' aria-haspopup='true' aria-label='"._('Sort')."' ")
                         .(($_SESSION[_AUTH_VAR]->hasRights('BotOrder', 'a') && !$this->setReadOnly) ? href("<i class='ri-add-line'></i>"._('New'), _SITE_URL.$this->virtualClassName."/edit/", " class='add-btn' ") : '')
                     ,''," class='va-mob-row1' ")
+                    .($gcParentRef !== '' ? div(span(_('Grid Run'), " class='va-mob-parent-type' ") . span(htmlspecialchars($gcParentRef), " class='va-mob-parent-name' "), '', " class='va-mob-parent' ") : '')
                     .div(
                         "<i class='ri-search-line'></i>"
                         .$this->getListHeader('search')
@@ -605,7 +715,7 @@ class BotOrderForm extends BotOrder
                             span(_('Sort by'), " class='sheet-title' ")
                             .button("<i class='ri-close-line'></i>", " type='button' class='sheet-close va-mob-sortsheet-close' aria-label='"._('Close')."' ")
                         ,''," class='sheet-head' ")
-                        .div("".$gcSortSheetClear . button(_("Grid Run label"), " type='button' th='sorted' c='GridRun.Label' class='va-mob-sortrow' ") . button(_("Client order id"), " type='button' th='sorted' c='ClientOrderId' class='va-mob-sortrow' ") . button(_("Exchange id"), " type='button' th='sorted' c='ExchangeOrderId' class='va-mob-sortrow' ") . button(_("Level"), " type='button' th='sorted' c='LevelIdx' class='va-mob-sortrow' ") . button(_("Side"), " type='button' th='sorted' c='Side' class='va-mob-sortrow' ") . button(_("State"), " type='button' th='sorted' c='State' class='va-mob-sortrow' ") . button(_("Price"), " type='button' th='sorted' c='Price' class='va-mob-sortrow' ") . button(_("Qty"), " type='button' th='sorted' c='Qty' class='va-mob-sortrow' ") . button(_("Filled qty"), " type='button' th='sorted' c='FilledQty' class='va-mob-sortrow' ") . button(_("Fee paid"), " type='button' th='sorted' c='FeePaid' class='va-mob-sortrow' ") . button(_("Fee asset"), " type='button' th='sorted' c='FeeAsset' class='va-mob-sortrow' ") . button(_("Legacy exit"), " type='button' th='sorted' c='IsLegacy' class='va-mob-sortrow' ") . button(_("Simulated"), " type='button' th='sorted' c='Simulated' class='va-mob-sortrow' "), '', " class='sheet-body va-mob-sortsheet-body' ")
+                        .div("".$gcSortSheetClear . (empty($this->IdParent) ? button(_("Grid Run label"), " type='button' th='sorted' c='GridRun.Label' class='va-mob-sortrow' ") : '') . button(_("Client order id"), " type='button' th='sorted' c='ClientOrderId' class='va-mob-sortrow' ") . button(_("Exchange id"), " type='button' th='sorted' c='ExchangeOrderId' class='va-mob-sortrow' ") . button(_("Level"), " type='button' th='sorted' c='LevelIdx' class='va-mob-sortrow' ") . button(_("Side"), " type='button' th='sorted' c='Side' class='va-mob-sortrow' ") . button(_("State"), " type='button' th='sorted' c='State' class='va-mob-sortrow' ") . button(_("Price"), " type='button' th='sorted' c='Price' class='va-mob-sortrow' ") . button(_("Qty"), " type='button' th='sorted' c='Qty' class='va-mob-sortrow' ") . button(_("Filled qty"), " type='button' th='sorted' c='FilledQty' class='va-mob-sortrow' ") . button(_("Fee paid"), " type='button' th='sorted' c='FeePaid' class='va-mob-sortrow' ") . button(_("Fee asset"), " type='button' th='sorted' c='FeeAsset' class='va-mob-sortrow' ") . button(_("Legacy exit"), " type='button' th='sorted' c='IsLegacy' class='va-mob-sortrow' ") . button(_("Simulated"), " type='button' th='sorted' c='Simulated' class='va-mob-sortrow' "), '', " class='sheet-body va-mob-sortsheet-body' ")
                     ,''," class='va-mob-sortsheet-panel' ")
                 ,''," class='va-mob-sortsheet' ")
                 .input('hidden', 'rowCount', $i, "s='d'")
@@ -618,20 +728,20 @@ class BotOrderForm extends BotOrder
                 ,'listForm',' class="ac-list" ')
                 .$this->hookListBottom
                 .$bottomRow
-            , 'BotOrderListForm', " class='va-mob proto-app' data-model='BotOrder' data-table='BotOrder' data-ui='".$this->uiTabsId."' " . ($IdParent !== null && $IdParent !== '' ? " data-ip='".htmlspecialchars((string)$IdParent, ENT_QUOTES)."' data-tp='BotOrder' data-parent='GridRun'" : ''));
+            , 'BotOrderListForm', " class='va-mob proto-app' data-model='BotOrder' data-table='BotOrder' data-gc-db='bot_order' data-ui='".$this->uiTabsId."' " . ($IdParent !== null && $IdParent !== '' ? " data-ip='".htmlspecialchars((string)$IdParent, ENT_QUOTES)."' data-tp='BotOrder' data-parent='GridRun'" : ''));
 
-        
+
 
 
 
         $return['onReadyJs'] =
             $HelpDivJs
-            
+
             ."
-        
-        
-        
-        
+
+
+
+
 
         (function(){
             function gcRenderSummary(cards){
@@ -663,16 +773,20 @@ class BotOrderForm extends BotOrder
                     wrap.appendChild(card);
                 });
             }
+            /* GET on purpose: a read. The middleware demands the WRITE right for
+               any unmapped POST, which hid the cards from read-only users;
+               summarycards is not a mutating action, so a GET passes on 'r'
+               (the handler re-checks it and scopes the aggregates). */
             fetch(_SITE_URL + 'BotOrder/summarycards', {
-                method: 'POST', credentials: 'same-origin',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                method: 'GET', credentials: 'same-origin',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
             }).then(function(r){ return r.json(); }).then(function(res){
                 if (res && res.status === 'success') { gcRenderSummary(res.data); }
             }).catch(function(){});
         })();
 
-        
-        
+
+
         (function(){var r=document.getElementById('tabsContain');if(r&&window.gcSelectBox){gcSelectBox.bindWithin(r);}})();
         ".$this->hookListReadyJsFirst.$editEvent."
         var __ab=document.getElementById('addBotOrderAutoc');
@@ -682,12 +796,12 @@ class BotOrderForm extends BotOrder
                 fetch('"._SITE_URL."GuiManager',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','X-Requested-With':'XMLHttpRequest'},body:__b.toString()}).then(function(){document.location='"._SITE_URL.$this->virtualClassName."/edit/';});
             });
         }
-        
-        
+
+
         ".$this->orderReadyJsOrder."
         ".$this->hookListReadyJs;
-        
-        $return['js'] .= script("". $this->hookListJs);
+
+        $return['js'] .= script($this->hookListJs);
         return $return;
     }
     /*
@@ -708,37 +822,29 @@ class BotOrderForm extends BotOrder
         }
         $data['IsLegacy'] = ($data['IsLegacy'] == '')?false:$data['IsLegacy'];
         $data['Simulated'] = ($data['Simulated'] == '')?false:$data['Simulated'];
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
         #
 
-        //integer not required
+        //varchar not required
         $e->setExchangeOrderId( ($data['ExchangeOrderId'] == '' ) ? null : $data['ExchangeOrderId']);
-        //integer not required
+        //decimal not required
         $e->setFilledQty( ($data['FilledQty'] == '' ) ? null : $data['FilledQty']);
-        //integer not required
+        //decimal not required
         $e->setFeePaid( ($data['FeePaid'] == '' ) ? null : $data['FeePaid']);
-        //integer not required
+        //varchar not required
         $e->setFeeAsset( ($data['FeeAsset'] == '' ) ? null : $data['FeeAsset']);
         if(isset($data['IsLegacy'])){
             $e->setIsLegacy( (!isset($data['IsLegacy']) || $data['IsLegacy'] == '') ? false : $data['IsLegacy']);
         }
-        //integer not required
+        //decimal not required
         $e->setLegacyBuyPrice( ($data['LegacyBuyPrice'] == '' ) ? null : $data['LegacyBuyPrice']);
-        //integer not required
+        //decimal not required
         $e->setLegacyBuyFee( ($data['LegacyBuyFee'] == '' ) ? null : $data['LegacyBuyFee']);
         if(isset($data['Simulated'])){
             $e->setSimulated( (!isset($data['Simulated']) || $data['Simulated'] == '') ? false : $data['Simulated']);
         }
-        $e->setDateCreation( ($data['DateCreation'] == '' || $data['DateCreation'] == 'null' || substr($data['DateCreation'],0,10) == '-0001-11-30') ? null : $data['DateCreation'] );
-        $e->setDateModification( ($data['DateModification'] == '' || $data['DateModification'] == 'null' || substr($data['DateModification'],0,10) == '-0001-11-30') ? null : $data['DateModification'] );
-        //foreign
-        $e->setIdGroupCreation(( $data['IdGroupCreation'] == '' ) ? null : $data['IdGroupCreation']);
-        //foreign
-        $e->setIdCreation(( $data['IdCreation'] == '' ) ? null : $data['IdCreation']);
-        //foreign
-        $e->setIdModification(( $data['IdModification'] == '' ) ? null : $data['IdModification']);
         #
 
         return $e;
@@ -763,7 +869,7 @@ class BotOrderForm extends BotOrder
         }
         $data['IsLegacy'] = ($data['IsLegacy'] == '')?false:$data['IsLegacy'];
         $data['Simulated'] = ($data['Simulated'] == '')?false:$data['Simulated'];
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
 
@@ -786,21 +892,6 @@ class BotOrderForm extends BotOrder
         if(isset($data['LegacyBuyFee'])){
             $e->setLegacyBuyFee( ($data['LegacyBuyFee'] == '' ) ? null : $data['LegacyBuyFee']);
         }
-        if(isset($data['DateCreation'])){
-            $e->setDateCreation( ($data['DateCreation'] == '' || $data['DateCreation'] == 'null' || substr($data['DateCreation'],0,10) == '-0001-11-30') ? null : $data['DateCreation'] );
-        }
-        if(isset($data['DateModification'])){
-            $e->setDateModification( ($data['DateModification'] == '' || $data['DateModification'] == 'null' || substr($data['DateModification'],0,10) == '-0001-11-30') ? null : $data['DateModification'] );
-        }
-        if( isset($data['IdGroupCreation']) ){
-            $e->setIdGroupCreation(( $data['IdGroupCreation'] == '' ) ? null : $data['IdGroupCreation']);
-        }
-        if( isset($data['IdCreation']) ){
-            $e->setIdCreation(( $data['IdCreation'] == '' ) ? null : $data['IdCreation']);
-        }
-        if( isset($data['IdModification']) ){
-            $e->setIdModification(( $data['IdModification'] == '' ) ? null : $data['IdModification']);
-        }
         $e->setNew(false);
         return $e;
     }
@@ -821,14 +912,11 @@ class BotOrderForm extends BotOrder
 
         $HelpDivJs = '';
         $HelpDiv = '';
-        $childTable = [];
+        $childTable = ['html' => '', 'js' => '', 'onReadyJs' => ''];
         $script_autoc_one = '';
         $ongletf = '';
         $mceInclude = '';
-        $ip_save = '';
-        $ip_save = '';
         $IdParent = 0;
-        $editDialog = ( $data['dialog'] ) ? $data['dialog'] : 'editDialog';
         $uiTabsId = ( $uiTabsId === null ) ? 'tabsContain' : $uiTabsId;
         $jet = 'tr';
 
@@ -842,13 +930,13 @@ class BotOrderForm extends BotOrder
             $jet = $jsElementType;
         }
 
-        if($data['data']['ip']){
+        if(!empty($data['data']['ip'])){
             $data['ip'] = $data['data']['ip'];
-            $data['pc'] = $data['data']['pc'];
-            $data['tp'] = $data['data']['tp'];
+            $data['pc'] = $data['data']['pc'] ?? '';
+            $data['tp'] = $data['data']['tp'] ?? '';
         }
 
-        if($data['pc']) {
+        if(!empty($data['pc'])) {
             switch($data['pc']){
 
                 case 'GridRun':
@@ -882,12 +970,12 @@ class BotOrderForm extends BotOrder
         $this->SaveButtonJs = "";
 
         if($_SESSION[_AUTH_VAR]->hasRights('BotOrder', 'a') && !$this->setReadOnly) {
-            $this->formAddButton = htmlLink(_("Add new"), 'Javascript:;' , "id='addBotOrder' title='"._('Add')."' class='button-link-blue add-button'");
+            $this->formAddButton = htmlLink(_("Add new"), 'Javascript:;' , "id='addBotOrderForm' title='"._('Add')."' class='button-link-blue add-button'");
             $this->bindEditJs = "";
-                if ($this->formAddButton) { $this->formAddButton = str_replace("add-button'", "add-button' data-gc-add='".$this->virtualClassName."' data-gc-ip='".($IdParent ?: '')."'", $this->formAddButton); }
+                if ($this->formAddButton) { $this->formAddButton = str_replace("add-button'", "add-button' data-gc-add='".$this->virtualClassName."' data-gc-ip='".htmlspecialchars((string) ($IdParent ?: ''), ENT_QUOTES)."'", $this->formAddButton); }
         }
 
-        if($id && !$data['reload']) {
+        if($id && empty($data['reload'])) {
 
 
             $q = BotOrderQuery::create()
@@ -947,7 +1035,7 @@ class BotOrderForm extends BotOrder
 
 
 $this->fields['BotOrder']['IdGridRun']['html'] = stdFieldRow(_("Run"),
-    input('text', 'IdGridRunAutoc', $dataObj->getGridRun()?->getIdGridRun(), " title='".str_replace("'","", (string)($dataObj->getGridRun()?->getIdGridRun()))."' v='ID_GRID_RUN' rid='IdGridRun' placeholder='"._('Run')."' j='autocomplete' class='ui-autocomplete-input' data-gc-autoc='{&quot;name&quot;:&quot;IdGridRun&quot;,&quot;table&quot;:&quot;BotOrder&quot;,&quot;childTable&quot;:&quot;GridRun&quot;,&quot;spec&quot;:{&quot;fkt&quot;:&quot;GridRun&quot;,&quot;show&quot;:[&quot;IdGridRun&quot;],&quot;id&quot;:&quot;IdGridRun&quot;,&quot;filter&quot;:&quot;IdGridRun&quot;,&quot;term&quot;:&quot;str&quot;,&quot;limit&quot;:20}}'")
+    input('text', 'IdGridRunAutoc', $dataObj->getGridRun()?->getLabel(), " title='".str_replace("'","", (string)($dataObj->getGridRun()?->getLabel()))."' v='ID_GRID_RUN' rid='IdGridRun' placeholder='"._('Run')."' j='autocomplete' class='ui-autocomplete-input' data-gc-autoc='{&quot;name&quot;:&quot;IdGridRun&quot;,&quot;table&quot;:&quot;BotOrder&quot;,&quot;childTable&quot;:&quot;GridRun&quot;,&quot;spec&quot;:{&quot;fkt&quot;:&quot;GridRun&quot;,&quot;show&quot;:[&quot;Label&quot;],&quot;id&quot;:&quot;IdGridRun&quot;,&quot;filter&quot;:&quot;Label&quot;,&quot;term&quot;:&quot;str&quot;,&quot;limit&quot;:20}}'")
     .input('hidden', 'IdGridRun', $dataObj->getIdGridRun(), "s='d'"), 'IdGridRun', "", $this->commentsIdGridRun, $this->commentsIdGridRun_css, '', ' ', 'no', 'v2');
 $this->fields['BotOrder']['ClientOrderId']['html'] = stdFieldRow(_("Client order id"), input('text', 'ClientOrderId', htmlentities((string)($dataObj->getClientOrderId() ?? '')), "   placeholder='".str_replace("'","&#39;",_('Client order id'))."' size='35'  v='CLIENT_ORDER_ID' s='d' class='req'  ")."", 'ClientOrderId', "", $this->commentsClientOrderId, $this->commentsClientOrderId_css, ' half', ' ', 'no', 'v2');
 $this->fields['BotOrder']['ExchangeOrderId']['html'] = stdFieldRow(_("Exchange id"), input('text', 'ExchangeOrderId', htmlentities((string)($dataObj->getExchangeOrderId() ?? '')), "   placeholder='".str_replace("'","&#39;",_('Exchange id'))."' size='35'  v='EXCHANGE_ORDER_ID' s='d' class=''  ")."", 'ExchangeOrderId', "", $this->commentsExchangeOrderId, $this->commentsExchangeOrderId_css, ' half', ' ', 'no', 'v2');
@@ -994,6 +1082,13 @@ $this->fields['BotOrder']['Simulated']['html'] = stdFieldRow(_("Simulated"), inp
                             .$this->hookListSearchButton
                         ,""," class='form-savehidden' ");
         }
+        // add_hooks: afterFormObj (always emitted — the stub lives in the FormWrapper)
+        if (method_exists($this, 'afterFormObj')) { $this->afterFormObj($data, $dataObj); }
+        $gcFirstTabActive = true;
+        if (!empty($this->formCustomTabs)) {
+            throw new \LogicException('BotOrder: addFormTab() needs add_tab_columns (without add_field_groups) on the table — there is no tab strip to put the tab in');
+        }
+
 
 
 
@@ -1050,9 +1145,6 @@ $this->fields['BotOrder']['Simulated']['html'] = stdFieldRow(_("Simulated"), inp
                         href('<i class="ri-arrow-left-s-line"></i>'._('Order'), _SITE_URL.'BotOrder', "class='nav-btn'")
                         .div(
                             span(_('Order'), "class='nav-title-type'")
-                            .(isset($_gcNameVal) && trim((string)$_gcNameVal) !== ''
-                                ? span(htmlspecialchars($_gcNameVal), "class='nav-title-name'")
-                                : '')
                         , '', "class='nav-title'")
                         .$this->formSaveBtn
                         .href('<i class="ri-close-line"></i>', _SITE_URL.'BotOrder', "class='nav-btn nav-close' title='"._('Close')."' aria-label='"._('Close')."'")
@@ -1099,10 +1191,10 @@ $this->fields['BotOrder']['IdGridRun']['html']
         // first tab active by default; the stale session ['ogf'] value is inert.
         $tabs_act = '';
 
-        if($_SESSION['mem']['BotOrder']['ixmemautocapp'] and $_GET['Autocapp'] == 1) {
-            $Autocapp = $_SESSION['mem']['BotOrder']['ixmemautocapp'];
-            unset($_SESSION['mem']['BotOrder']['ixmemautocapp']);
-        }
+        // The ['ixmemautocapp'] restore block is gone: nothing in the emitter,
+        // the runtime or the template ever writes that session key, so the
+        // condition was dead — and with it an unguarded $_GET['Autocapp'] read
+        // (a warning on every form render) and an $Autocapp local nothing read.
 
         $return['js'] .= $childTable['js']
         . script($this->hookFormIncludeJs) ."
@@ -1116,7 +1208,7 @@ $this->fields['BotOrder']['IdGridRun']['html']
         ".$this->SaveButtonJs."
 
         ".$childTable['onReadyJs']."
-        ".$error['onReadyJs']."
+        ".($error['onReadyJs'] ?? '')."
         ".$tabs_act."
         ".$this->hookFormReadyJs
         .$script_autoc_one
@@ -1130,61 +1222,99 @@ $this->fields['BotOrder']['IdGridRun']['html']
 
     function lockFormField($fields, $dataObj)
     {
+        if($fields === 'all') {
+            $fields = array_keys($this->fields['BotOrder']);
+        } elseif(!is_array($fields)) {
+            return;
+        }
+        foreach($fields as $field) {
+            if(!isset($this->gcFieldRoBuilt[$field])) {
+                $this->gcFieldRoBuilt[$field] = true;
+                $this->gcBuildFieldRo($field, $dataObj);
+            }
+            $this->fields['BotOrder'][$field]['html'] = $this->fieldsRo['BotOrder'][$field]['html'] ?? '';
+        }
+    }
 
+    /** Build ONE column's read-only markup into $this->fieldsRo (A43). */
+    private function gcBuildFieldRo($field, $dataObj)
+    {
+        switch($field) {
+            case 'IdGridRun':
         $this->fieldsRo['BotOrder']['IdGridRun']['html'] = stdFieldRow(_("Run"), div( htmlspecialchars((string)(($dataObj->getGridRun())?($dataObj->getGridRun()->getLabel()):''), ENT_QUOTES), 'IdGridRun_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'IdGridRun', $dataObj->getIdGridRun(), "s='d'"), 'IdGridRun', "", $this->commentsIdGridRun, $this->commentsIdGridRun_css, 'readonly', ' ', 'no', 'v2');
 
+            break;
+            case 'ClientOrderId':
         $this->fieldsRo['BotOrder']['ClientOrderId']['html'] = stdFieldRow(_("Client order id"), div( htmlspecialchars((string)($dataObj->getClientOrderId()), ENT_QUOTES), 'ClientOrderId_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'ClientOrderId', $dataObj->getClientOrderId(), "s='d'"), 'ClientOrderId', "", $this->commentsClientOrderId, $this->commentsClientOrderId_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'ExchangeOrderId':
         $this->fieldsRo['BotOrder']['ExchangeOrderId']['html'] = stdFieldRow(_("Exchange id"), div( htmlspecialchars((string)($dataObj->getExchangeOrderId()), ENT_QUOTES), 'ExchangeOrderId_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'ExchangeOrderId', $dataObj->getExchangeOrderId(), "s='d'"), 'ExchangeOrderId', "", $this->commentsExchangeOrderId, $this->commentsExchangeOrderId_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'LevelIdx':
         $this->fieldsRo['BotOrder']['LevelIdx']['html'] = stdFieldRow(_("Level"), div( htmlspecialchars((string)($dataObj->getLevelIdx()), ENT_QUOTES), 'LevelIdx_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'LevelIdx', $dataObj->getLevelIdx(), "s='d'"), 'LevelIdx', "", $this->commentsLevelIdx, $this->commentsLevelIdx_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Side':
         $this->fieldsRo['BotOrder']['Side']['html'] = stdFieldRow(_("Side"), div( htmlspecialchars((string)($dataObj->getSide()), ENT_QUOTES), 'Side_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Side', $dataObj->getSide(), "s='d'"), 'Side', "", $this->commentsSide, $this->commentsSide_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'State':
         $this->fieldsRo['BotOrder']['State']['html'] = stdFieldRow(_("State"), div( htmlspecialchars((string)($dataObj->getState()), ENT_QUOTES), 'State_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'State', $dataObj->getState(), "s='d'"), 'State', "", $this->commentsState, $this->commentsState_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Price':
         $this->fieldsRo['BotOrder']['Price']['html'] = stdFieldRow(_("Price"), div( htmlspecialchars((string)($dataObj->getPrice()), ENT_QUOTES), 'Price_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Price', $dataObj->getPrice(), "s='d'"), 'Price', "", $this->commentsPrice, $this->commentsPrice_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Qty':
         $this->fieldsRo['BotOrder']['Qty']['html'] = stdFieldRow(_("Qty"), div( htmlspecialchars((string)($dataObj->getQty()), ENT_QUOTES), 'Qty_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Qty', $dataObj->getQty(), "s='d'"), 'Qty', "", $this->commentsQty, $this->commentsQty_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'FilledQty':
         $this->fieldsRo['BotOrder']['FilledQty']['html'] = stdFieldRow(_("Filled qty"), div( htmlspecialchars((string)($dataObj->getFilledQty()), ENT_QUOTES), 'FilledQty_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'FilledQty', $dataObj->getFilledQty(), "s='d'"), 'FilledQty', "", $this->commentsFilledQty, $this->commentsFilledQty_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'FeePaid':
         $this->fieldsRo['BotOrder']['FeePaid']['html'] = stdFieldRow(_("Fee paid"), div( htmlspecialchars((string)($dataObj->getFeePaid()), ENT_QUOTES), 'FeePaid_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'FeePaid', $dataObj->getFeePaid(), "s='d'"), 'FeePaid', "", $this->commentsFeePaid, $this->commentsFeePaid_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'FeeAsset':
         $this->fieldsRo['BotOrder']['FeeAsset']['html'] = stdFieldRow(_("Fee asset"), div( htmlspecialchars((string)($dataObj->getFeeAsset()), ENT_QUOTES), 'FeeAsset_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'FeeAsset', $dataObj->getFeeAsset(), "s='d'"), 'FeeAsset', "", $this->commentsFeeAsset, $this->commentsFeeAsset_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'IsLegacy':
         $this->fieldsRo['BotOrder']['IsLegacy']['html'] = stdFieldRow(_("Legacy exit"), div( htmlspecialchars((string)($dataObj->getIsLegacy()), ENT_QUOTES), 'IsLegacy_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'IsLegacy', $dataObj->getIsLegacy(), "s='d'"), 'IsLegacy', "", $this->commentsIsLegacy, $this->commentsIsLegacy_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'LegacyBuyPrice':
         $this->fieldsRo['BotOrder']['LegacyBuyPrice']['html'] = stdFieldRow(_("Legacy buy price (daemon-managed)"), div( htmlspecialchars((string)($dataObj->getLegacyBuyPrice()), ENT_QUOTES), 'LegacyBuyPrice_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'LegacyBuyPrice', $dataObj->getLegacyBuyPrice(), "s='d'"), 'LegacyBuyPrice', "", $this->commentsLegacyBuyPrice, $this->commentsLegacyBuyPrice_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'LegacyBuyFee':
         $this->fieldsRo['BotOrder']['LegacyBuyFee']['html'] = stdFieldRow(_("Legacy buy fee (daemon-managed)"), div( htmlspecialchars((string)($dataObj->getLegacyBuyFee()), ENT_QUOTES), 'LegacyBuyFee_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'LegacyBuyFee', $dataObj->getLegacyBuyFee(), "s='d'"), 'LegacyBuyFee', "", $this->commentsLegacyBuyFee, $this->commentsLegacyBuyFee_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Simulated':
         $this->fieldsRo['BotOrder']['Simulated']['html'] = stdFieldRow(_("Simulated"), div( htmlspecialchars((string)($dataObj->getSimulated()), ENT_QUOTES), 'Simulated_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Simulated', $dataObj->getSimulated(), "s='d'"), 'Simulated', "", $this->commentsSimulated, $this->commentsSimulated_css, 'readonly half', ' ', 'no', 'v2');
 
-
-        if($fields == 'all') {
-            foreach($this->fields['BotOrder'] as $field => $ar) {
-                $this->fields['BotOrder'][$field]['html'] = $this->fieldsRo['BotOrder'][$field]['html'];
-            }
-        } elseif(is_array($fields)) {
-            foreach($fields as $field) {
-                $this->fields['BotOrder'][$field]['html'] = $this->fieldsRo['BotOrder'][$field]['html'];
-            }
+            break;
         }
     }
 
@@ -1199,23 +1329,32 @@ $this->fields['BotOrder']['IdGridRun']['html']
  $gcSbHost = is_object($obj) ? $obj : $this;
  $gcSbUseCache = $array
         && class_exists('\\ApiGoat\\Utility\\SelectBoxCache')
+        && method_exists('\\ApiGoat\\Utility\\SelectBoxCache', 'scopeToken')
         && !method_exists($gcSbHost, 'beginSelectboxBotOrder_IdGridRun')
         && !method_exists($gcSbHost, 'selectboxDataBotOrder_IdGridRun');
     if ($gcSbUseCache) {
-        $gcSbHit = \ApiGoat\Utility\SelectBoxCache::fetch('grid_run', 'BotOrder_IdGridRun', false);
+        $gcSbHit = \ApiGoat\Utility\SelectBoxCache::fetch('grid_run', 'BotOrder_IdGridRun', false, \ApiGoat\Utility\SelectBoxCache::scopeToken('GridRun'));
         if ($gcSbHit !== null) {
             return $gcSbHit;
         }
     }
         $q = GridRunQuery::create();
 
+    $gcSbSess = $_SESSION[_AUTH_VAR] ?? null;
+    if (is_object($gcSbSess) && method_exists($gcSbSess, 'applyOwnerGroupScope')) {
+        $gcSbSess->applyOwnerGroupScope($q, $gcSbSess->hasRights('GridRun', 'r'));
+    }
+
     $gcSbHost = is_object($obj) ? $obj : $this;
+    $ret = null;
     if(method_exists($gcSbHost, 'beginSelectboxBotOrder_IdGridRun') and $array)
         $ret = $gcSbHost->beginSelectboxBotOrder_IdGridRun($q, $dataObj, $data, $obj);
-    if($ret !== false)
+    if($ret !== false) {
             $q->addAsColumn('selDisplay', ''.GridRunPeer::LABEL.'');
             $q->select(['selDisplay', 'IdGridRun']);
             $q->orderBy('selDisplay', 'ASC');
+
+    }
         
             if(!$array){
                 return $q;
@@ -1233,9 +1372,9 @@ $this->fields['BotOrder']['IdGridRun']['html']
         if($override === false){
             $arrayOpt = $pcDataO->toArray();
 
-            $gcSbResult = assocToNum($arrayOpt , true);
+            $gcSbResult = assocToNum($arrayOpt );
             if (!empty($gcSbUseCache)) {
-                \ApiGoat\Utility\SelectBoxCache::store('grid_run', 'BotOrder_IdGridRun', false, $gcSbResult);
+                \ApiGoat\Utility\SelectBoxCache::store('grid_run', 'BotOrder_IdGridRun', false, $gcSbResult, \ApiGoat\Utility\SelectBoxCache::scopeToken('GridRun'));
             }
             return $gcSbResult;
         }else{

@@ -1,6 +1,6 @@
 /* gcLocationField — vanilla address-search + Leaflet map widget.
  *
- * Promoted from an earlier project's hand-written address search
+ * Promoted from apigoatacc's hand-written ClientFormWrapper address search
  * (the `set_input_options: {type:"location"}` behavior). The emitter emits
  * `gcLocationField.create({input, lat, lng, zip, country})` into the form's
  * onReadyJs where the values are DOM element ids (Propel PhpNames, e.g.

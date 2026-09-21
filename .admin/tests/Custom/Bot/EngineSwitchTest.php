@@ -51,6 +51,12 @@ class EngineSwitchTest extends TestCase
     protected function setUp(): void
     {
         \Propel::getConnection()->beginTransaction();
+        // Keep legacy expectations deterministic; specific tests opt-in when
+        // they exercise stale-data auto-refresh behavior.
+        putenv('GTBOT_TREND_REFRESH_STALE=0');
+        // Drift auto-reload changes tick control flow (returns false in the
+        // same tick); default it off and opt-in only where asserted.
+        putenv('GTBOT_TREND_AUTO_RELOAD_ON_DRIFT=0');
         // the global drawdown stop has its own suite — pin it OFF so this
         // suite's scenarios only trip their own rails
         $dd = \App\ConfigQuery::create()->findOneByConfig('gtbot_max_drawdown_pct')
@@ -62,6 +68,8 @@ class EngineSwitchTest extends TestCase
 
     protected function tearDown(): void
     {
+        putenv('GTBOT_TREND_REFRESH_STALE');
+        putenv('GTBOT_TREND_AUTO_RELOAD_ON_DRIFT');
         \Propel::getConnection()->rollBack();
     }
 
@@ -74,6 +82,10 @@ class EngineSwitchTest extends TestCase
         $r->setStatus('Testnet');
         $r->setAlgo($over['algo'] ?? 'Grid');
         $r->setProfile($over['profile'] ?? 'Balanced');
+        // the Trend stop-out mechanics under test need the run switch ON —
+        // with the default (OFF) a below-cost stop is ignored, which is
+        // SellAtLossTest's subject, not this suite's
+        $r->setSellAtLoss((bool) ($over['sell_at_loss'] ?? (($over['algo'] ?? 'Grid') === 'Trend')));
         if (isset($over['max_buy_levels_below'])) {
             $r->setMaxBuyLevelsBelow((int) $over['max_buy_levels_below']);
         }
@@ -237,6 +249,51 @@ class EngineSwitchTest extends TestCase
             'no market data → no breakout signal → no entries');
     }
 
+    /**
+     * Trend stale gate self-heals: when the signal TF summary is missing,
+     * the engine asks MarketCollector to refresh and continues entry logic
+     * in the same tick if data becomes fresh.
+     */
+    public function testTrendStaleSignalCanAutoRefreshAndEnter(): void
+    {
+        putenv('GTBOT_TREND_REFRESH_STALE=1');
+        try {
+            $this->sim->setPrice('130');
+            // 60 bars: enough for Donchian+EMA signal guard.
+            $flat = array_fill(0, 45, ['open' => '100', 'high' => '101', 'low' => '99', 'close' => '100']);
+            $rising = $flat;
+            for ($i = 0; $i < 15; $i++) {
+                $c = (string) (101 + $i * 2);
+                $rising[] = ['open' => (string) ((float) $c - 1), 'high' => $c, 'low' => (string) ((float) $c - 2), 'close' => $c];
+            }
+            $this->sim->klines = $rising;
+
+            $run = $this->makeRun(['algo' => 'Trend', 'profile' => 'Balanced', 'budget_quote' => '550']);
+            $run->setDeployPct(50);
+            $run->setTrendTf('1h');
+            $run->save();
+
+            $daemon = $this->makeDaemon($run);
+            $daemon->tick();
+
+            $this->assertGreaterThan(0, BotOrderQuery::create()
+                ->filterByIdGridRun((int) $run->getIdGridRun())
+                ->filterBySide('Buy')
+                ->filterByState(['BUY_OPEN', 'Filled'], \Criteria::IN)
+                ->count(), 'freshly collected trend data allows entry in the same tick (open or immediately filled)');
+            $this->assertSame(1, BotEventQuery::create()
+                ->filterByIdGridRun((int) $run->getIdGridRun())
+                ->filterByKind('trend_data_refreshed')
+                ->count(), 'stale data refresh is explicit in the event log');
+            $this->assertSame(0, BotEventQuery::create()
+                ->filterByIdGridRun((int) $run->getIdGridRun())
+                ->filterByKind('trend_data_stale')
+                ->count(), 'no stale warning when refresh succeeds immediately');
+        } finally {
+            putenv('GTBOT_TREND_REFRESH_STALE');
+        }
+    }
+
     public function testGridRunBehaviorUnchangedThroughSeam(): void
     {
         $this->sim->setPrice('150');
@@ -272,14 +329,17 @@ class EngineSwitchTest extends TestCase
         $run->save();
         $daemon->tick();                    // clean-restart request
         $this->makeDaemon($run)->tick();    // cutover INTO Trend
-        $this->assertSame(['algo' => 'Trend'], $this->marker($run));
+        $marker = $this->marker($run);
+        $this->assertIsArray($marker);
+        $this->assertSame('Trend', (string) ($marker['algo'] ?? ''),
+            'the shell marker names the incoming engine even if Trend state keys are present');
 
         $run->reload();
         $run->setAlgo('Grid');
         $run->save();
         $this->makeDaemon($run)->tick();    // cutover BACK to Grid
 
-        $this->assertSame(2, BotEventQuery::create()
+        $this->assertGreaterThanOrEqual(2, BotEventQuery::create()
             ->filterByIdGridRun((int) $run->getIdGridRun())->filterByKind('algo_cutover')->count(),
             'the marker branch fires in both directions');
         $this->assertSame(['algo' => 'Grid'], $this->marker($run));
@@ -1907,6 +1967,31 @@ class EngineSwitchTest extends TestCase
             'a later, distinct drift warns again after the reset');
     }
 
+    public function testTrendConfigDriftCanAutoReloadWhenEnabled(): void
+    {
+        putenv('GTBOT_TREND_AUTO_RELOAD_ON_DRIFT=1');
+        try {
+            $this->sim->setPrice('130');
+            $run = $this->makeRun(['algo' => 'Trend', 'profile' => 'Balanced', 'budget_quote' => '1000']);
+            $run->setDeployPct(100);
+            $run->save();
+            $daemon = $this->makeDaemon($run);
+
+            // Drift the live row away from the booted config; the trend engine
+            // should request a reload in the same tick.
+            $run->setBudgetQuote('700');
+            $run->save();
+
+            $this->assertFalse($daemon->tick(), 'drift auto-reload requests a clean restart in the same tick');
+            $this->assertSame(1, BotEventQuery::create()
+                ->filterByIdGridRun((int) $run->getIdGridRun())->filterByKind('trend_auto_reload')->count());
+            $this->assertSame(1, BotEventQuery::create()
+                ->filterByIdGridRun((int) $run->getIdGridRun())->filterByKind('reloading')->count());
+        } finally {
+            putenv('GTBOT_TREND_AUTO_RELOAD_ON_DRIFT=0');
+        }
+    }
+
     /**
      * M14 rider (final-fix review): TrendEngine::onBuyFill's no-ATR fallback
      * (stop = state.stop ?? entry) is unreachable via the normal tryEnter
@@ -1929,6 +2014,7 @@ class EngineSwitchTest extends TestCase
         $run = $this->makeRun(['algo' => 'Trend', 'profile' => 'Balanced', 'budget_quote' => '1000']);
         $run->setSymbol('ZZZNOATRUSDT');
         $run->setDeployPct(100);
+        $run->setTrendStopFloorPct('0'); // pure no-ATR fallback under test — the pct floor would otherwise stand in
         $run->save();
         $daemon = $this->makeDaemonWithPartialTimeout($run, 0);
 

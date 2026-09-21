@@ -3,49 +3,19 @@
 namespace Tests\Custom\Bot;
 
 use App\GridRunServiceWrapper;
-use PHPUnit\Framework\TestCase;
+use Tests\Builder\Support\DbTestCase;
 
-class GridRunWrapperProfileTest extends TestCase
+class GridRunWrapperProfileTest extends DbTestCase
 {
-    private static bool $booted = false;
 
-    public static function setUpBeforeClass(): void
-    {
-        if (self::$booted) {
-            return;
-        }
-        $admin = dirname(__DIR__, 3);
-        require_once $admin . '/vendor/autoload.php';
-        (new \Ahc\Env\Loader())->load($admin . '/.env');
-        if (!defined('_AUTH_VAR')) {
-            require $admin . '/config/Built/config.php';
-        }
-        if (!\Propel::isInit()) {
-            require $admin . '/config/Built/propel.php';
-        }
-        if (session_status() === PHP_SESSION_NONE) {
-            @session_start();
-        }
-        $_SESSION[_AUTH_VAR] = new \ApiGoat\Sessions\AuthySession();
-        self::$booted = true;
-    }
 
-    protected function setUp(): void
-    {
-        \Propel::getConnection()->beginTransaction();
-    }
-
-    protected function tearDown(): void
-    {
-        \Propel::getConnection()->rollBack();
-    }
 
     /** A persisted row to restore FROM — the Critical-fix tests need a real
      *  pristine DB value, not an in-memory-only model. */
     private function makePersistedRun(): \App\GridRun
     {
         $r = new \App\GridRun();
-        $r->setLabel('wraptest-' . bin2hex(random_bytes(4)));
+        $r->setLabel(static::uniq('wraptest'));
         $r->setSymbol('BTCUSDT');
         $r->setStatus('Testnet');
         $r->setPLow('100');
@@ -61,7 +31,7 @@ class GridRunWrapperProfileTest extends TestCase
         $r->setBreakoutBufferPct('0.02');
         $r->setBreakoutPolicy('HaltAndHold');
         $r->setMaxOpenOrders(60);
-        $r->setRunUid('wraptest-' . bin2hex(random_bytes(3)));
+        $r->setRunUid(static::uniq('wrap'));
         $r->setEngineState('{"algo":"Grid"}');
         $r->save();
         return $r;
@@ -241,5 +211,94 @@ class GridRunWrapperProfileTest extends TestCase
         $wrapper->beforeSave($e, $data, true, $messages, $ext, $error);
 
         $this->assertNull($e->getEngineState(), 'a brand new row has no persisted value to restore — must be nulled, not left with the crafted one');
+    }
+
+    // ── mechanical geometry ownership ────────────────────────────────────
+
+    private function setMechanical(string $mode): void
+    {
+        $c = \App\ConfigQuery::create()->findOneByConfig(\App\Domains\Bot\MechanicalRefit::CONFIG_MODE)
+            ?? (new \App\Config())->setConfig(\App\Domains\Bot\MechanicalRefit::CONFIG_MODE);
+        $c->setValue($mode);
+        $c->save();
+    }
+
+    /** @return array{0:\App\GridRunServiceWrapper, 1:array, 2:mixed} */
+    private function saveGeometry(\App\GridRun $r, array $data): array
+    {
+        $wrapper = $this->createWrapper();
+        $messages = [];
+        $ext = [];
+        $error = null;
+        $wrapper->beforeSave($r, $data, false, $messages, $ext, $error);
+        return [$wrapper, $ext, $error];
+    }
+
+    public function testMechanicalModeRefusesAGeometryChangeOnALiveGrid(): void
+    {
+        $this->setMechanical('mechanical');
+        $r = $this->makePersistedRun();
+        $r->setStatus('Live');
+        $r->save();
+        [, $ext] = $this->saveGeometry($r, ['PLow' => '111', 'Status' => 'Live']);
+        $this->assertNotEmpty($ext, 'the cron owns the ladder in mechanical mode');
+        $this->assertStringContainsString('MECHANICAL', implode(' ', array_keys($ext)));
+    }
+
+    public function testMechanicalModeAllowsADeployOnlyEditThatEchoesGeometry(): void
+    {
+        $this->setMechanical('mechanical');
+        $r = $this->makePersistedRun();
+        $r->setStatus('Live');
+        $r->save();
+        // a GUI post echoes every column, including the Spacing enum — bccomp
+        // on a non-numeric enum used to throw a ValueError here
+        [, $ext] = $this->saveGeometry($r, [
+            'PLow' => '100', 'PHigh' => '200', 'NLevels' => 4, 'Spacing' => 'Arithmetic',
+            'DeployPct' => 50, 'BudgetQuote' => '400', 'Status' => 'Live',
+        ]);
+        $this->assertSame([], $ext, 'unchanged geometry is a deploy-only edit');
+    }
+
+    public function testMechanicalLockLeavesNonCronRunsEditable(): void
+    {
+        // The cron writes geometry only for Live/Testnet Grid runs with the
+        // kill switch off. Everything else has no other writer, so locking it
+        // would leave no way to fix a range at all.
+        $this->setMechanical('mechanical');
+        foreach ([
+            'draft' => fn (\App\GridRun $r) => $r->setStatus('Draft'),
+            'trend' => fn (\App\GridRun $r) => $r->setAlgo('Trend'),
+            'killed' => fn (\App\GridRun $r) => $r->setKillSwitch(true),
+        ] as $case => $mutate) {
+            $r = $this->makePersistedRun();
+            $mutate($r);
+            $r->save();
+            [, $ext] = $this->saveGeometry($r, ['PLow' => '111']);
+            $this->assertSame([], $ext, "$case run must stay editable in mechanical mode");
+        }
+    }
+
+    public function testMalformedGeometryFallsThroughToTheColumnValidators(): void
+    {
+        // bccomp() throws a ValueError on anything non-numeric, and '1e3'
+        // passes an <input type=number>; malformed input is the validators'
+        // business, so the guard must not blow up on it.
+        $this->setMechanical('mechanical');
+        $r = $this->makePersistedRun();
+        $r->setStatus('Live');
+        $r->save();
+        [, $ext] = $this->saveGeometry($r, ['PLow' => '1e3', 'Status' => 'Live']);
+        $this->assertSame([], $ext);
+    }
+
+    public function testRoutineModeLeavesGeometryAlone(): void
+    {
+        $this->setMechanical('routine');
+        $r = $this->makePersistedRun();
+        $r->setStatus('Live');
+        $r->save();
+        [, $ext] = $this->saveGeometry($r, ['PLow' => '111', 'Status' => 'Live']);
+        $this->assertSame([], $ext, 'the routine owns geometry in routine mode');
     }
 }

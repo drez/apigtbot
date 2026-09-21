@@ -53,6 +53,7 @@ class GridRunTableMap extends TableMap
   3 => 'Live',
   4 => 'Halted',
   5 => 'Done',
+  6 => 'Retiring',
 ));
         $this->addColumn('kill_switch', 'KillSwitch', 'BOOLEAN', false, 10, false);
         $this->addColumn('profile', 'Profile', 'ENUM', true, null, 'Balanced');
@@ -85,11 +86,18 @@ class GridRunTableMap extends TableMap
 ));
         $this->addColumn('budget_quote', 'BudgetQuote', 'DECIMAL', true, 18, null);
         $this->addColumn('deploy_pct', 'DeployPct', 'INTEGER', false, 10, 100);
+        $this->addColumn('alloc_mode', 'AllocMode', 'ENUM', true, null, 'Auto');
+        $this->getColumn('alloc_mode', false)->setValueSet(array (
+  0 => 'Auto',
+  1 => 'Fixed',
+));
         $this->addColumn('fee_pct', 'FeePct', 'DECIMAL', true, 9, 0.001);
         $this->addColumn('max_position_quote', 'MaxPositionQuote', 'DECIMAL', true, 18, null);
         $this->addColumn('max_order_quote', 'MaxOrderQuote', 'DECIMAL', true, 18, null);
         $this->addColumn('daily_loss_limit_quote', 'DailyLossLimitQuote', 'DECIMAL', true, 18, null);
         $this->addColumn('max_unrealized_loss_quote', 'MaxUnrealizedLossQuote', 'DECIMAL', false, 18, null);
+        $this->addColumn('sell_at_loss', 'SellAtLoss', 'BOOLEAN', false, 10, false);
+        $this->addColumn('sell_when_starved', 'SellWhenStarved', 'BOOLEAN', false, 10, false);
         $this->addColumn('breakout_buffer_pct', 'BreakoutBufferPct', 'DECIMAL', false, 9, 0.02);
         $this->addColumn('breakout_policy', 'BreakoutPolicy', 'ENUM', true, null, 'HaltAndHold');
         $this->getColumn('breakout_policy', false)->setValueSet(array (
@@ -109,6 +117,12 @@ class GridRunTableMap extends TableMap
         $this->addColumn('atr_period', 'AtrPeriod', 'INTEGER', false, 10, 14);
         $this->addColumn('atr_stop_mult', 'AtrStopMult', 'DECIMAL', false, 9, null);
         $this->addColumn('atr_initial_mult', 'AtrInitialMult', 'DECIMAL', false, 9, null);
+        $this->addColumn('trend_stop_floor_pct', 'TrendStopFloorPct', 'DECIMAL', false, 9, 0.015);
+        $this->addColumn('trend_signal', 'TrendSignal', 'ENUM', true, null, 'Donchian');
+        $this->getColumn('trend_signal', false)->setValueSet(array (
+  0 => 'Donchian',
+  1 => 'EmaCross1d',
+));
         $this->addColumn('reentry_cooldown', 'ReentryCooldown', 'INTEGER', false, 10, null);
         $this->addColumn('engine_state', 'EngineState', 'LONGVARCHAR', false, 1023, null);
         $this->addColumn('last_tick_at', 'LastTickAt', 'TIMESTAMP', false, null, null);
@@ -148,6 +162,8 @@ class GridRunTableMap extends TableMap
         $this->addValidator('allocation', 'required', 'propel.validator.RequiredValidator', '', ('GridRun_Allocation_required'));
         $this->addValidator('allocation', 'type', 'propel.validator.TypeValidator', 'string', ('GridRun_Allocation_type_string'));
         $this->addValidator('deploy_pct', 'match', 'propel.validator.MatchValidator', '/^(?:[0-9]*|null)$/', ('GridRun_DeployPct_match_/^(?:[0-9]*|null)$/'));
+        $this->addValidator('alloc_mode', 'required', 'propel.validator.RequiredValidator', '', ('GridRun_AllocMode_required'));
+        $this->addValidator('alloc_mode', 'type', 'propel.validator.TypeValidator', 'string', ('GridRun_AllocMode_type_string'));
         $this->addValidator('fee_pct', 'required', 'propel.validator.RequiredValidator', '', ('GridRun_FeePct_required'));
         $this->addValidator('max_position_quote', 'required', 'propel.validator.RequiredValidator', '', ('GridRun_MaxPositionQuote_required'));
         $this->addValidator('max_order_quote', 'required', 'propel.validator.RequiredValidator', '', ('GridRun_MaxOrderQuote_required'));
@@ -162,6 +178,8 @@ class GridRunTableMap extends TableMap
         $this->addValidator('trend_ema_fast', 'match', 'propel.validator.MatchValidator', '/^(?:[0-9]*|null)$/', ('GridRun_TrendEmaFast_match_/^(?:[0-9]*|null)$/'));
         $this->addValidator('trend_ema_slow', 'match', 'propel.validator.MatchValidator', '/^(?:[0-9]*|null)$/', ('GridRun_TrendEmaSlow_match_/^(?:[0-9]*|null)$/'));
         $this->addValidator('atr_period', 'match', 'propel.validator.MatchValidator', '/^(?:[0-9]*|null)$/', ('GridRun_AtrPeriod_match_/^(?:[0-9]*|null)$/'));
+        $this->addValidator('trend_signal', 'required', 'propel.validator.RequiredValidator', '', ('GridRun_TrendSignal_required'));
+        $this->addValidator('trend_signal', 'type', 'propel.validator.TypeValidator', 'string', ('GridRun_TrendSignal_type_string'));
         $this->addValidator('reentry_cooldown', 'match', 'propel.validator.MatchValidator', '/^(?:[0-9]*|null)$/', ('GridRun_ReentryCooldown_match_/^(?:[0-9]*|null)$/'));
         $this->addValidator('engine_state', 'type', 'propel.validator.TypeValidator', 'string', ('GridRun_EngineState_type_string'));
         $this->addValidator('last_tick_at', 'match', 'propel.validator.MatchValidator', '', ('GridRun_LastTickAt_match'));
@@ -178,11 +196,14 @@ class GridRunTableMap extends TableMap
         $this->addRelation('AuthyGroup', 'App\\AuthyGroup', RelationMap::MANY_TO_ONE, array('id_group_creation' => 'id_authy_group', ), null, null);
         $this->addRelation('AuthyRelatedByIdCreation', 'App\\Authy', RelationMap::MANY_TO_ONE, array('id_creation' => 'id_authy', ), null, null);
         $this->addRelation('AuthyRelatedByIdModification', 'App\\Authy', RelationMap::MANY_TO_ONE, array('id_modification' => 'id_authy', ), null, null);
+        $this->addRelation('FleetSlot', 'App\\FleetSlot', RelationMap::ONE_TO_MANY, array('id_grid_run' => 'id_grid_run', ), 'SET NULL', null, 'FleetSlots');
+        $this->addRelation('RegimeEpisode', 'App\\RegimeEpisode', RelationMap::ONE_TO_MANY, array('id_grid_run' => 'id_grid_run', ), 'SET NULL', null, 'RegimeEpisodes');
         $this->addRelation('BotOrder', 'App\\BotOrder', RelationMap::ONE_TO_MANY, array('id_grid_run' => 'id_grid_run', ), 'CASCADE', null, 'BotOrders');
         $this->addRelation('TradeCycle', 'App\\TradeCycle', RelationMap::ONE_TO_MANY, array('id_grid_run' => 'id_grid_run', ), 'CASCADE', null, 'TradeCycles');
         $this->addRelation('BotEvent', 'App\\BotEvent', RelationMap::ONE_TO_MANY, array('id_grid_run' => 'id_grid_run', ), 'CASCADE', null, 'BotEvents');
         $this->addRelation('BotCommand', 'App\\BotCommand', RelationMap::ONE_TO_MANY, array('id_grid_run' => 'id_grid_run', ), 'CASCADE', null, 'BotCommands');
         $this->addRelation('BotDecision', 'App\\BotDecision', RelationMap::ONE_TO_MANY, array('id_grid_run' => 'id_grid_run', ), 'CASCADE', null, 'BotDecisions');
+        $this->addRelation('GridRunAudit', 'App\\GridRunAudit', RelationMap::ONE_TO_MANY, array('id_grid_run' => 'id_grid_run', ), 'CASCADE', null, 'GridRunAudits');
     } // buildRelations()
 
     /**
@@ -199,12 +220,14 @@ class GridRunTableMap extends TableMap
   'logo_url' => '',
   'set_menu_icon' => 'ri-line-chart-line',
   'set_parent_menu' => 'Trading',
-  'with_child_tables' => '["bot_order","trade_cycle","bot_event","bot_command"]',
+  'with_child_tables' => '["bot_order","trade_cycle","bot_event","bot_command","grid_run_audit"]',
   'add_total' => '{"trade_cycle":[["realized_pnl","$"],["fees_total","$"]]}',
   'set_order_list_columns' => '[["date_creation","DESC"]]',
   'set_list_hide_columns' => '["run_uid","breakout_buffer_pct","max_open_orders","last_tick_at","sim_bal_base","sim_bal_quote","engine_state"]',
   'set_readonly_columns' => '["daily_loss_limit_quote","max_unrealized_loss_quote","max_position_quote","max_order_quote","breakout_policy","atr_stop_mult","atr_initial_mult","reentry_cooldown","engine_state"]',
   'add_tab_columns' => '{"Grid + budget":"p_low","Risk limits":"max_position_quote","Trend settings":"trend_tf","Telemetry":"last_tick_at"}',
+  'add_audit' => '["status","budget_quote","deploy_pct","kill_switch","alloc_mode","algo","sell_at_loss","sell_when_starved","label"]',
+  'child_table_read_only' => '["grid_run_audit"]',
 ),
             'add_validator' =>  array (
 ),

@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseTradeCyclePeer;
 
-require 'om/BaseTradeCyclePeer.php';
+require_once __DIR__ . '/om/BaseTradeCyclePeer.php';
 
 
 /**

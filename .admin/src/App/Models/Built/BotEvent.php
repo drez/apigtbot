@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseBotEvent;
 
-require 'om/BaseBotEvent.php';
+require_once __DIR__ . '/om/BaseBotEvent.php';
 
 
 /**

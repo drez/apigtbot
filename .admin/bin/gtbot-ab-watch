@@ -1,0 +1,37 @@
+#!/usr/bin/env php
+<?php
+/**
+ * gtbot-ab-watch — A/B soak first-trade watch. Cron it every 5 minutes.
+ *
+ * One-shot Telegram alerts when either arm of the Trend-vs-Grid experiment
+ * reaches a milestone (trend first entry / first stop / first closed cycle,
+ * grid control first closed cycle). Dedupe is durable: each firing writes an
+ * ab_milestone bot_event, so restarts never re-alert (see AbWatch).
+ *
+ * Defaults match the 2026-08-11 experiment (run 1 Trend vs run 7 Grid,
+ * flipped 12:43:07 UTC); override via GTBOT_AB_TREND_RUN / GTBOT_AB_GRID_RUN
+ * / GTBOT_AB_SINCE without touching code. Remove the crontab line when the
+ * A/B concludes.
+ */
+
+$admin = dirname(__DIR__);
+require $admin . '/vendor/autoload.php';
+(new \Ahc\Env\Loader())->load($admin . '/.env');
+require $admin . '/config/Built/config.php';
+require $admin . '/config/Built/propel.php';
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
+$_SESSION[_AUTH_VAR] = new \ApiGoat\Sessions\AuthySession();
+
+use App\Domains\Bot\AbWatch;
+use App\Domains\Bot\TelegramNotifier;
+
+$trendRun = (int) (getenv('GTBOT_AB_TREND_RUN') ?: 1);
+$gridRun = (int) (getenv('GTBOT_AB_GRID_RUN') ?: 7);
+$since = (string) (getenv('GTBOT_AB_SINCE') ?: '2026-08-11 12:43:07');
+
+$fired = AbWatch::check($trendRun, $gridRun, $since, TelegramNotifier::fromEnv());
+echo $fired === []
+    ? "no new milestones (trend run $trendRun, grid run $gridRun, since $since)\n"
+    : 'fired: ' . implode(', ', $fired) . "\n";

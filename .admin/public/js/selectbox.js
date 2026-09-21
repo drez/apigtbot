@@ -23,10 +23,11 @@
  * site + the v2 bridges (screens.js, filter.js) now call gcSelectBox.bindWithin
  * directly. The remaining jQuery entry shims ($.fn.open/close/setVal/destroy and
  * the cross-cutting $.fn.val override) were removed in stage 5 once jQuery itself
- * was dropped — this file is now fully jQuery-free. Note: the former `$.fn.val`
- * override fired change + added .changed-value on .selextbox-input writes (how
- * ChildSelect cascades propagated); with jQuery gone, the vanilla widget's
- * native 'change' listener is the sole sync path.
+ * was dropped — this file is now fully jQuery-free. The live parent → child
+ * cascade rides on setOptions() below: app/cascade.js re-fetches a child's
+ * option list from the server and hands it here, and the widget's native
+ * 'change' on the hidden .selextbox-input is the sole sync path (the jQuery
+ * $.fn.val override that used to fire it is long gone).
  *
  * Deliberately NOT reproduced (niche / already-dead in the original):
  *   - drag-range mouse select + shift-click range (rare power-user gesture)
@@ -201,6 +202,14 @@
   // menu off — measuring the raw viewport is what let a dropdown low in a short
   // panel spill past the panel's top/bottom edge. Returns viewport-relative
   // top/bottom in CSS px.
+  // Inline geometry set by openLabel must beat the scoped stylesheets: the
+  // drawer CSS (_formv2.scss) pins ul.select-element's top/bottom/max-height
+  // with !important, and a plain `el.style.x = v` loses to that — the menu
+  // stayed 280px tall inside a shorter scroll body and got clipped (no way to
+  // reach the tail of the list). Setting with the 'important' priority wins;
+  // closeLabel's `style.x = ''` still removes it.
+  function setImp(el, prop, val) { el.style.setProperty(prop, val, 'important'); }
+
   function clipRectFor(el) {
     var top = 0;
     var bottom = window.innerHeight || document.documentElement.clientHeight;
@@ -238,11 +247,6 @@
         a = a.parentElement;
       }
     })();
-    if (mq(label, 'li.selected')) {
-      var ul = list(label);
-      var selLi = mq(label, 'li.selected');
-      if (ul && selLi) { ul.scrollTop = selLi.offsetTop - ul.offsetTop; }
-    }
     // Position the dropdown so it always fits the VISIBLE region, regardless of
     // which CSS scope styles it. The flip is driven by inline styles here (they
     // beat every scoped stylesheet rule — the old class-only flip was scoped to
@@ -272,20 +276,20 @@
         var sDown = (vh - r.bottom) - GAP - MARGIN;
         var sUp = r.top - GAP - MARGIN;
         var up = (sDown < CAP) && (sUp > sDown);
-        menu.style.position = 'fixed';
-        menu.style.left = r.left + 'px';
-        menu.style.width = r.width + 'px';
+        setImp(menu, 'position', 'fixed');
+        setImp(menu, 'left', r.left + 'px');
+        setImp(menu, 'width', r.width + 'px');
         if (up) {
           label.classList.add('show-top');
-          menu.style.top = 'auto';
-          menu.style.bottom = (vh - r.top + GAP) + 'px';
+          setImp(menu, 'top', 'auto');
+          setImp(menu, 'bottom', (vh - r.top + GAP) + 'px');
         } else {
           label.classList.remove('show-top');
-          menu.style.bottom = 'auto';
-          menu.style.top = (r.bottom + GAP) + 'px';
+          setImp(menu, 'bottom', 'auto');
+          setImp(menu, 'top', (r.bottom + GAP) + 'px');
         }
-        menu.style.maxHeight = Math.min(CAP, Math.max(0, up ? sUp : sDown)) + 'px';
-        menu.style.overflowY = 'auto';
+        setImp(menu, 'max-height', Math.min(CAP, Math.max(0, up ? sUp : sDown)) + 'px');
+        setImp(menu, 'overflow-y', 'auto');
       } else {
         // Default: position:absolute, clamped to the VISIBLE region (viewport ∩
         // every overflow ancestor — see clipRectFor). Inline styles beat scoped
@@ -298,18 +302,26 @@
         var maxH = Math.min(CAP, Math.max(0, flipUp ? spaceUp : spaceDown));
         if (flipUp) {
           label.classList.add('show-top');
-          menu.style.top = 'auto';
-          menu.style.bottom = 'calc(100% + ' + GAP + 'px)';
+          setImp(menu, 'top', 'auto');
+          setImp(menu, 'bottom', 'calc(100% + ' + GAP + 'px)');
         } else {
           label.classList.remove('show-top');
           menu.style.top = '';
           menu.style.bottom = '';
         }
-        menu.style.maxHeight = maxH + 'px';
-        menu.style.overflowY = 'auto';
+        setImp(menu, 'max-height', maxH + 'px');
+        setImp(menu, 'overflow-y', 'auto');
       }
     }
     label.classList.add(OPEN_CLASS);
+    // Reveal the selected option now that the list is displayed: drawer CSS
+    // keeps a closed list display:none (see _formv2.scss), and a display:none
+    // element has no offsets to scroll to.
+    if (mq(label, 'li.selected')) {
+      var ulSel = list(label);
+      var selLi = mq(label, 'li.selected');
+      if (ulSel && selLi) { ulSel.scrollTop = selLi.offsetTop - ulSel.offsetTop; }
+    }
     // Portaled (filter-panel) case: the browser still does a one-time
     // reveal-scroll of the panel body on open. The menu is fixed to the
     // viewport and doesn't need the panel scrolled, so undo that scroll (sync +
@@ -415,19 +427,80 @@
     }
   }
 
-  // --- newData cascade (ChildSelect) ---------------------------------------
-  // data is an object/array of <li> html strings, same contract as before.
-  function applyNewData(label, data) {
+  // --- option replacement (live ChildSelect cascade) ------------------------
+  // Replace the option rows of a bound selectbox with a freshly fetched list.
+  // `options` is [{value, label, v}, ...] exactly as the server sends it (labels
+  // already ucfirst'd server-side — this is a dumb renderer). The li.default
+  // ("Clear") and li.null ("Empty value") sentinel rows are kept; every other
+  // <li> is dropped and rebuilt through the DOM API (never innerHTML: labels
+  // come from user data / translations).
+  //
+  // Value resolution, WITHOUT going through pick(): keep the hidden input's
+  // current value when the new list still carries a matching row (including the
+  // '_null' sentinel the user may have picked), otherwise `mode` decides —
+  // 'keep-or-first' takes the first real row (required FK), anything else
+  // ('keep-or-empty') clears it (nullable FK). A label[multiple] holds a comma
+  // list instead: it keeps the intersection with the new rows and ignores
+  // `mode` entirely.
+  //
+  // NEVER dispatches 'change': the caller compares the returned value with the
+  // one it read before and fires the event itself, so a reload that leaves the
+  // value alone cannot echo back into the cascade. Returns the resulting value.
+  function setOptions(label, options, mode) {
     var ul = list(label);
-    if (!ul) { return; }
-    ul.innerHTML = '';
-    var html = '';
-    if (data && typeof data === 'object') {
-      Object.keys(data).forEach(function (k) { html += data[k]; });
+    var inp = input(label);
+    if (!ul || !inp) { return inp ? inp.value : ''; }
+
+    Array.prototype.forEach.call(ul.querySelectorAll(':scope > li'), function (li) {
+      if (li.classList.contains('default') || li.classList.contains('null')) { return; }
+      ul.removeChild(li);
+    });
+
+    var firstReal = null;
+    (options || []).forEach(function (o) {
+      if (!o) { return; }
+      var value = (o.value == null) ? '' : String(o.value);
+      var text = (o.label == null) ? '' : String(o.label);
+      // Same skip as the server renderer (optionListeSelect): the ['', '', '']
+      // blank sentinel a nullable FK option list starts with is not a row —
+      // li.default already clears the field.
+      if (value === '' && text === '') { return; }
+      var li = document.createElement('li');
+      li.setAttribute('v', (o.v == null) ? '' : String(o.v));
+      li.setAttribute('unselectable', 'on');
+      li.setAttribute('data-label', text);
+      li.setAttribute('data-value', value);
+      var strong = document.createElement('strong');
+      strong.setAttribute('unselectable', 'on');
+      strong.setAttribute('title', text);
+      strong.textContent = text;
+      li.appendChild(strong);
+      ul.appendChild(li);
+      if (!firstReal) { firstReal = li; }
+    });
+
+    var current = inp.value || '';
+    var value = '';
+    if (isMultiple(label)) {
+      // A multi-select's hidden input is a comma list, which can never match a
+      // single li[data-value]. Keep the intersection of the current selection
+      // with the new rows and NEVER apply `mode`: falling back to one row would
+      // silently replace everything the user picked.
+      value = current === '' ? '' : current.split(',').filter(function (v) {
+        return v !== '' && !!mq(label, ':scope > li[data-value="' + cssEscapeValue(v) + '"]');
+      }).join(',');
+    } else if (current !== '' && mq(label, ':scope > li[data-value="' + cssEscapeValue(current) + '"]')) {
+      value = current;
+    } else if (mode === 'keep-or-first' && firstReal) {
+      // NOT `|| ''`: a legitimate data-value="0" (0-indexed enum-backed select)
+      // is falsy and would be turned into an empty selection.
+      var fv = liValue(firstReal);
+      value = (fv == null) ? '' : fv;
     }
-    ul.innerHTML = html;
-    var first = ul.querySelector('li');
-    if (first) { pick(label, first, false); }
+    inp.value = value;
+    updateSelectedFromValue(label);
+    checkDefaultVisibility(label);
+    return value;
   }
 
   // Quick-add hook: append one option to a bound selectbox and select it.
@@ -525,16 +598,6 @@
       });
     }
 
-    // Cascade hook (ChildSelect): replace the child's <li>s with new options
-    // via a native CustomEvent carrying the data in .detail. No emitter fires
-    // this today — the legacy ChildSelect cascade (jQuery .trigger('newData')
-    // + $.post to mod/act/*Act.php) is dead on both ends (see jquery-core
-    // removal memory). Kept jQuery-free as the anchor for a future vanilla
-    // cascade; applyNewData + the public newData() API remain available.
-    label.addEventListener('newData', function (e) {
-      applyNewData(label, e.detail);
-    });
-
     // Keyboard nav + type-ahead while focused/open.
     if (sp) { sp.setAttribute('tabindex', sp.getAttribute('tabindex') || '0'); }
     label.addEventListener('keydown', function (e) {
@@ -623,7 +686,7 @@
     bind: function (label) { bindGlobal(); if (label) { bindOne(label); } },
     open: function (label) { if (label) { openLabel(label); } },
     close: function (label) { if (label) { closeLabel(label); } },
-    // Set value + re-render (used by ChildSelect). Mirrors the old setVal:
+    // Set value + re-render (external set path). Mirrors the old setVal:
     // writes the hidden input then syncs the display.
     setVal: function (label, val) {
       var inp = input(label);
@@ -631,8 +694,10 @@
       inp.value = Array.isArray(val) ? val.join(',') : (val == null ? '' : val);
       updateSelectedFromValue(label);
     },
-    // Trigger the cascade replacement directly (vanilla path).
-    newData: function (label, data) { applyNewData(label, data); },
+    // Cascade hook (app/cascade.js): swap the option rows for a freshly fetched
+    // list and resolve the value ('keep-or-first' | 'keep-or-empty'). Fires no
+    // 'change' — the caller does, and only when the value actually moved.
+    setOptions: setOptions,
     // Quick-add hook: append one option (value/text) and select it (unless
     // select === false). Accepts the hidden .selextbox-input or the label.
     addOption: addOption,

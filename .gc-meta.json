@@ -1,17 +1,175 @@
 {
-    "version": "1.2.0",
+    "version": "1.4.0",
     "active": true,
     "description": "",
     "created": "2026-07-21",
     "changes": [
         {
-            "date": "2026-08-11 13:21",
+            "date": "2026-09-21 16:26",
+            "type": "build",
+            "version": "1.4.0",
+            "note": "build",
+            "runtime": "dev-master (480460a)",
+            "build_id": "20260921162633f8a0e5c9"
+        },
+        {
+            "date": "2026-09-21 11:02",
+            "type": "build",
+            "version": "1.4.0",
+            "note": "build",
+            "runtime": "dev-master (e528567)",
+            "build_id": "20260921110220499b17a9",
+            "count": 2
+        },
+        {
+            "date": "2026-09-19 22:26",
+            "type": "build",
+            "version": "1.4.0",
+            "note": "build",
+            "runtime": "dev-master (d7bc321)",
+            "build_id": "2026091922265592299f47",
+            "count": 7
+        },
+        {
+            "date": "2026-09-19 19:35",
+            "type": "build",
+            "version": "1.4.0",
+            "note": "build",
+            "runtime": "dev-master (83a7ec2)",
+            "build_id": "20260919193520b8660365",
+            "count": 15
+        },
+        {
+            "date": "2026-09-18 20:31",
+            "type": "build",
+            "version": "1.4.0",
+            "note": "build",
+            "runtime": "dev-master (3d633ed)",
+            "build_id": "202609182031183ca3bcda"
+        },
+        {
+            "date": "2026-09-18 18:07",
+            "type": "build",
+            "version": "1.4.0",
+            "note": "build",
+            "runtime": "dev-master (0fdf29c)",
+            "build_id": "20260918180704ed1c15fa",
+            "count": 2
+        },
+        {
+            "date": "2026-09-18 14:07",
+            "type": "build",
+            "version": "1.4.0",
+            "note": "build",
+            "runtime": "dev-master (9c5e060)",
+            "build_id": "2026091814074192059c6d",
+            "count": 3
+        },
+        {
+            "date": "2026-09-12 20:48",
+            "type": "build",
+            "version": "1.4.0",
+            "note": "build",
+            "runtime": "dev-master (4dd2927)",
+            "build_id": "20260912204816d91a6786"
+        },
+        {
+            "date": "2026-09-09 16:27",
+            "type": "version",
+            "version": "1.4.0",
+            "note": "MCP routing identity"
+        },
+        {
+            "date": "2026-09-09 16:27",
+            "type": "build",
+            "version": "1.3.0",
+            "note": "build",
+            "runtime": "dev-master (60cfcd7)",
+            "build_id": "202609091627339f74b744",
+            "count": 2
+        },
+        {
+            "date": "2026-09-09 11:27",
+            "type": "build",
+            "version": "1.3.0",
+            "note": "build",
+            "runtime": "dev-master (a073b68)",
+            "build_id": "2026090911270099412d65",
+            "count": 5
+        },
+        {
+            "date": "2026-09-07 22:13",
+            "type": "version",
+            "version": "1.3.0",
+            "note": "parallel test suites: per-worker cloned databases (DbTestCase)"
+        },
+        {
+            "date": "2026-09-07 21:56",
+            "type": "build",
+            "version": "1.2.0",
+            "note": "build",
+            "runtime": "dev-master (a073b68)",
+            "build_id": "2026090721563085fb90dd"
+        },
+        {
+            "date": "2026-09-06 10:03",
+            "type": "build",
+            "version": "1.2.0",
+            "note": "build",
+            "runtime": "dev-master (4c4c9fd)",
+            "build_id": "20260906100345fd80b9f9",
+            "count": 2
+        },
+        {
+            "date": "2026-09-06 09:46",
+            "type": "build",
+            "version": "1.2.0",
+            "note": "build",
+            "runtime": "dev-master (3191761)",
+            "build_id": "2026090609462590ad327f",
+            "count": 6
+        },
+        {
+            "date": "2026-08-29 11:08",
+            "type": "build",
+            "version": "1.2.0",
+            "note": "build",
+            "runtime": "dev-master (8befc1d)",
+            "build_id": "202608291108329121edd2"
+        },
+        {
+            "date": "2026-08-28 19:23",
+            "type": "build",
+            "version": "1.2.0",
+            "note": "build",
+            "runtime": "dev-master (c910cab)",
+            "build_id": "202608281923358fb2c472"
+        },
+        {
+            "date": "2026-08-28 10:14",
+            "type": "build",
+            "version": "1.2.0",
+            "note": "build",
+            "runtime": "dev-master (74070d5)",
+            "build_id": "202608281014051d7ec45b"
+        },
+        {
+            "date": "2026-08-28 09:58",
+            "type": "build",
+            "version": "1.2.0",
+            "note": "build",
+            "runtime": "dev-master (69a7c90)",
+            "build_id": "2026082809582097db2e36",
+            "count": 9
+        },
+        {
+            "date": "2026-08-11 21:02",
             "type": "build",
             "version": "1.2.0",
             "note": "build",
             "runtime": "dev-master (3d91587)",
-            "build_id": "202608111320581ba36564",
-            "count": 26
+            "build_id": "20260811210209eac54373",
+            "count": 27
         },
         {
             "date": "2026-07-31 11:33",
@@ -79,10 +237,15 @@
             "gtbot_backtest/mcp/POST",
             "gtbot_events/mcp/POST",
             "gtbot_decisions/mcp/POST",
+            "gtbot_routine_brief/mcp/POST",
             "gtbot_create_run/mcp/POST",
             "gtbot_start/mcp/POST",
             "gtbot_stop/mcp/POST",
-            "gtbot_kill/mcp/POST"
+            "gtbot_kill/mcp/POST",
+            "gtbot_retire_run/mcp/POST",
+            "gtbot_purge_run/mcp/POST",
+            "gtbot_budget/mcp/POST",
+            "gtbot_alloc_mode/mcp/POST"
         ]
     }
 }

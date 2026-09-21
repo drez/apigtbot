@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseMarketRegime;
 
-require 'om/BaseMarketRegime.php';
+require_once __DIR__ . '/om/BaseMarketRegime.php';
 
 
 /**

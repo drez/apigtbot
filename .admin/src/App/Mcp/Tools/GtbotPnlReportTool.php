@@ -14,7 +14,12 @@ class GtbotPnlReportTool extends AbstractGtbotBase
     public function description(): string
     {
         return 'Read-only PnL report for a grid run: realized PnL, fees and cycle count per day, '
-            . 'plus totals and per-level utilization. Defaults to the most recent non-Done run.';
+            . 'plus totals and per-level utilization. Defaults to the most recent non-Done run. wallet = whole-wallet '
+            . 'NAV over the window vs HODL (BTC) and USDT (never deployed) benchmarks + max drawdown (from wallet_nav, hourly). '
+            . 'episodes = the last 10 CLOSED regime episodes, fleet-wide (not per run), newest first: '
+            . '{symbol, verdict, opened, closed, price_open, price_close, engaged_pct_tw, samples, realized, mtm_close, '
+            . 'hodl_pct (the move over that same window), captured_pct = (realized + mtm) / (target slice x hodl move) x 100 — '
+            . '100 means the arm made what holding the whole slice would have; null when the episode closed lower than it opened}.';
     }
 
     public function inputSchema(): array
@@ -86,25 +91,22 @@ class GtbotPnlReportTool extends AbstractGtbotBase
             $cum = bcadd($cum, $d['realized_pnl'], 12);
             $equityCurve[$day] = $cum;
         }
+        // mark-to-market of what the CURRENT ledger era holds: filled buys
+        // minus every cycle since the epoch (NOT just the cycles inside the
+        // report window — that over-counted inventory by every cycle older
+        // than the window and printed thousands of phantom USDT)
         $unrealized = null;
         if ($run->getLastPrice()) {
-            $store = new \App\Domains\Bot\OrderStore((int) $run->getIdGridRun(), (string) $run->getRunUid(), null, $orderStoreSimulated);
-            $invested = $store->investedQuote();
-            $inv = '0';
-            foreach ($modeFilter(\App\BotOrderQuery::create()->filterByIdGridRun((int) $run->getIdGridRun()))->filterBySide('Buy')->filterByState('Filled')->find() as $o) {
-                $inv = bcadd($inv, (string) $o->getFilledQty(), 12);
-            }
-            foreach ($cycles as $c) {
-                $inv = bcsub($inv, (string) $c->getQty(), 12);
-            }
+            $store = new \App\Domains\Bot\OrderStore((int) $run->getIdGridRun(), (string) $run->getRunUid(), $run->getLedgerResetAt('Y-m-d H:i:s'), $orderStoreSimulated);
+            $inv = $store->trackedInventory();
             if (bccomp($inv, '0', 8) > 0) {
-                $unrealized = bcsub(bcmul($inv, (string) $run->getLastPrice(), 12), $invested, 12);
+                $unrealized = bcsub(bcmul($inv, (string) $run->getLastPrice(), 12), $store->investedQuote(), 12);
             } else {
                 $unrealized = '0';
             }
         }
         // decision track record (win rate of scored refits)
-        $verdicts = ['Win' => 0, 'Flat' => 0, 'Loss' => 0];
+        $verdicts = ['Win' => 0, 'Flat' => 0, 'Loss' => 0, 'Worse' => 0];
         foreach (\App\Domains\Bot\DecisionScorer::trackRecord((int) $run->getIdGridRun(), 50) as $d) {
             $verdicts[$d['verdict']] = ($verdicts[$d['verdict']] ?? 0) + 1;
         }
@@ -127,8 +129,16 @@ class GtbotPnlReportTool extends AbstractGtbotBase
                 'refit_decisions_scored' => $scoredTotal,
                 'refit_verdicts' => $verdicts,
                 'refit_win_rate_pct' => $scoredTotal ? round($verdicts['Win'] / $scoredTotal * 100, 1) : null,
+                'refit_worse_than_no_change' => $verdicts['Worse'],
             ],
             'equity_curve' => $equityCurve,
+            // wallet-level NAV vs the honest benchmarks (USDT = never deployed,
+            // HODL = held BTC) over the same window — from the wallet_nav ledger
+            'wallet' => \App\Domains\Bot\NavLedger::report($mode === 'real' || ($mode === '' && !$run->getSimulated()) ? 'real' : 'sim', $days),
+            // Fleet-wide, not per run: an episode is a SYMBOL's leg, and what
+            // it captured against simply holding is the honest scoreboard for
+            // the trend arm — the per-run cycle stats above cannot show it.
+            'episodes' => \App\Domains\Bot\RegimeEpisodes::recentClosed(10),
             'by_day' => $byDay,
             'cycles_per_level' => $byLevel,
         ]);

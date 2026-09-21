@@ -91,9 +91,57 @@ class TemplateForm extends Template
     public $formSaveBtn;
     public $formSaveBar;
     public $omMap;
+    /** getEditForm()/getList() field slots, keyed [Model][Column]['html']. */
+    public $fields = [];
+    public $fieldsRo = [];
+    /** Columns whose read-only markup gcBuildFieldRo() has already built (A43). */
+    public $gcFieldRoBuilt = [];
+    /** Sort-header restore JS, rebuilt per list query. */
+    public $orderReadyJsOrder = '';
 
         public $queryObjTemplateFile;
     public $listActionCellTemplateFile;
+    public $commentsIdTemplate;
+    public $commentsIdTemplate_css;
+    public $commentsName;
+    public $commentsName_css;
+    public $commentsSubject;
+    public $commentsSubject_css;
+    public $commentsColor1;
+    public $commentsColor1_css;
+    public $commentsColor2;
+    public $commentsColor2_css;
+    public $commentsColor3;
+    public $commentsColor3_css;
+    public $commentsStatus;
+    public $commentsStatus_css;
+    public $commentsBody;
+    public $commentsBody_css;
+    public $commentsFooter;
+    public $commentsFooter_css;
+    public $commentsLang;
+    public $commentsLang_css;
+    public $commentsDateCreation;
+    public $commentsDateCreation_css;
+    public $commentsDateModification;
+    public $commentsDateModification_css;
+    public $commentsIdGroupCreation;
+    public $commentsIdGroupCreation_css;
+    public $commentsIdCreation;
+    public $commentsIdCreation_css;
+    public $commentsIdModification;
+    public $commentsIdModification_css;
+    public $Template;
+    public $TemplateFile;
+    public $hookTemplateFileListTop;
+    public $hookTemplateFileListBottom;
+    public $hookTemplateFileTableFooter;
+    public $hookListReadyJsTemplateFile;
+    public $hookListReadyJsFirstTemplateFile;
+    public $commentsIdTemplateFile;
+    public $commentsIdTemplateFile_css;
+    public $commentsFile;
+    public $commentsFile_css;
 
 
     /**
@@ -133,7 +181,7 @@ class TemplateForm extends Template
 
         $q = new TemplateQuery();
         $q = $this->setAclFilter($q);
-        
+
 
         $q
             ;
@@ -148,41 +196,66 @@ class TemplateForm extends Template
 
             $q->filterByName($value, $criteria);
         }
-            
+
         }else{
             ## standard list
-            
-        }
-        
 
-        
+        }
+
+
+
+            $this->orderReadyJsOrder = '';
             if(!empty($this->searchOrder)){
                 $f=0;
                 foreach($this->searchOrder as $order){
                     foreach($order as $col => $sens){
                         if($sens){
                             $tOrd = explode('.',$col);
-                            if($tOrd[1]){
+                            # The ordering comes from the session (setOrderVar keeps
+                            # whatever the client last clicked, and a session can outlive
+                            # a renamed/removed column or be seeded by another list).
+                            # Propel throws on a column it cannot resolve, which turned a
+                            # stale sort key into a 500 on the whole list — fall back to
+                            # the model's default order instead, and forget the key so the
+                            # next request is clean.
+                            $gcOrdApplied = true;
+                            try {
+                            if(!empty($tOrd[1])){
                                 $q->join($tOrd[0]." order".$f);
                                 $orderBy = "use".$tOrd[0]."Query";
                                 $q->$orderBy("order".$f, 'left join')->orderBy($tOrd[1], $sens)->endUse();
                             }else{
                                 $q->orderBy($col,$sens);
                             }
+                            } catch (\Exception $gcOrdEx) {
+                                $gcOrdApplied = false;
+                                error_log('list order: dropping unresolvable column ' . (string) $col
+                                    . ' on Template — ' . $gcOrdEx->getMessage());
+                                unset($_SESSION['mem']['order']['Template/'],
+                                    $_SESSION['mem']['order']['Template/child']);
+                            }
+                            if($gcOrdApplied){
+                            # C8: $col / $sens come from the session (setOrderVar), so they
+                            # are never interpolated raw into the JS source. JSON_HEX_* keeps
+                            # quotes/tags/ampersands out of the surrounding <script> and the
+                            # attribute selector is composed client-side from the JSON value.
+                            $gcOrdCol = json_encode((string) $col, JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP);
+                            $gcOrdSens = json_encode(strtolower((string) $sens), JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP);
                             $this->orderReadyJsOrder .="
-                                var __se=document.querySelector(\"#TemplateListForm [th='sorted'][c='".$col."']\");if(__se){__se.setAttribute('sens', '".strtolower($sens)."');__se.setAttribute('order','on');__se.classList.add('sorted');}
+                                (function(){var __c=".$gcOrdCol.",__s=".$gcOrdSens.";var __se=document.querySelector(\"#TemplateListForm [th='sorted'][c=\"+JSON.stringify(__c)+\"]\");if(__se){__se.setAttribute('sens', __s);__se.setAttribute('order','on');__se.classList.add('sorted');}})();
                             ";
+                            }
                         }
                         $f++;
                     }
                 }
             }
-            
-        
-        
+
+
+
 
         $this->pmpoData = $q;
-        
+
 
         return $this->pmpoData;
     }
@@ -213,29 +286,26 @@ class TemplateForm extends Template
 
             case 'list-button':
                 $listButton = '';
-                
-                
+
+
                 return $listButton;
 
             case 'search':
-                
-                $data = [];
-                $data['Name'] = ( !empty( $this->searchMs['Name'])) ? $this->searchMs['Name']:'';
-            
+
+
 
                 $trSearch = ''
-                .form(div(div(input('text', 'Name', $this->searchMs['Name'], '  title="'._('Name').'" placeholder="'._('Search').' '._('Name').'"',''),'','class="ac-search-item"'), '', " class='va-mob-search-inline' ").$this->hookListSearchTop.div(
+                .form(div(div(input('text', 'Name', $this->searchMs['Name'] ?? '', '  title="'._('Name').'" placeholder="'._('Search').' '._('Name').'"',''),'','class="ac-search-item"'), '', " class='va-mob-search-inline' ").$this->hookListSearchTop.div(
                            button(span(_("Search")),'id="msTemplateBt" title="'._('Search').'" class="icon search"')
                            .button(span(_("Clear")),' title="'._('Clear search').'" id="msTemplateBtClear"')
-                           .input('hidden', 'Seq', $data['Seq'] )
                         ,'','class="ac-search-item ac-action-buttons"')
-                ,"id='formMsTemplate' class='va-mob-searchform' data-entity='Template'");;
+                ,"id='formMsTemplate' class='va-mob-searchform' data-entity='Template'");
                 return $trSearch;
 
             case 'add':
             ###### ADD
-                 if($_SESSION[_AUTH_VAR]->hasRights('Template', 'a') && !$this->setReadOnly){
-                
+                if($_SESSION[_AUTH_VAR]->hasRights('Template', 'a') && !$this->setReadOnly){
+
                                 $this->listAddButton = htmlLink(
                                     _("Add new")
                                 ,_SITE_URL.$this->virtualClassName."/edit/", "id='addTemplate' title='"._('Add')."' class='button-link-blue add-button'");
@@ -268,7 +338,10 @@ class TemplateForm extends Template
         $this->in = 'getList';
         $this->isChild = '';
         $this->TableName = 'Template';
-        $altValue = array (
+        # A11: the per-row reset below restores this seed instead of nulling
+        # $altValue — every `($altValue['X'] !== null) ? … : …` cell read from
+        # row 2 on was an array offset on null (one warning per cell per row).
+        $__altValueInit = array (
   'IdTemplate' => NULL,
   'Name' => NULL,
   'Subject' => NULL,
@@ -285,14 +358,16 @@ class TemplateForm extends Template
   'IdCreation' => NULL,
   'IdModification' => NULL,
 );
+        $altValue = $__altValueInit;
         $tr = '';
         $trDt = '';
-        $hook = [];
+        $hook = ['class' => ''];
+        $this->orderReadyJsOrder = '';
         $editEvent = '';
         $return = ['html' => '', 'js' => '', 'onReadyJs' => ''];
         $cCmoreCols = '';
 
-        
+
 
         // SECURITY (review H7): uiTabsId comes from request['ui'] and is reflected
         // raw into the list container's data-ui attribute and into the quick-add
@@ -301,22 +376,40 @@ class TemplateForm extends Template
         $uiTabsId = preg_replace('/[^A-Za-z0-9_]/', '', (string) $uiTabsId);
         $this->uiTabsId = $uiTabsId;
 
-        
+
         $this->IdParent = $IdParent;
         // Child-tab / nested list: mark context for behaviors that branch on isChild.
         if ($IdParent !== null && $IdParent !== '') {
             $this->isChild = 'Template';
         }
 
+        // A22: list session key for search / order / page. $childTableName is
+        // always empty in the unified getList(), so the standalone list and every
+        // parent-scoped (child-tab) render used to share ONE key and therefore one
+        // page/sort/search state. Standalone keeps the historic '<Table>/' key;
+        // parent-scoped renders get '<Table>/child'. NOT keyed per parent id:
+        // FormHelper stores these keys unbounded, so one entry per visited parent
+        // would grow the session forever — instead the stored page is dropped when
+        // the parent id changes (search/sort intentionally carry over, matching the
+        // pre-existing '<Parent>/<Child>' desktop child-list behaviour).
+        $gcListKey = 'Template/';
+        if ($IdParent !== null && $IdParent !== '') {
+            $gcListKey = 'Template/child';
+            if (($_SESSION['mem']['ip'][$gcListKey] ?? null) !== (string) $IdParent) {
+                $_SESSION['mem']['ip'][$gcListKey] = (string) $IdParent;
+                unset($_SESSION['mem']['page'][$gcListKey]);
+            }
+        }
+
         // if Search params
-        $this->searchMs = $this->setSearchVar($request['ms'] ?? '', 'Template/');
+        $this->searchMs = $this->setSearchVar($request['ms'] ?? '', $gcListKey);
 
         // Guideline filter chips (built from the first ENUM search col).
         $trChips = '';
-        
+
 
         // order
-        $this->searchOrder = $this->setOrderVar($request['order'] ?? '', 'Template/');
+        $this->searchOrder = $this->setOrderVar($request['order'] ?? '', $gcListKey);
 
         // Clear-sort affordances (chip strip + sort-sheet row), rendered only
         // while the session carries a user ordering for this list. Both carry
@@ -324,24 +417,24 @@ class TemplateForm extends Template
         // sort handler; the server drops the whole stored ordering on '*'.
         $gcSortClear = '';
         $gcSortSheetClear = '';
-        if (!empty($_SESSION['mem']['order']['Template/'])) {
+        if (!empty($_SESSION['mem']['order'][$gcListKey])) {
             $gcSortClear = div(button("<i class='ri-sort-desc'></i>"._('Sorted')."<span class='cl-active-filter-x' aria-hidden='true'>×</span>", " type='button' th='sorted' c='*' class='cl-active-filter cl-sort-clear' "), '', " class='va-mob-sortclear' ");
             $gcSortSheetClear = button("<i class='ri-arrow-go-back-line'></i> "._('Default order'), " type='button' th='sorted' c='*' class='va-mob-sortrow va-mob-sortrow-clear' ");
         }
 
         // page
-        $search['page'] = $this->setPageVar($request['pg'] ?? '', 'Template/');
+        $search['page'] = $this->setPageVar($request['pg'] ?? '', $gcListKey);
 
-        
-        
+
+
         $default_order[]['DateCreation']='DESC';
         if(empty($this->searchOrder)){
             $this->searchOrder = $default_order;
         }
-        
-        
-        
-        
+
+
+
+
 
         // Parent-scoped lists use the child pager size (same as former inlined getChildList).
         $maxPerPage = ($IdParent !== null && $IdParent !== '') ? $this->childMaxPerPage : $this->maxPerPage;
@@ -352,6 +445,7 @@ class TemplateForm extends Template
         $resultsCount = 0;
         if(empty($pmpoDataIn)) {
             $pmpoData = $this->getListSearch($IdParent, $search);
+
             $pmpoData = $pmpoData->paginate($search['page'], $maxPerPage);
             $resultsCount = $pmpoData->getNbResults();
 
@@ -377,64 +471,55 @@ class TemplateForm extends Template
             /**
             *	Main list loop
             **/
-            
+
             $i=0;
             $gcGroupCol = 'Name';
             $gcGroupNorm = function($s){ return strtolower(preg_replace('/[^a-z0-9]/i','', (string) $s)); };
             $gcGroupKey = $gcGroupNorm($gcGroupCol);
-            // Use the RAW request order, not the resolved $this->searchOrder
-            // (getListSearch mutates the latter). Empty => default landing
-            // view => list is in its default (name) order => group A–Z, as
-            // the guideline screenshots show. A user sort only keeps the
-            // headers when it is the name column ascending.
-            $gcReqOrder = $request['order'] ?? '';
+            // $this->searchOrder is the ordering this list actually runs with: the
+            // session ordering for this list, or the schema default ($default_order,
+            // resolved just above) when the session carries none. A table that
+            // declares NO default order leaves it empty — the query emits no ORDER BY,
+            // so the list is NOT name-ordered and gets no headers. Only the first
+            // entry with a truthy sens decides (that is the primary sort column that
+            // getListSearch() applies); direction-agnostic, since a Z→A sort groups
+            // just as well as A→Z. Compared on the NORMALISED FULL column name so a
+            // dotted FK label ('Product.Name') matches its own sort key.
+            // Child-context lists (IdParent set) never letter-group: their order is
+            // the child ranking/FK order, not the name column.
             $gcGroupOn = false;
-            // Child-context lists (IdParent set) never letter-group: their
-            // default order is the child ranking/FK order, not the name
-            // column, so the empty-order assumption below doesn't hold and
-            // the letters render as stray one-letter rows in the drawer.
-            if (empty($IdParent)) {
-                if ($gcReqOrder === '' || $gcReqOrder === null) {
-                    $gcGroupOn = false;
-                } else {
-                    $gcOd = is_array($gcReqOrder) ? $gcReqOrder : json_decode((string) $gcReqOrder, true);
-                    if (is_array($gcOd) && isset($gcOd['col'])) {
-                        $gcFc = (string) $gcOd['col'];
-                        if (strpos($gcFc, '.') !== false) { $gcParts = explode('.', $gcFc); $gcFc = end($gcParts); }
-                        $gcSens = strtolower((string) ($gcOd['sens'] ?? ''));
-                        if ($gcGroupNorm($gcFc) === $gcGroupKey && $gcSens !== 'desc') { $gcGroupOn = true; }
+            if (empty($IdParent) && is_array($this->searchOrder)) {
+                foreach ($this->searchOrder as $gcOrdEntry) {
+                    if (!is_array($gcOrdEntry)) { continue; }
+                    foreach ($gcOrdEntry as $gcOrdCol => $gcOrdSens) {
+                        if (!$gcOrdSens) { continue; }
+                        $gcGroupOn = ($gcGroupNorm($gcOrdCol) === $gcGroupKey);
+                        break 2;
                     }
                 }
             }
             $gcGroupLetter = null;
-            
+
             if(!$this->setReadOnly && !$this->setListRemoveDelete){
                 if($_SESSION[_AUTH_VAR]->hasRights('Template', 'd')){
                     $this->canDelete = htmlLink("<i class='ri-delete-bin-7-line'></i>", "Javascript:", "class='ac-delete-link' j='deleteTemplate' ");
                 }
             }
-        
+
             $gcListRows = [];
             $gcListRowsDt = [];
             foreach($pcData as $data) {
-                if ($gcGroupOn) {
-                    $gcVal = (string) ((($altValue['Name'] !== null ) ? $altValue['Name'] : $data->getName()));
-                    $gcL = mb_strtoupper(mb_substr(trim($gcVal), 0, 1));
-                    if ($gcL !== '' && $gcL !== $gcGroupLetter) {
-                        $gcGroupLetter = $gcL;
-                        $tr .= div(htmlspecialchars($gcL), '', " class='va-mob-sect-head' ");
-                    }
-                }
                 # hoist the row PK encodings once — reused by the mobile + desktop row wrappers below
                 $__pkJsonEsc = htmlspecialchars(json_encode($data->getPrimaryKey()), ENT_QUOTES);
                 $__pkEsc = htmlspecialchars((string)$data->getPrimaryKey(), ENT_QUOTES);
                 $this->listActionCell = '';
-                
-                
-                
-                
 
-                $actionCell =  td($this->canDelete . $this->listActionCell, " class='actionrow' ");
+
+
+
+
+                $actionInner = '' . $this->canDelete . $this->listActionCell;
+                $actionCell =  td($actionInner, " class='actionrow' ");
 
                 $gcRowHtml = div(
  ''
@@ -443,8 +528,8 @@ class TemplateForm extends Template
    . div(''  . span(htmlspecialchars((string)((($altValue['Subject'] !== null ) ? $altValue['Subject'] : $data->getSubject())))." ", "   i='" . $__pkJsonEsc . "' c='Subject' class=''  j='editTemplate'") . span(htmlspecialchars((string)((($altValue['Status'] !== null ) ? $altValue['Status'] : isntPo($data->getStatus()))))." ", "   i='" . $__pkJsonEsc . "' c='Status' class='center'  j='editTemplate'") . span(htmlspecialchars((string)((($altValue['Lang'] !== null ) ? $altValue['Lang'] : isntPo($data->getLang()))))." ", "   i='" . $__pkJsonEsc . "' c='Lang' class='center'  j='editTemplate'") . $cCmoreCols ,''," class='meta' ")
  ,'', " class='body' ")
 . div('' . '<i class="ri-arrow-right-s-line chev"></i>',''," class='trail' ")
-. $actionCell
-                , '', " 
+. div($actionInner, '', " class='actionrow' ")
+                , '', "
                         rid='".$__pkJsonEsc."' data-iterator='".$pcData->getPosition()."'
                         r='data'
                         class='va-mob-row ".$hook['class']." '
@@ -455,25 +540,37 @@ class TemplateForm extends Template
                 td(span(htmlspecialchars((string)((($altValue['Subject'] !== null ) ? $altValue['Subject'] : $data->getSubject())))." "), "  i='" . $__pkJsonEsc . "' c='Subject' class=''  j='editTemplate'") .
                 td(span(htmlspecialchars((string)((($altValue['Status'] !== null ) ? $altValue['Status'] : isntPo($data->getStatus()))))." "), "  i='" . $__pkJsonEsc . "' c='Status' class='center'  j='editTemplate'") .
                 td(span(htmlspecialchars((string)((($altValue['Lang'] !== null ) ? $altValue['Lang'] : isntPo($data->getLang()))))." "), "  i='" . $__pkJsonEsc . "' c='Lang' class='center'  j='editTemplate'") .  $actionCell, "  rid='".$__pkJsonEsc."' data-iterator='".$pcData->getPosition()."' r='data' class='va-dt-row ".$hook['class']." ' id='TemplateDtRow".$__pkEsc."'");
-                
+
+                # A10: the letter header reads $this->listCardNameVar, which for an
+                # FK-labelled list is a local ($<Rel>_Name) or an $altValue key the
+                # row body above assigns — so it is pushed here, after the body ran
+                # and before the row itself, keeping header→row order.
+
+                if ($gcGroupOn) {
+                    $gcVal = (string) ((($altValue['Name'] !== null ) ? $altValue['Name'] : $data->getName()));
+                    $gcL = mb_strtoupper(mb_substr(trim($gcVal), 0, 1));
+                    if ($gcL !== '' && $gcL !== $gcGroupLetter) {
+                        $gcGroupLetter = $gcL;
+                        $gcListRows[] = div(htmlspecialchars($gcL), '', " class='va-mob-sect-head' ");
+                    }
+                }
                 $gcListRows[] = $gcRowHtml;
                 $gcListRowsDt[] = $gcDtRowHtml;
 
                 $i++;
-                $altValue = null;
+                $altValue = $__altValueInit;
             }
             $tr .= implode('', $gcListRows);
             $trDt .= implode('', $gcListRowsDt);
             $tr .= input('hidden', 'rowCountTemplate', $i);
-        }
 
-        
+        }
 
         ## @Paging
         $pagerRow = $this->getPager($pmpoData, $resultsCount, $search);
         $bottomRow = div($pagerRow,'bottomPagerRow', "class='tablesorter'");
 
-        
+
 
         $controlsContent = $this->getListHeader('list-button');
 
@@ -483,11 +580,11 @@ class TemplateForm extends Template
                 div(
                     href(span(_('Open/close menu')),'javascript:','class="toggle-menu button-link-blue trigger-menu"')
                     .$this->getListHeader('add')
-                    
+
                 ,'','class="default-controls"')
                 .div($controlsContent,'TemplateControlsList', "class='custom-controls'")
                 .$this->hookSwHeader.$HelpDiv
-                
+
             ,'','class="sw-header"')
 
             /*.div(
@@ -531,23 +628,23 @@ class TemplateForm extends Template
                 ,'listForm',' class="ac-list" ')
                 .$this->hookListBottom
                 .$bottomRow
-            , 'TemplateListForm', " class='va-mob proto-app' data-model='Template' data-table='Template' data-ui='".$this->uiTabsId."' ");
+            , 'TemplateListForm', " class='va-mob proto-app' data-model='Template' data-table='Template' data-gc-db='template' data-ui='".$this->uiTabsId."' ");
 
-        
+
 
 
 
         $return['onReadyJs'] =
             $HelpDivJs
-            
+
             ."
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         (function(){var r=document.getElementById('tabsContain');if(r&&window.gcSelectBox){gcSelectBox.bindWithin(r);}})();
         ".$this->hookListReadyJsFirst.$editEvent."
         var __ab=document.getElementById('addTemplateAutoc');
@@ -557,12 +654,12 @@ class TemplateForm extends Template
                 fetch('"._SITE_URL."GuiManager',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','X-Requested-With':'XMLHttpRequest'},body:__b.toString()}).then(function(){document.location='"._SITE_URL.$this->virtualClassName."/edit/';});
             });
         }
-        
-        
+
+
         ".$this->orderReadyJsOrder."
         ".$this->hookListReadyJs;
-        
-        $return['js'] .= script("". $this->hookListJs);
+
+        $return['js'] .= script($this->hookListJs);
         return $return;
     }
     /*
@@ -579,32 +676,24 @@ class TemplateForm extends Template
             $data['Status'] = 'Active';
         }
         if( $data['Lang'] == '' )unset($data['Lang']);
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
         #
 
-        //integer not required
+        //varchar not required
         $e->setSubject( ($data['Subject'] == '' ) ? null : $data['Subject']);
-        //integer not required
+        //varchar not required
         $e->setColor1( ($data['Color1'] == '' ) ? null : $data['Color1']);
-        //integer not required
+        //varchar not required
         $e->setColor2( ($data['Color2'] == '' ) ? null : $data['Color2']);
-        //integer not required
+        //varchar not required
         $e->setColor3( ($data['Color3'] == '' ) ? null : $data['Color3']);
-        //integer not required
+        //longvarchar not required
         $e->setBody( ($data['Body'] == '' ) ? null : $data['Body']);
-        //integer not required
+        //longvarchar not required
         $e->setFooter( ($data['Footer'] == '' ) ? null : $data['Footer']);
         $e->setLang(($data['Lang'] == '' ) ? null : $data['Lang']);
-        $e->setDateCreation( ($data['DateCreation'] == '' || $data['DateCreation'] == 'null' || substr($data['DateCreation'],0,10) == '-0001-11-30') ? null : $data['DateCreation'] );
-        $e->setDateModification( ($data['DateModification'] == '' || $data['DateModification'] == 'null' || substr($data['DateModification'],0,10) == '-0001-11-30') ? null : $data['DateModification'] );
-        //foreign
-        $e->setIdGroupCreation(( $data['IdGroupCreation'] == '' ) ? null : $data['IdGroupCreation']);
-        //foreign
-        $e->setIdCreation(( $data['IdCreation'] == '' ) ? null : $data['IdCreation']);
-        //foreign
-        $e->setIdModification(( $data['IdModification'] == '' ) ? null : $data['IdModification']);
         #
 
         return $e;
@@ -625,7 +714,7 @@ class TemplateForm extends Template
             $data['Status'] = 'Active';
         }
         if( $data['Lang'] == '' )unset($data['Lang']);
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
 
@@ -651,21 +740,6 @@ class TemplateForm extends Template
         if(isset($data['Lang'])){
             $e->setLang(($data['Lang'] == '' ) ? null : $data['Lang']);
         }
-        if(isset($data['DateCreation'])){
-            $e->setDateCreation( ($data['DateCreation'] == '' || $data['DateCreation'] == 'null' || substr($data['DateCreation'],0,10) == '-0001-11-30') ? null : $data['DateCreation'] );
-        }
-        if(isset($data['DateModification'])){
-            $e->setDateModification( ($data['DateModification'] == '' || $data['DateModification'] == 'null' || substr($data['DateModification'],0,10) == '-0001-11-30') ? null : $data['DateModification'] );
-        }
-        if( isset($data['IdGroupCreation']) ){
-            $e->setIdGroupCreation(( $data['IdGroupCreation'] == '' ) ? null : $data['IdGroupCreation']);
-        }
-        if( isset($data['IdCreation']) ){
-            $e->setIdCreation(( $data['IdCreation'] == '' ) ? null : $data['IdCreation']);
-        }
-        if( isset($data['IdModification']) ){
-            $e->setIdModification(( $data['IdModification'] == '' ) ? null : $data['IdModification']);
-        }
         $e->setNew(false);
         return $e;
     }
@@ -686,14 +760,11 @@ class TemplateForm extends Template
 
         $HelpDivJs = '';
         $HelpDiv = '';
-        $childTable = [];
+        $childTable = ['html' => '', 'js' => '', 'onReadyJs' => ''];
         $script_autoc_one = '';
         $ongletf = '';
         $mceInclude = '';
-        $ip_save = '';
-        $ip_save = '';
         $IdParent = 0;
-        $editDialog = ( $data['dialog'] ) ? $data['dialog'] : 'editDialog';
         $uiTabsId = ( $uiTabsId === null ) ? 'tabsContain' : $uiTabsId;
         $jet = 'tr';
 
@@ -707,13 +778,13 @@ class TemplateForm extends Template
             $jet = $jsElementType;
         }
 
-        if($data['data']['ip']){
+        if(!empty($data['data']['ip'])){
             $data['ip'] = $data['data']['ip'];
-            $data['pc'] = $data['data']['pc'];
-            $data['tp'] = $data['data']['tp'];
+            $data['pc'] = $data['data']['pc'] ?? '';
+            $data['tp'] = $data['data']['tp'] ?? '';
         }
 
-        if($data['pc']) {
+        if(!empty($data['pc'])) {
             switch($data['pc']){
 
                 case 'AuthyGroup':
@@ -740,12 +811,12 @@ class TemplateForm extends Template
         $this->SaveButtonJs = "";
 
         if($_SESSION[_AUTH_VAR]->hasRights('Template', 'a') && !$this->setReadOnly) {
-            $this->formAddButton = htmlLink(_("Add new"), 'Javascript:;' , "id='addTemplate' title='"._('Add')."' class='button-link-blue add-button'");
+            $this->formAddButton = htmlLink(_("Add new"), 'Javascript:;' , "id='addTemplateForm' title='"._('Add')."' class='button-link-blue add-button'");
             $this->bindEditJs = "";
-                if ($this->formAddButton) { $this->formAddButton = str_replace("add-button'", "add-button' data-gc-add='".$this->virtualClassName."' data-gc-ip='".($IdParent ?: '')."'", $this->formAddButton); }
+                if ($this->formAddButton) { $this->formAddButton = str_replace("add-button'", "add-button' data-gc-add='".$this->virtualClassName."' data-gc-ip='".htmlspecialchars((string) ($IdParent ?: ''), ENT_QUOTES)."'", $this->formAddButton); }
         }
 
-        if($id && !$data['reload']) {
+        if($id && empty($data['reload'])) {
 
 
             $q = TemplateQuery::create()
@@ -814,6 +885,7 @@ $this->fields['Template']['Lang']['html'] = stdFieldRow(_("Language"), selectbox
 
 
 
+        $ChildOnglet = '';
         if( !isset($this->Template['request']['ChildHide']) ) {
 
             # define child lists 'File'
@@ -889,6 +961,13 @@ $this->fields['Template']['Lang']['html'] = stdFieldRow(_("Language"), selectbox
                             .$this->hookListSearchButton
                         ,""," class='form-savehidden' ");
         }
+        // add_hooks: afterFormObj (always emitted — the stub lives in the FormWrapper)
+        if (method_exists($this, 'afterFormObj')) { $this->afterFormObj($data, $dataObj); }
+        $gcFirstTabActive = true;
+        if (!empty($this->formCustomTabs)) {
+            throw new \LogicException('Template: addFormTab() needs add_tab_columns (without add_field_groups) on the table — there is no tab strip to put the tab in');
+        }
+
 
 
 
@@ -953,9 +1032,6 @@ $this->fields['Template']['Lang']['html'] = stdFieldRow(_("Language"), selectbox
                         href('<i class="ri-arrow-left-s-line"></i>'._('Template'), _SITE_URL.'Template', "class='nav-btn'")
                         .div(
                             span(_('Template'), "class='nav-title-type'")
-                            .(isset($_gcNameVal) && trim((string)$_gcNameVal) !== ''
-                                ? span(htmlspecialchars($_gcNameVal), "class='nav-title-name'")
-                                : '')
                         , '', "class='nav-title'")
                         .$this->formSaveBtn
                         .href('<i class="ri-close-line"></i>', _SITE_URL.'Template', "class='nav-btn nav-close' title='"._('Close')."' aria-label='"._('Close')."'")
@@ -996,10 +1072,10 @@ $this->fields['Template']['Name']['html']
         // first tab active by default; the stale session ['ogf'] value is inert.
         $tabs_act = '';
 
-        if($_SESSION['mem']['Template']['ixmemautocapp'] and $_GET['Autocapp'] == 1) {
-            $Autocapp = $_SESSION['mem']['Template']['ixmemautocapp'];
-            unset($_SESSION['mem']['Template']['ixmemautocapp']);
-        }
+        // The ['ixmemautocapp'] restore block is gone: nothing in the emitter,
+        // the runtime or the template ever writes that session key, so the
+        // condition was dead — and with it an unguarded $_GET['Autocapp'] read
+        // (a warning on every form render) and an $Autocapp local nothing read.
 
         $return['js'] .= $childTable['js']
         . script($this->hookFormIncludeJs) ."
@@ -1013,7 +1089,7 @@ $this->fields['Template']['Name']['html']
         ".$this->SaveButtonJs."
 
         ".$childTable['onReadyJs']."
-        ".$error['onReadyJs']."
+        ".($error['onReadyJs'] ?? '')."
         ".$tabs_act."
         ".$this->hookFormReadyJs
         .$script_autoc_one
@@ -1027,43 +1103,69 @@ $this->fields['Template']['Name']['html']
 
     function lockFormField($fields, $dataObj)
     {
+        if($fields === 'all') {
+            $fields = array_keys($this->fields['Template']);
+        } elseif(!is_array($fields)) {
+            return;
+        }
+        foreach($fields as $field) {
+            if(!isset($this->gcFieldRoBuilt[$field])) {
+                $this->gcFieldRoBuilt[$field] = true;
+                $this->gcBuildFieldRo($field, $dataObj);
+            }
+            $this->fields['Template'][$field]['html'] = $this->fieldsRo['Template'][$field]['html'] ?? '';
+        }
+    }
 
+    /** Build ONE column's read-only markup into $this->fieldsRo (A43). */
+    private function gcBuildFieldRo($field, $dataObj)
+    {
+        switch($field) {
+            case 'Name':
         $this->fieldsRo['Template']['Name']['html'] = stdFieldRow(_("Name"), div( htmlspecialchars((string)($dataObj->getName()), ENT_QUOTES), 'Name_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Name', $dataObj->getName(), "s='d'"), 'Name', "", $this->commentsName, $this->commentsName_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Subject':
         $this->fieldsRo['Template']['Subject']['html'] = stdFieldRow(_("Subject"), div( htmlspecialchars((string)($dataObj->getSubject()), ENT_QUOTES), 'Subject_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Subject', $dataObj->getSubject(), "s='d'"), 'Subject', "", $this->commentsSubject, $this->commentsSubject_css, 'readonly', ' ', 'no', 'v2');
 
+            break;
+            case 'Color1':
         $this->fieldsRo['Template']['Color1']['html'] = stdFieldRow(_("Color 1"), div( htmlspecialchars((string)($dataObj->getColor1()), ENT_QUOTES), 'Color1_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Color1', $dataObj->getColor1(), "s='d'"), 'Color1', "", $this->commentsColor1, $this->commentsColor1_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Color2':
         $this->fieldsRo['Template']['Color2']['html'] = stdFieldRow(_("Color 2"), div( htmlspecialchars((string)($dataObj->getColor2()), ENT_QUOTES), 'Color2_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Color2', $dataObj->getColor2(), "s='d'"), 'Color2', "", $this->commentsColor2, $this->commentsColor2_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Color3':
         $this->fieldsRo['Template']['Color3']['html'] = stdFieldRow(_("Color 3"), div( htmlspecialchars((string)($dataObj->getColor3()), ENT_QUOTES), 'Color3_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Color3', $dataObj->getColor3(), "s='d'"), 'Color3', "", $this->commentsColor3, $this->commentsColor3_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Status':
         $this->fieldsRo['Template']['Status']['html'] = stdFieldRow(_("Status"), div( htmlspecialchars((string)($dataObj->getStatus()), ENT_QUOTES), 'Status_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Status', $dataObj->getStatus(), "s='d'"), 'Status', "", $this->commentsStatus, $this->commentsStatus_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Body':
         $this->fieldsRo['Template']['Body']['html'] = stdFieldRow(_("Body"), div( htmlspecialchars((string)($dataObj->getBody()), ENT_QUOTES), 'Body_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Body', $dataObj->getBody(), "s='d'"), 'Body', "", $this->commentsBody, $this->commentsBody_css, 'readonly', ' ', 'no', 'v2');
 
+            break;
+            case 'Footer':
         $this->fieldsRo['Template']['Footer']['html'] = stdFieldRow(_("Footer"), div( htmlspecialchars((string)($dataObj->getFooter()), ENT_QUOTES), 'Footer_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Footer', $dataObj->getFooter(), "s='d'"), 'Footer', "", $this->commentsFooter, $this->commentsFooter_css, 'readonly', ' ', 'no', 'v2');
 
+            break;
+            case 'Lang':
         $this->fieldsRo['Template']['Lang']['html'] = stdFieldRow(_("Language"), div( htmlspecialchars((string)($dataObj->getLang()), ENT_QUOTES), 'Lang_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Lang', $dataObj->getLang(), "s='d'"), 'Lang', "", $this->commentsLang, $this->commentsLang_css, 'readonly half', ' ', 'no', 'v2');
 
-
-        if($fields == 'all') {
-            foreach($this->fields['Template'] as $field => $ar) {
-                $this->fields['Template'][$field]['html'] = $this->fieldsRo['Template'][$field]['html'];
-            }
-        } elseif(is_array($fields)) {
-            foreach($fields as $field) {
-                $this->fields['Template'][$field]['html'] = $this->fieldsRo['Template'][$field]['html'];
-            }
+            break;
         }
     }
     /**

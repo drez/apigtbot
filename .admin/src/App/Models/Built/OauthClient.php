@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseOauthClient;
 
-require 'om/BaseOauthClient.php';
+require_once __DIR__ . '/om/BaseOauthClient.php';
 
 
 /**

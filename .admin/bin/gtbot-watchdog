@@ -13,7 +13,10 @@
  *               systemd needed; a concurrent systemd unit is harmless, the
  *               per-run MySQL GET_LOCK makes the loser exit). Crash-loop
  *               guard: after 3 spawns in 15 min it stops spawning and
- *               Telegram-alerts instead (rate-limited to one per run / 30 min)
+ *               Telegram-alerts instead (rate-limited to one per run / 30 min).
+ *               Then a SECOND sweep (DarkArmSweep) over the runs the first one
+ *               ignores — parked or killed — alerting on silence that nothing
+ *               in the run's audit/event history explains
  *   --test      send a test message to the configured chat and exit
  *   --discover  list chat ids seen by the bot (message the bot first)
  */
@@ -70,9 +73,20 @@ $_SESSION[_AUTH_VAR] = new \ApiGoat\Sessions\AuthySession();
 $staleAfter = max(30, (int) env('GTBOT_HEARTBEAT_STALE', '60'));      // seconds
 $realertAfter = 30 * 60;                                              // per-run alert throttle
 
+// Retiring is supervised like any trading run: it still needs a daemon to work
+// its exits, and without one it would sit holding coins forever.
 $runs = \App\GridRunQuery::create()
-    ->filterByStatus(['Testnet', 'Live'], \Criteria::IN)
+    ->filterByStatus(['Testnet', 'Live', 'Retiring'], \Criteria::IN)
     ->find();
+
+// Finalize sweep: a Retiring run that has gone flat archives itself here, so it
+// does not depend on its own daemon noticing before it exits.
+foreach (\App\GridRunQuery::create()->filterByStatus('Retiring')->find() as $retiring) {
+    $done = \App\Domains\Bot\RunLifecycle::finalize($retiring);
+    if ($done['ok']) {
+        echo sprintf("run %d archived — retiring and now flat\n", (int) $retiring->getIdGridRun());
+    }
+}
 foreach ($runs as $run) {
     $runId = (int) $run->getIdGridRun();
     $last = $run->getLastTickAt('U');
@@ -151,6 +165,20 @@ foreach ($runs as $run) {
     $log = new \App\Domains\Bot\EventLog($runId, false, $notifier);
     $log->write('Alert', 'watchdog_stale', $msg);
     echo "alerted: $msg\n";
+}
+
+// Dark-arm sweep: the loop above only supervises runs that are SUPPOSED to be
+// trading, and it deliberately stays quiet about a killed one. So a run parked
+// by accident — status left Halted after an intervention, kill switch never
+// cleared — is indistinguishable from one parked on purpose, and its slice sits
+// out of the fleet unnoticed (run 7, killed 08-21, stranded for days). Ask the
+// run's own history instead: grid_run_audit + the lifecycle events. Unexplained
+// silence alerts once per 6 h; DarkArmSweep builds the per-run EventLog with
+// this same Telegram notifier (fromEnv), which is already proven configured
+// above.
+$darkAfter = max(60, (int) env('GTBOT_ARM_DARK_ALERT', '3600'));    // seconds
+foreach (\App\Domains\Bot\DarkArmSweep::run($darkAfter) as $dark) {
+    echo 'alerted: ' . $dark['message'] . "\n";
 }
 
 // Routine liveness: the refit brain calls gtbot_* MCP tools on every pass

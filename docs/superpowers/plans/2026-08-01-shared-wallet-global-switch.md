@@ -702,7 +702,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ### Task 7: Deploy + migrate (ORCHESTRATOR ONLY — not a subagent task)
 
 - [ ] Suite green + merge to master.
-- [ ] `cd /path/to/gc && ./gc deploy apigtbot -y` (adds `sim_wallet`, ships seeds).
+- [ ] `cd /path/to && ./gc deploy apigtbot -y` (adds `sim_wallet`, ships seeds).
 - [ ] Set epoch: `crm_update` Config row `gtbot_sim_wallet_epoch` → current UTC datetime (prod clock is UTC). Cancel open simulated orders in the ledger (state → Canceled) so the new era starts flat.
 - [ ] Slices via `crm_update` GridRun `BudgetQuote`: run 1 → 350, 6 → 350, 4 → 250, 5 → 50.
 - [ ] Reload all daemons (bot_command Reload or the dashboard buttons); verify per run: `gtbot_status` fresh heartbeat + `mode: simulated`; `sim_wallet` USDT row = 1000; dashboard pill shows SIMULATED and the wallet tile renders.

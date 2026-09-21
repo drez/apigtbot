@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseConfig;
 
-require 'om/BaseConfig.php';
+require_once __DIR__ . '/om/BaseConfig.php';
 
 
 /**

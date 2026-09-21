@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseMarketSummaryQuery;
 
-require 'om/BaseMarketSummaryQuery.php';
+require_once __DIR__ . '/om/BaseMarketSummaryQuery.php';
 
 
 /**

@@ -65,6 +65,19 @@ class TrendEngineTest extends TestCase
         $this->assertSame([], TrendEngine::tranches('400', 0, '120.00000000'));
     }
 
+    public function testTranchesNeverExceedThePerOrderCap(): void
+    {
+        // 2026-09-16: ACTIVE_DEPLOY_PCT 100 puts the whole slice through
+        // tranches(); a cap under slice/4 used to leave every tranche over
+        // the cap (RiskManager would veto each one — no entry at all).
+        $t = TrendEngine::tranches('350', 100, '60.00000000');
+        $this->assertCount(6, $t);
+        foreach ($t as $q) {
+            $this->assertLessThanOrEqual(60.0, (float) $q);
+        }
+        $this->assertEqualsWithDelta(350.0, array_sum(array_map('floatval', $t)), 1e-6);
+    }
+
     public function testStopRatchetsUpOnly(): void
     {
         $state = ['entry' => '100', 'hwm' => '100', 'stop' => '94.0'];  // initial: 100 - 2.0×ATR(3)
@@ -73,6 +86,68 @@ class TrendEngineTest extends TestCase
         $s2 = TrendEngine::ratchet($s1, '105', '3.0000', '3');
         $this->assertSame(0, bccomp($s2['stop'], '101', 8), 'stop never moves down');
         $this->assertSame(0, bccomp($s2['hwm'], '110', 8));
+    }
+
+    public function testStopDistanceHonorsThePctFloor(): void
+    {
+        // 2026-08-28: 3×ATR(1h) in overnight tape was a 0.5% trail — the
+        // arm was chopped out at 80000 off an 80430 HWM for +0.01. The floor
+        // (fraction of the reference price) is the wider of the two.
+        $this->assertSame(0, bccomp(TrendEngine::stopDistance('110', '3.0000', '0.1', '0.015'), '1.65', 8));   // floor wins
+        $this->assertSame(0, bccomp(TrendEngine::stopDistance('110', '3.0000', '3', '0.015'), '9', 8));        // ATR wins
+        $this->assertSame(0, bccomp(TrendEngine::stopDistance('110', '3.0000', '0.1', '0'), '0.3', 8));       // floor off
+        $this->assertSame(0, bccomp(TrendEngine::stopDistance('110', '3.0000', null, '0.015'), '1.65', 8));   // no ATR: floor alone
+    }
+
+    public function testRatchetAppliesTheFloor(): void
+    {
+        $state = ['entry' => '100', 'hwm' => '100', 'stop' => '94.0'];
+        $s = TrendEngine::ratchet($state, '110', '3.0000', '0.1', '0.015');
+        $this->assertSame(0, bccomp($s['stop'], '108.35', 8));
+        $s = TrendEngine::ratchet($s, '105', '3.0000', '0.1', '0.015');
+        $this->assertSame(0, bccomp($s['stop'], '108.35', 8), 'stop never moves down');
+    }
+
+    public function testEmaCross1dSignal(): void
+    {
+        $this->assertTrue(TrendEngine::emaCross1dUp(['ema20' => 101.0, 'ema50' => 100.0, 'stale' => false]));
+        $this->assertFalse(TrendEngine::emaCross1dUp(['ema20' => 99.0, 'ema50' => 100.0, 'stale' => false]));
+        $this->assertNull(TrendEngine::emaCross1dUp(['ema20' => 101.0, 'ema50' => 100.0, 'stale' => true]));
+        $this->assertNull(TrendEngine::emaCross1dUp(null));
+        $this->assertNull(TrendEngine::emaCross1dUp(['ema20' => null, 'ema50' => 100.0, 'stale' => false]));
+    }
+
+    /**
+     * Inventory core (EmaCross1d) entries are staggered, not burst: run 8
+     * (prod, 2026-08-28) filled all four tranches in the same second at
+     * 79214, ~3% under the 81.5k swing high, then sat −4.9 for a week. The
+     * first tranche goes on the signal; each later one waits for a pullback
+     * to the 1d EMA20 (within CORE_PULLBACK_PCT above it, or below it) OR
+     * for CORE_TRANCHE_SPACING seconds since the previous placement, so a
+     * leg that never pulls back still gets fully deployed, one day at a time.
+     */
+    public function testCoreTranchesStaggerOnPullbackOrTime(): void
+    {
+        $now = '2026-08-29 10:27:01';
+        $placedAt = '2026-08-28 10:27:01'; // exactly one spacing ago
+        // first tranche: on the signal, no conditions
+        $this->assertTrue(TrendEngine::coreTrancheDue(0, 4, '79214', 74600.0, null, $now));
+        // nothing left to place
+        $this->assertFalse(TrendEngine::coreTrancheDue(4, 4, '60000', 74600.0, $placedAt, $now));
+        // second tranche, price 6% above the 1d EMA20, placed a minute ago → wait
+        $this->assertFalse(TrendEngine::coreTrancheDue(1, 4, '79214', 74600.0, '2026-08-29 10:26:01', $now));
+        // pullback to within 1% above the EMA20 → due
+        $this->assertTrue(TrendEngine::coreTrancheDue(1, 4, '75300', 74600.0, '2026-08-29 10:26:01', $now));
+        // below the EMA20 → due
+        $this->assertTrue(TrendEngine::coreTrancheDue(1, 4, '74000', 74600.0, '2026-08-29 10:26:01', $now));
+        // no pullback but a full spacing elapsed → due (time fallback)
+        $this->assertTrue(TrendEngine::coreTrancheDue(1, 4, '79214', 74600.0, $placedAt, $now));
+        $this->assertFalse(TrendEngine::coreTrancheDue(1, 4, '79214', 74600.0, '2026-08-28 10:27:02', $now), 'one second short of the spacing');
+        // no EMA20 available: only the time fallback can fire
+        $this->assertFalse(TrendEngine::coreTrancheDue(1, 4, '74000', null, '2026-08-29 10:26:01', $now));
+        $this->assertTrue(TrendEngine::coreTrancheDue(1, 4, '74000', null, $placedAt, $now));
+        // no placement stamp (pre-stagger position hydrated with placed>0): time fallback fires
+        $this->assertTrue(TrendEngine::coreTrancheDue(1, 4, '79214', 74600.0, null, $now));
     }
 
     public function testCooldownBlocksReentry(): void

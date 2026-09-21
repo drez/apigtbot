@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseApiRbac;
 
-require 'om/BaseApiRbac.php';
+require_once __DIR__ . '/om/BaseApiRbac.php';
 
 
 /**

@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseMessage;
 
-require 'om/BaseMessage.php';
+require_once __DIR__ . '/om/BaseMessage.php';
 
 
 /**

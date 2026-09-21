@@ -124,6 +124,28 @@ class View
      xhr.send(JSON.stringify({run:parseInt(b.getAttribute('data-run'),10),action:action}));
    }catch(ex){b.disabled=false;show('exception: '+(ex&&ex.message?ex.message:ex));}
  }
+ function sendFunds(b,action){
+   try{
+     b.disabled=true;
+     show(action+' funds: sending…');
+     var xhr=new XMLHttpRequest();
+     xhr.open('POST',__BASE__+'Dashboard/funds',true);
+     xhr.setRequestHeader('Content-Type','application/json');
+     xhr.setRequestHeader('X-Requested-With','XMLHttpRequest');
+     var m=document.querySelector('meta[name="csrf-token"]');
+     if(m&&m.content){xhr.setRequestHeader('X-Csrf-Token',m.content);}
+     xhr.timeout=15000;
+     xhr.onload=function(){
+       var body={};try{body=JSON.parse(xhr.responseText)||{};}catch(e){}
+       if(xhr.status>=200&&xhr.status<300&&body.status==='ok'){show((body.message||action+' done')+' — reloading');setTimeout(function(){location.reload();},1200);return;}
+       // 409 = BudgetGuard or state refusal: surface the server's reason verbatim
+       b.disabled=false;show(body.message?('refused: '+body.message):('HTTP '+xhr.status+' — '+String(xhr.responseText).slice(0,300)));
+     };
+     xhr.onerror=function(){b.disabled=false;show('network error (request blocked?)');};
+     xhr.ontimeout=function(){b.disabled=false;show('no response after 15s');};
+     xhr.send(JSON.stringify({run:parseInt(b.getAttribute('data-run'),10),action:action}));
+   }catch(ex){b.disabled=false;show('exception: '+(ex&&ex.message?ex.message:ex));}
+ }
  function sendMode(b,target){
    try{
      b.disabled=true;
@@ -144,7 +166,63 @@ class View
      xhr.send(JSON.stringify({mode:target}));
    }catch(ex){b.disabled=false;show('exception: '+(ex&&ex.message?ex.message:ex));}
  }
+ function sendBudget(form,value){
+   try{
+     var sb=form.querySelector('button[type=submit]');if(sb){sb.disabled=true;}
+     show('budget '+value+': sending…');
+     var xhr=new XMLHttpRequest();
+     xhr.open('POST',__BASE__+'Dashboard/budget',true);
+     xhr.setRequestHeader('Content-Type','application/json');
+     xhr.setRequestHeader('X-Requested-With','XMLHttpRequest');
+     var m=document.querySelector('meta[name="csrf-token"]');
+     if(m&&m.content){xhr.setRequestHeader('X-Csrf-Token',m.content);}
+     xhr.timeout=15000;
+     xhr.onload=function(){
+       var body={};try{body=JSON.parse(xhr.responseText)||{};}catch(e){}
+       if(xhr.status>=200&&xhr.status<300&&body.status==='ok'){show((body.message||'budget set')+' — reloading');setTimeout(function(){location.reload();},1500);return;}
+       if(sb){sb.disabled=false;}show(body.message?('refused: '+body.message):('HTTP '+xhr.status+' — '+String(xhr.responseText).slice(0,300)));
+     };
+     xhr.onerror=function(){if(sb){sb.disabled=false;}show('network error (request blocked?)');};
+     xhr.ontimeout=function(){if(sb){sb.disabled=false;}show('no response after 15s');};
+     xhr.send(JSON.stringify({budget:value}));
+   }catch(ex){show('exception: '+(ex&&ex.message?ex.message:ex));}
+ }
+ // Budget tile: pencil reveals the inline form; Save confirms, then POSTs.
+ document.addEventListener('submit',function(e){
+   var form=e.target&&e.target.closest?e.target.closest('.dash-budget-form'):null;
+   if(!form){return;}
+   e.preventDefault();
+   var edit=form.parentNode.querySelector('.dash-budget-edit');
+   var input=form.querySelector('input[name=budget]');
+   var value=String(input&&input.value?input.value:'').trim();
+   var n=parseFloat(value);
+   if(!(n>0)){show('budget must be a positive number of USDT');return;}
+   var cur=edit?edit.getAttribute('data-budget'):'';
+   var slices=edit?parseFloat(edit.getAttribute('data-slices')||'0'):0;
+   var bmsg='Set the shared budget to '+value+' USDT (now '+cur+')? Slices are reallocated straight away, pro-rata across runs set to Auto and never below what each one already has tied up in inventory. Pinned runs and an active trend arm are left alone. If inventory holds the total above the new budget the rest is reported as a shortfall — nothing is ever sold.';
+   if(n<slices){bmsg+=' WARNING: '+value+' is below the current slices ('+slices+'): new entries halt on all runs until the slices are refit.';}
+   if(window.gcScreens&&gcScreens.confirm){
+     gcScreens.confirm(bmsg,{confirmLabel:'Set budget + reload',danger:n<slices}).then(function(ok){if(ok){sendBudget(form,value);}});
+     return;
+   }
+   var bok=false;
+   try{bok=(window.confirm(bmsg)===true);}
+   catch(err){show('confirm unavailable: '+(err&&err.message?err.message:err));return;}
+   if(bok){sendBudget(form,value);}
+ });
  document.addEventListener('click',function(e){
+   var be=e.target&&e.target.closest?e.target.closest('.dash-budget-edit'):null;
+   if(be){
+     var bf=be.parentNode.querySelector('.dash-budget-form');
+     if(bf){be.hidden=true;bf.hidden=false;var bi=bf.querySelector('input');if(bi){bi.focus();bi.select();}}
+     return;
+   }
+   var bc=e.target&&e.target.closest?e.target.closest('.dash-budget-cancel'):null;
+   if(bc){
+     var cf=bc.closest('.dash-budget-form');var ce=cf?cf.parentNode.querySelector('.dash-budget-edit'):null;
+     if(cf){cf.hidden=true;}if(ce){ce.hidden=false;}
+     return;
+   }
    var mb=e.target&&e.target.closest?e.target.closest('.dash-mode-btn'):null;
    if(mb){
      var target=mb.getAttribute('data-target');
@@ -164,6 +242,22 @@ class View
      try{mok=(window.confirm(mmsg)===true);}
      catch(err){show('confirm unavailable: '+(err&&err.message?err.message:err));return;}
      if(mok){sendMode(mb,target);}
+     return;
+   }
+   var f=e.target&&e.target.closest?e.target.closest('.dash-funds-btn'):null;
+   if(f){
+     var faction=f.getAttribute('data-action');
+     var fmsg=faction==='hold'
+       ?'Hold funds? Open buys are canceled, the daemon exits, and this run\'s budget slice is spread over the other grid runs (they reload). Inventory and working sells stay as they are.'
+       :'Release run '+f+'? It takes its slice back \u2014 from idle funds first, then from the grids that were topped up while it was held. Those grids drop back to their pre-hold size, never lower. The run restarts within a minute. If the pool cannot cover the full slice you get what fits, and the release is refused below the 50 USDT minimum.';
+     if(window.gcScreens&&gcScreens.confirm){
+       gcScreens.confirm(fmsg,{confirmLabel:faction==='hold'?'Hold funds':'Release funds',danger:faction==='hold'}).then(function(ok){if(ok){sendFunds(f,faction);}});
+       return;
+     }
+     var fok=false;
+     try{fok=(window.confirm(fmsg)===true);}
+     catch(err){show('confirm unavailable: '+(err&&err.message?err.message:err));return;}
+     if(fok){sendFunds(f,faction);}
      return;
    }
    var c=e.target&&e.target.closest?e.target.closest('.dash-cmd-btn'):null;

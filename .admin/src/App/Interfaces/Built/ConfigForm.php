@@ -91,7 +91,39 @@ class ConfigForm extends Config
     public $formSaveBtn;
     public $formSaveBar;
     public $omMap;
+    /** getEditForm()/getList() field slots, keyed [Model][Column]['html']. */
+    public $fields = [];
+    public $fieldsRo = [];
+    /** Columns whose read-only markup gcBuildFieldRo() has already built (A43). */
+    public $gcFieldRoBuilt = [];
+    /** Sort-header restore JS, rebuilt per list query. */
+    public $orderReadyJsOrder = '';
 
+        public $commentsIdConfig;
+    public $commentsIdConfig_css;
+    public $commentsCategory;
+    public $commentsCategory_css;
+    public $commentsConfig;
+    public $commentsConfig_css;
+    public $commentsValue;
+    public $commentsValue_css;
+    public $commentsSystem;
+    public $commentsSystem_css;
+    public $commentsDescription;
+    public $commentsDescription_css;
+    public $commentsType;
+    public $commentsType_css;
+    public $commentsDateCreation;
+    public $commentsDateCreation_css;
+    public $commentsDateModification;
+    public $commentsDateModification_css;
+    public $commentsIdGroupCreation;
+    public $commentsIdGroupCreation_css;
+    public $commentsIdCreation;
+    public $commentsIdCreation_css;
+    public $commentsIdModification;
+    public $commentsIdModification_css;
+    public $Config;
 
 
     /**
@@ -131,48 +163,73 @@ class ConfigForm extends Config
 
         $q = new ConfigQuery();
         $q = $this->setAclFilter($q);
-        
+
 
         $q
             ;
         if(is_array( $this->searchMs )){
             # main search form
-            
-            
+
+
         }else{
             ## standard list
-            
-        }
-        
 
-        
+        }
+
+
+
+            $this->orderReadyJsOrder = '';
             if(!empty($this->searchOrder)){
                 $f=0;
                 foreach($this->searchOrder as $order){
                     foreach($order as $col => $sens){
                         if($sens){
                             $tOrd = explode('.',$col);
-                            if($tOrd[1]){
+                            # The ordering comes from the session (setOrderVar keeps
+                            # whatever the client last clicked, and a session can outlive
+                            # a renamed/removed column or be seeded by another list).
+                            # Propel throws on a column it cannot resolve, which turned a
+                            # stale sort key into a 500 on the whole list — fall back to
+                            # the model's default order instead, and forget the key so the
+                            # next request is clean.
+                            $gcOrdApplied = true;
+                            try {
+                            if(!empty($tOrd[1])){
                                 $q->join($tOrd[0]." order".$f);
                                 $orderBy = "use".$tOrd[0]."Query";
                                 $q->$orderBy("order".$f, 'left join')->orderBy($tOrd[1], $sens)->endUse();
                             }else{
                                 $q->orderBy($col,$sens);
                             }
+                            } catch (\Exception $gcOrdEx) {
+                                $gcOrdApplied = false;
+                                error_log('list order: dropping unresolvable column ' . (string) $col
+                                    . ' on Config — ' . $gcOrdEx->getMessage());
+                                unset($_SESSION['mem']['order']['Config/'],
+                                    $_SESSION['mem']['order']['Config/child']);
+                            }
+                            if($gcOrdApplied){
+                            # C8: $col / $sens come from the session (setOrderVar), so they
+                            # are never interpolated raw into the JS source. JSON_HEX_* keeps
+                            # quotes/tags/ampersands out of the surrounding <script> and the
+                            # attribute selector is composed client-side from the JSON value.
+                            $gcOrdCol = json_encode((string) $col, JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP);
+                            $gcOrdSens = json_encode(strtolower((string) $sens), JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP);
                             $this->orderReadyJsOrder .="
-                                var __se=document.querySelector(\"#ConfigListForm [th='sorted'][c='".$col."']\");if(__se){__se.setAttribute('sens', '".strtolower($sens)."');__se.setAttribute('order','on');__se.classList.add('sorted');}
+                                (function(){var __c=".$gcOrdCol.",__s=".$gcOrdSens.";var __se=document.querySelector(\"#ConfigListForm [th='sorted'][c=\"+JSON.stringify(__c)+\"]\");if(__se){__se.setAttribute('sens', __s);__se.setAttribute('order','on');__se.classList.add('sorted');}})();
                             ";
+                            }
                         }
                         $f++;
                     }
                 }
             }
-            
-        
-        
+
+
+
 
         $this->pmpoData = $q;
-        
+
 
         return $this->pmpoData;
     }
@@ -203,20 +260,20 @@ class ConfigForm extends Config
 
             case 'list-button':
                 $listButton = '';
-                
-                
+
+
                 return $listButton;
 
             case 'search':
-                
-                
-                ;
+
+
+
                 return $trSearch;
 
             case 'add':
             ###### ADD
-                 if($_SESSION[_AUTH_VAR]->hasRights('Config', 'a') && !$this->setReadOnly){
-                
+                if($_SESSION[_AUTH_VAR]->hasRights('Config', 'a') && !$this->setReadOnly){
+
                                 $this->listAddButton = htmlLink(
                                     _("Add new")
                                 ,_SITE_URL.$this->virtualClassName."/edit/", "id='addConfig' title='"._('Add')."' class='button-link-blue add-button'");
@@ -249,7 +306,10 @@ class ConfigForm extends Config
         $this->in = 'getList';
         $this->isChild = '';
         $this->TableName = 'Config';
-        $altValue = array (
+        # A11: the per-row reset below restores this seed instead of nulling
+        # $altValue — every `($altValue['X'] !== null) ? … : …` cell read from
+        # row 2 on was an array offset on null (one warning per cell per row).
+        $__altValueInit = array (
   'IdConfig' => NULL,
   'Category' => NULL,
   'Config' => NULL,
@@ -263,14 +323,16 @@ class ConfigForm extends Config
   'IdCreation' => NULL,
   'IdModification' => NULL,
 );
+        $altValue = $__altValueInit;
         $tr = '';
         $trDt = '';
-        $hook = [];
+        $hook = ['class' => ''];
+        $this->orderReadyJsOrder = '';
         $editEvent = '';
         $return = ['html' => '', 'js' => '', 'onReadyJs' => ''];
         $cCmoreCols = '';
 
-        
+
 
         // SECURITY (review H7): uiTabsId comes from request['ui'] and is reflected
         // raw into the list container's data-ui attribute and into the quick-add
@@ -279,22 +341,40 @@ class ConfigForm extends Config
         $uiTabsId = preg_replace('/[^A-Za-z0-9_]/', '', (string) $uiTabsId);
         $this->uiTabsId = $uiTabsId;
 
-        
+
         $this->IdParent = $IdParent;
         // Child-tab / nested list: mark context for behaviors that branch on isChild.
         if ($IdParent !== null && $IdParent !== '') {
             $this->isChild = 'Config';
         }
 
+        // A22: list session key for search / order / page. $childTableName is
+        // always empty in the unified getList(), so the standalone list and every
+        // parent-scoped (child-tab) render used to share ONE key and therefore one
+        // page/sort/search state. Standalone keeps the historic '<Table>/' key;
+        // parent-scoped renders get '<Table>/child'. NOT keyed per parent id:
+        // FormHelper stores these keys unbounded, so one entry per visited parent
+        // would grow the session forever — instead the stored page is dropped when
+        // the parent id changes (search/sort intentionally carry over, matching the
+        // pre-existing '<Parent>/<Child>' desktop child-list behaviour).
+        $gcListKey = 'Config/';
+        if ($IdParent !== null && $IdParent !== '') {
+            $gcListKey = 'Config/child';
+            if (($_SESSION['mem']['ip'][$gcListKey] ?? null) !== (string) $IdParent) {
+                $_SESSION['mem']['ip'][$gcListKey] = (string) $IdParent;
+                unset($_SESSION['mem']['page'][$gcListKey]);
+            }
+        }
+
         // if Search params
-        $this->searchMs = $this->setSearchVar($request['ms'] ?? '', 'Config/');
+        $this->searchMs = $this->setSearchVar($request['ms'] ?? '', $gcListKey);
 
         // Guideline filter chips (built from the first ENUM search col).
         $trChips = '';
-        
+
 
         // order
-        $this->searchOrder = $this->setOrderVar($request['order'] ?? '', 'Config/');
+        $this->searchOrder = $this->setOrderVar($request['order'] ?? '', $gcListKey);
 
         // Clear-sort affordances (chip strip + sort-sheet row), rendered only
         // while the session carries a user ordering for this list. Both carry
@@ -302,20 +382,20 @@ class ConfigForm extends Config
         // sort handler; the server drops the whole stored ordering on '*'.
         $gcSortClear = '';
         $gcSortSheetClear = '';
-        if (!empty($_SESSION['mem']['order']['Config/'])) {
+        if (!empty($_SESSION['mem']['order'][$gcListKey])) {
             $gcSortClear = div(button("<i class='ri-sort-desc'></i>"._('Sorted')."<span class='cl-active-filter-x' aria-hidden='true'>×</span>", " type='button' th='sorted' c='*' class='cl-active-filter cl-sort-clear' "), '', " class='va-mob-sortclear' ");
             $gcSortSheetClear = button("<i class='ri-arrow-go-back-line'></i> "._('Default order'), " type='button' th='sorted' c='*' class='va-mob-sortrow va-mob-sortrow-clear' ");
         }
 
         // page
-        $search['page'] = $this->setPageVar($request['pg'] ?? '', 'Config/');
+        $search['page'] = $this->setPageVar($request['pg'] ?? '', $gcListKey);
 
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
 
         // Parent-scoped lists use the child pager size (same as former inlined getChildList).
         $maxPerPage = ($IdParent !== null && $IdParent !== '') ? $this->childMaxPerPage : $this->maxPerPage;
@@ -326,6 +406,7 @@ class ConfigForm extends Config
         $resultsCount = 0;
         if(empty($pmpoDataIn)) {
             $pmpoData = $this->getListSearch($IdParent, $search);
+
             $pmpoData = $pmpoData->paginate($search['page'], $maxPerPage);
             $resultsCount = $pmpoData->getNbResults();
 
@@ -351,64 +432,55 @@ class ConfigForm extends Config
             /**
             *	Main list loop
             **/
-            
+
             $i=0;
             $gcGroupCol = 'Category';
             $gcGroupNorm = function($s){ return strtolower(preg_replace('/[^a-z0-9]/i','', (string) $s)); };
             $gcGroupKey = $gcGroupNorm($gcGroupCol);
-            // Use the RAW request order, not the resolved $this->searchOrder
-            // (getListSearch mutates the latter). Empty => default landing
-            // view => list is in its default (name) order => group A–Z, as
-            // the guideline screenshots show. A user sort only keeps the
-            // headers when it is the name column ascending.
-            $gcReqOrder = $request['order'] ?? '';
+            // $this->searchOrder is the ordering this list actually runs with: the
+            // session ordering for this list, or the schema default ($default_order,
+            // resolved just above) when the session carries none. A table that
+            // declares NO default order leaves it empty — the query emits no ORDER BY,
+            // so the list is NOT name-ordered and gets no headers. Only the first
+            // entry with a truthy sens decides (that is the primary sort column that
+            // getListSearch() applies); direction-agnostic, since a Z→A sort groups
+            // just as well as A→Z. Compared on the NORMALISED FULL column name so a
+            // dotted FK label ('Product.Name') matches its own sort key.
+            // Child-context lists (IdParent set) never letter-group: their order is
+            // the child ranking/FK order, not the name column.
             $gcGroupOn = false;
-            // Child-context lists (IdParent set) never letter-group: their
-            // default order is the child ranking/FK order, not the name
-            // column, so the empty-order assumption below doesn't hold and
-            // the letters render as stray one-letter rows in the drawer.
-            if (empty($IdParent)) {
-                if ($gcReqOrder === '' || $gcReqOrder === null) {
-                    $gcGroupOn = true;
-                } else {
-                    $gcOd = is_array($gcReqOrder) ? $gcReqOrder : json_decode((string) $gcReqOrder, true);
-                    if (is_array($gcOd) && isset($gcOd['col'])) {
-                        $gcFc = (string) $gcOd['col'];
-                        if (strpos($gcFc, '.') !== false) { $gcParts = explode('.', $gcFc); $gcFc = end($gcParts); }
-                        $gcSens = strtolower((string) ($gcOd['sens'] ?? ''));
-                        if ($gcGroupNorm($gcFc) === $gcGroupKey && $gcSens !== 'desc') { $gcGroupOn = true; }
+            if (empty($IdParent) && is_array($this->searchOrder)) {
+                foreach ($this->searchOrder as $gcOrdEntry) {
+                    if (!is_array($gcOrdEntry)) { continue; }
+                    foreach ($gcOrdEntry as $gcOrdCol => $gcOrdSens) {
+                        if (!$gcOrdSens) { continue; }
+                        $gcGroupOn = ($gcGroupNorm($gcOrdCol) === $gcGroupKey);
+                        break 2;
                     }
                 }
             }
             $gcGroupLetter = null;
-            
+
             if(!$this->setReadOnly && !$this->setListRemoveDelete){
                 if($_SESSION[_AUTH_VAR]->hasRights('Config', 'd')){
                     $this->canDelete = htmlLink("<i class='ri-delete-bin-7-line'></i>", "Javascript:", "class='ac-delete-link' j='deleteConfig' ");
                 }
             }
-        
+
             $gcListRows = [];
             $gcListRowsDt = [];
             foreach($pcData as $data) {
-                if ($gcGroupOn) {
-                    $gcVal = (string) ((($altValue['Category'] !== null ) ? $altValue['Category'] : isntPo($data->getCategory())));
-                    $gcL = mb_strtoupper(mb_substr(trim($gcVal), 0, 1));
-                    if ($gcL !== '' && $gcL !== $gcGroupLetter) {
-                        $gcGroupLetter = $gcL;
-                        $tr .= div(htmlspecialchars($gcL), '', " class='va-mob-sect-head' ");
-                    }
-                }
                 # hoist the row PK encodings once — reused by the mobile + desktop row wrappers below
                 $__pkJsonEsc = htmlspecialchars(json_encode($data->getPrimaryKey()), ENT_QUOTES);
                 $__pkEsc = htmlspecialchars((string)$data->getPrimaryKey(), ENT_QUOTES);
                 $this->listActionCell = '';
-                
-                
-                
-                
 
-                $actionCell =  td($this->canDelete . $this->listActionCell, " class='actionrow' ");
+
+
+
+
+                $actionInner = '' . $this->canDelete . $this->listActionCell;
+                $actionCell =  td($actionInner, " class='actionrow' ");
 
                 $gcRowHtml = div(
  ''
@@ -417,8 +489,8 @@ class ConfigForm extends Config
    . div(''  . span(htmlspecialchars((string)((($altValue['Config'] !== null ) ? $altValue['Config'] : $data->getConfig())))." ", "   i='" . $__pkJsonEsc . "' c='Config' class=''  j='editConfig'") . span(htmlspecialchars((string)((($altValue['Value'] !== null ) ? $altValue['Value'] : substr(strip_tags((string)($data->getValue() ?? '')), 0, 100))))." ", "   i='" . $__pkJsonEsc . "' c='Value' class=''  j='editConfig'") . span(htmlspecialchars((string)((($altValue['Description'] !== null ) ? $altValue['Description'] : $data->getDescription())))." ", "   i='" . $__pkJsonEsc . "' c='Description' class=''  j='editConfig'") . $cCmoreCols ,''," class='meta' ")
  ,'', " class='body' ")
 . div('' . '<i class="ri-arrow-right-s-line chev"></i>',''," class='trail' ")
-. $actionCell
-                , '', " 
+. div($actionInner, '', " class='actionrow' ")
+                , '', "
                         rid='".$__pkJsonEsc."' data-iterator='".$pcData->getPosition()."'
                         r='data'
                         class='va-mob-row ".$hook['class']." '
@@ -429,25 +501,37 @@ class ConfigForm extends Config
                 td(span(htmlspecialchars((string)((($altValue['Config'] !== null ) ? $altValue['Config'] : $data->getConfig())))." "), "  i='" . $__pkJsonEsc . "' c='Config' class=''  j='editConfig'") .
                 td(span(htmlspecialchars((string)((($altValue['Value'] !== null ) ? $altValue['Value'] : substr(strip_tags((string)($data->getValue() ?? '')), 0, 100))))." "), "  i='" . $__pkJsonEsc . "' c='Value' class=''  j='editConfig'") .
                 td(span(htmlspecialchars((string)((($altValue['Description'] !== null ) ? $altValue['Description'] : $data->getDescription())))." "), "  i='" . $__pkJsonEsc . "' c='Description' class=''  j='editConfig'") .  $actionCell, "  rid='".$__pkJsonEsc."' data-iterator='".$pcData->getPosition()."' r='data' class='va-dt-row ".$hook['class']." ' id='ConfigDtRow".$__pkEsc."'");
-                
+
+                # A10: the letter header reads $this->listCardNameVar, which for an
+                # FK-labelled list is a local ($<Rel>_Name) or an $altValue key the
+                # row body above assigns — so it is pushed here, after the body ran
+                # and before the row itself, keeping header→row order.
+
+                if ($gcGroupOn) {
+                    $gcVal = (string) ((($altValue['Category'] !== null ) ? $altValue['Category'] : isntPo($data->getCategory())));
+                    $gcL = mb_strtoupper(mb_substr(trim($gcVal), 0, 1));
+                    if ($gcL !== '' && $gcL !== $gcGroupLetter) {
+                        $gcGroupLetter = $gcL;
+                        $gcListRows[] = div(htmlspecialchars($gcL), '', " class='va-mob-sect-head' ");
+                    }
+                }
                 $gcListRows[] = $gcRowHtml;
                 $gcListRowsDt[] = $gcDtRowHtml;
 
                 $i++;
-                $altValue = null;
+                $altValue = $__altValueInit;
             }
             $tr .= implode('', $gcListRows);
             $trDt .= implode('', $gcListRowsDt);
             $tr .= input('hidden', 'rowCountConfig', $i);
-        }
 
-        
+        }
 
         ## @Paging
         $pagerRow = $this->getPager($pmpoData, $resultsCount, $search);
         $bottomRow = div($pagerRow,'bottomPagerRow', "class='tablesorter'");
 
-        
+
 
         $controlsContent = $this->getListHeader('list-button');
 
@@ -457,11 +541,11 @@ class ConfigForm extends Config
                 div(
                     href(span(_('Open/close menu')),'javascript:','class="toggle-menu button-link-blue trigger-menu"')
                     .$this->getListHeader('add')
-                    
+
                 ,'','class="default-controls"')
                 .div($controlsContent,'ConfigControlsList', "class='custom-controls'")
                 .$this->hookSwHeader.$HelpDiv
-                
+
             ,'','class="sw-header"')
 
             /*.div(
@@ -505,23 +589,23 @@ class ConfigForm extends Config
                 ,'listForm',' class="ac-list" ')
                 .$this->hookListBottom
                 .$bottomRow
-            , 'ConfigListForm', " class='va-mob proto-app' data-model='Config' data-table='Config' data-ui='".$this->uiTabsId."' ");
+            , 'ConfigListForm', " class='va-mob proto-app' data-model='Config' data-table='Config' data-gc-db='config' data-ui='".$this->uiTabsId."' ");
 
-        
+
 
 
 
         $return['onReadyJs'] =
             $HelpDivJs
-            
+
             ."
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         (function(){var r=document.getElementById('tabsContain');if(r&&window.gcSelectBox){gcSelectBox.bindWithin(r);}})();
         ".$this->hookListReadyJsFirst.$editEvent."
         var __ab=document.getElementById('addConfigAutoc');
@@ -531,12 +615,12 @@ class ConfigForm extends Config
                 fetch('"._SITE_URL."GuiManager',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','X-Requested-With':'XMLHttpRequest'},body:__b.toString()}).then(function(){document.location='"._SITE_URL.$this->virtualClassName."/edit/';});
             });
         }
-        
-        
+
+
         ".$this->orderReadyJsOrder."
         ".$this->hookListReadyJs;
-        
-        $return['js'] .= script("". $this->hookListJs);
+
+        $return['js'] .= script($this->hookListJs);
         return $return;
     }
     /*
@@ -553,26 +637,18 @@ class ConfigForm extends Config
             $data['Category'] = 'General';
         }
         if( $data['System'] == '' )unset($data['System']);
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
         #
 
-        //integer not required
+        //longvarchar not required
         $e->setValue( ($data['Value'] == '' ) ? null : $data['Value']);
         $e->setSystem(($data['System'] == '' ) ? null : $data['System']);
-        //integer not required
+        //varchar not required
         $e->setDescription( ($data['Description'] == '' ) ? null : $data['Description']);
-        //integer not required
+        //varchar not required
         $e->setType( ($data['Type'] == '' ) ? null : $data['Type']);
-        $e->setDateCreation( ($data['DateCreation'] == '' || $data['DateCreation'] == 'null' || substr($data['DateCreation'],0,10) == '-0001-11-30') ? null : $data['DateCreation'] );
-        $e->setDateModification( ($data['DateModification'] == '' || $data['DateModification'] == 'null' || substr($data['DateModification'],0,10) == '-0001-11-30') ? null : $data['DateModification'] );
-        //foreign
-        $e->setIdGroupCreation(( $data['IdGroupCreation'] == '' ) ? null : $data['IdGroupCreation']);
-        //foreign
-        $e->setIdCreation(( $data['IdCreation'] == '' ) ? null : $data['IdCreation']);
-        //foreign
-        $e->setIdModification(( $data['IdModification'] == '' ) ? null : $data['IdModification']);
         #
 
         return $e;
@@ -593,7 +669,7 @@ class ConfigForm extends Config
             $data['Category'] = 'General';
         }
         if( $data['System'] == '' )unset($data['System']);
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
 
@@ -609,21 +685,6 @@ class ConfigForm extends Config
         }
         if(isset($data['Type'])){
             $e->setType( ($data['Type'] == '' ) ? null : $data['Type']);
-        }
-        if(isset($data['DateCreation'])){
-            $e->setDateCreation( ($data['DateCreation'] == '' || $data['DateCreation'] == 'null' || substr($data['DateCreation'],0,10) == '-0001-11-30') ? null : $data['DateCreation'] );
-        }
-        if(isset($data['DateModification'])){
-            $e->setDateModification( ($data['DateModification'] == '' || $data['DateModification'] == 'null' || substr($data['DateModification'],0,10) == '-0001-11-30') ? null : $data['DateModification'] );
-        }
-        if( isset($data['IdGroupCreation']) ){
-            $e->setIdGroupCreation(( $data['IdGroupCreation'] == '' ) ? null : $data['IdGroupCreation']);
-        }
-        if( isset($data['IdCreation']) ){
-            $e->setIdCreation(( $data['IdCreation'] == '' ) ? null : $data['IdCreation']);
-        }
-        if( isset($data['IdModification']) ){
-            $e->setIdModification(( $data['IdModification'] == '' ) ? null : $data['IdModification']);
         }
         $e->setNew(false);
         return $e;
@@ -645,14 +706,11 @@ class ConfigForm extends Config
 
         $HelpDivJs = '';
         $HelpDiv = '';
-        $childTable = [];
+        $childTable = ['html' => '', 'js' => '', 'onReadyJs' => ''];
         $script_autoc_one = '';
         $ongletf = '';
         $mceInclude = '';
-        $ip_save = '';
-        $ip_save = '';
         $IdParent = 0;
-        $editDialog = ( $data['dialog'] ) ? $data['dialog'] : 'editDialog';
         $uiTabsId = ( $uiTabsId === null ) ? 'tabsContain' : $uiTabsId;
         $jet = 'tr';
 
@@ -666,13 +724,13 @@ class ConfigForm extends Config
             $jet = $jsElementType;
         }
 
-        if($data['data']['ip']){
+        if(!empty($data['data']['ip'])){
             $data['ip'] = $data['data']['ip'];
-            $data['pc'] = $data['data']['pc'];
-            $data['tp'] = $data['data']['tp'];
+            $data['pc'] = $data['data']['pc'] ?? '';
+            $data['tp'] = $data['data']['tp'] ?? '';
         }
 
-        if($data['pc']) {
+        if(!empty($data['pc'])) {
             switch($data['pc']){
 
                 case 'AuthyGroup':
@@ -699,12 +757,12 @@ class ConfigForm extends Config
         $this->SaveButtonJs = "";
 
         if($_SESSION[_AUTH_VAR]->hasRights('Config', 'a') && !$this->setReadOnly) {
-            $this->formAddButton = htmlLink(_("Add new"), 'Javascript:;' , "id='addConfig' title='"._('Add')."' class='button-link-blue add-button'");
+            $this->formAddButton = htmlLink(_("Add new"), 'Javascript:;' , "id='addConfigForm' title='"._('Add')."' class='button-link-blue add-button'");
             $this->bindEditJs = "";
-                if ($this->formAddButton) { $this->formAddButton = str_replace("add-button'", "add-button' data-gc-add='".$this->virtualClassName."' data-gc-ip='".($IdParent ?: '')."'", $this->formAddButton); }
+                if ($this->formAddButton) { $this->formAddButton = str_replace("add-button'", "add-button' data-gc-add='".$this->virtualClassName."' data-gc-ip='".htmlspecialchars((string) ($IdParent ?: ''), ENT_QUOTES)."'", $this->formAddButton); }
         }
 
-        if($id && !$data['reload']) {
+        if($id && empty($data['reload'])) {
 
 
             $q = ConfigQuery::create()
@@ -785,6 +843,13 @@ $this->fields['Config']['Description']['html'] = stdFieldRow(_("Description"), i
                             .$this->hookListSearchButton
                         ,""," class='form-savehidden' ");
         }
+        // add_hooks: afterFormObj (always emitted — the stub lives in the FormWrapper)
+        if (method_exists($this, 'afterFormObj')) { $this->afterFormObj($data, $dataObj); }
+        $gcFirstTabActive = true;
+        if (!empty($this->formCustomTabs)) {
+            throw new \LogicException('Config: addFormTab() needs add_tab_columns (without add_field_groups) on the table — there is no tab strip to put the tab in');
+        }
+
 
 
 
@@ -841,9 +906,6 @@ $this->fields['Config']['Description']['html'] = stdFieldRow(_("Description"), i
                         href('<i class="ri-arrow-left-s-line"></i>'._('Setting'), _SITE_URL.'Config', "class='nav-btn'")
                         .div(
                             span(_('Setting'), "class='nav-title-type'")
-                            .(isset($_gcNameVal) && trim((string)$_gcNameVal) !== ''
-                                ? span(htmlspecialchars($_gcNameVal), "class='nav-title-name'")
-                                : '')
                         , '', "class='nav-title'")
                         .$this->formSaveBtn
                         .href('<i class="ri-close-line"></i>', _SITE_URL.'Config', "class='nav-btn nav-close' title='"._('Close')."' aria-label='"._('Close')."'")
@@ -879,10 +941,10 @@ $this->fields['Config']['Category']['html']
         // first tab active by default; the stale session ['ogf'] value is inert.
         $tabs_act = '';
 
-        if($_SESSION['mem']['Config']['ixmemautocapp'] and $_GET['Autocapp'] == 1) {
-            $Autocapp = $_SESSION['mem']['Config']['ixmemautocapp'];
-            unset($_SESSION['mem']['Config']['ixmemautocapp']);
-        }
+        // The ['ixmemautocapp'] restore block is gone: nothing in the emitter,
+        // the runtime or the template ever writes that session key, so the
+        // condition was dead — and with it an unguarded $_GET['Autocapp'] read
+        // (a warning on every form render) and an $Autocapp local nothing read.
 
         $return['js'] .= $childTable['js']
         . script($this->hookFormIncludeJs) ."
@@ -896,7 +958,7 @@ $this->fields['Config']['Category']['html']
         ".$this->SaveButtonJs."
 
         ".$childTable['onReadyJs']."
-        ".$error['onReadyJs']."
+        ".($error['onReadyJs'] ?? '')."
         ".$tabs_act."
         ".$this->hookFormReadyJs
         .$script_autoc_one
@@ -910,28 +972,44 @@ $this->fields['Config']['Category']['html']
 
     function lockFormField($fields, $dataObj)
     {
+        if($fields === 'all') {
+            $fields = array_keys($this->fields['Config']);
+        } elseif(!is_array($fields)) {
+            return;
+        }
+        foreach($fields as $field) {
+            if(!isset($this->gcFieldRoBuilt[$field])) {
+                $this->gcFieldRoBuilt[$field] = true;
+                $this->gcBuildFieldRo($field, $dataObj);
+            }
+            $this->fields['Config'][$field]['html'] = $this->fieldsRo['Config'][$field]['html'] ?? '';
+        }
+    }
 
+    /** Build ONE column's read-only markup into $this->fieldsRo (A43). */
+    private function gcBuildFieldRo($field, $dataObj)
+    {
+        switch($field) {
+            case 'Category':
         $this->fieldsRo['Config']['Category']['html'] = stdFieldRow(_("Category"), div( htmlspecialchars((string)($dataObj->getCategory()), ENT_QUOTES), 'Category_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Category', $dataObj->getCategory(), "s='d'"), 'Category', "", $this->commentsCategory, $this->commentsCategory_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Config':
         $this->fieldsRo['Config']['Config']['html'] = stdFieldRow(_("Setting"), div( htmlspecialchars((string)($dataObj->getConfig()), ENT_QUOTES), 'Config_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Config', $dataObj->getConfig(), "s='d'"), 'Config', "", $this->commentsConfig, $this->commentsConfig_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Value':
         $this->fieldsRo['Config']['Value']['html'] = stdFieldRow(_("Value"), div( htmlspecialchars((string)($dataObj->getValue()), ENT_QUOTES), 'Value_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Value', $dataObj->getValue(), "s='d'"), 'Value', "", $this->commentsValue, $this->commentsValue_css, 'readonly', ' ', 'no', 'v2');
 
+            break;
+            case 'Description':
         $this->fieldsRo['Config']['Description']['html'] = stdFieldRow(_("Description"), div( htmlspecialchars((string)($dataObj->getDescription()), ENT_QUOTES), 'Description_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Description', $dataObj->getDescription(), "s='d'"), 'Description', "", $this->commentsDescription, $this->commentsDescription_css, 'readonly', ' ', 'no', 'v2');
 
-
-        if($fields == 'all') {
-            foreach($this->fields['Config'] as $field => $ar) {
-                $this->fields['Config'][$field]['html'] = $this->fieldsRo['Config'][$field]['html'];
-            }
-        } elseif(is_array($fields)) {
-            foreach($fields as $field) {
-                $this->fields['Config'][$field]['html'] = $this->fieldsRo['Config'][$field]['html'];
-            }
+            break;
         }
     }
 }

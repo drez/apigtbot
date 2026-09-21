@@ -7,6 +7,10 @@
  * Keeps the market_summary cache warm. The MCP also refreshes on demand when
  * stale (MarketCollector::refreshIfStale), so this cron is just to keep the
  * data fresh between calls. Fetches from the real market (mainnet, public).
+ *
+ * --candles: chart candles only (market_candle, 1m/5m/15m/1h/4h, ~120 bars
+ * each) — the 1-minute cron line, so the dashboard's short timeframes stay
+ * ≤1 min behind. No summaries, no regime log, no NAV snapshot.
  */
 
 $admin = dirname(__DIR__);
@@ -22,15 +26,29 @@ $_SESSION[_AUTH_VAR] = new \ApiGoat\Sessions\AuthySession();
 use App\Domains\Bot\MarketCollector;
 
 // Collect for every active run's symbol, plus BTCUSDT as a default.
-$symbols = ['BTCUSDT'];
-foreach (\App\GridRunQuery::create()->filterByStatus(['Live', 'Testnet', 'DryRun'], \Criteria::IN)->find() as $run) {
-    $symbols[] = strtoupper((string) $run->getSymbol());
-}
-$symbols = array_values(array_unique($symbols));
+$symbols = MarketCollector::watchedSymbols();
 
 $gw = MarketCollector::analysisGateway();
 $total = 0;
+if (in_array('--candles', $argv ?? [], true)) {
+    foreach ($symbols as $symbol) {
+        $total += MarketCollector::refreshCandles($symbol, $gw);
+    }
+    echo "collected $total candles for: " . implode(', ', $symbols) . "\n";
+    exit(0);
+}
 foreach ($symbols as $symbol) {
     $total += MarketCollector::refresh($symbol, $gw);
 }
 echo "collected $total (symbol,timeframe) summaries for: " . implode(', ', $symbols) . "\n";
+
+// Wallet NAV ledger: one mark-to-market point per tick (the fund's track
+// record; gtbot_pnl_report.wallet reads it for NAV vs HODL/USDT + drawdown).
+try {
+    $nav = \App\Domains\Bot\NavLedger::snapshot();
+    $pruned = \App\Domains\Bot\NavLedger::prune();
+    echo $nav ? sprintf("wallet_nav: %s equity=%s ref=%s%s\n", $nav->getMode(), bcadd((string) $nav->getEquityQuote(), '0', 2), bcadd((string) $nav->getRefPrice(), '0', 2), $pruned ? " (pruned $pruned)" : '')
+        : "wallet_nav: skipped (no active runs or no reference price)\n";
+} catch (\Throwable $e) {
+    echo 'wallet_nav: failed — ' . $e->getMessage() . "\n";
+}

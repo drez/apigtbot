@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseCountryPeer;
 
-require 'om/BaseCountryPeer.php';
+require_once __DIR__ . '/om/BaseCountryPeer.php';
 
 
 /**

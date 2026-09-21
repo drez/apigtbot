@@ -228,11 +228,100 @@ class GtbotControlToolsTest extends TestCase
         $this->assertSame('Pending', (string) $cmd->getCmdStatus());
     }
 
+    /** Filled buy giving the run a cost basis the flatten gate can price. */
+    private function giveInventory(GridRun $run, string $price, string $qty): void
+    {
+        $row = new \App\BotOrder();
+        $row->setIdGridRun((int) $run->getIdGridRun());
+        $row->setClientOrderId('inv-' . bin2hex(random_bytes(4)));
+        $row->setLevelIdx(0);
+        $row->setSide('Buy');
+        $row->setState('Filled');
+        $row->setPrice($price);
+        $row->setQty($qty);
+        $row->setFilledQty($qty);
+        $row->setSimulated((bool) $run->getSimulated());
+        $row->save();
+    }
+
+    public function testFlattenIsRefusedWhenSellAtLossIsOffAndUnderwater(): void
+    {
+        // the run switch (default OFF) gates flatten independently of profile —
+        // but only for a liquidation that would actually realize a loss
+        $run = $this->makeRun('Balanced');
+        $this->giveInventory($run, '100', '1');
+        $run->setLastPrice('90');
+        $run->save();
+        $this->expectException(\ApiGoat\Mcp\ToolError::class);
+        try {
+            (new GtbotKillTool())->handle(
+                ['run' => (int) $run->getIdGridRun(), 'flatten' => true, 'confirm' => true, 'reason' => 'test: switch-off flatten attempt'],
+                $this->session()
+            );
+        } finally {
+            $run->reload();
+            $this->assertFalse((bool) $run->getKillSwitch(), 'a refused flatten must change nothing');
+            $this->assertSame(0, BotCommandQuery::create()->filterByIdGridRun((int) $run->getIdGridRun())->count());
+        }
+    }
+
+    public function testFlattenIsAllowedAboveBreakevenWithSellAtLossOff(): void
+    {
+        // the switch forbids realizing losses, not gains: a liquidation above
+        // the position's breakeven is a profit and proceeds (prod run 8,
+        // 2026-09-18 — refused at +1.85 USDT before this gate learned to look)
+        $run = $this->makeRun('Balanced');
+        $this->giveInventory($run, '100', '1');
+        $run->setLastPrice('120');
+        $run->save();
+        $out = $this->decode((new GtbotKillTool())->handle(
+            ['run' => (int) $run->getIdGridRun(), 'flatten' => true, 'confirm' => true, 'reason' => 'test: profitable flatten with the switch off'],
+            $this->session()
+        ));
+        $this->assertTrue($out['kill_switch']);
+        $cmd = BotCommandQuery::create()->filterByIdGridRun((int) $run->getIdGridRun())->findOne();
+        $this->assertSame('Flatten', (string) $cmd->getCommand());
+    }
+
+    public function testFlattenIsAllowedOnAFlatRunWithSellAtLossOff(): void
+    {
+        // nothing held: the liquidation realizes nothing, so there is no loss
+        // to forbid
+        $run = $this->makeRun('Balanced');
+        $out = $this->decode((new GtbotKillTool())->handle(
+            ['run' => (int) $run->getIdGridRun(), 'flatten' => true, 'confirm' => true, 'reason' => 'test: flatten a flat run'],
+            $this->session()
+        ));
+        $this->assertTrue($out['kill_switch']);
+    }
+
+    public function testNoLossProfileStillRefusesAProfitableFlatten(): void
+    {
+        // profile NoLoss is a stronger rule than the run switch: it forbids
+        // the daemon ever liquidating on command, gain or not
+        $run = $this->makeRun('NoLoss');
+        $this->giveInventory($run, '100', '1');
+        $run->setLastPrice('120');
+        $run->save();
+        $this->expectException(\ApiGoat\Mcp\ToolError::class);
+        try {
+            (new GtbotKillTool())->handle(
+                ['run' => (int) $run->getIdGridRun(), 'flatten' => true, 'confirm' => true, 'reason' => 'test: nolos profitable flatten'],
+                $this->session()
+            );
+        } finally {
+            $run->reload();
+            $this->assertFalse((bool) $run->getKillSwitch());
+        }
+    }
+
     public function testFlattenIsAllowedForBalancedProfile(): void
     {
         // positive control: the profile guard only blocks NoLoss — a
-        // Balanced run's flatten request must be allowed/enqueued as usual
+        // Balanced run with sell_at_loss ON must be allowed/enqueued as usual
         $run = $this->makeRun('Balanced');
+        $run->setSellAtLoss(true);
+        $run->save();
         $out = $this->decode((new GtbotKillTool())->handle(
             ['run' => (int) $run->getIdGridRun(), 'flatten' => true, 'confirm' => true, 'reason' => 'test: balanced flatten positive control'],
             $this->session()
@@ -273,6 +362,16 @@ class GtbotControlToolsTest extends TestCase
         $out = $this->decode((new GtbotStatusTool())->handle([], $this->session()));
         $this->assertSame((int) $this->run->getIdGridRun(), $out['run']['id']);
         $this->assertSame('Testnet', $out['run']['status']);
+    }
+
+    public function testStatusReportsSellAtLossSwitch(): void
+    {
+        $out = $this->decode((new GtbotStatusTool())->handle(['run' => (int) $this->run->getIdGridRun()], $this->session()));
+        $this->assertFalse($out['run']['sell_at_loss'], 'default OFF');
+        $this->run->setSellAtLoss(true);
+        $this->run->save();
+        $out = $this->decode((new GtbotStatusTool())->handle(['run' => (int) $this->run->getIdGridRun()], $this->session()));
+        $this->assertTrue($out['run']['sell_at_loss']);
     }
 
     public function testStatusReportsAlgoAndOmitsEngineBlockForGridRuns(): void

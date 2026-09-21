@@ -44,10 +44,51 @@ $app->post(_SUB_DIR_URL . 'GuiManager', function (Request $request, Response $re
     return $Service->getApiResponse();
 })->setName('GuiMgr');
 
+# Realtime handshake ticket: mint a short-lived HMAC ticket the browser hands to
+# the OpenSwoole sidecar when opening its WebSocket. A WS handshake cannot carry
+# an Authorization header, and the sidecar must never read session files, so the
+# app — which already knows the caller — signs identity into a 30s ticket instead.
+# The ticket grants NO read access: the sidecar pushes table names, never rows.
+$app->get(_SUB_DIR_URL . 'rt/ticket', function (Request $request, Response $response, $args) {
+    $response = $response->withHeader('Content-Type', 'application/json');
+
+    if (!\ApiGoat\Realtime\Signal::enabled()) {
+        $response->getBody()->write(json_encode(['enabled' => false]));
+        return $response;
+    }
+
+    // Same guard the push/subscribe routes use: a real user id, not just an
+    // instantiated session object (legacy.php always creates one).
+    $idAuthy = isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR])
+        ? (int) $_SESSION[_AUTH_VAR]->get('id') : 0;
+    if (!$idAuthy || $_SESSION[_AUTH_VAR]->get('connected') !== 'YES') {
+        $response->getBody()->write(json_encode(['status' => 'unauthenticated']));
+        return $response->withStatus(401);
+    }
+
+    $ticket = \ApiGoat\Realtime\Ticket::mint();
+    if ($ticket === '') {
+        $response->getBody()->write(json_encode(['enabled' => false]));
+        return $response;
+    }
+
+    $response->getBody()->write(json_encode([
+        'enabled' => true,
+        'ticket'  => $ticket,
+        // Path of the Apache ws-tunnel. Sits under the app's own prefix so one
+        // vhost rule per project is all that is needed; ProxyPass in the vhost
+        // wins over the .htaccess rewrite, so it never reaches the front controller.
+        'path'    => (string) (env('GC_RT_WS_PATH') ?: _SUB_DIR_URL . 'rt/ws'),
+        'ttl'     => \ApiGoat\Realtime\Ticket::TTL,
+    ]));
+    return $response;
+})->setName('rt/ticket');
+
 # Foreach defined builder routes
 # Add post and get
 foreach ($builderRoutes['html']['GET'] as $route => $params) {
     $app->get(_SUB_DIR_URL . $route . '[/{a}[/{params:.*}]]', function (Request $request, Response $response, $args) {
+        try {
         $RouteHelper = new RouteHelper($request, $args);
         $Service = $RouteHelper->getService($response);
         $response->getBody()->write($Service->getResponse());
@@ -67,6 +108,10 @@ foreach ($builderRoutes['html']['GET'] as $route => $params) {
             // seeking needs them in every browser).
             $gcMedia = !empty($Service->filePath)
                 && preg_match('#^(video|audio)/#', $Service->contentType);
+            // Uploaded bytes are user content: never let a browser second-guess
+            // the declared type (SecurityHeadersMiddleware sets this too, but the
+            // middleware list is per-project and not drift-synced).
+            $response = $response->withHeader('X-Content-Type-Options', 'nosniff');
             if ($Service->request['a'] == 'file') {
                 $response = $response->withHeader('Content-Type', 'application/force-download')
                     ->withHeader('Content-Description', 'File Transfer')
@@ -84,7 +129,15 @@ foreach ($builderRoutes['html']['GET'] as $route => $params) {
             }
             $response = $response->withHeader('Content-Type', $Service->contentType);
             if (!$gcMedia) {
-                return $response; // images/PDF: legacy in-memory body, unchanged
+                // getFileContent() maps every type outside its inline-safe
+                // allowlist (html, svg, xml, office files, …) to
+                // application/octet-stream: 'open' then agrees with 'file' and
+                // downloads it instead of rendering it on the app origin.
+                if ($Service->contentType === 'application/octet-stream') {
+                    $response = $response->withHeader('Content-Disposition', 'attachment; filename="'
+                        . str_replace(['"', '\\', "\r", "\n"], '', (string) $Service->Name) . '"');
+                }
+                return $response; // images/PDF/plain text: legacy in-memory body
             }
             $gcSize  = (int) $Service->length;
             $gcStart = 0;
@@ -131,11 +184,27 @@ foreach ($builderRoutes['html']['GET'] as $route => $params) {
             }
             return $response;
         }
+        } catch (\ApiGoat\Http\HaltResponse $gcHalt) {
+            // A40/C7: a service halted (delete refusal, access denied, PDF or
+            // mass-action payload). It used to die() here, which skipped every
+            // middleware on the way out; the response is rebuilt instead so
+            // CORS / security headers / server timing still apply.
+            //
+            // I-1: HaltResponseMiddleware (registered innermost in
+            // config/middlewares.php) is now the AUTHORITY for this — it covers
+            // every route, including the hand-written closures below and every
+            // route a project registers in config/routes.php. This per-closure
+            // catch is kept only so a project that has not yet picked up the
+            // middlewares.php line still behaves; where both exist this one
+            // simply wins and the middleware never fires.
+            return $gcHalt->applyTo($response);
+        }
     })->setName($route);
 }
 
 foreach ($builderRoutes['html']['POST'] as $route => $params) {
     $app->post(_SUB_DIR_URL . $route . '[/{a}[/{params:.*}]]', function (Request $request, Response $response, $args) {
+        try {
         $RouteHelper = new RouteHelper($request, $args);
         $Service = $RouteHelper->getService($response);
         $response->getBody()->write($Service->getResponse());
@@ -147,6 +216,21 @@ foreach ($builderRoutes['html']['POST'] as $route => $params) {
             $response = $response->withHeader($headers[0], $headers[1]);
         }
         return $response;
+        } catch (\ApiGoat\Http\HaltResponse $gcHalt) {
+            // A40/C7: a service halted (delete refusal, access denied, PDF or
+            // mass-action payload). It used to die() here, which skipped every
+            // middleware on the way out; the response is rebuilt instead so
+            // CORS / security headers / server timing still apply.
+            //
+            // I-1: HaltResponseMiddleware (registered innermost in
+            // config/middlewares.php) is now the AUTHORITY for this — it covers
+            // every route, including the hand-written closures below and every
+            // route a project registers in config/routes.php. This per-closure
+            // catch is kept only so a project that has not yet picked up the
+            // middlewares.php line still behaves; where both exist this one
+            // simply wins and the middleware never fires.
+            return $gcHalt->applyTo($response);
+        }
     })->setName($route);
 }
 # API
@@ -165,9 +249,28 @@ $app->post(_SUB_DIR_URL . 'api/v' . API_VERSION . '/Authy/{a:auth|renew|refresh}
 
 foreach ($builderRoutes['json']['GET'] as $route => $params) {
     $app->map(['GET', 'DELETE', 'PATCH', 'PUT', 'POST'], _SUB_DIR_URL . "api/v" . API_VERSION . "/{$route}[/{a}[/{params:.*}]]", function ($request, $response, $args) {
+        // add_audit: every write on this request is an API write. Guarded so a
+        // project pinned to a runtime without ApiGoat\Audit still serves the route.
+        if (class_exists('\ApiGoat\Audit\AuditContext')) { \ApiGoat\Audit\AuditContext::$source = 'api'; }
+        try {
         $RouteHelper = new RouteHelper($request, $args);
         $Service = $RouteHelper->getService($response);
         return $Service->getApiResponse();
+        } catch (\ApiGoat\Http\HaltResponse $gcHalt) {
+            // A40/C7: a service halted (delete refusal, access denied, PDF or
+            // mass-action payload). It used to die() here, which skipped every
+            // middleware on the way out; the response is rebuilt instead so
+            // CORS / security headers / server timing still apply.
+            //
+            // I-1: HaltResponseMiddleware (registered innermost in
+            // config/middlewares.php) is now the AUTHORITY for this — it covers
+            // every route, including the hand-written closures below and every
+            // route a project registers in config/routes.php. This per-closure
+            // catch is kept only so a project that has not yet picked up the
+            // middlewares.php line still behaves; where both exist this one
+            // simply wins and the middleware never fires.
+            return $gcHalt->applyTo($response);
+        }
     })->setName('api/' . $route);
 }
 
@@ -215,6 +318,32 @@ $app->get(_SUB_DIR_URL . '.well-known/oauth-protected-resource', function (Reque
     return (new \ApiGoat\Services\OAuthMetadataService($request, $response, $a))->getApiResponse();
 })->setName('oauthMetaPr');
 
+# Origin-level aliases for the two discovery documents. An app mounted under a
+# dot sub-directory (/.admin/) can never serve /.admin/.well-known/... : Apache
+# resolves the hidden directory during the authz walk and denies it
+# (authz_core AH01630) before mod_rewrite's per-directory fixup ever runs, so no
+# .htaccess rule inside .admin/ can rescue it. The project-root .htaccess routes
+# /.well-known/oauth-* into this app instead (with_mcp::patchHtaccess), and
+# OAuthMetadataService::issuer() advertises the origin to match. Registered only
+# when that service says we own the origin — for a root install these paths ARE
+# the routes above and a second registration is a FastRoute duplicate fatal.
+# method_exists guard: a project pinned to a runtime older than the predicate
+# must still boot (it simply keeps serving discovery from its own prefix).
+if (method_exists('\ApiGoat\Services\OAuthMetadataService', 'servesOriginDiscovery')
+    && \ApiGoat\Services\OAuthMetadataService::servesOriginDiscovery()) {
+    $app->get('/.well-known/oauth-authorization-server', function (Request $request, Response $response, $args) {
+        $RouteHelper = new RouteHelper($request, $args);
+        $a = $RouteHelper->getArgs(); $a['meta'] = 'as';
+        return (new \ApiGoat\Services\OAuthMetadataService($request, $response, $a))->getApiResponse();
+    })->setName('oauthMetaAsOrigin');
+
+    $app->get('/.well-known/oauth-protected-resource', function (Request $request, Response $response, $args) {
+        $RouteHelper = new RouteHelper($request, $args);
+        $a = $RouteHelper->getArgs(); $a['meta'] = 'pr';
+        return (new \ApiGoat\Services\OAuthMetadataService($request, $response, $a))->getApiResponse();
+    })->setName('oauthMetaPrOrigin');
+}
+
 $app->post(_SUB_DIR_URL . 'oauth/register', function (Request $request, Response $response, $args) {
     $RouteHelper = new RouteHelper($request, $args);
     return (new \ApiGoat\Services\OAuthRegisterService($request, $response, $RouteHelper->getArgs()))->getApiResponse();
@@ -231,6 +360,9 @@ $app->post(_SUB_DIR_URL . 'oauth/token', function (Request $request, Response $r
 })->setName('oauthToken');
 
 $app->post(_SUB_DIR_URL . 'api/v' . API_VERSION . '/mcp', function (Request $request, Response $response, $args) {
+    // add_audit: every write on this request is an MCP tool call. Guarded so a
+    // project pinned to a runtime without ApiGoat\Audit still serves the route.
+    if (class_exists('\ApiGoat\Audit\AuditContext')) { \ApiGoat\Audit\AuditContext::$source = 'mcp'; }
     $RouteHelper = new RouteHelper($request, $args);
     $Service = new \ApiGoat\Mcp\McpEndpoint($request, $response, $RouteHelper->getArgs());
     return $Service->handle();

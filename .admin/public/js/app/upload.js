@@ -67,16 +67,23 @@
         return w;
     }
 
-    function setPct(pct) {
-        // alertb routes through gcScreens.alert → alertDialog(), which appends
-        // .gc-confirm-box to <body>; the progress markup lands in its
-        // .gc-confirm-msg.
-        var ctx = document.querySelector('.gc-confirm-box .gc-confirm-msg');
+    function setPct(ctx, pct) {
+        // ctx is THIS upload's progress node (buildProgress()), not the first
+        // .gc-confirm-box in the DOM — that may be a stale, unrelated dialog.
         if (!ctx) { return; }
         var bf = ctx.querySelector('.upl-bar-fill');
         if (bf) { bf.style.width = pct + '%'; }
         var pc = ctx.querySelector('.upl-pct');
         if (pc) { pc.textContent = pct + '%'; }
+    }
+
+    // alertDialog() hands back no handle, so dismiss the progress dialog the
+    // way the user would: through its own OK button. Without this it stayed
+    // open at "100%" over the refreshed list, under any error dialog.
+    function closeProgress(ctx) {
+        var box = ctx && ctx.closest ? ctx.closest('.gc-confirm-box') : null;
+        var ok = box ? box.querySelector('.gc-confirm-btn') : null;
+        if (ok) { ok.click(); }
     }
 
     /* opts:
@@ -93,13 +100,28 @@
      *              FileUploaded hook position); check respJson.status
      *   onComplete function(errorsArray) after the queue drains
      */
+    function el(ref, scope) {
+        if (!ref) { return null; }
+        if (typeof ref !== 'string') { return ref; }
+        return (scope && scope.querySelector)
+            ? (scope.querySelector('#' + cssEscape(ref)) || document.getElementById(ref))
+            : document.getElementById(ref);
+    }
+
+    function cssEscape(id) {
+        if (window.CSS && typeof CSS.escape === 'function') { return CSS.escape(id); }
+        return String(id).replace(/[^A-Za-z0-9_-]/g, '\\$&');
+    }
+
     function create(opts) {
-        var browseBtn = document.getElementById(opts.browseBtn);
+        var browseBtn = el(opts.browseBtn, opts.scope);
         if (!browseBtn) { return null; }
         var exts = extList(opts.filters);
         var maxBytes = parseSize(opts.filters && opts.filters.max_file_size);
+        var maxCount = parseInt(opts.limit, 10) > 0 ? parseInt(opts.limit, 10) : 0;
         var errors = [];
         var uploading = false;
+        var progress = null;
 
         var input = document.createElement('input');
         input.type = 'file';
@@ -137,7 +159,7 @@
             // shared gcCore.xhrPost, which attaches the CSRF token + XHR marker the
             // way AuthyMiddleware::checkCsrf expects — no per-site token plumbing.
             window.gcCore.xhrPost(opts.url, fd, {
-                onProgress: function (pct) { setPct(pct); },
+                onProgress: function (pct) { setPct(progress, pct); },
                 onLoad: function (xhr) {
                     var resp = null;
                     try { resp = JSON.parse(xhr.responseText); } catch (e) { /* non-JSON */ }
@@ -160,6 +182,15 @@
             if (!files.length || uploading) { return; }
             if (opts.multi === false) { files = files.slice(0, 1); }
             errors = [];
+            // A18: is_file_upload_table {limit: N} — reject a pick that can
+            // never fit before a single byte leaves the browser. The server
+            // gate (the child list stops emitting the button at N) stays
+            // authoritative; this is only the friendly half.
+            if (maxCount && files.length > maxCount) {
+                input.value = '';
+                alertb(opts.title || 'Upload', 'At most ' + maxCount + ' file' + (maxCount > 1 ? 's' : '') + ' allowed');
+                return;
+            }
             if (typeof opts.validate === 'function') {
                 var err = opts.validate(files);
                 if (err) { input.value = ''; alertb(opts.title || 'Upload', err); return; }
@@ -171,16 +202,19 @@
                 return;
             }
             uploading = true;
-            alertb('Uploading', buildProgress());
+            progress = buildProgress();
+            alertb('Uploading', progress);
             var i = 0;
             (function next() {
                 if (i >= queue.length) {
                     uploading = false;
+                    closeProgress(progress);
+                    progress = null;
                     if (typeof opts.onComplete === 'function') { opts.onComplete(errors.slice()); }
                     else if (errors.length) { alertb('Upload failed', renderErrors(errors)); }
                     return;
                 }
-                setPct(0);
+                setPct(progress, 0);
                 uploadOne(queue[i++], next);
             })();
         }
@@ -188,7 +222,7 @@
         browseBtn.addEventListener('click', function (e) { e.preventDefault(); input.click(); });
         input.addEventListener('change', function () { start(input.files); });
 
-        var dropEl = opts.dropEl ? document.getElementById(opts.dropEl) : null;
+        var dropEl = opts.dropEl ? el(opts.dropEl, opts.scope) : null;
         if (dropEl) {
             ['dragenter', 'dragover'].forEach(function (t) {
                 dropEl.addEventListener(t, function (e) { e.preventDefault(); dropEl.classList.add('gc-upl-dragover'); });
@@ -233,16 +267,40 @@
         return f;
     }
 
-    // List-header upload: the anchor/wrapper (pickfilesForm) is emitted in the
-    // list header; N files → N new rows, then redirect to the list.
-    function bindList(el) {
-        if (!document.getElementById('pickfilesForm')) { return; }
-        var done = el.getAttribute('data-gc-upl-done') || '';
+    /* A34: the emitter used to give every upload widget the SAME ids
+     * (#pickfilesForm / #pickfiles / #filelist), so two upload child tables
+     * under one parent — or a stacked screen that keeps the previous DOM
+     * alive — cross-bound onto whichever element getElementById happened to
+     * find first. Regenerated projects now emit per-table ids and advertise
+     * them on the config span (data-gc-upl-btn / data-gc-upl-list); we resolve
+     * within the widget's own container first and fall back to the legacy
+     * fixed id so an un-rebuilt project keeps working. */
+    function cfgScope(cfg) {
+        return (cfg.closest && cfg.closest('form, .va-mob, .proto-screen')) || document;
+    }
+
+    function cfgBtn(cfg, legacyId) {
+        var id = cfg.getAttribute('data-gc-upl-btn');
+        var scope = cfgScope(cfg);
+        return (id ? el(id, scope) : null) || el(legacyId, scope);
+    }
+
+    function cfgLimit(cfg) {
+        return parseInt(cfg.getAttribute('data-gc-upl-limit'), 10) || 0;
+    }
+
+    // List-header upload: the anchor/wrapper (pickfilesForm-<Table>) is emitted
+    // in the list header; N files → N new rows, then redirect to the list.
+    function bindList(cfg) {
+        var btn = cfgBtn(cfg, 'pickfilesForm');
+        if (!btn) { return; }
+        var done = cfg.getAttribute('data-gc-upl-done') || '';
         create({
-            browseBtn: 'pickfilesForm',
-            dropEl: 'pickfilesForm',
-            url: el.getAttribute('data-gc-upl-url'),
-            filters: filtersFromCfg(el),
+            browseBtn: btn,
+            dropEl: btn,
+            url: cfg.getAttribute('data-gc-upl-url'),
+            filters: filtersFromCfg(cfg),
+            limit: cfgLimit(cfg),
             onComplete: function (errors) {
                 document.body.style.cursor = 'default';
                 if (errors.length) { alertb('Upload failed', renderErrors(errors)); return; }
@@ -251,22 +309,24 @@
         });
     }
 
-    // Child-list upload: anchor (pickfiles) in the child list header; ip is the
-    // parent FK value (runtime), IdUser the session user; on done, re-click the
-    // child's conglet toggle to refresh the list.
-    function bindChild(el) {
-        if (!document.getElementById('pickfiles')) { return; }
-        var conglet = el.getAttribute('data-gc-upl-conglet') || '';
-        var child = el.getAttribute('data-gc-upl-child') || '';
+    // Child-list upload: anchor (pickfiles-<Table>) in the child list header; ip
+    // is the parent FK value (runtime); on done, re-click the child's conglet
+    // toggle to refresh the list. A7: IdUser is gone — the server never read it
+    // and the emitter no longer leaks the session user id into the page.
+    function bindChild(cfg) {
+        var btn = cfgBtn(cfg, 'pickfiles');
+        if (!btn) { return; }
+        var conglet = cfg.getAttribute('data-gc-upl-conglet') || '';
+        var child = cfg.getAttribute('data-gc-upl-child') || '';
         create({
-            browseBtn: 'pickfiles',
-            dropEl: 'pickfiles',
-            url: el.getAttribute('data-gc-upl-url'),
-            multi: el.getAttribute('data-gc-upl-multi') !== '0',
-            filters: filtersFromCfg(el),
+            browseBtn: btn,
+            dropEl: btn,
+            url: cfg.getAttribute('data-gc-upl-url'),
+            multi: cfg.getAttribute('data-gc-upl-multi') !== '0',
+            filters: filtersFromCfg(cfg),
+            limit: cfgLimit(cfg),
             params: {
-                ip: el.getAttribute('data-gc-upl-ip') || '',
-                IdUser: el.getAttribute('data-gc-upl-user') || ''
+                ip: cfg.getAttribute('data-gc-upl-ip') || ''
             },
             onComplete: function (errors) {
                 document.body.style.cursor = 'default';
@@ -280,19 +340,27 @@
     // Edit-form upload (replace mode): the server-managed file-path input is
     // swapped for an Upload button; the upload carries ip (parent select) +
     // idUpd (this row's PK). Builds the button DOM, then create().
-    function bindForm(el) {
-        var fileName = el.getAttribute('data-gc-upl-file');
-        var fileInput = fileName ? document.querySelector("[name='" + fileName + "']") : null;
-        if (!fileInput || document.getElementById('pickfilesFormUpl')) { return; }
-        var url = el.getAttribute('data-gc-upl-url');
-        var fk = el.getAttribute('data-gc-upl-fk') || '';
-        var pkName = el.getAttribute('data-gc-upl-pk') || '';
-        var parentLbl = el.getAttribute('data-gc-upl-parent') || 'parent';
-        var table = el.getAttribute('data-gc-upl-table') || '';
-        var done = el.getAttribute('data-gc-upl-done') || '';
-        var txtUpload = el.getAttribute('data-gc-upl-txt-upload') || 'Upload';
-        var txtReplace = el.getAttribute('data-gc-upl-txt-replace') || 'Replace';
-        var txtFailed = el.getAttribute('data-gc-upl-txt-failed') || 'Upload failed';
+    function bindForm(cfg) {
+        var table = cfg.getAttribute('data-gc-upl-table') || '';
+        var scope = cfgScope(cfg);
+        var fileName = cfg.getAttribute('data-gc-upl-file');
+        var fileInput = fileName ? scope.querySelector("[name='" + fileName + "']") : null;
+        // A34: the old guard was a GLOBAL getElementById('pickfilesFormUpl'),
+        // so the first bound form on the page blocked every later one (stacked
+        // drawers keep earlier screens in the DOM). Mark the field we actually
+        // decorate instead — per element, so each form binds exactly once.
+        if (!fileInput || fileInput.getAttribute('data-gc-upl-bound') === '1') { return; }
+        fileInput.setAttribute('data-gc-upl-bound', '1');
+        var btnId = 'pickfilesFormUpl' + (table ? '-' + table : '');
+        var listId = 'filelistFormUpl' + (table ? '-' + table : '');
+        var url = cfg.getAttribute('data-gc-upl-url');
+        var fk = cfg.getAttribute('data-gc-upl-fk') || '';
+        var pkName = cfg.getAttribute('data-gc-upl-pk') || '';
+        var parentLbl = cfg.getAttribute('data-gc-upl-parent') || 'parent';
+        var done = cfg.getAttribute('data-gc-upl-done') || '';
+        var txtUpload = cfg.getAttribute('data-gc-upl-txt-upload') || 'Upload';
+        var txtReplace = cfg.getAttribute('data-gc-upl-txt-replace') || 'Replace';
+        var txtFailed = cfg.getAttribute('data-gc-upl-txt-failed') || 'Upload failed';
         var hasFile = !!(fileInput.value && fileInput.value.trim());
         // File path is server-managed: read-only when set, hidden when empty.
         if (hasFile) {
@@ -301,14 +369,14 @@
         } else {
             fileInput.style.display = 'none';
         }
-        var pkEl = pkName ? document.querySelector("[name='" + pkName + "']") : null;
+        var pkEl = pkName ? scope.querySelector("[name='" + pkName + "']") : null;
         var wrap = document.createElement('div');
         wrap.id = 'upload-form-' + table;
         wrap.className = 'gc-form-upload';
         wrap.style.cssText = 'position:relative;margin-top:6px;';
         var btn = document.createElement('a');
         btn.href = 'Javascript:';
-        btn.id = 'pickfilesFormUpl';
+        btn.id = btnId;
         btn.className = 'gc-upl-btn';
         btn.style.cssText = 'display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:6px;background:#00d1b2;color:#fff;font-size:13px;font-weight:600;line-height:1;text-decoration:none;box-shadow:0 1px 2px rgba(0,209,178,.3);cursor:pointer;';
         btn.onmouseenter = function () { btn.style.background = '#00b89a'; };
@@ -319,24 +387,26 @@
         lb.textContent = hasFile ? txtReplace : txtUpload;
         btn.appendChild(ic); btn.appendChild(lb);
         var list = document.createElement('div');
-        list.id = 'filelistFormUpl';
+        list.id = listId;
         wrap.appendChild(btn); wrap.appendChild(list);
         fileInput.parentNode.insertBefore(wrap, fileInput.nextSibling);
         create({
-            browseBtn: 'pickfilesFormUpl',
-            dropEl: 'pickfilesFormUpl',
+            browseBtn: btn,
+            dropEl: btn,
+            scope: scope,
             url: url,
             // Replace mode targets ONE row → block multi-pick; create keeps multi.
             multi: !hasFile,
             title: txtUpload,
-            filters: filtersFromCfg(el),
+            filters: filtersFromCfg(cfg),
+            limit: cfgLimit(cfg),
             validate: function () {
-                var fkEl = document.querySelector("[name='" + fk + "']");
+                var fkEl = scope.querySelector("[name='" + fk + "']");
                 if (!fkEl || !fkEl.value) { return 'Select a ' + parentLbl + ' before uploading'; }
                 return null;
             },
             params: function () {
-                var fkEl = document.querySelector("[name='" + fk + "']");
+                var fkEl = scope.querySelector("[name='" + fk + "']");
                 return { ip: fkEl ? fkEl.value : '', idUpd: pkEl ? pkEl.value : '' };
             },
             onComplete: function (errors) {
@@ -368,6 +438,14 @@
     }
 
     window.gcUpload = { create: create, renderErrors: renderErrors, bindWithin: bindWithin };
+
+    // An in-place list refresh (list.js fetchList, screens.js
+    // refreshChildWrapper) re-emits the upload anchor + its config element
+    // unbound, and the visible Upload button then clicked a dead anchor.
+    // Both swaps announce themselves; __gcUplBound keeps this idempotent.
+    document.addEventListener('gc:list-refreshed', function () {
+        try { bindWithin(document); } catch (e) {}
+    });
 
     // Initial page (main list / standalone edit). Drawer fragments are bound by
     // screens.js push(). Idempotent: re-runs no-op via __gcUplBound.

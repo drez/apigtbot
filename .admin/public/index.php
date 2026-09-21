@@ -3,6 +3,14 @@ require '../vendor/autoload.php';
 require __DIR__ . '/../config/Built/config.php';
 require __DIR__ . '/../config/legacy.php';
 
+// Behind a trusted proxy or an SSR front end that calls this API for the
+// visitor, REMOTE_ADDR is the front end's address for EVERY request — which
+// silently merges every per-IP limit (registration cap, login lockout, reset
+// throttle) into one bucket for the whole site. Restore the real visitor
+// address here, before anything reads it. No-op unless TRUSTED_PROXY_IPS
+// lists the caller, so the header can never be spoofed past a limit.
+\ApiGoat\Http\ClientIp::normalize($_SERVER, (string) env('TRUSTED_PROXY_IPS'));
+
 use DI\ContainerBuilder;
 use Slim\App;
 

@@ -41,13 +41,38 @@ final class MissingEngine implements StrategyEngine
         ));
     }
 
+    /** No strategy, no position of its own — the shell's exits are all there is. */
+    public function liquidate(string $price): void
+    {
+    }
+
     public function onSellFill(\App\BotOrder $row, string $executed, string $fee, string $price): void
     {
-        $this->daemon->log->write('Alert', 'engine_missing', sprintf(
-            'sell %s filled but algo=%s has no engine — no cycle booked; review manually',
+        $d = $this->daemon;
+        $d->log->write('Alert', 'engine_missing', sprintf(
+            'sell %s traded %s but algo=%s has no engine — no cycle booked; review manually',
             $row->getClientOrderId(),
+            $executed,
             $this->algo
         ));
+        // …guarding inventory is NOT strategy, though: an exit canceled after
+        // part of it traded (Daemon::bookCanceledRemainder) leaves the rest in
+        // the account, and a legacy exit is exactly the engine-independent
+        // instrument for it — the same one the shell places for a legacy row.
+        $rem = bcsub((string) $row->getQty(), $executed, 12);
+        if (bccomp($rem, '0', 12) <= 0) {
+            return; // the whole order traded: nothing is left to guard
+        }
+        $pinned = $row->getLegacyBuyPrice();
+        if (!$d->placeLegacyExit(
+            (int) $row->getLevelIdx(),
+            (string) $row->getPrice(),
+            $rem,
+            $pinned === null ? null : (string) $pinned,
+            $pinned === null ? null : (string) ($row->getLegacyBuyFee() ?: '0')
+        )) {
+            $d->warnUnguardedInventory($rem, (string) $row->getPrice(), (string) $row->getClientOrderId(), 'the remainder of a canceled exit');
+        }
     }
 
     public function onSellCanceled(\App\BotOrder $row, ?string $price): void
@@ -61,6 +86,10 @@ final class MissingEngine implements StrategyEngine
 
     /** No engine of its own to track a position with — only whatever legacy
      *  exits the shell is already guarding independently of any engine. */
+    public function onExitResized(int $levelIdx, string $placedQty): void
+    {
+    }
+
     public function heldQty(): string
     {
         return $this->daemon->store->legacyRemainingQty();

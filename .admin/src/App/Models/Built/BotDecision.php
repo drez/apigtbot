@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseBotDecision;
 
-require 'om/BaseBotDecision.php';
+require_once __DIR__ . '/om/BaseBotDecision.php';
 
 
 /**

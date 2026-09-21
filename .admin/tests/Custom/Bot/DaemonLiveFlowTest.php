@@ -357,6 +357,35 @@ class DaemonLiveFlowTest extends TestCase
         $this->assertContains('partial_timeout', $this->eventKinds());
     }
 
+    public function testStuckPartialBuySurvivesADaemonRestart(): void
+    {
+        // the stuck timer lived only in memory and was set on the TRANSITION
+        // into PartFilled: a restart left the level blocked for good, its
+        // delivered coins on nobody's books
+        $this->sim->setPrice('150');
+        $d = $this->daemonWithPartialTimeout(3600);
+        $d->boot();
+        $d->tick();
+        $buyCid = null;
+        foreach ($this->sim->open as $cid => $o) {
+            if (bccomp($o['price'], '125', 8) === 0) {
+                $buyCid = $cid;
+            }
+        }
+        $this->sim->partialFill($buyCid, '0.40000000');
+        $this->sim->setPrice('140');
+        $d->tick(); // marked PartFilled, an hour to go
+        $this->assertSame('PartFilled', (string) BotOrderQuery::create()->findOneByClientOrderId($buyCid)->getState());
+
+        $d2 = $this->daemonWithPartialTimeout(0); // a fresh process, timeout since elapsed
+        $d2->boot();
+        $d2->tick();
+
+        $row = BotOrderQuery::create()->findOneByClientOrderId($buyCid);
+        $this->assertSame('Filled', (string) $row->getState());
+        $this->assertSame(0, bccomp((string) $row->getFilledQty(), '0.4', 8));
+    }
+
     public function testStuckPartialSellAlertsButStaysWorking(): void
     {
         $this->sim->setPrice('150');
@@ -522,5 +551,90 @@ class DaemonLiveFlowTest extends TestCase
             ->filterByState('Canceled')
             ->count();
         $this->assertSame(2, $canceled);
+    }
+
+    /** Events of one kind on this run. */
+    private function countKind(string $kind): int
+    {
+        return count(array_filter($this->eventKinds(), static fn (string $k): bool => $k === $kind));
+    }
+
+    private function openBuys(): array
+    {
+        return array_values(array_filter($this->sim->open, static fn (array $o): bool => $o['side'] === 'BUY'));
+    }
+
+    /**
+     * D3 (prod BNB grid, 2026-09-21): the same buy placed and cancelled 1050+
+     * times, every 1–2 minutes, "placed | Buy L00 @ 714.64" then seconds later
+     * "distance_prune | L00 buy outside the 4-level window".
+     *
+     * The window's edge was a function of the tape alone — the index of the
+     * highest ladder line strictly below price — so every time the tape
+     * crossed ONE line (L4 = 774.23, in the middle of the 770–785 range it
+     * was trading) the edge stepped, and the deepest buy was armed on the way
+     * down and cancelled on the way up, forever, without a single fill.
+     */
+    private function prodChurnGeometry(): void
+    {
+        $this->run->setSymbol('BNBUSDT');
+        $this->run->setPLow('714.64');
+        $this->run->setPHigh('805.87');
+        $this->run->setNLevels(6);
+        $this->run->setSpacing('Geometric');
+        $this->run->setAllocation('EqualQuote');
+        $this->run->setBudgetQuote('380');
+        $this->run->setDeployPct(25);
+        $this->run->setMaxBuyLevelsBelow(4);
+        $this->run->save();
+    }
+
+    public function testAPriceWigglingAcrossOneLadderLineDoesNotChurnTheDeepestBuy(): void
+    {
+        $this->prodChurnGeometry();
+        $this->sim->setPrice('780');
+        $d = $this->daemon();
+        $d->boot();
+        $d->tick();
+
+        // the tape crosses L4 (774.23) back and forth — 0.03% of price
+        for ($i = 0; $i < 6; $i++) {
+            $this->sim->setPrice($i % 2 === 0 ? '774.10' : '774.30');
+            $d->tick();
+        }
+
+        $this->assertSame(0, $this->countKind('distance_prune'), 'nothing is cancelled by a one-line wiggle');
+        $this->assertLessThanOrEqual(
+            1,
+            count(array_filter($this->eventKinds(), static fn (string $k): bool => $k === 'order_canceled')),
+            'and nothing is cancelled behind the ladder either'
+        );
+        $placedL00 = BotOrderQuery::create()
+            ->filterByIdGridRun((int) $this->run->getIdGridRun())
+            ->filterByLevelIdx(0)
+            ->filterBySide('Buy')
+            ->count();
+        $this->assertLessThanOrEqual(1, $placedL00, 'the deepest buy is placed at most once, not once per tick');
+    }
+
+    public function testTheWindowStillSlidesWhenTheTapeReallyMoves(): void
+    {
+        $this->prodChurnGeometry();
+        $this->sim->setPrice('760');            // top = L3 (758.88) → buys L0..L3
+        $d = $this->daemon();
+        $d->boot();
+        $d->tick();
+        $this->assertCount(4, $this->openBuys());
+
+        $this->sim->setPrice('804');            // top = L5 → the window arms L2..L5
+        $d->tick();
+        $prices = array_map(static fn (array $o): float => (float) $o['price'], $this->openBuys());
+        sort($prices);
+        $this->assertSame(
+            [729.09, 743.84, 758.88, 774.23, 789.89],
+            $prices,
+            'two levels out is cancelled, the near ones are armed, and L1 — one level out — is kept rather than churned'
+        );
+        $this->assertSame(1, $this->countKind('distance_prune'), 'exactly the one buy that left the window for good');
     }
 }

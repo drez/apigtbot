@@ -85,6 +85,13 @@ abstract class AbstractGtbotBase implements McpTool
             ->orderByIdGridRun(\Criteria::DESC)
             ->findOne();
         if (!$run) {
+            // a Retiring run is on its way out — never the implicit answer to
+            // "which run did you mean?"
+            $run = $q->filterByStatus(['Done', 'Retiring'], \Criteria::NOT_IN)
+                ->orderByIdGridRun(\Criteria::DESC)
+                ->findOne();
+        }
+        if (!$run) {
             $run = $q->filterByStatus('Done', \Criteria::NOT_EQUAL)
                 ->orderByIdGridRun(\Criteria::DESC)
                 ->findOne();
@@ -109,15 +116,21 @@ abstract class AbstractGtbotBase implements McpTool
         return (int) $c->getIdBotCommand();
     }
 
-    /** Heartbeat freshness — a silent daemon holding inventory is an incident. */
+    /**
+     * Heartbeat freshness — a silent daemon holding inventory is an incident,
+     * EXCEPT on a Halted run: parked by the operator, its daemon exited on
+     * purpose and the watchdog won't respawn it, so held=true and stale=false.
+     */
     protected function heartbeat(\App\GridRun $run): array
     {
         $last = $run->getLastTickAt('Y-m-d H:i:s');
         $age = $last ? (time() - strtotime($last)) : null;
+        $held = (string) $run->getStatus() === 'Halted';
         return [
             'last_tick_at' => $last,
             'age_seconds' => $age,
-            'stale' => $age === null || $age > 60,
+            'held' => $held,
+            'stale' => !$held && ($age === null || $age > 60),
         ];
     }
 

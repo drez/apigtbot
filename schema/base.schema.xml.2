@@ -1,11 +1,11 @@
 <database name="apigtbot" defaultIdMethod="native" namespace="App" >
 		<behavior name="GoatCheese" >
-			<parameter name="set_config" value='{&quot;project_url&quot;:&quot;https:\/\/gc.local\/apigtbot\/.admin\/&quot;,&quot;project_root&quot;:&quot;\/var\/www\/gc\/p\/apigtbot\/.admin\/&quot;}' />
+			<parameter name="set_config" value='{&quot;project_url&quot;:&quot;https:\/\/gc.local\/apigtbot\/.admin\/&quot;,&quot;project_root&quot;:&quot;\/path\/to\/apigtbot\/.admin\/&quot;}' />
 			<parameter name="set_debug_level" value="3" />
-			<parameter name="add_hooks" value='{&quot;afterFormObj&quot;:[],&quot;beforeSave&quot;:[],&quot;afterSave&quot;:[],&quot;beforeList&quot;:[]}' />
+			<parameter name="add_hooks" value='{&quot;afterFormObj&quot;:[],&quot;beforeSave&quot;:[&quot;grid_run&quot;],&quot;afterSave&quot;:[],&quot;beforeList&quot;:[]}' />
 			<parameter name="with_api" value="1" />
 			<parameter name="with_mcp" value="1" />
-			<parameter name="set_menu" value='{&quot;name&quot;:&quot;Settings&quot;,&quot;folded&quot;:true}' />
+			<parameter name="set_menu" value='[{&quot;name&quot;:&quot;Trading&quot;,&quot;folded&quot;:false,&quot;icon&quot;:&quot;ri-line-chart-line&quot;,&quot;order&quot;:10},{&quot;name&quot;:&quot;Settings&quot;,&quot;folded&quot;:true}]' />
 		</behavior>
 		<behavior name="add_validator" />
 		<behavior name="add_tablestamp" />

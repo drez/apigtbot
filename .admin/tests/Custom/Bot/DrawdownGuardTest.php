@@ -6,51 +6,22 @@ use App\Config;
 use App\ConfigQuery;
 use App\Domains\Bot\DrawdownGuard;
 use App\GridRun;
-use PHPUnit\Framework\TestCase;
+use Tests\Builder\Support\DbTestCase;
 
-class DrawdownGuardTest extends TestCase
+class DrawdownGuardTest extends DbTestCase
 {
-    private static bool $booted = false;
-
-    public static function setUpBeforeClass(): void
-    {
-        if (self::$booted) {
-            return;
-        }
-        $admin = dirname(__DIR__, 3);
-        require_once $admin . '/vendor/autoload.php';
-        (new \Ahc\Env\Loader())->load($admin . '/.env');
-        if (!defined('_AUTH_VAR')) {
-            require $admin . '/config/Built/config.php';
-        }
-        if (!\Propel::isInit()) {
-            require $admin . '/config/Built/propel.php';
-        }
-        if (session_status() === PHP_SESSION_NONE) {
-            @session_start();
-        }
-        $_SESSION[_AUTH_VAR] = new \ApiGoat\Sessions\AuthySession();
-        self::$booted = true;
-    }
-
     protected function setUp(): void
     {
-        $con = \Propel::getConnection();
-        $con->beginTransaction();
+        parent::setUp();
         // neutralize whatever the local DB holds — this test owns the world
         // (status is a Propel ENUM stored as an int: raw SQL can't say 'Done')
         foreach (\App\GridRunQuery::create()->filterByStatus('Done', \Criteria::NOT_EQUAL)->find() as $r) {
             $r->setStatus('Done');
             $r->save();
         }
-        $con->exec('DELETE FROM sim_wallet');
+        \Propel::getConnection()->exec('DELETE FROM sim_wallet');
         $this->setConfig('gtbot_shared_budget_quote', '1000');
         $this->setConfig('gtbot_max_drawdown_pct', '');
-    }
-
-    protected function tearDown(): void
-    {
-        \Propel::getConnection()->rollBack();
     }
 
     private function setConfig(string $key, string $v): void
@@ -80,7 +51,7 @@ class DrawdownGuardTest extends TestCase
         ?string $lastTickAt = null
     ): GridRun {
         $r = new GridRun();
-        $r->setLabel('dd-' . bin2hex(random_bytes(4)));
+        $r->setLabel(static::uniq('dd'));
         $r->setSymbol($symbol);
         $r->setStatus($status);
         $r->setSimulated($simulated);
@@ -97,7 +68,7 @@ class DrawdownGuardTest extends TestCase
         $r->setBreakoutBufferPct('0.02');
         $r->setBreakoutPolicy('HaltAndHold');
         $r->setMaxOpenOrders(60);
-        $r->setRunUid('dd');
+        $r->setRunUid(static::uniq('dd'));
         if ($lastPrice !== null) {
             $r->setLastPrice($lastPrice);
         }
@@ -143,6 +114,33 @@ class DrawdownGuardTest extends TestCase
         $this->assertSame([], $eq['unpriced']);
     }
 
+    /** Same pool-staleness trap as BudgetGuard: the daemon marks equity every
+     *  tick, so last_price/balances stamped by OTHER daemons must be read
+     *  fresh, not from GridRun objects pooled at boot. */
+    public function testEquityReadsRunRowsFreshBehindTheInstancePool(): void
+    {
+        $r = $this->mkRun('BTCUSDT', '60000');
+        $this->seedWallet(['USDT' => '500', 'BTC' => '0.01']);
+        $this->assertSame(0, bccomp('1100', DrawdownGuard::equity()['equity'], 12));
+
+        \Propel::getConnection()
+            ->prepare('UPDATE grid_run SET last_price = 50000 WHERE id_grid_run = ?')
+            ->execute([(int) $r->getIdGridRun()]);
+        $this->assertSame(0, bccomp('60000', (string) $r->getLastPrice(), 2), 'pooled object is stale on purpose');
+        $this->assertSame(0, bccomp('1000', DrawdownGuard::equity()['equity'], 12), '500 + 0.01×50000 — the fresh price');
+    }
+
+    public function testRealEquityReadsBalancesFreshBehindTheInstancePool(): void
+    {
+        $r = $this->mkRun('BTCUSDT', '60000', false, 'Live', '0.01', '500');
+        $this->assertSame(0, bccomp('1100', DrawdownGuard::equity()['equity'], 12));
+
+        \Propel::getConnection()
+            ->prepare('UPDATE grid_run SET bal_quote = 200, bal_base = 0.02 WHERE id_grid_run = ?')
+            ->execute([(int) $r->getIdGridRun()]);
+        $this->assertSame(0, bccomp('1400', DrawdownGuard::equity()['equity'], 12), '200 + 0.02×60000 — the fresh stamps');
+    }
+
     public function testUnpricedAssetCountsZeroAndIsReported(): void
     {
         $this->mkRun('BTCUSDT', '60000');
@@ -184,6 +182,17 @@ class DrawdownGuardTest extends TestCase
         $this->assertSame(0, bccomp('900', $eq['equity'], 12)); // 400 + 0.5×1000
     }
 
+    public function testAMixedFleetIsGuardedOnItsRealMoney(): void
+    {
+        // one paper run left behind in a real fleet must not swing the floor
+        // onto the paper wallet: the only equity that can be LOST is real
+        $this->seedWallet(['USDT' => '5000']);
+        $this->mkRun('BTCUSDT', '1000', false, 'Live', '0.5', '400');
+        $this->mkRun('BNBUSDT', '600', true, 'Live', '9', '9999'); // paper stamps are not the account
+        $eq = DrawdownGuard::equity();
+        $this->assertSame(0, bccomp('900', $eq['equity'], 12));
+    }
+
     // ── tripAll ─────────────────────────────────────────────────────────
 
     public function testTripAllKillsOnlyActiveRuns(): void
@@ -199,5 +208,37 @@ class DrawdownGuardTest extends TestCase
         $this->assertTrue((bool) $b->getKillSwitch());
         $this->assertFalse((bool) $done->getKillSwitch());
         $this->assertSame(0, DrawdownGuard::tripAll()); // idempotent
+    }
+
+    // ── NAV ledger (wallet_nav) ─────────────────────────────────────────
+
+    public function testNavSnapshotStoresWalletEquityAndReference(): void
+    {
+        $this->mkRun('BTCUSDT', '60000');
+        $this->seedWallet(['USDT' => '500', 'BTC' => '0.01']);
+        $row = \App\Domains\Bot\NavLedger::snapshot('60000');
+        $this->assertNotNull($row);
+        $this->assertSame('sim', (string) $row->getMode());
+        $this->assertSame(0, bccomp('1100', (string) $row->getEquityQuote(), 8));
+        $this->assertSame(0, bccomp('1000', (string) $row->getBudgetQuote(), 8));
+        $this->assertSame('BTCUSDT', (string) $row->getRefSymbol());
+        $this->assertNull($row->getUnpriced());
+        // a second point makes a report: equity flat, BTC +10% → trailing HODL
+        $this->seedWallet([]);
+        $row2 = \App\Domains\Bot\NavLedger::snapshot('66000');
+        $row2->setEquityQuote('1100');
+        $row2->save();
+        $rep = \App\Domains\Bot\NavLedger::report('sim', 1);
+        $this->assertNotNull($rep);
+        $this->assertSame(2, $rep['points']);
+        $this->assertSame(10.0, $rep['hodl_return_pct']);
+        $this->assertSame(-10.0, $rep['excess_vs_hodl_pct']);
+    }
+
+    public function testNavSnapshotSkipsWhenNoActiveRuns(): void
+    {
+        $before = \App\WalletNavQuery::create()->count();
+        $this->assertNull(\App\Domains\Bot\NavLedger::snapshot('60000'), 'no active runs → mode none → nothing to record');
+        $this->assertSame($before, \App\WalletNavQuery::create()->count());
     }
 }

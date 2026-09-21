@@ -1040,7 +1040,7 @@ abstract class BaseBotEventQuery extends ModelCriteria
     protected function basePostDelete($affectedRows, PropelPDO $con)
     {
         // GoatCheese behavior
-        
+
                 if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                     \ApiGoat\Utility\TableVersion::bump('bot_event');
                 }
@@ -1057,7 +1057,7 @@ abstract class BaseBotEventQuery extends ModelCriteria
     protected function basePostUpdate($affectedRows, PropelPDO $con)
     {
         // GoatCheese behavior
-        
+
                 if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                     \ApiGoat\Utility\TableVersion::bump('bot_event');
                 }

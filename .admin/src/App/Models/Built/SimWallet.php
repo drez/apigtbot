@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseSimWallet;
 
-require 'om/BaseSimWallet.php';
+require_once __DIR__ . '/om/BaseSimWallet.php';
 
 
 /**

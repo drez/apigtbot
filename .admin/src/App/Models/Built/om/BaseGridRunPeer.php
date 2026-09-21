@@ -15,8 +15,11 @@ use App\BotCommandPeer;
 use App\BotDecisionPeer;
 use App\BotEventPeer;
 use App\BotOrderPeer;
+use App\FleetSlotPeer;
 use App\GridRun;
+use App\GridRunAuditPeer;
 use App\GridRunPeer;
+use App\RegimeEpisodePeer;
 use App\TradeCyclePeer;
 use App\map\GridRunTableMap;
 
@@ -43,13 +46,13 @@ abstract class BaseGridRunPeer
     const TM_CLASS = 'App\\map\\GridRunTableMap';
 
     /** The total number of columns. */
-    const NUM_COLUMNS = 47;
+    const NUM_COLUMNS = 52;
 
     /** The number of lazy-loaded columns. */
     const NUM_LAZY_LOAD_COLUMNS = 0;
 
     /** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
-    const NUM_HYDRATE_COLUMNS = 47;
+    const NUM_HYDRATE_COLUMNS = 52;
 
     /** the column name for the id_grid_run field */
     const ID_GRID_RUN = 'grid_run.id_grid_run';
@@ -96,6 +99,9 @@ abstract class BaseGridRunPeer
     /** the column name for the deploy_pct field */
     const DEPLOY_PCT = 'grid_run.deploy_pct';
 
+    /** the column name for the alloc_mode field */
+    const ALLOC_MODE = 'grid_run.alloc_mode';
+
     /** the column name for the fee_pct field */
     const FEE_PCT = 'grid_run.fee_pct';
 
@@ -110,6 +116,12 @@ abstract class BaseGridRunPeer
 
     /** the column name for the max_unrealized_loss_quote field */
     const MAX_UNREALIZED_LOSS_QUOTE = 'grid_run.max_unrealized_loss_quote';
+
+    /** the column name for the sell_at_loss field */
+    const SELL_AT_LOSS = 'grid_run.sell_at_loss';
+
+    /** the column name for the sell_when_starved field */
+    const SELL_WHEN_STARVED = 'grid_run.sell_when_starved';
 
     /** the column name for the breakout_buffer_pct field */
     const BREAKOUT_BUFFER_PCT = 'grid_run.breakout_buffer_pct';
@@ -143,6 +155,12 @@ abstract class BaseGridRunPeer
 
     /** the column name for the atr_initial_mult field */
     const ATR_INITIAL_MULT = 'grid_run.atr_initial_mult';
+
+    /** the column name for the trend_stop_floor_pct field */
+    const TREND_STOP_FLOOR_PCT = 'grid_run.trend_stop_floor_pct';
+
+    /** the column name for the trend_signal field */
+    const TREND_SIGNAL = 'grid_run.trend_signal';
 
     /** the column name for the reentry_cooldown field */
     const REENTRY_COOLDOWN = 'grid_run.reentry_cooldown';
@@ -199,6 +217,7 @@ abstract class BaseGridRunPeer
     const STATUS_LIVE = 'Live';
     const STATUS_HALTED = 'Halted';
     const STATUS_DONE = 'Done';
+    const STATUS_RETIRING = 'Retiring';
 
     /** The enumerated values for the profile field */
     const PROFILE_NOLOSS = 'NoLoss';
@@ -220,6 +239,10 @@ abstract class BaseGridRunPeer
     const ALLOCATION_EQUALBASE = 'EqualBase';
     const ALLOCATION_BOTTOMWEIGHTED = 'BottomWeighted';
 
+    /** The enumerated values for the alloc_mode field */
+    const ALLOC_MODE_AUTO = 'Auto';
+    const ALLOC_MODE_FIXED = 'Fixed';
+
     /** The enumerated values for the breakout_policy field */
     const BREAKOUT_POLICY_HALTANDHOLD = 'HaltAndHold';
     const BREAKOUT_POLICY_FLATTEN = 'Flatten';
@@ -227,6 +250,10 @@ abstract class BaseGridRunPeer
     /** The enumerated values for the trend_tf field */
     const TREND_TF_1H = '1h';
     const TREND_TF_4H = '4h';
+
+    /** The enumerated values for the trend_signal field */
+    const TREND_SIGNAL_DONCHIAN = 'Donchian';
+    const TREND_SIGNAL_EMACROSS1D = 'EmaCross1d';
 
     /** The default string format for model objects of the related table **/
     const DEFAULT_STRING_FORMAT = 'YAML';
@@ -247,12 +274,12 @@ abstract class BaseGridRunPeer
      * e.g. GridRunPeer::$fieldNames[GridRunPeer::TYPE_PHPNAME][0] = 'Id'
      */
     protected static $fieldNames = array (
-        BasePeer::TYPE_PHPNAME => array ('IdGridRun', 'Label', 'Symbol', 'Status', 'KillSwitch', 'Profile', 'Algo', 'Simulated', 'PLow', 'PHigh', 'NLevels', 'Spacing', 'Allocation', 'BudgetQuote', 'DeployPct', 'FeePct', 'MaxPositionQuote', 'MaxOrderQuote', 'DailyLossLimitQuote', 'MaxUnrealizedLossQuote', 'BreakoutBufferPct', 'BreakoutPolicy', 'MaxOpenOrders', 'MaxBuyLevelsBelow', 'TrendTf', 'DonchianPeriod', 'TrendEmaFast', 'TrendEmaSlow', 'AtrPeriod', 'AtrStopMult', 'AtrInitialMult', 'ReentryCooldown', 'EngineState', 'LastTickAt', 'LastPrice', 'BalBase', 'BalQuote', 'SimBalBase', 'SimBalQuote', 'RunUid', 'AppliedGeometry', 'LedgerResetAt', 'DateCreation', 'DateModification', 'IdGroupCreation', 'IdCreation', 'IdModification', ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('idGridRun', 'label', 'symbol', 'status', 'killSwitch', 'profile', 'algo', 'simulated', 'pLow', 'pHigh', 'nLevels', 'spacing', 'allocation', 'budgetQuote', 'deployPct', 'feePct', 'maxPositionQuote', 'maxOrderQuote', 'dailyLossLimitQuote', 'maxUnrealizedLossQuote', 'breakoutBufferPct', 'breakoutPolicy', 'maxOpenOrders', 'maxBuyLevelsBelow', 'trendTf', 'donchianPeriod', 'trendEmaFast', 'trendEmaSlow', 'atrPeriod', 'atrStopMult', 'atrInitialMult', 'reentryCooldown', 'engineState', 'lastTickAt', 'lastPrice', 'balBase', 'balQuote', 'simBalBase', 'simBalQuote', 'runUid', 'appliedGeometry', 'ledgerResetAt', 'dateCreation', 'dateModification', 'idGroupCreation', 'idCreation', 'idModification', ),
-        BasePeer::TYPE_COLNAME => array (GridRunPeer::ID_GRID_RUN, GridRunPeer::LABEL, GridRunPeer::SYMBOL, GridRunPeer::STATUS, GridRunPeer::KILL_SWITCH, GridRunPeer::PROFILE, GridRunPeer::ALGO, GridRunPeer::SIMULATED, GridRunPeer::P_LOW, GridRunPeer::P_HIGH, GridRunPeer::N_LEVELS, GridRunPeer::SPACING, GridRunPeer::ALLOCATION, GridRunPeer::BUDGET_QUOTE, GridRunPeer::DEPLOY_PCT, GridRunPeer::FEE_PCT, GridRunPeer::MAX_POSITION_QUOTE, GridRunPeer::MAX_ORDER_QUOTE, GridRunPeer::DAILY_LOSS_LIMIT_QUOTE, GridRunPeer::MAX_UNREALIZED_LOSS_QUOTE, GridRunPeer::BREAKOUT_BUFFER_PCT, GridRunPeer::BREAKOUT_POLICY, GridRunPeer::MAX_OPEN_ORDERS, GridRunPeer::MAX_BUY_LEVELS_BELOW, GridRunPeer::TREND_TF, GridRunPeer::DONCHIAN_PERIOD, GridRunPeer::TREND_EMA_FAST, GridRunPeer::TREND_EMA_SLOW, GridRunPeer::ATR_PERIOD, GridRunPeer::ATR_STOP_MULT, GridRunPeer::ATR_INITIAL_MULT, GridRunPeer::REENTRY_COOLDOWN, GridRunPeer::ENGINE_STATE, GridRunPeer::LAST_TICK_AT, GridRunPeer::LAST_PRICE, GridRunPeer::BAL_BASE, GridRunPeer::BAL_QUOTE, GridRunPeer::SIM_BAL_BASE, GridRunPeer::SIM_BAL_QUOTE, GridRunPeer::RUN_UID, GridRunPeer::APPLIED_GEOMETRY, GridRunPeer::LEDGER_RESET_AT, GridRunPeer::DATE_CREATION, GridRunPeer::DATE_MODIFICATION, GridRunPeer::ID_GROUP_CREATION, GridRunPeer::ID_CREATION, GridRunPeer::ID_MODIFICATION, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID_GRID_RUN', 'LABEL', 'SYMBOL', 'STATUS', 'KILL_SWITCH', 'PROFILE', 'ALGO', 'SIMULATED', 'P_LOW', 'P_HIGH', 'N_LEVELS', 'SPACING', 'ALLOCATION', 'BUDGET_QUOTE', 'DEPLOY_PCT', 'FEE_PCT', 'MAX_POSITION_QUOTE', 'MAX_ORDER_QUOTE', 'DAILY_LOSS_LIMIT_QUOTE', 'MAX_UNREALIZED_LOSS_QUOTE', 'BREAKOUT_BUFFER_PCT', 'BREAKOUT_POLICY', 'MAX_OPEN_ORDERS', 'MAX_BUY_LEVELS_BELOW', 'TREND_TF', 'DONCHIAN_PERIOD', 'TREND_EMA_FAST', 'TREND_EMA_SLOW', 'ATR_PERIOD', 'ATR_STOP_MULT', 'ATR_INITIAL_MULT', 'REENTRY_COOLDOWN', 'ENGINE_STATE', 'LAST_TICK_AT', 'LAST_PRICE', 'BAL_BASE', 'BAL_QUOTE', 'SIM_BAL_BASE', 'SIM_BAL_QUOTE', 'RUN_UID', 'APPLIED_GEOMETRY', 'LEDGER_RESET_AT', 'DATE_CREATION', 'DATE_MODIFICATION', 'ID_GROUP_CREATION', 'ID_CREATION', 'ID_MODIFICATION', ),
-        BasePeer::TYPE_FIELDNAME => array ('id_grid_run', 'label', 'symbol', 'status', 'kill_switch', 'profile', 'algo', 'simulated', 'p_low', 'p_high', 'n_levels', 'spacing', 'allocation', 'budget_quote', 'deploy_pct', 'fee_pct', 'max_position_quote', 'max_order_quote', 'daily_loss_limit_quote', 'max_unrealized_loss_quote', 'breakout_buffer_pct', 'breakout_policy', 'max_open_orders', 'max_buy_levels_below', 'trend_tf', 'donchian_period', 'trend_ema_fast', 'trend_ema_slow', 'atr_period', 'atr_stop_mult', 'atr_initial_mult', 'reentry_cooldown', 'engine_state', 'last_tick_at', 'last_price', 'bal_base', 'bal_quote', 'sim_bal_base', 'sim_bal_quote', 'run_uid', 'applied_geometry', 'ledger_reset_at', 'date_creation', 'date_modification', 'id_group_creation', 'id_creation', 'id_modification', ),
-        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, )
+        BasePeer::TYPE_PHPNAME => array ('IdGridRun', 'Label', 'Symbol', 'Status', 'KillSwitch', 'Profile', 'Algo', 'Simulated', 'PLow', 'PHigh', 'NLevels', 'Spacing', 'Allocation', 'BudgetQuote', 'DeployPct', 'AllocMode', 'FeePct', 'MaxPositionQuote', 'MaxOrderQuote', 'DailyLossLimitQuote', 'MaxUnrealizedLossQuote', 'SellAtLoss', 'SellWhenStarved', 'BreakoutBufferPct', 'BreakoutPolicy', 'MaxOpenOrders', 'MaxBuyLevelsBelow', 'TrendTf', 'DonchianPeriod', 'TrendEmaFast', 'TrendEmaSlow', 'AtrPeriod', 'AtrStopMult', 'AtrInitialMult', 'TrendStopFloorPct', 'TrendSignal', 'ReentryCooldown', 'EngineState', 'LastTickAt', 'LastPrice', 'BalBase', 'BalQuote', 'SimBalBase', 'SimBalQuote', 'RunUid', 'AppliedGeometry', 'LedgerResetAt', 'DateCreation', 'DateModification', 'IdGroupCreation', 'IdCreation', 'IdModification', ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('idGridRun', 'label', 'symbol', 'status', 'killSwitch', 'profile', 'algo', 'simulated', 'pLow', 'pHigh', 'nLevels', 'spacing', 'allocation', 'budgetQuote', 'deployPct', 'allocMode', 'feePct', 'maxPositionQuote', 'maxOrderQuote', 'dailyLossLimitQuote', 'maxUnrealizedLossQuote', 'sellAtLoss', 'sellWhenStarved', 'breakoutBufferPct', 'breakoutPolicy', 'maxOpenOrders', 'maxBuyLevelsBelow', 'trendTf', 'donchianPeriod', 'trendEmaFast', 'trendEmaSlow', 'atrPeriod', 'atrStopMult', 'atrInitialMult', 'trendStopFloorPct', 'trendSignal', 'reentryCooldown', 'engineState', 'lastTickAt', 'lastPrice', 'balBase', 'balQuote', 'simBalBase', 'simBalQuote', 'runUid', 'appliedGeometry', 'ledgerResetAt', 'dateCreation', 'dateModification', 'idGroupCreation', 'idCreation', 'idModification', ),
+        BasePeer::TYPE_COLNAME => array (GridRunPeer::ID_GRID_RUN, GridRunPeer::LABEL, GridRunPeer::SYMBOL, GridRunPeer::STATUS, GridRunPeer::KILL_SWITCH, GridRunPeer::PROFILE, GridRunPeer::ALGO, GridRunPeer::SIMULATED, GridRunPeer::P_LOW, GridRunPeer::P_HIGH, GridRunPeer::N_LEVELS, GridRunPeer::SPACING, GridRunPeer::ALLOCATION, GridRunPeer::BUDGET_QUOTE, GridRunPeer::DEPLOY_PCT, GridRunPeer::ALLOC_MODE, GridRunPeer::FEE_PCT, GridRunPeer::MAX_POSITION_QUOTE, GridRunPeer::MAX_ORDER_QUOTE, GridRunPeer::DAILY_LOSS_LIMIT_QUOTE, GridRunPeer::MAX_UNREALIZED_LOSS_QUOTE, GridRunPeer::SELL_AT_LOSS, GridRunPeer::SELL_WHEN_STARVED, GridRunPeer::BREAKOUT_BUFFER_PCT, GridRunPeer::BREAKOUT_POLICY, GridRunPeer::MAX_OPEN_ORDERS, GridRunPeer::MAX_BUY_LEVELS_BELOW, GridRunPeer::TREND_TF, GridRunPeer::DONCHIAN_PERIOD, GridRunPeer::TREND_EMA_FAST, GridRunPeer::TREND_EMA_SLOW, GridRunPeer::ATR_PERIOD, GridRunPeer::ATR_STOP_MULT, GridRunPeer::ATR_INITIAL_MULT, GridRunPeer::TREND_STOP_FLOOR_PCT, GridRunPeer::TREND_SIGNAL, GridRunPeer::REENTRY_COOLDOWN, GridRunPeer::ENGINE_STATE, GridRunPeer::LAST_TICK_AT, GridRunPeer::LAST_PRICE, GridRunPeer::BAL_BASE, GridRunPeer::BAL_QUOTE, GridRunPeer::SIM_BAL_BASE, GridRunPeer::SIM_BAL_QUOTE, GridRunPeer::RUN_UID, GridRunPeer::APPLIED_GEOMETRY, GridRunPeer::LEDGER_RESET_AT, GridRunPeer::DATE_CREATION, GridRunPeer::DATE_MODIFICATION, GridRunPeer::ID_GROUP_CREATION, GridRunPeer::ID_CREATION, GridRunPeer::ID_MODIFICATION, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID_GRID_RUN', 'LABEL', 'SYMBOL', 'STATUS', 'KILL_SWITCH', 'PROFILE', 'ALGO', 'SIMULATED', 'P_LOW', 'P_HIGH', 'N_LEVELS', 'SPACING', 'ALLOCATION', 'BUDGET_QUOTE', 'DEPLOY_PCT', 'ALLOC_MODE', 'FEE_PCT', 'MAX_POSITION_QUOTE', 'MAX_ORDER_QUOTE', 'DAILY_LOSS_LIMIT_QUOTE', 'MAX_UNREALIZED_LOSS_QUOTE', 'SELL_AT_LOSS', 'SELL_WHEN_STARVED', 'BREAKOUT_BUFFER_PCT', 'BREAKOUT_POLICY', 'MAX_OPEN_ORDERS', 'MAX_BUY_LEVELS_BELOW', 'TREND_TF', 'DONCHIAN_PERIOD', 'TREND_EMA_FAST', 'TREND_EMA_SLOW', 'ATR_PERIOD', 'ATR_STOP_MULT', 'ATR_INITIAL_MULT', 'TREND_STOP_FLOOR_PCT', 'TREND_SIGNAL', 'REENTRY_COOLDOWN', 'ENGINE_STATE', 'LAST_TICK_AT', 'LAST_PRICE', 'BAL_BASE', 'BAL_QUOTE', 'SIM_BAL_BASE', 'SIM_BAL_QUOTE', 'RUN_UID', 'APPLIED_GEOMETRY', 'LEDGER_RESET_AT', 'DATE_CREATION', 'DATE_MODIFICATION', 'ID_GROUP_CREATION', 'ID_CREATION', 'ID_MODIFICATION', ),
+        BasePeer::TYPE_FIELDNAME => array ('id_grid_run', 'label', 'symbol', 'status', 'kill_switch', 'profile', 'algo', 'simulated', 'p_low', 'p_high', 'n_levels', 'spacing', 'allocation', 'budget_quote', 'deploy_pct', 'alloc_mode', 'fee_pct', 'max_position_quote', 'max_order_quote', 'daily_loss_limit_quote', 'max_unrealized_loss_quote', 'sell_at_loss', 'sell_when_starved', 'breakout_buffer_pct', 'breakout_policy', 'max_open_orders', 'max_buy_levels_below', 'trend_tf', 'donchian_period', 'trend_ema_fast', 'trend_ema_slow', 'atr_period', 'atr_stop_mult', 'atr_initial_mult', 'trend_stop_floor_pct', 'trend_signal', 'reentry_cooldown', 'engine_state', 'last_tick_at', 'last_price', 'bal_base', 'bal_quote', 'sim_bal_base', 'sim_bal_quote', 'run_uid', 'applied_geometry', 'ledger_reset_at', 'date_creation', 'date_modification', 'id_group_creation', 'id_creation', 'id_modification', ),
+        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, )
     );
 
     /**
@@ -262,12 +289,12 @@ abstract class BaseGridRunPeer
      * e.g. GridRunPeer::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
      */
     protected static $fieldKeys = array (
-        BasePeer::TYPE_PHPNAME => array ('IdGridRun' => 0, 'Label' => 1, 'Symbol' => 2, 'Status' => 3, 'KillSwitch' => 4, 'Profile' => 5, 'Algo' => 6, 'Simulated' => 7, 'PLow' => 8, 'PHigh' => 9, 'NLevels' => 10, 'Spacing' => 11, 'Allocation' => 12, 'BudgetQuote' => 13, 'DeployPct' => 14, 'FeePct' => 15, 'MaxPositionQuote' => 16, 'MaxOrderQuote' => 17, 'DailyLossLimitQuote' => 18, 'MaxUnrealizedLossQuote' => 19, 'BreakoutBufferPct' => 20, 'BreakoutPolicy' => 21, 'MaxOpenOrders' => 22, 'MaxBuyLevelsBelow' => 23, 'TrendTf' => 24, 'DonchianPeriod' => 25, 'TrendEmaFast' => 26, 'TrendEmaSlow' => 27, 'AtrPeriod' => 28, 'AtrStopMult' => 29, 'AtrInitialMult' => 30, 'ReentryCooldown' => 31, 'EngineState' => 32, 'LastTickAt' => 33, 'LastPrice' => 34, 'BalBase' => 35, 'BalQuote' => 36, 'SimBalBase' => 37, 'SimBalQuote' => 38, 'RunUid' => 39, 'AppliedGeometry' => 40, 'LedgerResetAt' => 41, 'DateCreation' => 42, 'DateModification' => 43, 'IdGroupCreation' => 44, 'IdCreation' => 45, 'IdModification' => 46, ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('idGridRun' => 0, 'label' => 1, 'symbol' => 2, 'status' => 3, 'killSwitch' => 4, 'profile' => 5, 'algo' => 6, 'simulated' => 7, 'pLow' => 8, 'pHigh' => 9, 'nLevels' => 10, 'spacing' => 11, 'allocation' => 12, 'budgetQuote' => 13, 'deployPct' => 14, 'feePct' => 15, 'maxPositionQuote' => 16, 'maxOrderQuote' => 17, 'dailyLossLimitQuote' => 18, 'maxUnrealizedLossQuote' => 19, 'breakoutBufferPct' => 20, 'breakoutPolicy' => 21, 'maxOpenOrders' => 22, 'maxBuyLevelsBelow' => 23, 'trendTf' => 24, 'donchianPeriod' => 25, 'trendEmaFast' => 26, 'trendEmaSlow' => 27, 'atrPeriod' => 28, 'atrStopMult' => 29, 'atrInitialMult' => 30, 'reentryCooldown' => 31, 'engineState' => 32, 'lastTickAt' => 33, 'lastPrice' => 34, 'balBase' => 35, 'balQuote' => 36, 'simBalBase' => 37, 'simBalQuote' => 38, 'runUid' => 39, 'appliedGeometry' => 40, 'ledgerResetAt' => 41, 'dateCreation' => 42, 'dateModification' => 43, 'idGroupCreation' => 44, 'idCreation' => 45, 'idModification' => 46, ),
-        BasePeer::TYPE_COLNAME => array (GridRunPeer::ID_GRID_RUN => 0, GridRunPeer::LABEL => 1, GridRunPeer::SYMBOL => 2, GridRunPeer::STATUS => 3, GridRunPeer::KILL_SWITCH => 4, GridRunPeer::PROFILE => 5, GridRunPeer::ALGO => 6, GridRunPeer::SIMULATED => 7, GridRunPeer::P_LOW => 8, GridRunPeer::P_HIGH => 9, GridRunPeer::N_LEVELS => 10, GridRunPeer::SPACING => 11, GridRunPeer::ALLOCATION => 12, GridRunPeer::BUDGET_QUOTE => 13, GridRunPeer::DEPLOY_PCT => 14, GridRunPeer::FEE_PCT => 15, GridRunPeer::MAX_POSITION_QUOTE => 16, GridRunPeer::MAX_ORDER_QUOTE => 17, GridRunPeer::DAILY_LOSS_LIMIT_QUOTE => 18, GridRunPeer::MAX_UNREALIZED_LOSS_QUOTE => 19, GridRunPeer::BREAKOUT_BUFFER_PCT => 20, GridRunPeer::BREAKOUT_POLICY => 21, GridRunPeer::MAX_OPEN_ORDERS => 22, GridRunPeer::MAX_BUY_LEVELS_BELOW => 23, GridRunPeer::TREND_TF => 24, GridRunPeer::DONCHIAN_PERIOD => 25, GridRunPeer::TREND_EMA_FAST => 26, GridRunPeer::TREND_EMA_SLOW => 27, GridRunPeer::ATR_PERIOD => 28, GridRunPeer::ATR_STOP_MULT => 29, GridRunPeer::ATR_INITIAL_MULT => 30, GridRunPeer::REENTRY_COOLDOWN => 31, GridRunPeer::ENGINE_STATE => 32, GridRunPeer::LAST_TICK_AT => 33, GridRunPeer::LAST_PRICE => 34, GridRunPeer::BAL_BASE => 35, GridRunPeer::BAL_QUOTE => 36, GridRunPeer::SIM_BAL_BASE => 37, GridRunPeer::SIM_BAL_QUOTE => 38, GridRunPeer::RUN_UID => 39, GridRunPeer::APPLIED_GEOMETRY => 40, GridRunPeer::LEDGER_RESET_AT => 41, GridRunPeer::DATE_CREATION => 42, GridRunPeer::DATE_MODIFICATION => 43, GridRunPeer::ID_GROUP_CREATION => 44, GridRunPeer::ID_CREATION => 45, GridRunPeer::ID_MODIFICATION => 46, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID_GRID_RUN' => 0, 'LABEL' => 1, 'SYMBOL' => 2, 'STATUS' => 3, 'KILL_SWITCH' => 4, 'PROFILE' => 5, 'ALGO' => 6, 'SIMULATED' => 7, 'P_LOW' => 8, 'P_HIGH' => 9, 'N_LEVELS' => 10, 'SPACING' => 11, 'ALLOCATION' => 12, 'BUDGET_QUOTE' => 13, 'DEPLOY_PCT' => 14, 'FEE_PCT' => 15, 'MAX_POSITION_QUOTE' => 16, 'MAX_ORDER_QUOTE' => 17, 'DAILY_LOSS_LIMIT_QUOTE' => 18, 'MAX_UNREALIZED_LOSS_QUOTE' => 19, 'BREAKOUT_BUFFER_PCT' => 20, 'BREAKOUT_POLICY' => 21, 'MAX_OPEN_ORDERS' => 22, 'MAX_BUY_LEVELS_BELOW' => 23, 'TREND_TF' => 24, 'DONCHIAN_PERIOD' => 25, 'TREND_EMA_FAST' => 26, 'TREND_EMA_SLOW' => 27, 'ATR_PERIOD' => 28, 'ATR_STOP_MULT' => 29, 'ATR_INITIAL_MULT' => 30, 'REENTRY_COOLDOWN' => 31, 'ENGINE_STATE' => 32, 'LAST_TICK_AT' => 33, 'LAST_PRICE' => 34, 'BAL_BASE' => 35, 'BAL_QUOTE' => 36, 'SIM_BAL_BASE' => 37, 'SIM_BAL_QUOTE' => 38, 'RUN_UID' => 39, 'APPLIED_GEOMETRY' => 40, 'LEDGER_RESET_AT' => 41, 'DATE_CREATION' => 42, 'DATE_MODIFICATION' => 43, 'ID_GROUP_CREATION' => 44, 'ID_CREATION' => 45, 'ID_MODIFICATION' => 46, ),
-        BasePeer::TYPE_FIELDNAME => array ('id_grid_run' => 0, 'label' => 1, 'symbol' => 2, 'status' => 3, 'kill_switch' => 4, 'profile' => 5, 'algo' => 6, 'simulated' => 7, 'p_low' => 8, 'p_high' => 9, 'n_levels' => 10, 'spacing' => 11, 'allocation' => 12, 'budget_quote' => 13, 'deploy_pct' => 14, 'fee_pct' => 15, 'max_position_quote' => 16, 'max_order_quote' => 17, 'daily_loss_limit_quote' => 18, 'max_unrealized_loss_quote' => 19, 'breakout_buffer_pct' => 20, 'breakout_policy' => 21, 'max_open_orders' => 22, 'max_buy_levels_below' => 23, 'trend_tf' => 24, 'donchian_period' => 25, 'trend_ema_fast' => 26, 'trend_ema_slow' => 27, 'atr_period' => 28, 'atr_stop_mult' => 29, 'atr_initial_mult' => 30, 'reentry_cooldown' => 31, 'engine_state' => 32, 'last_tick_at' => 33, 'last_price' => 34, 'bal_base' => 35, 'bal_quote' => 36, 'sim_bal_base' => 37, 'sim_bal_quote' => 38, 'run_uid' => 39, 'applied_geometry' => 40, 'ledger_reset_at' => 41, 'date_creation' => 42, 'date_modification' => 43, 'id_group_creation' => 44, 'id_creation' => 45, 'id_modification' => 46, ),
-        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, )
+        BasePeer::TYPE_PHPNAME => array ('IdGridRun' => 0, 'Label' => 1, 'Symbol' => 2, 'Status' => 3, 'KillSwitch' => 4, 'Profile' => 5, 'Algo' => 6, 'Simulated' => 7, 'PLow' => 8, 'PHigh' => 9, 'NLevels' => 10, 'Spacing' => 11, 'Allocation' => 12, 'BudgetQuote' => 13, 'DeployPct' => 14, 'AllocMode' => 15, 'FeePct' => 16, 'MaxPositionQuote' => 17, 'MaxOrderQuote' => 18, 'DailyLossLimitQuote' => 19, 'MaxUnrealizedLossQuote' => 20, 'SellAtLoss' => 21, 'SellWhenStarved' => 22, 'BreakoutBufferPct' => 23, 'BreakoutPolicy' => 24, 'MaxOpenOrders' => 25, 'MaxBuyLevelsBelow' => 26, 'TrendTf' => 27, 'DonchianPeriod' => 28, 'TrendEmaFast' => 29, 'TrendEmaSlow' => 30, 'AtrPeriod' => 31, 'AtrStopMult' => 32, 'AtrInitialMult' => 33, 'TrendStopFloorPct' => 34, 'TrendSignal' => 35, 'ReentryCooldown' => 36, 'EngineState' => 37, 'LastTickAt' => 38, 'LastPrice' => 39, 'BalBase' => 40, 'BalQuote' => 41, 'SimBalBase' => 42, 'SimBalQuote' => 43, 'RunUid' => 44, 'AppliedGeometry' => 45, 'LedgerResetAt' => 46, 'DateCreation' => 47, 'DateModification' => 48, 'IdGroupCreation' => 49, 'IdCreation' => 50, 'IdModification' => 51, ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('idGridRun' => 0, 'label' => 1, 'symbol' => 2, 'status' => 3, 'killSwitch' => 4, 'profile' => 5, 'algo' => 6, 'simulated' => 7, 'pLow' => 8, 'pHigh' => 9, 'nLevels' => 10, 'spacing' => 11, 'allocation' => 12, 'budgetQuote' => 13, 'deployPct' => 14, 'allocMode' => 15, 'feePct' => 16, 'maxPositionQuote' => 17, 'maxOrderQuote' => 18, 'dailyLossLimitQuote' => 19, 'maxUnrealizedLossQuote' => 20, 'sellAtLoss' => 21, 'sellWhenStarved' => 22, 'breakoutBufferPct' => 23, 'breakoutPolicy' => 24, 'maxOpenOrders' => 25, 'maxBuyLevelsBelow' => 26, 'trendTf' => 27, 'donchianPeriod' => 28, 'trendEmaFast' => 29, 'trendEmaSlow' => 30, 'atrPeriod' => 31, 'atrStopMult' => 32, 'atrInitialMult' => 33, 'trendStopFloorPct' => 34, 'trendSignal' => 35, 'reentryCooldown' => 36, 'engineState' => 37, 'lastTickAt' => 38, 'lastPrice' => 39, 'balBase' => 40, 'balQuote' => 41, 'simBalBase' => 42, 'simBalQuote' => 43, 'runUid' => 44, 'appliedGeometry' => 45, 'ledgerResetAt' => 46, 'dateCreation' => 47, 'dateModification' => 48, 'idGroupCreation' => 49, 'idCreation' => 50, 'idModification' => 51, ),
+        BasePeer::TYPE_COLNAME => array (GridRunPeer::ID_GRID_RUN => 0, GridRunPeer::LABEL => 1, GridRunPeer::SYMBOL => 2, GridRunPeer::STATUS => 3, GridRunPeer::KILL_SWITCH => 4, GridRunPeer::PROFILE => 5, GridRunPeer::ALGO => 6, GridRunPeer::SIMULATED => 7, GridRunPeer::P_LOW => 8, GridRunPeer::P_HIGH => 9, GridRunPeer::N_LEVELS => 10, GridRunPeer::SPACING => 11, GridRunPeer::ALLOCATION => 12, GridRunPeer::BUDGET_QUOTE => 13, GridRunPeer::DEPLOY_PCT => 14, GridRunPeer::ALLOC_MODE => 15, GridRunPeer::FEE_PCT => 16, GridRunPeer::MAX_POSITION_QUOTE => 17, GridRunPeer::MAX_ORDER_QUOTE => 18, GridRunPeer::DAILY_LOSS_LIMIT_QUOTE => 19, GridRunPeer::MAX_UNREALIZED_LOSS_QUOTE => 20, GridRunPeer::SELL_AT_LOSS => 21, GridRunPeer::SELL_WHEN_STARVED => 22, GridRunPeer::BREAKOUT_BUFFER_PCT => 23, GridRunPeer::BREAKOUT_POLICY => 24, GridRunPeer::MAX_OPEN_ORDERS => 25, GridRunPeer::MAX_BUY_LEVELS_BELOW => 26, GridRunPeer::TREND_TF => 27, GridRunPeer::DONCHIAN_PERIOD => 28, GridRunPeer::TREND_EMA_FAST => 29, GridRunPeer::TREND_EMA_SLOW => 30, GridRunPeer::ATR_PERIOD => 31, GridRunPeer::ATR_STOP_MULT => 32, GridRunPeer::ATR_INITIAL_MULT => 33, GridRunPeer::TREND_STOP_FLOOR_PCT => 34, GridRunPeer::TREND_SIGNAL => 35, GridRunPeer::REENTRY_COOLDOWN => 36, GridRunPeer::ENGINE_STATE => 37, GridRunPeer::LAST_TICK_AT => 38, GridRunPeer::LAST_PRICE => 39, GridRunPeer::BAL_BASE => 40, GridRunPeer::BAL_QUOTE => 41, GridRunPeer::SIM_BAL_BASE => 42, GridRunPeer::SIM_BAL_QUOTE => 43, GridRunPeer::RUN_UID => 44, GridRunPeer::APPLIED_GEOMETRY => 45, GridRunPeer::LEDGER_RESET_AT => 46, GridRunPeer::DATE_CREATION => 47, GridRunPeer::DATE_MODIFICATION => 48, GridRunPeer::ID_GROUP_CREATION => 49, GridRunPeer::ID_CREATION => 50, GridRunPeer::ID_MODIFICATION => 51, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID_GRID_RUN' => 0, 'LABEL' => 1, 'SYMBOL' => 2, 'STATUS' => 3, 'KILL_SWITCH' => 4, 'PROFILE' => 5, 'ALGO' => 6, 'SIMULATED' => 7, 'P_LOW' => 8, 'P_HIGH' => 9, 'N_LEVELS' => 10, 'SPACING' => 11, 'ALLOCATION' => 12, 'BUDGET_QUOTE' => 13, 'DEPLOY_PCT' => 14, 'ALLOC_MODE' => 15, 'FEE_PCT' => 16, 'MAX_POSITION_QUOTE' => 17, 'MAX_ORDER_QUOTE' => 18, 'DAILY_LOSS_LIMIT_QUOTE' => 19, 'MAX_UNREALIZED_LOSS_QUOTE' => 20, 'SELL_AT_LOSS' => 21, 'SELL_WHEN_STARVED' => 22, 'BREAKOUT_BUFFER_PCT' => 23, 'BREAKOUT_POLICY' => 24, 'MAX_OPEN_ORDERS' => 25, 'MAX_BUY_LEVELS_BELOW' => 26, 'TREND_TF' => 27, 'DONCHIAN_PERIOD' => 28, 'TREND_EMA_FAST' => 29, 'TREND_EMA_SLOW' => 30, 'ATR_PERIOD' => 31, 'ATR_STOP_MULT' => 32, 'ATR_INITIAL_MULT' => 33, 'TREND_STOP_FLOOR_PCT' => 34, 'TREND_SIGNAL' => 35, 'REENTRY_COOLDOWN' => 36, 'ENGINE_STATE' => 37, 'LAST_TICK_AT' => 38, 'LAST_PRICE' => 39, 'BAL_BASE' => 40, 'BAL_QUOTE' => 41, 'SIM_BAL_BASE' => 42, 'SIM_BAL_QUOTE' => 43, 'RUN_UID' => 44, 'APPLIED_GEOMETRY' => 45, 'LEDGER_RESET_AT' => 46, 'DATE_CREATION' => 47, 'DATE_MODIFICATION' => 48, 'ID_GROUP_CREATION' => 49, 'ID_CREATION' => 50, 'ID_MODIFICATION' => 51, ),
+        BasePeer::TYPE_FIELDNAME => array ('id_grid_run' => 0, 'label' => 1, 'symbol' => 2, 'status' => 3, 'kill_switch' => 4, 'profile' => 5, 'algo' => 6, 'simulated' => 7, 'p_low' => 8, 'p_high' => 9, 'n_levels' => 10, 'spacing' => 11, 'allocation' => 12, 'budget_quote' => 13, 'deploy_pct' => 14, 'alloc_mode' => 15, 'fee_pct' => 16, 'max_position_quote' => 17, 'max_order_quote' => 18, 'daily_loss_limit_quote' => 19, 'max_unrealized_loss_quote' => 20, 'sell_at_loss' => 21, 'sell_when_starved' => 22, 'breakout_buffer_pct' => 23, 'breakout_policy' => 24, 'max_open_orders' => 25, 'max_buy_levels_below' => 26, 'trend_tf' => 27, 'donchian_period' => 28, 'trend_ema_fast' => 29, 'trend_ema_slow' => 30, 'atr_period' => 31, 'atr_stop_mult' => 32, 'atr_initial_mult' => 33, 'trend_stop_floor_pct' => 34, 'trend_signal' => 35, 'reentry_cooldown' => 36, 'engine_state' => 37, 'last_tick_at' => 38, 'last_price' => 39, 'bal_base' => 40, 'bal_quote' => 41, 'sim_bal_base' => 42, 'sim_bal_quote' => 43, 'run_uid' => 44, 'applied_geometry' => 45, 'ledger_reset_at' => 46, 'date_creation' => 47, 'date_modification' => 48, 'id_group_creation' => 49, 'id_creation' => 50, 'id_modification' => 51, ),
+        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, )
     );
 
     /** The enumerated values for this table */
@@ -279,6 +306,7 @@ abstract class BaseGridRunPeer
             GridRunPeer::STATUS_LIVE,
             GridRunPeer::STATUS_HALTED,
             GridRunPeer::STATUS_DONE,
+            GridRunPeer::STATUS_RETIRING,
         ),
         GridRunPeer::PROFILE => array(
             GridRunPeer::PROFILE_NOLOSS,
@@ -300,6 +328,10 @@ abstract class BaseGridRunPeer
             GridRunPeer::ALLOCATION_EQUALBASE,
             GridRunPeer::ALLOCATION_BOTTOMWEIGHTED,
         ),
+        GridRunPeer::ALLOC_MODE => array(
+            GridRunPeer::ALLOC_MODE_AUTO,
+            GridRunPeer::ALLOC_MODE_FIXED,
+        ),
         GridRunPeer::BREAKOUT_POLICY => array(
             GridRunPeer::BREAKOUT_POLICY_HALTANDHOLD,
             GridRunPeer::BREAKOUT_POLICY_FLATTEN,
@@ -307,6 +339,10 @@ abstract class BaseGridRunPeer
         GridRunPeer::TREND_TF => array(
             GridRunPeer::TREND_TF_1H,
             GridRunPeer::TREND_TF_4H,
+        ),
+        GridRunPeer::TREND_SIGNAL => array(
+            GridRunPeer::TREND_SIGNAL_DONCHIAN,
+            GridRunPeer::TREND_SIGNAL_EMACROSS1D,
         ),
     );
 
@@ -441,11 +477,14 @@ abstract class BaseGridRunPeer
             $criteria->addSelectColumn(GridRunPeer::ALLOCATION);
             $criteria->addSelectColumn(GridRunPeer::BUDGET_QUOTE);
             $criteria->addSelectColumn(GridRunPeer::DEPLOY_PCT);
+            $criteria->addSelectColumn(GridRunPeer::ALLOC_MODE);
             $criteria->addSelectColumn(GridRunPeer::FEE_PCT);
             $criteria->addSelectColumn(GridRunPeer::MAX_POSITION_QUOTE);
             $criteria->addSelectColumn(GridRunPeer::MAX_ORDER_QUOTE);
             $criteria->addSelectColumn(GridRunPeer::DAILY_LOSS_LIMIT_QUOTE);
             $criteria->addSelectColumn(GridRunPeer::MAX_UNREALIZED_LOSS_QUOTE);
+            $criteria->addSelectColumn(GridRunPeer::SELL_AT_LOSS);
+            $criteria->addSelectColumn(GridRunPeer::SELL_WHEN_STARVED);
             $criteria->addSelectColumn(GridRunPeer::BREAKOUT_BUFFER_PCT);
             $criteria->addSelectColumn(GridRunPeer::BREAKOUT_POLICY);
             $criteria->addSelectColumn(GridRunPeer::MAX_OPEN_ORDERS);
@@ -457,6 +496,8 @@ abstract class BaseGridRunPeer
             $criteria->addSelectColumn(GridRunPeer::ATR_PERIOD);
             $criteria->addSelectColumn(GridRunPeer::ATR_STOP_MULT);
             $criteria->addSelectColumn(GridRunPeer::ATR_INITIAL_MULT);
+            $criteria->addSelectColumn(GridRunPeer::TREND_STOP_FLOOR_PCT);
+            $criteria->addSelectColumn(GridRunPeer::TREND_SIGNAL);
             $criteria->addSelectColumn(GridRunPeer::REENTRY_COOLDOWN);
             $criteria->addSelectColumn(GridRunPeer::ENGINE_STATE);
             $criteria->addSelectColumn(GridRunPeer::LAST_TICK_AT);
@@ -489,11 +530,14 @@ abstract class BaseGridRunPeer
             $criteria->addSelectColumn($alias . '.allocation');
             $criteria->addSelectColumn($alias . '.budget_quote');
             $criteria->addSelectColumn($alias . '.deploy_pct');
+            $criteria->addSelectColumn($alias . '.alloc_mode');
             $criteria->addSelectColumn($alias . '.fee_pct');
             $criteria->addSelectColumn($alias . '.max_position_quote');
             $criteria->addSelectColumn($alias . '.max_order_quote');
             $criteria->addSelectColumn($alias . '.daily_loss_limit_quote');
             $criteria->addSelectColumn($alias . '.max_unrealized_loss_quote');
+            $criteria->addSelectColumn($alias . '.sell_at_loss');
+            $criteria->addSelectColumn($alias . '.sell_when_starved');
             $criteria->addSelectColumn($alias . '.breakout_buffer_pct');
             $criteria->addSelectColumn($alias . '.breakout_policy');
             $criteria->addSelectColumn($alias . '.max_open_orders');
@@ -505,6 +549,8 @@ abstract class BaseGridRunPeer
             $criteria->addSelectColumn($alias . '.atr_period');
             $criteria->addSelectColumn($alias . '.atr_stop_mult');
             $criteria->addSelectColumn($alias . '.atr_initial_mult');
+            $criteria->addSelectColumn($alias . '.trend_stop_floor_pct');
+            $criteria->addSelectColumn($alias . '.trend_signal');
             $criteria->addSelectColumn($alias . '.reentry_cooldown');
             $criteria->addSelectColumn($alias . '.engine_state');
             $criteria->addSelectColumn($alias . '.last_tick_at');
@@ -725,6 +771,12 @@ abstract class BaseGridRunPeer
      */
     public static function clearRelatedInstancePool()
     {
+        // Invalidate objects in FleetSlotPeer instance pool,
+        // since one or more of them may be deleted by ON DELETE CASCADE/SETNULL rule.
+        FleetSlotPeer::clearInstancePool();
+        // Invalidate objects in RegimeEpisodePeer instance pool,
+        // since one or more of them may be deleted by ON DELETE CASCADE/SETNULL rule.
+        RegimeEpisodePeer::clearInstancePool();
         // Invalidate objects in BotOrderPeer instance pool,
         // since one or more of them may be deleted by ON DELETE CASCADE/SETNULL rule.
         BotOrderPeer::clearInstancePool();
@@ -740,6 +792,9 @@ abstract class BaseGridRunPeer
         // Invalidate objects in BotDecisionPeer instance pool,
         // since one or more of them may be deleted by ON DELETE CASCADE/SETNULL rule.
         BotDecisionPeer::clearInstancePool();
+        // Invalidate objects in GridRunAuditPeer instance pool,
+        // since one or more of them may be deleted by ON DELETE CASCADE/SETNULL rule.
+        GridRunAuditPeer::clearInstancePool();
     }
 
     /**
@@ -892,6 +947,17 @@ abstract class BaseGridRunPeer
     }
 
     /**
+     * Gets the SQL value for AllocMode ENUM value
+     *
+     * @param  string $enumVal ENUM value to get SQL value for
+     * @return int SQL value
+     */
+    public static function getAllocModeSqlValue($enumVal)
+    {
+        return GridRunPeer::getSqlValueForEnum(GridRunPeer::ALLOC_MODE, $enumVal);
+    }
+
+    /**
      * Gets the SQL value for BreakoutPolicy ENUM value
      *
      * @param  string $enumVal ENUM value to get SQL value for
@@ -911,6 +977,17 @@ abstract class BaseGridRunPeer
     public static function getTrendTfSqlValue($enumVal)
     {
         return GridRunPeer::getSqlValueForEnum(GridRunPeer::TREND_TF, $enumVal);
+    }
+
+    /**
+     * Gets the SQL value for TrendSignal ENUM value
+     *
+     * @param  string $enumVal ENUM value to get SQL value for
+     * @return int SQL value
+     */
+    public static function getTrendSignalSqlValue($enumVal)
+    {
+        return GridRunPeer::getSqlValueForEnum(GridRunPeer::TREND_SIGNAL, $enumVal);
     }
 
 
@@ -2137,6 +2214,12 @@ abstract class BaseGridRunPeer
         if ($obj->isNew() || $obj->isColumnModified(GridRunPeer::DEPLOY_PCT))
             $columns[GridRunPeer::DEPLOY_PCT] = $obj->getDeployPct();
 
+        if ($obj->isNew() || $obj->isColumnModified(GridRunPeer::ALLOC_MODE))
+            $columns[GridRunPeer::ALLOC_MODE] = $obj->getAllocMode();
+
+        if ($obj->isNew() || $obj->isColumnModified(GridRunPeer::ALLOC_MODE))
+            $columns[GridRunPeer::ALLOC_MODE] = $obj->getAllocMode();
+
         if ($obj->isNew() || $obj->isColumnModified(GridRunPeer::FEE_PCT))
             $columns[GridRunPeer::FEE_PCT] = $obj->getFeePct();
 
@@ -2178,6 +2261,12 @@ abstract class BaseGridRunPeer
 
         if ($obj->isNew() || $obj->isColumnModified(GridRunPeer::ATR_PERIOD))
             $columns[GridRunPeer::ATR_PERIOD] = $obj->getAtrPeriod();
+
+        if ($obj->isNew() || $obj->isColumnModified(GridRunPeer::TREND_SIGNAL))
+            $columns[GridRunPeer::TREND_SIGNAL] = $obj->getTrendSignal();
+
+        if ($obj->isNew() || $obj->isColumnModified(GridRunPeer::TREND_SIGNAL))
+            $columns[GridRunPeer::TREND_SIGNAL] = $obj->getTrendSignal();
 
         if ($obj->isNew() || $obj->isColumnModified(GridRunPeer::REENTRY_COOLDOWN))
             $columns[GridRunPeer::REENTRY_COOLDOWN] = $obj->getReentryCooldown();

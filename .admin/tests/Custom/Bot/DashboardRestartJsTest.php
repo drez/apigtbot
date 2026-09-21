@@ -19,6 +19,19 @@ class DashboardRestartJsTest extends TestCase
         return $m->invoke($view, 'https://example.test/');
     }
 
+    public function testBudgetEditPostsThroughDashboardBudgetRoute(): void
+    {
+        $js = $this->restartJs();
+        $this->assertStringContainsString("Dashboard/budget", $js);
+        $this->assertStringContainsString('dash-budget-form', $js);
+        // slices used to wait for the next refit; since the allocator landed
+        // (2026-09-19) a budget change reallocates immediately, and the confirm
+        // has to say so — and has to promise nothing is sold
+        $this->assertStringContainsString('reallocated straight away', $js);
+        $this->assertStringContainsString('nothing is ever sold', $js);
+        $this->assertStringContainsString('reload', strtolower($js));
+    }
+
     public function testConfirmGoesThroughGcScreensPromise(): void
     {
         $js = $this->restartJs();

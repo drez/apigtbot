@@ -3,18 +3,16 @@
 namespace Tests\Custom\Bot;
 
 use App\Domains\Dashboard\DashboardData;
-use App\Domains\Dashboard\TradeChart;
 use PHPUnit\Framework\TestCase;
 
 /**
  * I3a (final-fix review): the five new Trend-seam bot_event kinds landed in
- * DashboardData::MARKER_KINDS but TradeChart::MARKER_CLASS/MARKER_LABEL had
- * no entries for four of them — TradeChart::markers() silently drops any
- * marker whose kind isn't in MARKER_CLASS (`if (!isset(self::MARKER_CLASS
- * [$kind]) ...) continue;`), so those events never rendered even though
- * DashboardData considered them chart-worthy. Pins the seam directly: every
- * kind DashboardData selects for the chart must have a TradeChart marker
- * class, so a future kind can't half-land again.
+ * DashboardData::MARKER_KINDS but the chart's label map had no entries for
+ * four of them — chartModel() drops any marker whose kind has no
+ * MARKER_LABEL, so those events never rendered even though DashboardData
+ * considered them chart-worthy. Pins the seam directly: every kind
+ * DashboardData selects for the chart must have a label, so a future kind
+ * can't half-land again.
  */
 class MarkerKindCoverageTest extends TestCase
 {
@@ -30,43 +28,30 @@ class MarkerKindCoverageTest extends TestCase
     }
 
     /** @return array<string, string> */
-    private static function markerClasses(): array
-    {
-        return (new \ReflectionClassConstant(TradeChart::class, 'MARKER_CLASS'))->getValue();
-    }
-
-    /** @return array<string, string> */
     private static function markerLabels(): array
     {
-        return (new \ReflectionClassConstant(TradeChart::class, 'MARKER_LABEL'))->getValue();
+        return (new \ReflectionClassConstant(DashboardData::class, 'MARKER_LABEL'))->getValue();
     }
 
-    public function testEveryDashboardMarkerKindHasATradeChartClass(): void
+    public function testEveryDashboardMarkerKindHasALabel(): void
     {
-        $kinds = self::markerKinds();
-        $classes = self::markerClasses();
-
         // 'reloading' is DashboardData's own legacy alias for 'algo_update'
-        // (chartMarkers() rewrites it before the kind ever reaches
-        // TradeChart) — the effective kind set drops it in favor of the
-        // rewritten target.
+        // (chartMarkers() rewrites it before the kind reaches the chart) —
+        // the effective kind set drops it in favor of the rewritten target.
         $effective = array_unique(array_map(
             static fn (string $k): string => $k === 'reloading' ? 'algo_update' : $k,
-            $kinds
+            self::markerKinds()
         ));
-
-        $missing = array_diff($effective, array_keys($classes));
+        $missing = array_diff($effective, array_keys(self::markerLabels()));
         $this->assertSame([], $missing,
-            'every DashboardData::MARKER_KINDS kind must have a TradeChart::MARKER_CLASS entry — otherwise markers() silently drops it');
+            'every DashboardData::MARKER_KINDS kind must have a MARKER_LABEL entry — otherwise chartModel() silently drops it');
     }
 
-    public function testEveryMarkerClassEntryHasALabel(): void
+    public function testEveryLabelIsAChartKind(): void
     {
-        // the legend renderer indexes MARKER_LABEL by the same kind
-        // (`self::MARKER_LABEL[$kind]`) with no isset guard — a class entry
-        // without a label would fatal the legend, not just silently drop.
-        $missing = array_diff(array_keys(self::markerClasses()), array_keys(self::markerLabels()));
-        $this->assertSame([], $missing, 'every TradeChart::MARKER_CLASS kind must have a MARKER_LABEL entry');
+        $effective = array_map(static fn (string $k): string => $k === 'reloading' ? 'algo_update' : $k, self::markerKinds());
+        $orphans = array_diff(array_keys(self::markerLabels()), $effective);
+        $this->assertSame([], $orphans, 'a label for a kind chartMarkers() never selects is dead weight');
     }
 
     public function testTrendSignalIsNotAChartMarkerKind(): void

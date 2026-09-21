@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseAuthyGroupPeer;
 
-require 'om/BaseAuthyGroupPeer.php';
+require_once __DIR__ . '/om/BaseAuthyGroupPeer.php';
 
 
 /**

@@ -3,61 +3,61 @@
 :root {
   --colorMain: #00d1b2;
   --colorLight: #fff;
-  --colorDark: rgb(0, 37.62, 32.04);
-  --colorDarkHover: rgb(0, 50.16, 42.72);
-  --colorDark3: rgb(0, 25.08, 21.36);
-  --colorMid: rgb(214.2, 247.64, 242.68);
-  --colorMid2: rgb(214.2, 247.64, 242.68);
-  --colorMid3: rgb(0, 150.48, 128.16);
-  --colorTrOdd: rgb(224.4, 249.48, 245.76);
+  --colorDark: rgb(0%, 14.7529411765%, 12.5647058824%);
+  --colorDarkHover: rgb(0%, 19.6705882353%, 16.7529411765%);
+  --colorDark3: rgb(0%, 9.8352941176%, 8.3764705882%);
+  --colorMid: rgb(84%, 97.1137254902%, 95.168627451%);
+  --colorMid2: rgb(84%, 97.1137254902%, 95.168627451%);
+  --colorMid3: rgb(0%, 59.0117647059%, 50.2588235294%);
+  --colorTrOdd: rgb(88%, 97.8352941176%, 96.3764705882%);
   --colorShadow: rgba(0, 209, 178, 0.42);
   --hoverFilter: none;
   --colorGreen: #00d1b2;
-  --colorBlue: rgb(26.95, 199.55, 203.9);
+  --colorBlue: rgb(10.568627451%, 78.2549019608%, 79.9607843137%);
   --colorLightRed: #d45e5e;
   --colorWarning: #ffca57;
-  --colorHoverBg: rgb(234.6, 251.32, 248.84);
+  --colorHoverBg: rgb(92%, 98.5568627451%, 97.5843137255%);
   --colorHover: #00d1b2;
-  --colorBgBody: rgb(244.8, 253.16, 251.92);
-  --colorText: rgb(0, 58.52, 49.84);
-  --colorLinkHover: rgb(0, 114.95, 97.9);
+  --colorBgBody: rgb(96%, 99.2784313725%, 98.7921568627%);
+  --colorText: rgb(0%, 22.9490196078%, 19.5450980392%);
+  --colorLinkHover: rgb(0%, 45.0784313725%, 38.3921568627%);
   --colorSplash: rgba(0, 209, 178, 0.2);
   --colorPrimary: #00d1b2;
   --colorSuccess: #1f9d55;
   --colorDanger: #c63b3b;
   --colorOrange: #e67e22;
   --colorOrangeLight: #f39c12;
-  --colorPurple: rgb(45.9, 171.65, 203.2);
-  --colorPurpleDark: rgb(38.25, 161.75, 192.85);
-  --colorGrayMid: rgb(67.05, 189.2, 172.6);
-  --colorBlueBright: rgb(17.6, 183.8, 208.8);
-  --colorBlueBold: rgb(8.4, 170.2, 202.4);
+  --colorPurple: rgb(18%, 67.3137254902%, 79.6862745098%);
+  --colorPurpleDark: rgb(15%, 63.431372549%, 75.6274509804%);
+  --colorGrayMid: rgb(26.2941176471%, 74.1960784314%, 67.6862745098%);
+  --colorBlueBright: rgb(6.9019607843%, 72.0784313725%, 81.8823529412%);
+  --colorBlueBold: rgb(3.2941176471%, 66.7450980392%, 79.3725490196%);
   --colorBlack: #000;
-  --colorTextBlack: rgb(0, 31.35, 26.7);
-  --colorTextDark: rgb(0, 45.98, 39.16);
-  --colorTextSecondary: rgb(0, 79.42, 67.64);
-  --colorTextMuted: rgb(0, 100.32, 85.44);
-  --colorTextLight: rgb(0, 117.04, 99.68);
-  --colorTextLighter: rgb(0, 133.76, 113.92);
-  --colorBorder: rgb(209.1, 246.72, 241.14);
-  --colorBorderLighter: rgb(229.5, 250.4, 247.3);
-  --colorBorderLight: rgb(224.4, 249.48, 245.76);
-  --colorBorderMid: rgb(204, 245.8, 239.6);
-  --colorBorderCalendar: rgb(214.2, 247.64, 242.68);
-  --colorBgCard: rgb(242.25, 252.7, 251.15);
-  --colorBgSubtle: rgb(244.8, 253.16, 251.92);
-  --colorBgWeekend: rgb(232.05, 250.86, 248.07);
-  --colorBgWeekendHeader: rgb(221.85, 249.02, 244.99);
-  --colorBgHoverBlue: rgb(239.7, 252.24, 250.38);
-  --colorBgError: rgb(248.16, 231.48, 231.48);
-  --colorBgZero: rgb(242.46, 211.88, 211.88);
-  --colorBgLogged: rgb(201.24, 231.48, 214.2);
-  --colorCalBlack: rgb(0, 45.98, 39.16);
-  --colorCalDark: rgb(0, 71.06, 60.52);
-  --colorCalGray: rgb(0, 91.96, 78.32);
-  --colorCalMid: rgb(0, 108.68, 92.56);
-  --colorCalBorder: rgb(209.1, 246.72, 241.14);
-  --colorCalBg: rgb(234.6, 251.32, 248.84);
+  --colorTextBlack: rgb(0%, 12.2941176471%, 10.4705882353%);
+  --colorTextDark: rgb(0%, 18.031372549%, 15.3568627451%);
+  --colorTextSecondary: rgb(0%, 31.1450980392%, 26.5254901961%);
+  --colorTextMuted: rgb(0%, 39.3411764706%, 33.5058823529%);
+  --colorTextLight: rgb(0%, 45.8980392157%, 39.0901960784%);
+  --colorTextLighter: rgb(0%, 52.4549019608%, 44.6745098039%);
+  --colorBorder: rgb(82%, 96.7529411765%, 94.5647058824%);
+  --colorBorderLighter: rgb(90%, 98.1960784314%, 96.9803921569%);
+  --colorBorderLight: rgb(88%, 97.8352941176%, 96.3764705882%);
+  --colorBorderMid: rgb(80%, 96.3921568627%, 93.9607843137%);
+  --colorBorderCalendar: rgb(84%, 97.1137254902%, 95.168627451%);
+  --colorBgCard: rgb(95%, 99.0980392157%, 98.4901960784%);
+  --colorBgSubtle: rgb(96%, 99.2784313725%, 98.7921568627%);
+  --colorBgWeekend: rgb(91%, 98.3764705882%, 97.2823529412%);
+  --colorBgWeekendHeader: rgb(87%, 97.6549019608%, 96.0745098039%);
+  --colorBgHoverBlue: rgb(94%, 98.9176470588%, 98.1882352941%);
+  --colorBgError: rgb(97.3176470588%, 90.7764705882%, 90.7764705882%);
+  --colorBgZero: rgb(95.0823529412%, 83.0901960784%, 83.0901960784%);
+  --colorBgLogged: rgb(78.9176470588%, 90.7764705882%, 84%);
+  --colorCalBlack: rgb(0%, 18.031372549%, 15.3568627451%);
+  --colorCalDark: rgb(0%, 27.8666666667%, 23.7333333333%);
+  --colorCalGray: rgb(0%, 36.062745098%, 30.7137254902%);
+  --colorCalMid: rgb(0%, 42.6196078431%, 36.2980392157%);
+  --colorCalBorder: rgb(82%, 96.7529411765%, 94.5647058824%);
+  --colorCalBg: rgb(92%, 98.5568627451%, 97.5843137255%);
   --mint: #00d1b2;
   --mint-600: #00b89a;
   --mint-700: #009b82;
@@ -89,80 +89,80 @@
 [data-theme=indigo] {
   --colorMain: #6366f1;
   --colorLight: #fff;
-  --colorDark: rgb(17.82, 18.36, 43.38);
-  --colorDarkHover: rgb(23.76, 24.48, 57.84);
-  --colorDark3: rgb(11.88, 12.24, 28.92);
-  --colorMid: rgb(230.04, 230.52, 252.76);
-  --colorMid2: rgb(230.04, 230.52, 252.76);
-  --colorMid3: rgb(71.28, 73.44, 173.52);
-  --colorTrOdd: rgb(236.28, 236.64, 253.32);
+  --colorDark: rgb(6.9882352941%, 7.2%, 17.0117647059%);
+  --colorDarkHover: rgb(9.3176470588%, 9.6%, 22.6823529412%);
+  --colorDark3: rgb(4.6588235294%, 4.8%, 11.3411764706%);
+  --colorMid: rgb(90.2117647059%, 90.4%, 99.1215686275%);
+  --colorMid2: rgb(90.2117647059%, 90.4%, 99.1215686275%);
+  --colorMid3: rgb(27.9529411765%, 28.8%, 68.0470588235%);
+  --colorTrOdd: rgb(92.6588235294%, 92.8%, 99.3411764706%);
   --colorShadow: rgba(99, 102, 241, 0.42);
   --hoverFilter: none;
   --colorGreen: #6366f1;
-  --colorBlue: rgb(91.3, 130, 244.85);
+  --colorBlue: rgb(35.8039215686%, 50.9803921569%, 96.0196078431%);
   --colorLightRed: #d45e5e;
   --colorWarning: #ffca57;
-  --colorHoverBg: rgb(242.52, 242.76, 253.88);
+  --colorHoverBg: rgb(95.1058823529%, 95.2%, 99.5607843137%);
   --colorHover: #6366f1;
-  --colorBgBody: rgb(248.76, 248.88, 254.44);
-  --colorText: rgb(27.72, 28.56, 67.48);
-  --colorLinkHover: rgb(54.45, 56.1, 132.55);
+  --colorBgBody: rgb(97.5529411765%, 97.6%, 99.7803921569%);
+  --colorText: rgb(10.8705882353%, 11.2%, 26.462745098%);
+  --colorLinkHover: rgb(21.3529411765%, 22%, 51.9803921569%);
   --colorSplash: rgba(99, 102, 241, 0.2);
   --colorPrimary: #6366f1;
   --colorSuccess: #1f9d55;
   --colorDanger: #c63b3b;
   --colorOrange: #e67e22;
   --colorOrangeLight: #f39c12;
-  --colorPurple: rgb(100.35, 112.8, 237.85);
-  --colorPurpleDark: rgb(92.7, 102.9, 227.5);
-  --colorGrayMid: rgb(121.5, 130.35, 207.25);
-  --colorBlueBright: rgb(77, 119.6, 246.6);
-  --colorBlueBold: rgb(67.8, 106, 240.2);
+  --colorPurple: rgb(39.3529411765%, 44.2352941176%, 93.2745098039%);
+  --colorPurpleDark: rgb(36.3529411765%, 40.3529411765%, 89.2156862745%);
+  --colorGrayMid: rgb(47.6470588235%, 51.1176470588%, 81.2745098039%);
+  --colorBlueBright: rgb(30.1960784314%, 46.9019607843%, 96.7058823529%);
+  --colorBlueBold: rgb(26.5882352941%, 41.568627451%, 94.1960784314%);
   --colorBlack: #000;
-  --colorTextBlack: rgb(14.85, 15.3, 36.15);
-  --colorTextDark: rgb(21.78, 22.44, 53.02);
-  --colorTextSecondary: rgb(37.62, 38.76, 91.58);
-  --colorTextMuted: rgb(47.52, 48.96, 115.68);
-  --colorTextLight: rgb(55.44, 57.12, 134.96);
-  --colorTextLighter: rgb(63.36, 65.28, 154.24);
-  --colorBorder: rgb(226.92, 227.46, 252.48);
-  --colorBorderLighter: rgb(239.4, 239.7, 253.6);
-  --colorBorderLight: rgb(236.28, 236.64, 253.32);
-  --colorBorderMid: rgb(223.8, 224.4, 252.2);
-  --colorBorderCalendar: rgb(230.04, 230.52, 252.76);
-  --colorBgCard: rgb(247.2, 247.35, 254.3);
-  --colorBgSubtle: rgb(248.76, 248.88, 254.44);
-  --colorBgWeekend: rgb(240.96, 241.23, 253.74);
-  --colorBgWeekendHeader: rgb(234.72, 235.11, 253.18);
-  --colorBgHoverBlue: rgb(245.64, 245.82, 254.16);
-  --colorBgError: rgb(248.16, 231.48, 231.48);
-  --colorBgZero: rgb(242.46, 211.88, 211.88);
-  --colorBgLogged: rgb(201.24, 231.48, 214.2);
-  --colorCalBlack: rgb(21.78, 22.44, 53.02);
-  --colorCalDark: rgb(33.66, 34.68, 81.94);
-  --colorCalGray: rgb(43.56, 44.88, 106.04);
-  --colorCalMid: rgb(51.48, 53.04, 125.32);
-  --colorCalBorder: rgb(226.92, 227.46, 252.48);
-  --colorCalBg: rgb(242.52, 242.76, 253.88);
+  --colorTextBlack: rgb(5.8235294118%, 6%, 14.1764705882%);
+  --colorTextDark: rgb(8.5411764706%, 8.8%, 20.7921568627%);
+  --colorTextSecondary: rgb(14.7529411765%, 15.2%, 35.9137254902%);
+  --colorTextMuted: rgb(18.6352941176%, 19.2%, 45.3647058824%);
+  --colorTextLight: rgb(21.7411764706%, 22.4%, 52.9254901961%);
+  --colorTextLighter: rgb(24.8470588235%, 25.6%, 60.4862745098%);
+  --colorBorder: rgb(88.9882352941%, 89.2%, 99.0117647059%);
+  --colorBorderLighter: rgb(93.8823529412%, 94%, 99.4509803922%);
+  --colorBorderLight: rgb(92.6588235294%, 92.8%, 99.3411764706%);
+  --colorBorderMid: rgb(87.7647058824%, 88%, 98.9019607843%);
+  --colorBorderCalendar: rgb(90.2117647059%, 90.4%, 99.1215686275%);
+  --colorBgCard: rgb(96.9411764706%, 97%, 99.7254901961%);
+  --colorBgSubtle: rgb(97.5529411765%, 97.6%, 99.7803921569%);
+  --colorBgWeekend: rgb(94.4941176471%, 94.6%, 99.5058823529%);
+  --colorBgWeekendHeader: rgb(92.0470588235%, 92.2%, 99.2862745098%);
+  --colorBgHoverBlue: rgb(96.3294117647%, 96.4%, 99.6705882353%);
+  --colorBgError: rgb(97.3176470588%, 90.7764705882%, 90.7764705882%);
+  --colorBgZero: rgb(95.0823529412%, 83.0901960784%, 83.0901960784%);
+  --colorBgLogged: rgb(78.9176470588%, 90.7764705882%, 84%);
+  --colorCalBlack: rgb(8.5411764706%, 8.8%, 20.7921568627%);
+  --colorCalDark: rgb(13.2%, 13.6%, 32.1333333333%);
+  --colorCalGray: rgb(17.0823529412%, 17.6%, 41.5843137255%);
+  --colorCalMid: rgb(20.1882352941%, 20.8%, 49.1450980392%);
+  --colorCalBorder: rgb(88.9882352941%, 89.2%, 99.0117647059%);
+  --colorCalBg: rgb(95.1058823529%, 95.2%, 99.5607843137%);
   --mint: #6366f1;
-  --mint-600: rgb(87.12, 89.76, 212.08);
-  --mint-700: rgb(73.26, 75.48, 178.34);
-  --mint-50: rgb(242.52, 242.76, 253.88);
-  --mint-100: rgb(230.04, 230.52, 252.76);
-  --mint-200: rgb(200.4, 201.45, 250.1);
+  --mint-600: rgb(34.1647058824%, 35.2%, 83.168627451%);
+  --mint-700: rgb(28.7294117647%, 29.6%, 69.937254902%);
+  --mint-50: rgb(95.1058823529%, 95.2%, 99.5607843137%);
+  --mint-100: rgb(90.2117647059%, 90.4%, 99.1215686275%);
+  --mint-200: rgb(78.5882352941%, 79%, 98.0784313725%);
   --ink: #1e1b4b;
   --text: #3f415c;
-  --text-mid: rgb(98.1, 101.45, 131.15);
+  --text-mid: rgb(38.4705882353%, 39.7843137255%, 51.431372549%);
   --text-mute: #8d92b3;
-  --text-faint: rgb(169.5, 173.25, 198);
+  --text-faint: rgb(66.4705882353%, 67.9411764706%, 77.6470588235%);
   --line: #e4e6f2;
-  --line-soft: rgb(241.5, 242.5, 248.5);
-  --line-hard: rgb(200.64, 202.4, 212.96);
+  --line-soft: rgb(94.7058823529%, 95.0980392157%, 97.4509803922%);
+  --line-hard: rgb(78.6823529412%, 79.3725490196%, 83.5137254902%);
   --bg: #f5f6fb;
-  --bg-warm: rgb(250, 250.5, 253);
+  --bg-warm: rgb(98.0392156863%, 98.2352941176%, 99.2156862745%);
   --surface: #ffffff;
-  --row-hover: rgb(248.76, 248.88, 254.44);
-  --row-active: rgb(242.52, 242.76, 253.88);
+  --row-hover: rgb(97.5529411765%, 97.6%, 99.7803921569%);
+  --row-active: rgb(95.1058823529%, 95.2%, 99.5607843137%);
   --shadow-sm: 0 1px 2px rgba(30, 27, 75, 0.05);
   --shadow-md: 0 4px 14px rgba(30, 27, 75, 0.08);
   --on-accent: #ffffff;
@@ -171,80 +171,80 @@
 [data-theme=terracotta] {
   --colorMain: #c2552c;
   --colorLight: #fff;
-  --colorDark: rgb(34.92, 15.3, 7.92);
-  --colorDarkHover: rgb(46.56, 20.4, 10.56);
-  --colorDark3: rgb(23.28, 10.2, 5.28);
-  --colorMid: rgb(245.24, 227.8, 221.24);
-  --colorMid2: rgb(245.24, 227.8, 221.24);
-  --colorMid3: rgb(139.68, 61.2, 31.68);
-  --colorTrOdd: rgb(247.68, 234.6, 229.68);
+  --colorDark: rgb(13.6941176471%, 6%, 3.1058823529%);
+  --colorDarkHover: rgb(18.2588235294%, 8%, 4.1411764706%);
+  --colorDark3: rgb(9.1294117647%, 4%, 2.0705882353%);
+  --colorMid: rgb(96.1725490196%, 89.3333333333%, 86.7607843137%);
+  --colorMid2: rgb(96.1725490196%, 89.3333333333%, 86.7607843137%);
+  --colorMid3: rgb(54.7764705882%, 24%, 12.4235294118%);
+  --colorTrOdd: rgb(97.1294117647%, 92%, 90.0705882353%);
   --colorShadow: rgba(194, 85, 44, 0.42);
   --hoverFilter: none;
   --colorGreen: #c2552c;
-  --colorBlue: rgb(153.05, 118.95, 116.8);
+  --colorBlue: rgb(60.0196078431%, 46.6470588235%, 45.8039215686%);
   --colorLightRed: #d45e5e;
   --colorWarning: #ffca57;
-  --colorHoverBg: rgb(250.12, 241.4, 238.12);
+  --colorHoverBg: rgb(98.0862745098%, 94.6666666667%, 93.3803921569%);
   --colorHover: #c2552c;
-  --colorBgBody: rgb(252.56, 248.2, 246.56);
-  --colorText: rgb(54.32, 23.8, 12.32);
-  --colorLinkHover: rgb(106.7, 46.75, 24.2);
+  --colorBgBody: rgb(99.0431372549%, 97.3333333333%, 96.6901960784%);
+  --colorText: rgb(21.3019607843%, 9.3333333333%, 4.831372549%);
+  --colorLinkHover: rgb(41.8431372549%, 18.3333333333%, 9.4901960784%);
   --colorSplash: rgba(194, 85, 44, 0.2);
   --colorPrimary: #c2552c;
   --colorSuccess: #1f9d55;
   --colorDanger: #c63b3b;
   --colorOrange: #e67e22;
   --colorOrangeLight: #f39c12;
-  --colorPurple: rgb(152.6, 103.45, 129.5);
-  --colorPurpleDark: rgb(144.95, 93.55, 119.15);
-  --colorGrayMid: rgb(173.75, 121, 98.9);
-  --colorBlueBright: rgb(134, 109.4, 128.4);
-  --colorBlueBold: rgb(124.8, 95.8, 122);
+  --colorPurple: rgb(59.8431372549%, 40.568627451%, 50.7843137255%);
+  --colorPurpleDark: rgb(56.8431372549%, 36.6862745098%, 46.7254901961%);
+  --colorGrayMid: rgb(68.137254902%, 47.4509803922%, 38.7843137255%);
+  --colorBlueBright: rgb(52.5490196078%, 42.9019607843%, 50.3529411765%);
+  --colorBlueBold: rgb(48.9411764706%, 37.568627451%, 47.8431372549%);
   --colorBlack: #000;
-  --colorTextBlack: rgb(29.1, 12.75, 6.6);
-  --colorTextDark: rgb(42.68, 18.7, 9.68);
-  --colorTextSecondary: rgb(73.72, 32.3, 16.72);
-  --colorTextMuted: rgb(93.12, 40.8, 21.12);
-  --colorTextLight: rgb(108.64, 47.6, 24.64);
-  --colorTextLighter: rgb(124.16, 54.4, 28.16);
-  --colorBorder: rgb(244.02, 224.4, 217.02);
-  --colorBorderLighter: rgb(248.9, 238, 233.9);
-  --colorBorderLight: rgb(247.68, 234.6, 229.68);
-  --colorBorderMid: rgb(242.8, 221, 212.8);
-  --colorBorderCalendar: rgb(245.24, 227.8, 221.24);
-  --colorBgCard: rgb(251.95, 246.5, 244.45);
-  --colorBgSubtle: rgb(252.56, 248.2, 246.56);
-  --colorBgWeekend: rgb(249.51, 239.7, 236.01);
-  --colorBgWeekendHeader: rgb(247.07, 232.9, 227.57);
-  --colorBgHoverBlue: rgb(251.34, 244.8, 242.34);
-  --colorBgError: rgb(248.16, 231.48, 231.48);
-  --colorBgZero: rgb(242.46, 211.88, 211.88);
-  --colorBgLogged: rgb(201.24, 231.48, 214.2);
-  --colorCalBlack: rgb(42.68, 18.7, 9.68);
-  --colorCalDark: rgb(65.96, 28.9, 14.96);
-  --colorCalGray: rgb(85.36, 37.4, 19.36);
-  --colorCalMid: rgb(100.88, 44.2, 22.88);
-  --colorCalBorder: rgb(244.02, 224.4, 217.02);
-  --colorCalBg: rgb(250.12, 241.4, 238.12);
+  --colorTextBlack: rgb(11.4117647059%, 5%, 2.5882352941%);
+  --colorTextDark: rgb(16.737254902%, 7.3333333333%, 3.7960784314%);
+  --colorTextSecondary: rgb(28.9098039216%, 12.6666666667%, 6.5568627451%);
+  --colorTextMuted: rgb(36.5176470588%, 16%, 8.2823529412%);
+  --colorTextLight: rgb(42.6039215686%, 18.6666666667%, 9.662745098%);
+  --colorTextLighter: rgb(48.6901960784%, 21.3333333333%, 11.0431372549%);
+  --colorBorder: rgb(95.6941176471%, 88%, 85.1058823529%);
+  --colorBorderLighter: rgb(97.6078431373%, 93.3333333333%, 91.7254901961%);
+  --colorBorderLight: rgb(97.1294117647%, 92%, 90.0705882353%);
+  --colorBorderMid: rgb(95.2156862745%, 86.6666666667%, 83.4509803922%);
+  --colorBorderCalendar: rgb(96.1725490196%, 89.3333333333%, 86.7607843137%);
+  --colorBgCard: rgb(98.8039215686%, 96.6666666667%, 95.862745098%);
+  --colorBgSubtle: rgb(99.0431372549%, 97.3333333333%, 96.6901960784%);
+  --colorBgWeekend: rgb(97.8470588235%, 94%, 92.5529411765%);
+  --colorBgWeekendHeader: rgb(96.8901960784%, 91.3333333333%, 89.2431372549%);
+  --colorBgHoverBlue: rgb(98.5647058824%, 96%, 95.0352941176%);
+  --colorBgError: rgb(97.3176470588%, 90.7764705882%, 90.7764705882%);
+  --colorBgZero: rgb(95.0823529412%, 83.0901960784%, 83.0901960784%);
+  --colorBgLogged: rgb(78.9176470588%, 90.7764705882%, 84%);
+  --colorCalBlack: rgb(16.737254902%, 7.3333333333%, 3.7960784314%);
+  --colorCalDark: rgb(25.8666666667%, 11.3333333333%, 5.8666666667%);
+  --colorCalGray: rgb(33.4745098039%, 14.6666666667%, 7.5921568627%);
+  --colorCalMid: rgb(39.5607843137%, 17.3333333333%, 8.9725490196%);
+  --colorCalBorder: rgb(95.6941176471%, 88%, 85.1058823529%);
+  --colorCalBg: rgb(98.0862745098%, 94.6666666667%, 93.3803921569%);
   --mint: #c2552c;
-  --mint-600: rgb(170.72, 74.8, 38.72);
-  --mint-700: rgb(143.56, 62.9, 32.56);
-  --mint-50: rgb(250.12, 241.4, 238.12);
-  --mint-100: rgb(245.24, 227.8, 221.24);
-  --mint-200: rgb(233.65, 195.5, 181.15);
+  --mint-600: rgb(66.9490196078%, 29.3333333333%, 15.1843137255%);
+  --mint-700: rgb(56.2980392157%, 24.6666666667%, 12.768627451%);
+  --mint-50: rgb(98.0862745098%, 94.6666666667%, 93.3803921569%);
+  --mint-100: rgb(96.1725490196%, 89.3333333333%, 86.7607843137%);
+  --mint-200: rgb(91.6274509804%, 76.6666666667%, 71.0392156863%);
   --ink: #33261a;
   --text: #4d3e2e;
-  --text-mid: rgb(114.35, 98, 80.2);
+  --text-mid: rgb(44.8431372549%, 38.431372549%, 31.4509803922%);
   --text-mute: #a08e7a;
-  --text-faint: rgb(183.75, 170.25, 155.25);
+  --text-faint: rgb(72.0588235294%, 66.7647058824%, 60.8823529412%);
   --line: #ecdfd0;
-  --line-soft: rgb(245.5, 239, 231.5);
-  --line-hard: rgb(207.68, 196.24, 183.04);
+  --line-soft: rgb(96.2745098039%, 93.7254901961%, 90.7843137255%);
+  --line-hard: rgb(81.4431372549%, 76.9568627451%, 71.7803921569%);
   --bg: #faf6f0;
-  --bg-warm: rgb(252.5, 250.5, 247.5);
+  --bg-warm: rgb(99.0196078431%, 98.2352941176%, 97.0588235294%);
   --surface: #fffdf9;
-  --row-hover: rgb(252.56, 246.28, 240.8);
-  --row-active: rgb(250.12, 241.4, 238.12);
+  --row-hover: rgb(99.0431372549%, 96.5803921569%, 94.431372549%);
+  --row-active: rgb(98.0862745098%, 94.6666666667%, 93.3803921569%);
   --shadow-sm: 0 1px 2px rgba(51, 38, 26, 0.05);
   --shadow-md: 0 4px 14px rgba(51, 38, 26, 0.08);
   --on-accent: #ffffff;
@@ -253,80 +253,80 @@
 [data-theme=graphite] {
   --colorMain: #18181b;
   --colorLight: #fff;
-  --colorDark: rgb(4.32, 4.32, 4.86);
-  --colorDarkHover: rgb(5.76, 5.76, 6.48);
-  --colorDark3: rgb(2.88, 2.88, 3.24);
-  --colorMid: rgb(218.04, 218.04, 218.52);
-  --colorMid2: rgb(218.04, 218.04, 218.52);
-  --colorMid3: rgb(17.28, 17.28, 19.44);
-  --colorTrOdd: rgb(227.28, 227.28, 227.64);
+  --colorDark: rgb(1.6941176471%, 1.6941176471%, 1.9058823529%);
+  --colorDarkHover: rgb(2.2588235294%, 2.2588235294%, 2.5411764706%);
+  --colorDark3: rgb(1.1294117647%, 1.1294117647%, 1.2705882353%);
+  --colorMid: rgb(85.5058823529%, 85.5058823529%, 85.6941176471%);
+  --colorMid2: rgb(85.5058823529%, 85.5058823529%, 85.6941176471%);
+  --colorMid3: rgb(6.7764705882%, 6.7764705882%, 7.6235294118%);
+  --colorTrOdd: rgb(89.1294117647%, 89.1294117647%, 89.2705882353%);
   --colorShadow: rgba(24, 24, 27, 0.42);
   --hoverFilter: none;
   --colorGreen: #18181b;
-  --colorBlue: rgb(42.55, 79.3, 105.75);
+  --colorBlue: rgb(16.6862745098%, 31.0980392157%, 41.4705882353%);
   --colorLightRed: #d45e5e;
   --colorWarning: #ffca57;
-  --colorHoverBg: rgb(236.52, 236.52, 236.76);
+  --colorHoverBg: rgb(92.7529411765%, 92.7529411765%, 92.8470588235%);
   --colorHover: #18181b;
-  --colorBgBody: rgb(245.76, 245.76, 245.88);
-  --colorText: rgb(6.72, 6.72, 7.56);
-  --colorLinkHover: rgb(13.2, 13.2, 14.85);
+  --colorBgBody: rgb(96.3764705882%, 96.3764705882%, 96.4235294118%);
+  --colorText: rgb(2.6352941176%, 2.6352941176%, 2.9647058824%);
+  --colorLinkHover: rgb(5.1764705882%, 5.1764705882%, 5.8235294118%);
   --colorSplash: rgba(24, 24, 27, 0.2);
   --colorPrimary: #18181b;
   --colorSuccess: #1f9d55;
   --colorDanger: #c63b3b;
   --colorOrange: #e67e22;
   --colorOrangeLight: #f39c12;
-  --colorPurple: rgb(59.1, 69.9, 120.15);
-  --colorPurpleDark: rgb(51.45, 60, 109.8);
-  --colorGrayMid: rgb(80.25, 87.45, 89.55);
-  --colorBlueBright: rgb(32, 72.8, 118.2);
-  --colorBlueBold: rgb(22.8, 59.2, 111.8);
+  --colorPurple: rgb(23.1764705882%, 27.4117647059%, 47.1176470588%);
+  --colorPurpleDark: rgb(20.1764705882%, 23.5294117647%, 43.0588235294%);
+  --colorGrayMid: rgb(31.4705882353%, 34.2941176471%, 35.1176470588%);
+  --colorBlueBright: rgb(12.5490196078%, 28.5490196078%, 46.3529411765%);
+  --colorBlueBold: rgb(8.9411764706%, 23.2156862745%, 43.8431372549%);
   --colorBlack: #000;
-  --colorTextBlack: rgb(3.6, 3.6, 4.05);
-  --colorTextDark: rgb(5.28, 5.28, 5.94);
-  --colorTextSecondary: rgb(9.12, 9.12, 10.26);
-  --colorTextMuted: rgb(11.52, 11.52, 12.96);
-  --colorTextLight: rgb(13.44, 13.44, 15.12);
-  --colorTextLighter: rgb(15.36, 15.36, 17.28);
-  --colorBorder: rgb(213.42, 213.42, 213.96);
-  --colorBorderLighter: rgb(231.9, 231.9, 232.2);
-  --colorBorderLight: rgb(227.28, 227.28, 227.64);
-  --colorBorderMid: rgb(208.8, 208.8, 209.4);
-  --colorBorderCalendar: rgb(218.04, 218.04, 218.52);
-  --colorBgCard: rgb(243.45, 243.45, 243.6);
-  --colorBgSubtle: rgb(245.76, 245.76, 245.88);
-  --colorBgWeekend: rgb(234.21, 234.21, 234.48);
-  --colorBgWeekendHeader: rgb(224.97, 224.97, 225.36);
-  --colorBgHoverBlue: rgb(241.14, 241.14, 241.32);
-  --colorBgError: rgb(248.16, 231.48, 231.48);
-  --colorBgZero: rgb(242.46, 211.88, 211.88);
-  --colorBgLogged: rgb(201.24, 231.48, 214.2);
-  --colorCalBlack: rgb(5.28, 5.28, 5.94);
-  --colorCalDark: rgb(8.16, 8.16, 9.18);
-  --colorCalGray: rgb(10.56, 10.56, 11.88);
-  --colorCalMid: rgb(12.48, 12.48, 14.04);
-  --colorCalBorder: rgb(213.42, 213.42, 213.96);
-  --colorCalBg: rgb(236.52, 236.52, 236.76);
+  --colorTextBlack: rgb(1.4117647059%, 1.4117647059%, 1.5882352941%);
+  --colorTextDark: rgb(2.0705882353%, 2.0705882353%, 2.3294117647%);
+  --colorTextSecondary: rgb(3.5764705882%, 3.5764705882%, 4.0235294118%);
+  --colorTextMuted: rgb(4.5176470588%, 4.5176470588%, 5.0823529412%);
+  --colorTextLight: rgb(5.2705882353%, 5.2705882353%, 5.9294117647%);
+  --colorTextLighter: rgb(6.0235294118%, 6.0235294118%, 6.7764705882%);
+  --colorBorder: rgb(83.6941176471%, 83.6941176471%, 83.9058823529%);
+  --colorBorderLighter: rgb(90.9411764706%, 90.9411764706%, 91.0588235294%);
+  --colorBorderLight: rgb(89.1294117647%, 89.1294117647%, 89.2705882353%);
+  --colorBorderMid: rgb(81.8823529412%, 81.8823529412%, 82.1176470588%);
+  --colorBorderCalendar: rgb(85.5058823529%, 85.5058823529%, 85.6941176471%);
+  --colorBgCard: rgb(95.4705882353%, 95.4705882353%, 95.5294117647%);
+  --colorBgSubtle: rgb(96.3764705882%, 96.3764705882%, 96.4235294118%);
+  --colorBgWeekend: rgb(91.8470588235%, 91.8470588235%, 91.9529411765%);
+  --colorBgWeekendHeader: rgb(88.2235294118%, 88.2235294118%, 88.3764705882%);
+  --colorBgHoverBlue: rgb(94.5647058824%, 94.5647058824%, 94.6352941176%);
+  --colorBgError: rgb(97.3176470588%, 90.7764705882%, 90.7764705882%);
+  --colorBgZero: rgb(95.0823529412%, 83.0901960784%, 83.0901960784%);
+  --colorBgLogged: rgb(78.9176470588%, 90.7764705882%, 84%);
+  --colorCalBlack: rgb(2.0705882353%, 2.0705882353%, 2.3294117647%);
+  --colorCalDark: rgb(3.2%, 3.2%, 3.6%);
+  --colorCalGray: rgb(4.1411764706%, 4.1411764706%, 4.6588235294%);
+  --colorCalMid: rgb(4.8941176471%, 4.8941176471%, 5.5058823529%);
+  --colorCalBorder: rgb(83.6941176471%, 83.6941176471%, 83.9058823529%);
+  --colorCalBg: rgb(92.7529411765%, 92.7529411765%, 92.8470588235%);
   --mint: #18181b;
-  --mint-600: rgb(21.12, 21.12, 23.76);
-  --mint-700: rgb(17.76, 17.76, 19.98);
-  --mint-50: rgb(236.52, 236.52, 236.76);
-  --mint-100: rgb(218.04, 218.04, 218.52);
-  --mint-200: rgb(174.15, 174.15, 175.2);
+  --mint-600: rgb(8.2823529412%, 8.2823529412%, 9.3176470588%);
+  --mint-700: rgb(6.9647058824%, 6.9647058824%, 7.8352941176%);
+  --mint-50: rgb(92.7529411765%, 92.7529411765%, 92.8470588235%);
+  --mint-100: rgb(85.5058823529%, 85.5058823529%, 85.6941176471%);
+  --mint-200: rgb(68.2941176471%, 68.2941176471%, 68.7058823529%);
   --ink: #111113;
   --text: #27272a;
-  --text-mid: rgb(72.3, 72.3, 78);
+  --text-mid: rgb(28.3529411765%, 28.3529411765%, 30.5882352941%);
   --text-mute: #71717a;
-  --text-faint: rgb(148.5, 148.5, 155.25);
+  --text-faint: rgb(58.2352941176%, 58.2352941176%, 60.8823529412%);
   --line: #d4d4d8;
-  --line-soft: rgb(233.5, 233.5, 235.5);
-  --line-hard: rgb(186.56, 186.56, 190.08);
+  --line-soft: rgb(91.568627451%, 91.568627451%, 92.3529411765%);
+  --line-hard: rgb(73.1607843137%, 73.1607843137%, 74.5411764706%);
   --bg: #f4f4f5;
-  --bg-warm: rgb(249.5, 249.5, 250);
+  --bg-warm: rgb(97.8431372549%, 97.8431372549%, 98.0392156863%);
   --surface: #ffffff;
-  --row-hover: rgb(245.76, 245.76, 245.88);
-  --row-active: rgb(236.52, 236.52, 236.76);
+  --row-hover: rgb(96.3764705882%, 96.3764705882%, 96.4235294118%);
+  --row-active: rgb(92.7529411765%, 92.7529411765%, 92.8470588235%);
   --shadow-sm: 0 1px 2px rgba(17, 17, 19, 0.05);
   --shadow-md: 0 4px 14px rgba(17, 17, 19, 0.08);
   --on-accent: #ffffff;
@@ -956,7 +956,7 @@
 /* gcColorField — swatch + editable hex, themed via the shared tokens. */
 /* gcLocationField — address search dropdown, resolved-address line and the
  * Leaflet map container. Theme-aware via the shared v2 tokens (the reference
- * an earlier implementation hardcoded hex colors inline). */
+ * implementation in apigoatacc hardcoded hex colors inline). */
 .address-search-container {
   position: relative;
   width: 100%;
@@ -1623,6 +1623,35 @@ body .legacy-list-toolbar {
 
 .va-mob .va-mob-row1 .add-btn i {
   font-size: 16px;
+}
+
+/* Parent-scoped list (ChildListDelegate: Parent/Child?i=<pk>): the parent is
+   named ONCE here under the title (muted type label + display name) and the
+   parent-FK column leaves the rows — emitted by getList.php only when
+   getList() runs with $IdParent. */
+.va-mob .va-mob-parent {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 0 0 6px;
+  font-size: 13px;
+  min-width: 0;
+}
+
+.va-mob .va-mob-parent-type {
+  color: var(--text-mute);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  flex: none;
+}
+
+.va-mob .va-mob-parent-name {
+  color: var(--ink);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .va-mob .va-mob-search {
@@ -2330,6 +2359,65 @@ ul.select-element.gc-portal-menu li strong {
   color: #fff;
 }
 
+/* Quick-filter chip rows are collapsible per column (list.js
+ * setupChipsToggles injects one toggle strip per row and remembers each
+ * row's state in localStorage). An active-filters row is never hidden —
+ * that would hide the fact that a filter is on. */
+.va-mob .va-mob-chips-toggle {
+  display: flex;
+  padding: 8px 14px 0;
+  background: var(--surface);
+}
+
+.va-mob .va-mob-chips-toggle > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 8px 0 2px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-mute);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.va-mob .va-mob-chips-toggle > button:hover {
+  color: var(--text-mid);
+}
+
+.va-mob .va-mob-chips-toggle > button i {
+  font-size: 16px;
+}
+
+.va-mob .va-mob-chips-toggle-sum {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  color: var(--mint-700);
+}
+
+.va-mob .va-mob-chips-toggle-sum:not(:empty)::before {
+  content: "· ";
+  color: var(--text-mute);
+}
+
+.va-mob .va-mob-chips.gc-chips-hidden:not(.active-filters) {
+  display: none;
+}
+
+/* While the first row is showing the active filters it is not a column's
+ * presets any more — its column toggle would be mislabelled, so drop it. */
+.va-mob .va-mob-chips-toggle:has(+ .va-mob-chips.active-filters) {
+  display: none;
+}
+
 .va-mob .va-mob-chips {
   display: flex;
   gap: 6px;
@@ -2383,7 +2471,7 @@ ul.select-element.gc-portal-menu li strong {
  * padding-bottom:0 kills the legacy .content 100px bottom padding
  * that would otherwise show as dead space above the pager.
  * Desktop (≥720px) re-overrides all of this in _desktopv2. */
-.va-mob > .va-mob-header, .va-mob > .va-mob-chips, .va-mob > .va-mob-sortclear {
+.va-mob > .va-mob-header, .va-mob > .va-mob-chips, .va-mob > .va-mob-chips-toggle, .va-mob > .va-mob-sortclear {
   flex: 0 0 auto;
 }
 
@@ -2599,7 +2687,7 @@ p.no-results > span {
   border-color: #fed7aa;
 }
 
-.va-mob .va-mob-row .cl-status {
+.va-mob .va-mob-row .cl-status, .va-mob .va-dt-row .cl-status {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -2609,16 +2697,204 @@ p.no-results > span {
   border-radius: 999px;
   line-height: 1.3;
   white-space: nowrap;
+}
+
+.va-mob .va-mob-row .cl-status:not([class*=cl-status-]), .va-mob .va-dt-row .cl-status:not([class*=cl-status-]) {
   background: var(--line-soft);
   color: var(--text-mid);
 }
 
-.va-mob .va-mob-row .cl-status .cl-status-dot {
+.va-mob .va-mob-row .cl-status .cl-status-dot, .va-mob .va-dt-row .cl-status .cl-status-dot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
   flex-shrink: 0;
   background: currentColor;
+}
+
+/* ───── Grouped row actions (add_row_action: { group: … }) ─────
+ * A <details> popover, so a list with three or four per-row actions spends
+ * its width on data rather than on a row of buttons. No JS: the buttons
+ * inside are handled by list.js's document-level delegate wherever they sit.
+ */
+.gc-row-actions {
+  position: relative;
+  display: inline-block;
+}
+
+/* The action cell is `position: sticky; z-index: 1`, so it opens a stacking
+ * context and the menu is trapped inside it — every LATER row's action cell
+ * carries the same z-index and, coming later in the DOM, painted on top of
+ * it. The menu looked open but its items could not be clicked. Lift the one
+ * cell that owns an open menu above its siblings. */
+.va-dt-table td.actionrow:has(details.gc-row-actions[open]),
+.va-mob-row .actionrow:has(details.gc-row-actions[open]) {
+  z-index: 60;
+}
+
+.gc-row-actions > summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-mid);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.gc-row-actions > summary::-webkit-details-marker {
+  display: none;
+}
+
+.gc-row-actions > summary:hover {
+  border-color: var(--line-hard);
+  color: var(--text);
+}
+
+.gc-row-actions[open] > summary {
+  background: var(--mint);
+  border-color: var(--mint);
+  color: var(--on-accent);
+}
+
+.gc-row-actions-menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 170px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: var(--shadow-md);
+}
+
+.gc-row-actions-menu .gc-row-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  font-size: 12.5px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.gc-row-actions-menu .gc-row-action:hover {
+  background: var(--row-hover);
+}
+
+.gc-row-actions-menu .gc-row-action i {
+  font-size: 15px;
+  color: var(--text-mute);
+}
+
+/* ───── Threaded conversations: make an OPEN thread obvious ─────
+ * Rows injected under a collapsed conversation (data-gc-thread-child) look
+ * identical to ordinary rows without this — the reader cannot tell where a
+ * conversation starts or ends.
+ *
+ * The thing that actually makes the group read as ONE block is a single
+ * unbroken accent rail down its whole left edge. An earlier pass gave the
+ * parent a mint rail and the children a grey one, which cut the group in
+ * half at the first child and left it, in the author's words, "barely
+ * visible". Parent and children now share the same rail; the children are
+ * separated from it by an indent and a hairline instead, and the last child
+ * carries a closing rule so an expanded thread has a visible end and does
+ * not bleed into the next one.
+ *
+ * Both row flavours are covered: .va-dt-row is the desktop table, .va-mob-row
+ * the mobile card. Colours are the shared tokens (var()-backed), so the dark
+ * themes follow automatically. A tr cannot reliably carry border-left under
+ * border-collapse, hence the inset box-shadow on the first cell. */
+.va-mob .va-dt-row[data-gc-thread-open],
+.va-mob .va-mob-row[data-gc-thread-open] {
+  background: var(--mint-50);
+  font-weight: 600;
+}
+
+.va-mob .va-dt-row[data-gc-thread-open] > *:first-child,
+.va-mob .va-mob-row[data-gc-thread-open] > *:first-child {
+  box-shadow: inset 4px 0 0 0 var(--mint);
+}
+
+.va-mob .va-dt-row[data-gc-thread-child],
+.va-mob .va-mob-row[data-gc-thread-child] {
+  background: var(--bg-warm);
+  color: var(--text-mid);
+}
+
+.va-mob .va-dt-row[data-gc-thread-child] > *:first-child,
+.va-mob .va-mob-row[data-gc-thread-child] > *:first-child {
+  position: relative;
+  /* Same mint as the parent: one rail, top to bottom, is the whole trick. */
+  box-shadow: inset 4px 0 0 0 var(--mint);
+  padding-left: 34px;
+}
+
+/* Hairline at the indent — reads as "nested under", and keeps the content
+ * from sitting hard against the group rail. */
+.va-mob .va-dt-row[data-gc-thread-child] > *:first-child::before,
+.va-mob .va-mob-row[data-gc-thread-child] > *:first-child::before {
+  content: "";
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--line-hard);
+}
+
+/* The rail must be UNBROKEN. Each row draws its own bottom border, which
+ * cuts a white gap through the rail at every row boundary and leaves it
+ * looking like a dotted line rather than one bar. Suppress that border on
+ * the railed cell for every row of the group except the last, which is the
+ * one that closes it. */
+.va-mob .va-dt-row[data-gc-thread-open],
+.va-mob .va-mob-row[data-gc-thread-open],
+.va-mob .va-dt-row[data-gc-thread-child]:not([data-gc-thread-last]),
+.va-mob .va-mob-row[data-gc-thread-child]:not([data-gc-thread-last]) {
+  border-bottom-color: transparent;
+}
+
+/* Close the group. */
+.va-mob .va-dt-row[data-gc-thread-last],
+.va-mob .va-mob-row[data-gc-thread-last] {
+  border-bottom: 2px solid var(--mint-200);
+}
+
+/* The badge itself reads as pressed while its thread is open. */
+/* Equal specificity to .va-mob .va-<x>-row .cl-status:not([class*="cl-status-"])
+ * and later in the file, so the pressed state actually wins. */
+.va-mob .va-dt-row[data-gc-thread-open] [data-gc-thread-toggle],
+.va-mob .va-mob-row[data-gc-thread-open] [data-gc-thread-toggle] {
+  background: var(--mint);
+  color: var(--on-accent);
+}
+
+.va-mob .va-mob-row [data-gc-thread-toggle], .va-mob .va-dt-row [data-gc-thread-toggle] {
+  cursor: pointer;
+}
+
+.va-mob .va-dt-table th.gc-thread-cell, .va-mob .va-dt-table td.gc-thread-cell {
+  width: 1%;
+  white-space: nowrap;
+  padding-right: 4px;
+}
+
+.va-mob .va-mob-row .name [data-gc-thread-toggle] {
+  margin-right: 6px;
+  vertical-align: middle;
 }
 
 .va-mob .va-mob-pager {
@@ -2825,6 +3101,78 @@ a.add-button:hover {
 .va-dt-row .actionrow .ac-delete-link:hover {
   background: rgba(239, 68, 68, 0.12);
   color: #ef4444;
+}
+
+/* add_row_action button (goatcheese Parameter): the row's primary verb —
+   "Send", "Approve", "Retry" — styled like the app's .btn (same border,
+   surface, radius and type ramp as .va-head .btn, one size down) and always
+   visible, unlike the hover-revealed delete icon beside it. */
+.actionrow .gc-row-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  margin-right: 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+
+.actionrow .gc-row-action i {
+  font-size: 15px;
+  line-height: 1;
+  color: var(--mint-700);
+}
+
+.actionrow .gc-row-action:hover {
+  background: var(--mint);
+  border-color: var(--mint);
+  color: var(--on-accent);
+}
+
+.actionrow .gc-row-action:hover i {
+  color: var(--on-accent);
+}
+
+.actionrow .gc-row-action:disabled,
+.actionrow .gc-row-action.is-busy {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+/* The desktop action cell is a fixed 60px sticky column sized for icons;
+   let it grow to fit a labelled button. */
+table.va-dt-table td.actionrow:has(.gc-row-action) {
+  width: auto;
+  min-width: 0;
+  padding-left: 8px;
+}
+
+table.va-dt-table td.actionrow .gc-row-action {
+  opacity: 1;
+}
+
+/* Card rows (drawer/child screens render the card layout even on desktop):
+   the action cell is a DIV there — the old markup nested a <td> inside the
+   card div and the HTML parser stripped it, leaving the buttons unwrapped,
+   unstyled and never hidden (2026-09-12). Flex-align it after .trail; the
+   more-specific mobile-list hide above still wins on phones. */
+.va-mob-row .actionrow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 8px;
+  flex-shrink: 0;
 }
 
 /* File action icons (open / download) — same over-icon treatment as the
@@ -5977,6 +6325,20 @@ body:has(#login-form) .wCtFooter {
   z-index: 220 !important;
 }
 
+/* Closed menus must not take part in layout. The legacy widget hides a
+ * closed list with visibility:hidden/opacity:0 only, so every select keeps a
+ * ~140px box hanging under its field. The card clips those (overflow:hidden)
+ * until a select opens and .form-card:has(.select-label.show) relaxes the
+ * clip — then the hidden lists of the LAST row spill past the card into the
+ * scrollable .sw-body: a scrollbar appears, the grid reflows and the right
+ * column jumps (the "Response detail pops when Suggest follow-ups opens" bug).
+ * display:none until .show; selectbox.js reveals the selected <li> after the
+ * class flips, so the list has offsets by then. */
+.sw-drawer.proto-form .sw-body .form-row .js-select-label:not(.show) ul.scrollable.select-element,
+.sw-drawer.proto-form .sw-body .form-row .js-select-label:not(.show) ul.select-element {
+  display: none !important;
+}
+
 /* Viewport flip: selectbox.js adds .show-top when the dropdown would
  * overflow the bottom of the viewport — open it above the field instead. */
 .sw-drawer.proto-form .sw-body .form-row .js-select-label.show-top ul.scrollable.select-element,
@@ -8237,8 +8599,17 @@ body:has(#login-form) .wCtFooter {
     padding-left: 12px;
     padding-right: 12px;
   }
+  /* The collapse toggle rides the search/filter row with the chips it
+   * folds away (see the display:contents promotion above). */
+  .va-mob .va-mob-chips-toggle {
+    flex: 0 0 auto;
+    align-self: center;
+    margin: 0 0 14px 20px;
+    padding: 0;
+    background: transparent;
+  }
   .va-mob .va-mob-chips {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     align-self: center;
     margin: 0 28px 14px 4px;
     padding: 0;
@@ -8926,6 +9297,83 @@ input[type=checkbox][id^=mass-action-]:focus + label::before {
   box-shadow: 0 0 0 3px var(--mint-100);
 }
 
+/* gcColorField — swatch + editable hex, themed via the shared tokens. */
+/* ============================================================
+   .gc-notices — "something you cannot see from this screen is broken"
+   Deliberately NOT dismissible: the condition it reports (a dead
+   mailbox, a stopped worker) stays true until someone fixes it, and a
+   banner you can close is a banner that gets closed and forgotten.
+============================================================ */
+.gc-notices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 16px 0;
+}
+
+.gc-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-left-width: 3px;
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+.gc-notice i {
+  flex: 0 0 auto;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+.gc-notice span {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.gc-notice a {
+  flex: 0 0 auto;
+  font-weight: 600;
+  text-decoration: underline;
+  color: inherit;
+}
+
+.gc-notice.is-error {
+  border-color: var(--danger);
+  background: var(--danger-50);
+}
+.gc-notice.is-error i, .gc-notice.is-error a {
+  color: var(--danger);
+}
+
+.gc-notice.is-warn {
+  border-color: var(--warning);
+  background: var(--warning-50);
+}
+.gc-notice.is-warn i, .gc-notice.is-warn a {
+  color: var(--warning);
+}
+
+.gc-notice.is-info {
+  border-color: var(--mint);
+  background: var(--mint-50);
+}
+.gc-notice.is-info i, .gc-notice.is-info a {
+  color: var(--mint-700);
+}
+
+@media (max-width: 640px) {
+  .gc-notices {
+    padding: 8px 10px 0;
+  }
+  .gc-notice {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+  }
+}
 @font-face {
   font-family: "Nunito";
   font-style: normal;

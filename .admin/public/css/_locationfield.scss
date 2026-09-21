@@ -1,6 +1,6 @@
 /* gcLocationField — address search dropdown, resolved-address line and the
  * Leaflet map container. Theme-aware via the shared v2 tokens (the reference
- * an earlier implementation hardcoded hex colors inline). */
+ * implementation in apigoatacc hardcoded hex colors inline). */
 @use 'tokensv2' as *;
 
 .address-search-container {

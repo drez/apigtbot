@@ -975,7 +975,7 @@ abstract class BaseConfigQuery extends ModelCriteria
     protected function basePostDelete($affectedRows, PropelPDO $con)
     {
         // GoatCheese behavior
-        
+
                 if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                     \ApiGoat\Utility\TableVersion::bump('config');
                 }
@@ -992,7 +992,7 @@ abstract class BaseConfigQuery extends ModelCriteria
     protected function basePostUpdate($affectedRows, PropelPDO $con)
     {
         // GoatCheese behavior
-        
+
                 if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                     \ApiGoat\Utility\TableVersion::bump('config');
                 }

@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseMessageI18nQuery;
 
-require 'om/BaseMessageI18nQuery.php';
+require_once __DIR__ . '/om/BaseMessageI18nQuery.php';
 
 
 /**

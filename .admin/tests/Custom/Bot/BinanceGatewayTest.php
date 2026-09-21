@@ -29,6 +29,29 @@ class BinanceGatewayTest extends TestCase
         );
     }
 
+    public function testAClockDriftRejectionResyncsOnServerTimeAndRetriesOnce(): void
+    {
+        $captured = [];
+        $g = $this->gateway([
+            ['status' => 400, 'headers' => [], 'body' => '{"code":-1021,"msg":"Timestamp for this request is outside of the recvWindow."}'],
+            ['status' => 200, 'headers' => [], 'body' => '{"serverTime":1499827329559}'], // host is 10 s behind
+            ['status' => 200, 'headers' => [], 'body' => '[]'],
+        ], $captured);
+
+        $this->assertSame([], $g->openOrders('BTCUSDT'));
+        $this->assertStringContainsString('/api/v3/time', $captured[1]['url']);
+        $this->assertStringContainsString('timestamp=1499827329559', $captured[2]['url'], 'the retry is stamped on the server clock');
+        $this->assertSame(10000, $g->clockOffsetMs());
+    }
+
+    public function testAClockDriftRejectionIsNotRetriedForever(): void
+    {
+        $drift = ['status' => 400, 'headers' => [], 'body' => '{"code":-1021,"msg":"Timestamp for this request is outside of the recvWindow."}'];
+        $g = $this->gateway([$drift, ['status' => 200, 'headers' => [], 'body' => '{"serverTime":1499827329559}'], $drift]);
+        $this->expectException(BinanceApiError::class);
+        $g->openOrders('BTCUSDT');
+    }
+
     public function testSignatureMatchesBinanceDocVector(): void
     {
         $g = $this->gateway([]);
@@ -61,6 +84,8 @@ class BinanceGatewayTest extends TestCase
         $this->assertSame('105', $k[0]['close']);
         $this->assertSame('1234', $k[0]['volume'], 'volume feeds the volume z-score signal');
         $this->assertSame('600', $k[0]['taker_buy'], 'taker buy volume feeds the aggression ratio');
+        $this->assertSame(1690000000, $k[0]['open_time'], 'open time in epoch seconds feeds the candle store');
+        $this->assertSame('100', $k[0]['open']);
     }
 
     public function testSignedRequestCarriesKeyTimestampAndSignature(): void

@@ -22,12 +22,6 @@ User
 
 Push device
 
-### Country (`country`)
-
-- **Columns:** 11, **Foreign keys:** 3
-
-Country
-
 ### SimWallet (`sim_wallet`)
 
 - **Priority:** 6
@@ -48,6 +42,34 @@ Market Data
 - **Columns:** 22, **Foreign keys:** 3
 
 Regime History
+
+### MarketCandle (`market_candle`)
+
+- **Priority:** 8
+- **Columns:** 14, **Foreign keys:** 3
+
+Candles
+
+### MarketOutlook (`market_outlook`)
+
+- **Priority:** 9
+- **Columns:** 22, **Foreign keys:** 3
+
+Market Outlook
+
+### MarketOutlookState (`market_outlook_state`)
+
+- **Priority:** 10
+- **Columns:** 14, **Foreign keys:** 3
+
+Outlook State
+
+### WalletNav (`wallet_nav`)
+
+- **Priority:** 7
+- **Columns:** 12, **Foreign keys:** 3
+
+Wallet NAV
 
 ### AuthyGroup (`authy_group`)
 
@@ -95,14 +117,34 @@ API log
 
 Template
 
+### Country (`country`)
+
+- **Columns:** 11, **Foreign keys:** 3
+
+Country
+
 ## Menu: Trading
 
 ### GridRun (`grid_run`)
 
-- **Child tables:** ["bot_order","trade_cycle","bot_event","bot_command"]
-- **Columns:** 47, **Foreign keys:** 3
+- **Child tables:** ["bot_order","trade_cycle","bot_event","bot_command","grid_run_audit"]
+- **Columns:** 52, **Foreign keys:** 3
 
 Grid Run
+
+### FleetSlot (`fleet_slot`)
+
+- **Priority:** 2
+- **Columns:** 20, **Foreign keys:** 4
+
+Fleet slot
+
+### RegimeEpisode (`regime_episode`)
+
+- **Priority:** 3
+- **Columns:** 23, **Foreign keys:** 5
+
+Regime episode
 
 ## Menu: _(no menu)_
 
@@ -132,7 +174,7 @@ Command
 
 ### BotDecision (`bot_decision`)
 
-- **Columns:** 22, **Foreign keys:** 4
+- **Columns:** 27, **Foreign keys:** 4
 
 Refit Decision
 
@@ -147,3 +189,9 @@ Group
 - **Columns:** 9, **Foreign keys:** 4
 
 File
+
+### GridRunAudit (`grid_run_audit`)
+
+- **Columns:** 12, **Foreign keys:** 4
+
+Change history

@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseBotCommand;
 
-require 'om/BaseBotCommand.php';
+require_once __DIR__ . '/om/BaseBotCommand.php';
 
 
 /**

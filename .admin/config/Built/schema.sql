@@ -102,40 +102,6 @@ CREATE TABLE `push_device`
 ) ENGINE=InnoDB COMMENT='Push device';
 
 -- ---------------------------------------------------------------------
--- country
--- ---------------------------------------------------------------------
-
-DROP TABLE IF EXISTS `country`;
-
-CREATE TABLE `country`
-(
-    `id_country` INTEGER(11) NOT NULL AUTO_INCREMENT,
-    `name` VARCHAR(100) COMMENT 'Name',
-    `code` VARCHAR(3) COMMENT 'Code',
-    `timezone` VARCHAR(20) COMMENT 'Timezone',
-    `timezone_code` VARCHAR(50) COMMENT 'Timezone code',
-    `priority` INTEGER(10) COMMENT 'Priority',
-    `date_creation` DATETIME,
-    `date_modification` DATETIME,
-    `id_group_creation` INTEGER,
-    `id_creation` INTEGER,
-    `id_modification` INTEGER,
-    PRIMARY KEY (`id_country`),
-    INDEX `country_FI_1` (`id_group_creation`),
-    INDEX `country_FI_2` (`id_creation`),
-    INDEX `country_FI_3` (`id_modification`),
-    CONSTRAINT `country_FK_1`
-        FOREIGN KEY (`id_group_creation`)
-        REFERENCES `authy_group` (`id_authy_group`),
-    CONSTRAINT `country_FK_2`
-        FOREIGN KEY (`id_creation`)
-        REFERENCES `authy` (`id_authy`),
-    CONSTRAINT `country_FK_3`
-        FOREIGN KEY (`id_modification`)
-        REFERENCES `authy` (`id_authy`)
-) ENGINE=InnoDB COMMENT='Country';
-
--- ---------------------------------------------------------------------
 -- grid_run
 -- ---------------------------------------------------------------------
 
@@ -158,11 +124,14 @@ CREATE TABLE `grid_run`
     `allocation` TINYINT DEFAULT 0 NOT NULL COMMENT 'Allocation',
     `budget_quote` DECIMAL(18, 8) NOT NULL COMMENT 'Budget (USDT)',
     `deploy_pct` INTEGER(10) DEFAULT 100 COMMENT 'Deployed budget %',
+    `alloc_mode` TINYINT DEFAULT 0 NOT NULL COMMENT 'Allocation mode',
     `fee_pct` DECIMAL(9, 6) DEFAULT 0.001 NOT NULL COMMENT 'Fee per side',
     `max_position_quote` DECIMAL(18, 8) NOT NULL COMMENT 'Max position (USDT)',
     `max_order_quote` DECIMAL(18, 8) NOT NULL COMMENT 'Max per-order (USDT)',
     `daily_loss_limit_quote` DECIMAL(18, 8) NOT NULL COMMENT 'Daily loss limit',
     `max_unrealized_loss_quote` DECIMAL(18, 8) COMMENT 'Max unrealized loss',
+    `sell_at_loss` TINYINT(10) DEFAULT 0 COMMENT 'Sell at loss',
+    `sell_when_starved` TINYINT(10) DEFAULT 0 COMMENT 'Sell at loss when starved',
     `breakout_buffer_pct` DECIMAL(9, 6) DEFAULT 0.02 COMMENT 'Breakout buffer',
     `breakout_policy` TINYINT DEFAULT 0 NOT NULL COMMENT 'On breakout',
     `max_open_orders` INTEGER(10) DEFAULT 60 COMMENT 'Max open orders',
@@ -174,6 +143,8 @@ CREATE TABLE `grid_run`
     `atr_period` INTEGER(10) DEFAULT 14 COMMENT 'ATR period',
     `atr_stop_mult` DECIMAL(9, 4) COMMENT 'Trail stop x ATR',
     `atr_initial_mult` DECIMAL(9, 4) COMMENT 'Initial stop x ATR',
+    `trend_stop_floor_pct` DECIMAL(9, 6) DEFAULT 0.015 COMMENT 'Trail stop floor (fraction of HWM)',
+    `trend_signal` TINYINT DEFAULT 0 NOT NULL COMMENT 'Trend entry signal',
     `reentry_cooldown` INTEGER(10) COMMENT 'Re-entry cooldown (bars)',
     `engine_state` TEXT(1023) COMMENT 'Engine state (daemon-managed)',
     `last_tick_at` DATETIME COMMENT 'Last tick',
@@ -191,6 +162,7 @@ CREATE TABLE `grid_run`
     `id_creation` INTEGER,
     `id_modification` INTEGER,
     PRIMARY KEY (`id_grid_run`),
+    UNIQUE INDEX `grid_run_U_1` (`label`),
     INDEX `grid_run_FI_1` (`id_group_creation`),
     INDEX `grid_run_FI_2` (`id_creation`),
     INDEX `grid_run_FI_3` (`id_modification`),
@@ -204,6 +176,111 @@ CREATE TABLE `grid_run`
         FOREIGN KEY (`id_modification`)
         REFERENCES `authy` (`id_authy`)
 ) ENGINE=InnoDB COMMENT='Grid Run';
+
+-- ---------------------------------------------------------------------
+-- fleet_slot
+-- ---------------------------------------------------------------------
+
+DROP TABLE IF EXISTS `fleet_slot`;
+
+CREATE TABLE `fleet_slot`
+(
+    `id_fleet_slot` INTEGER(11) NOT NULL AUTO_INCREMENT,
+    `symbol` VARCHAR(20) NOT NULL COMMENT 'Symbol',
+    `algo` TINYINT DEFAULT 0 NOT NULL COMMENT 'Algorithm',
+    `target_slice` DECIMAL(20, 8) DEFAULT 350 NOT NULL COMMENT 'Target slice (USDT)',
+    `enabled` TINYINT(10) DEFAULT 1 COMMENT 'Enabled',
+    `state` TINYINT DEFAULT 0 NOT NULL COMMENT 'Arm state',
+    `confirm_up` INTEGER(10) DEFAULT 0 COMMENT 'Consecutive TREND_UP passes',
+    `confirm_down` INTEGER(10) DEFAULT 0 COMMENT 'Consecutive non-TREND_UP passes',
+    `last_verdict` VARCHAR(16) COMMENT 'Last verdict',
+    `verdict_at` DATETIME COMMENT 'Verdict at',
+    `episode_started_at` DATETIME COMMENT 'TREND_UP episode started',
+    `activation` TEXT(1023) COMMENT 'Activation payload',
+    `id_grid_run` INTEGER(11) COMMENT 'Run',
+    `last_empty_alert_at` DATETIME COMMENT 'Empty alerted at',
+    `last_parked_alert_at` DATETIME COMMENT 'Parked alerted at',
+    `date_creation` DATETIME,
+    `date_modification` DATETIME,
+    `id_group_creation` INTEGER,
+    `id_creation` INTEGER,
+    `id_modification` INTEGER,
+    PRIMARY KEY (`id_fleet_slot`),
+    UNIQUE INDEX `fleet_slot_U_1` (`symbol`, `algo`),
+    INDEX `fleet_slot_FI_1` (`id_grid_run`),
+    INDEX `fleet_slot_FI_2` (`id_group_creation`),
+    INDEX `fleet_slot_FI_3` (`id_creation`),
+    INDEX `fleet_slot_FI_4` (`id_modification`),
+    CONSTRAINT `fleet_slot_FK_1`
+        FOREIGN KEY (`id_grid_run`)
+        REFERENCES `grid_run` (`id_grid_run`)
+        ON DELETE SET NULL,
+    CONSTRAINT `fleet_slot_FK_2`
+        FOREIGN KEY (`id_group_creation`)
+        REFERENCES `authy_group` (`id_authy_group`),
+    CONSTRAINT `fleet_slot_FK_3`
+        FOREIGN KEY (`id_creation`)
+        REFERENCES `authy` (`id_authy`),
+    CONSTRAINT `fleet_slot_FK_4`
+        FOREIGN KEY (`id_modification`)
+        REFERENCES `authy` (`id_authy`)
+) ENGINE=InnoDB COMMENT='Fleet slot';
+
+-- ---------------------------------------------------------------------
+-- regime_episode
+-- ---------------------------------------------------------------------
+
+DROP TABLE IF EXISTS `regime_episode`;
+
+CREATE TABLE `regime_episode`
+(
+    `id_regime_episode` INTEGER(11) NOT NULL AUTO_INCREMENT,
+    `symbol` VARCHAR(20) NOT NULL COMMENT 'Symbol',
+    `algo` TINYINT DEFAULT 0 NOT NULL COMMENT 'Algorithm',
+    `id_fleet_slot` INTEGER(11) COMMENT 'Slot',
+    `id_grid_run` INTEGER(11) COMMENT 'Run',
+    `verdict` VARCHAR(16) NOT NULL COMMENT 'Verdict',
+    `opened_at` DATETIME NOT NULL COMMENT 'Opened at',
+    `closed_at` DATETIME COMMENT 'Closed at',
+    `price_open` DECIMAL(20, 8) NOT NULL COMMENT 'Price at open',
+    `price_close` DECIMAL(20, 8) COMMENT 'Price at close',
+    `engaged_pct_tw` DECIMAL(8, 4) COMMENT 'Engaged % (time-weighted)',
+    `samples` INTEGER(10) DEFAULT 0 COMMENT 'Samples',
+    `realized` DECIMAL(20, 8) DEFAULT 0 COMMENT 'Realized (USDT)',
+    `mtm_close` DECIMAL(20, 8) COMMENT 'Mark-to-market at close',
+    `hodl_pct` DECIMAL(8, 4) COMMENT 'HODL move %',
+    `captured_pct` DECIMAL(8, 4) COMMENT 'Captured % of HODL',
+    `idle_samples` INTEGER(10) DEFAULT 0 COMMENT 'Consecutive sub-floor samples',
+    `idle_alerted_at` DATETIME COMMENT 'Idle alerted at',
+    `date_creation` DATETIME,
+    `date_modification` DATETIME,
+    `id_group_creation` INTEGER,
+    `id_creation` INTEGER,
+    `id_modification` INTEGER,
+    PRIMARY KEY (`id_regime_episode`),
+    INDEX `regime_episode_FI_1` (`id_fleet_slot`),
+    INDEX `regime_episode_FI_2` (`id_grid_run`),
+    INDEX `regime_episode_FI_3` (`id_group_creation`),
+    INDEX `regime_episode_FI_4` (`id_creation`),
+    INDEX `regime_episode_FI_5` (`id_modification`),
+    CONSTRAINT `regime_episode_FK_1`
+        FOREIGN KEY (`id_fleet_slot`)
+        REFERENCES `fleet_slot` (`id_fleet_slot`)
+        ON DELETE SET NULL,
+    CONSTRAINT `regime_episode_FK_2`
+        FOREIGN KEY (`id_grid_run`)
+        REFERENCES `grid_run` (`id_grid_run`)
+        ON DELETE SET NULL,
+    CONSTRAINT `regime_episode_FK_3`
+        FOREIGN KEY (`id_group_creation`)
+        REFERENCES `authy_group` (`id_authy_group`),
+    CONSTRAINT `regime_episode_FK_4`
+        FOREIGN KEY (`id_creation`)
+        REFERENCES `authy` (`id_authy`),
+    CONSTRAINT `regime_episode_FK_5`
+        FOREIGN KEY (`id_modification`)
+        REFERENCES `authy` (`id_authy`)
+) ENGINE=InnoDB COMMENT='Regime episode';
 
 -- ---------------------------------------------------------------------
 -- bot_order
@@ -507,6 +584,44 @@ CREATE TABLE `market_regime`
 ) ENGINE=InnoDB COMMENT='Regime History';
 
 -- ---------------------------------------------------------------------
+-- market_candle
+-- ---------------------------------------------------------------------
+
+DROP TABLE IF EXISTS `market_candle`;
+
+CREATE TABLE `market_candle`
+(
+    `id_market_candle` INTEGER(11) NOT NULL AUTO_INCREMENT,
+    `symbol` VARCHAR(20) NOT NULL COMMENT 'Symbol',
+    `tf` TINYINT NOT NULL COMMENT 'Timeframe',
+    `open_time` INTEGER(10) NOT NULL COMMENT 'Open time (epoch s)',
+    `open` DECIMAL(18, 8) NOT NULL COMMENT 'Open',
+    `high` DECIMAL(18, 8) NOT NULL COMMENT 'High',
+    `low` DECIMAL(18, 8) NOT NULL COMMENT 'Low',
+    `close` DECIMAL(18, 8) NOT NULL COMMENT 'Close',
+    `volume` DECIMAL(24, 8) DEFAULT 0 COMMENT 'Volume',
+    `date_creation` DATETIME,
+    `date_modification` DATETIME,
+    `id_group_creation` INTEGER,
+    `id_creation` INTEGER,
+    `id_modification` INTEGER,
+    PRIMARY KEY (`id_market_candle`),
+    UNIQUE INDEX `market_candle_U_1` (`symbol`, `tf`, `open_time`),
+    INDEX `market_candle_FI_1` (`id_group_creation`),
+    INDEX `market_candle_FI_2` (`id_creation`),
+    INDEX `market_candle_FI_3` (`id_modification`),
+    CONSTRAINT `market_candle_FK_1`
+        FOREIGN KEY (`id_group_creation`)
+        REFERENCES `authy_group` (`id_authy_group`),
+    CONSTRAINT `market_candle_FK_2`
+        FOREIGN KEY (`id_creation`)
+        REFERENCES `authy` (`id_authy`),
+    CONSTRAINT `market_candle_FK_3`
+        FOREIGN KEY (`id_modification`)
+        REFERENCES `authy` (`id_authy`)
+) ENGINE=InnoDB COMMENT='Candles';
+
+-- ---------------------------------------------------------------------
 -- bot_decision
 -- ---------------------------------------------------------------------
 
@@ -531,6 +646,11 @@ CREATE TABLE `bot_decision`
     `realized_delta` DECIMAL(18, 8) COMMENT 'P/L after',
     `price_move_pct` DECIMAL(9, 4) COMMENT 'Price move %',
     `verdict` TINYINT COMMENT 'Verdict',
+    `counterfactual_delta` DECIMAL(18, 8) COMMENT 'vs no-change (sim)',
+    `candidate_delta` TINYINT COMMENT 'vs candidate',
+    `requested_json` TEXT(1023) COMMENT 'Requested (pre-gate)',
+    `clamps_json` TEXT(1023) COMMENT 'Clamp trail',
+    `brief_json` TEXT(1023) COMMENT 'Brief snapshot',
     `date_creation` DATETIME,
     `date_modification` DATETIME,
     `id_group_creation` INTEGER,
@@ -555,6 +675,124 @@ CREATE TABLE `bot_decision`
         FOREIGN KEY (`id_modification`)
         REFERENCES `authy` (`id_authy`)
 ) ENGINE=InnoDB COMMENT='Refit Decision';
+
+-- ---------------------------------------------------------------------
+-- market_outlook
+-- ---------------------------------------------------------------------
+
+DROP TABLE IF EXISTS `market_outlook`;
+
+CREATE TABLE `market_outlook`
+(
+    `id_market_outlook` INTEGER(11) NOT NULL AUTO_INCREMENT,
+    `symbol` VARCHAR(20) NOT NULL COMMENT 'Symbol',
+    `kind` VARCHAR(10) DEFAULT 'Change' NOT NULL COMMENT 'Kind',
+    `verdict` VARCHAR(16) NOT NULL COMMENT 'Verdict',
+    `prev_verdict` VARCHAR(16) COMMENT 'Previous',
+    `price_at` DECIMAL(18, 8) NOT NULL COMMENT 'Price at call',
+    `called_at` DATETIME NOT NULL COMMENT 'Called at',
+    `detail` TEXT(1023) COMMENT 'Detail',
+    `eval_status` VARCHAR(10) DEFAULT 'Pending' NOT NULL COMMENT 'Eval',
+    `price_7d` DECIMAL(18, 8) COMMENT 'Price +7d',
+    `price_30d` DECIMAL(18, 8) COMMENT 'Price +30d',
+    `ret_7d` DECIMAL(9, 4) COMMENT 'Return 7d %',
+    `ret_30d` DECIMAL(9, 4) COMMENT 'Return 30d %',
+    `max_adverse_pct` DECIMAL(9, 4) COMMENT 'Max adverse 30d %',
+    `hit_7d` TINYINT(10) COMMENT 'Hit 7d',
+    `hit_30d` TINYINT(10) COMMENT 'Hit 30d',
+    `scored_at` DATETIME COMMENT 'Scored at',
+    `date_creation` DATETIME,
+    `date_modification` DATETIME,
+    `id_group_creation` INTEGER,
+    `id_creation` INTEGER,
+    `id_modification` INTEGER,
+    PRIMARY KEY (`id_market_outlook`),
+    INDEX `market_outlook_FI_1` (`id_group_creation`),
+    INDEX `market_outlook_FI_2` (`id_creation`),
+    INDEX `market_outlook_FI_3` (`id_modification`),
+    CONSTRAINT `market_outlook_FK_1`
+        FOREIGN KEY (`id_group_creation`)
+        REFERENCES `authy_group` (`id_authy_group`),
+    CONSTRAINT `market_outlook_FK_2`
+        FOREIGN KEY (`id_creation`)
+        REFERENCES `authy` (`id_authy`),
+    CONSTRAINT `market_outlook_FK_3`
+        FOREIGN KEY (`id_modification`)
+        REFERENCES `authy` (`id_authy`)
+) ENGINE=InnoDB COMMENT='Market Outlook';
+
+-- ---------------------------------------------------------------------
+-- market_outlook_state
+-- ---------------------------------------------------------------------
+
+DROP TABLE IF EXISTS `market_outlook_state`;
+
+CREATE TABLE `market_outlook_state`
+(
+    `id_market_outlook_state` INTEGER(11) NOT NULL AUTO_INCREMENT,
+    `symbol` VARCHAR(20) NOT NULL COMMENT 'Symbol',
+    `verdict` VARCHAR(16) COMMENT 'Verdict',
+    `verdict_since` DATETIME COMMENT 'Since',
+    `price_at_verdict` DECIMAL(18, 8) COMMENT 'Price at verdict',
+    `candidate` VARCHAR(16) COMMENT 'Candidate',
+    `candidate_passes` INTEGER(10) DEFAULT 0 NOT NULL COMMENT 'Candidate passes',
+    `last_raw` VARCHAR(16) COMMENT 'Last raw read',
+    `last_pass_at` DATETIME COMMENT 'Last pass',
+    `date_creation` DATETIME,
+    `date_modification` DATETIME,
+    `id_group_creation` INTEGER,
+    `id_creation` INTEGER,
+    `id_modification` INTEGER,
+    PRIMARY KEY (`id_market_outlook_state`),
+    UNIQUE INDEX `market_outlook_state_U_1` (`symbol`),
+    INDEX `market_outlook_state_FI_1` (`id_group_creation`),
+    INDEX `market_outlook_state_FI_2` (`id_creation`),
+    INDEX `market_outlook_state_FI_3` (`id_modification`),
+    CONSTRAINT `market_outlook_state_FK_1`
+        FOREIGN KEY (`id_group_creation`)
+        REFERENCES `authy_group` (`id_authy_group`),
+    CONSTRAINT `market_outlook_state_FK_2`
+        FOREIGN KEY (`id_creation`)
+        REFERENCES `authy` (`id_authy`),
+    CONSTRAINT `market_outlook_state_FK_3`
+        FOREIGN KEY (`id_modification`)
+        REFERENCES `authy` (`id_authy`)
+) ENGINE=InnoDB COMMENT='Outlook State';
+
+-- ---------------------------------------------------------------------
+-- wallet_nav
+-- ---------------------------------------------------------------------
+
+DROP TABLE IF EXISTS `wallet_nav`;
+
+CREATE TABLE `wallet_nav`
+(
+    `id_wallet_nav` INTEGER(11) NOT NULL AUTO_INCREMENT,
+    `mode` TINYINT DEFAULT 0 NOT NULL COMMENT 'Mode',
+    `equity_quote` DECIMAL(18, 8) NOT NULL COMMENT 'Equity (USDT)',
+    `budget_quote` DECIMAL(18, 8) NOT NULL COMMENT 'Shared budget',
+    `ref_symbol` VARCHAR(20) COMMENT 'HODL reference',
+    `ref_price` DECIMAL(18, 8) COMMENT 'Reference price',
+    `unpriced` VARCHAR(100) COMMENT 'Unpriced assets',
+    `date_creation` DATETIME,
+    `date_modification` DATETIME,
+    `id_group_creation` INTEGER,
+    `id_creation` INTEGER,
+    `id_modification` INTEGER,
+    PRIMARY KEY (`id_wallet_nav`),
+    INDEX `wallet_nav_FI_1` (`id_group_creation`),
+    INDEX `wallet_nav_FI_2` (`id_creation`),
+    INDEX `wallet_nav_FI_3` (`id_modification`),
+    CONSTRAINT `wallet_nav_FK_1`
+        FOREIGN KEY (`id_group_creation`)
+        REFERENCES `authy_group` (`id_authy_group`),
+    CONSTRAINT `wallet_nav_FK_2`
+        FOREIGN KEY (`id_creation`)
+        REFERENCES `authy` (`id_authy`),
+    CONSTRAINT `wallet_nav_FK_3`
+        FOREIGN KEY (`id_modification`)
+        REFERENCES `authy` (`id_authy`)
+) ENGINE=InnoDB COMMENT='Wallet NAV';
 
 -- ---------------------------------------------------------------------
 -- authy_group
@@ -887,6 +1125,80 @@ CREATE TABLE `authy_refresh_token`
         FOREIGN KEY (`id_modification`)
         REFERENCES `authy` (`id_authy`)
 ) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- grid_run_audit
+-- ---------------------------------------------------------------------
+
+DROP TABLE IF EXISTS `grid_run_audit`;
+
+CREATE TABLE `grid_run_audit`
+(
+    `id_grid_run_audit` INTEGER(11) NOT NULL AUTO_INCREMENT,
+    `id_grid_run` INTEGER NOT NULL COMMENT 'Record',
+    `field` VARCHAR(64) NOT NULL COMMENT 'Field',
+    `value_from` TEXT COMMENT 'From',
+    `value_to` TEXT COMMENT 'To',
+    `actor` VARCHAR(128) COMMENT 'Actor',
+    `source` TINYINT DEFAULT 0 COMMENT 'Source',
+    `date_creation` DATETIME,
+    `date_modification` DATETIME,
+    `id_group_creation` INTEGER,
+    `id_creation` INTEGER,
+    `id_modification` INTEGER,
+    PRIMARY KEY (`id_grid_run_audit`),
+    INDEX `grid_run_audit_FI_1` (`id_grid_run`),
+    INDEX `grid_run_audit_FI_2` (`id_group_creation`),
+    INDEX `grid_run_audit_FI_3` (`id_creation`),
+    INDEX `grid_run_audit_FI_4` (`id_modification`),
+    CONSTRAINT `grid_run_audit_FK_1`
+        FOREIGN KEY (`id_grid_run`)
+        REFERENCES `grid_run` (`id_grid_run`)
+        ON DELETE CASCADE,
+    CONSTRAINT `grid_run_audit_FK_2`
+        FOREIGN KEY (`id_group_creation`)
+        REFERENCES `authy_group` (`id_authy_group`),
+    CONSTRAINT `grid_run_audit_FK_3`
+        FOREIGN KEY (`id_creation`)
+        REFERENCES `authy` (`id_authy`),
+    CONSTRAINT `grid_run_audit_FK_4`
+        FOREIGN KEY (`id_modification`)
+        REFERENCES `authy` (`id_authy`)
+) ENGINE=InnoDB COMMENT='Change history';
+
+-- ---------------------------------------------------------------------
+-- country
+-- ---------------------------------------------------------------------
+
+DROP TABLE IF EXISTS `country`;
+
+CREATE TABLE `country`
+(
+    `id_country` INTEGER(11) NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(100) COMMENT 'Name',
+    `code` VARCHAR(3) COMMENT 'Code',
+    `timezone` VARCHAR(20) COMMENT 'Timezone',
+    `timezone_code` VARCHAR(50) COMMENT 'Timezone code',
+    `priority` INTEGER(10) COMMENT 'Priority',
+    `date_creation` DATETIME,
+    `date_modification` DATETIME,
+    `id_group_creation` INTEGER,
+    `id_creation` INTEGER,
+    `id_modification` INTEGER,
+    PRIMARY KEY (`id_country`),
+    INDEX `country_FI_1` (`id_group_creation`),
+    INDEX `country_FI_2` (`id_creation`),
+    INDEX `country_FI_3` (`id_modification`),
+    CONSTRAINT `country_FK_1`
+        FOREIGN KEY (`id_group_creation`)
+        REFERENCES `authy_group` (`id_authy_group`),
+    CONSTRAINT `country_FK_2`
+        FOREIGN KEY (`id_creation`)
+        REFERENCES `authy` (`id_authy`),
+    CONSTRAINT `country_FK_3`
+        FOREIGN KEY (`id_modification`)
+        REFERENCES `authy` (`id_authy`)
+) ENGINE=InnoDB COMMENT='Country';
 
 -- ---------------------------------------------------------------------
 -- oauth_client

@@ -28,11 +28,8 @@ class GtbotRefitProposalTool extends AbstractGtbotBase
 
     public function description(): string
     {
-        return 'READ-ONLY. Fit candidate grid ranges to recent price history (realized quantiles — '
-            . 'parameterization, not prediction) and backtest each; returns a ranked comparison (backtests '
-            . 'assume perfect fills, so treat results as directional). This tool does NOT create runs or '
-            . 'apply changes: re-fitting is AUTOMATED server-side (the gtbot-refit cron re-anchors the live '
-            . 'grid in place). Use this purely to inspect what a re-fit would look like.';
+        return 'READ-ONLY what-if: quantile-fit candidate ranges on recent candles + in-sample backtest (perfect '
+            . 'fills — directional only). Creates/applies nothing.';
     }
 
     public function inputSchema(): array

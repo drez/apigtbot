@@ -91,7 +91,59 @@ class MarketRegimeForm extends MarketRegime
     public $formSaveBtn;
     public $formSaveBar;
     public $omMap;
+    /** getEditForm()/getList() field slots, keyed [Model][Column]['html']. */
+    public $fields = [];
+    public $fieldsRo = [];
+    /** Columns whose read-only markup gcBuildFieldRo() has already built (A43). */
+    public $gcFieldRoBuilt = [];
+    /** Sort-header restore JS, rebuilt per list query. */
+    public $orderReadyJsOrder = '';
 
+        public $commentsIdMarketRegime;
+    public $commentsIdMarketRegime_css;
+    public $commentsSymbol;
+    public $commentsSymbol_css;
+    public $commentsTf;
+    public $commentsTf_css;
+    public $commentsPrice;
+    public $commentsPrice_css;
+    public $commentsTrend;
+    public $commentsTrend_css;
+    public $commentsRsi14;
+    public $commentsRsi14_css;
+    public $commentsAtrPct;
+    public $commentsAtrPct_css;
+    public $commentsAdx14;
+    public $commentsAdx14_css;
+    public $commentsAtrPctRank;
+    public $commentsAtrPctRank_css;
+    public $commentsTakerBuyRatio;
+    public $commentsTakerBuyRatio_css;
+    public $commentsVolZscore;
+    public $commentsVolZscore_css;
+    public $commentsEr20;
+    public $commentsEr20_css;
+    public $commentsChop14;
+    public $commentsChop14_css;
+    public $commentsFundingPct;
+    public $commentsFundingPct_css;
+    public $commentsFundingRate;
+    public $commentsFundingRate_css;
+    public $commentsDepthImbalance;
+    public $commentsDepthImbalance_css;
+    public $commentsDepthImbalanceAvg;
+    public $commentsDepthImbalanceAvg_css;
+    public $commentsDateCreation;
+    public $commentsDateCreation_css;
+    public $commentsDateModification;
+    public $commentsDateModification_css;
+    public $commentsIdGroupCreation;
+    public $commentsIdGroupCreation_css;
+    public $commentsIdCreation;
+    public $commentsIdCreation_css;
+    public $commentsIdModification;
+    public $commentsIdModification_css;
+    public $MarketRegime;
 
 
     /**
@@ -131,48 +183,73 @@ class MarketRegimeForm extends MarketRegime
 
         $q = new MarketRegimeQuery();
         $q = $this->setAclFilter($q);
-        
+
 
         $q
             ;
         if(is_array( $this->searchMs )){
             # main search form
-            
-            
+
+
         }else{
             ## standard list
-            
-        }
-        
 
-        
+        }
+
+
+
+            $this->orderReadyJsOrder = '';
             if(!empty($this->searchOrder)){
                 $f=0;
                 foreach($this->searchOrder as $order){
                     foreach($order as $col => $sens){
                         if($sens){
                             $tOrd = explode('.',$col);
-                            if($tOrd[1]){
+                            # The ordering comes from the session (setOrderVar keeps
+                            # whatever the client last clicked, and a session can outlive
+                            # a renamed/removed column or be seeded by another list).
+                            # Propel throws on a column it cannot resolve, which turned a
+                            # stale sort key into a 500 on the whole list — fall back to
+                            # the model's default order instead, and forget the key so the
+                            # next request is clean.
+                            $gcOrdApplied = true;
+                            try {
+                            if(!empty($tOrd[1])){
                                 $q->join($tOrd[0]." order".$f);
                                 $orderBy = "use".$tOrd[0]."Query";
                                 $q->$orderBy("order".$f, 'left join')->orderBy($tOrd[1], $sens)->endUse();
                             }else{
                                 $q->orderBy($col,$sens);
                             }
+                            } catch (\Exception $gcOrdEx) {
+                                $gcOrdApplied = false;
+                                error_log('list order: dropping unresolvable column ' . (string) $col
+                                    . ' on MarketRegime — ' . $gcOrdEx->getMessage());
+                                unset($_SESSION['mem']['order']['MarketRegime/'],
+                                    $_SESSION['mem']['order']['MarketRegime/child']);
+                            }
+                            if($gcOrdApplied){
+                            # C8: $col / $sens come from the session (setOrderVar), so they
+                            # are never interpolated raw into the JS source. JSON_HEX_* keeps
+                            # quotes/tags/ampersands out of the surrounding <script> and the
+                            # attribute selector is composed client-side from the JSON value.
+                            $gcOrdCol = json_encode((string) $col, JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP);
+                            $gcOrdSens = json_encode(strtolower((string) $sens), JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP);
                             $this->orderReadyJsOrder .="
-                                var __se=document.querySelector(\"#MarketRegimeListForm [th='sorted'][c='".$col."']\");if(__se){__se.setAttribute('sens', '".strtolower($sens)."');__se.setAttribute('order','on');__se.classList.add('sorted');}
+                                (function(){var __c=".$gcOrdCol.",__s=".$gcOrdSens.";var __se=document.querySelector(\"#MarketRegimeListForm [th='sorted'][c=\"+JSON.stringify(__c)+\"]\");if(__se){__se.setAttribute('sens', __s);__se.setAttribute('order','on');__se.classList.add('sorted');}})();
                             ";
+                            }
                         }
                         $f++;
                     }
                 }
             }
-            
-        
-        
+
+
+
 
         $this->pmpoData = $q;
-        
+
 
         return $this->pmpoData;
     }
@@ -215,20 +292,20 @@ class MarketRegimeForm extends MarketRegime
 
             case 'list-button':
                 $listButton = '';
-                
-                
+
+
                 return $listButton;
 
             case 'search':
-                
-                
-                ;
+
+
+
                 return $trSearch;
 
             case 'add':
             ###### ADD
-                 if($_SESSION[_AUTH_VAR]->hasRights('MarketRegime', 'a') && !$this->setReadOnly){
-                
+                if($_SESSION[_AUTH_VAR]->hasRights('MarketRegime', 'a') && !$this->setReadOnly){
+
                                 $this->listAddButton = htmlLink(
                                     _("Add new")
                                 ,_SITE_URL.$this->virtualClassName."/edit/", "id='addMarketRegime' title='"._('Add')."' class='button-link-blue add-button'");
@@ -261,7 +338,10 @@ class MarketRegimeForm extends MarketRegime
         $this->in = 'getList';
         $this->isChild = '';
         $this->TableName = 'MarketRegime';
-        $altValue = array (
+        # A11: the per-row reset below restores this seed instead of nulling
+        # $altValue — every `($altValue['X'] !== null) ? … : …` cell read from
+        # row 2 on was an array offset on null (one warning per cell per row).
+        $__altValueInit = array (
   'IdMarketRegime' => NULL,
   'Symbol' => NULL,
   'Tf' => NULL,
@@ -285,14 +365,16 @@ class MarketRegimeForm extends MarketRegime
   'IdCreation' => NULL,
   'IdModification' => NULL,
 );
+        $altValue = $__altValueInit;
         $tr = '';
         $trDt = '';
-        $hook = [];
+        $hook = ['class' => ''];
+        $this->orderReadyJsOrder = '';
         $editEvent = '';
         $return = ['html' => '', 'js' => '', 'onReadyJs' => ''];
         $cCmoreCols = '';
 
-        
+
 
         // SECURITY (review H7): uiTabsId comes from request['ui'] and is reflected
         // raw into the list container's data-ui attribute and into the quick-add
@@ -301,22 +383,40 @@ class MarketRegimeForm extends MarketRegime
         $uiTabsId = preg_replace('/[^A-Za-z0-9_]/', '', (string) $uiTabsId);
         $this->uiTabsId = $uiTabsId;
 
-        
+
         $this->IdParent = $IdParent;
         // Child-tab / nested list: mark context for behaviors that branch on isChild.
         if ($IdParent !== null && $IdParent !== '') {
             $this->isChild = 'MarketRegime';
         }
 
+        // A22: list session key for search / order / page. $childTableName is
+        // always empty in the unified getList(), so the standalone list and every
+        // parent-scoped (child-tab) render used to share ONE key and therefore one
+        // page/sort/search state. Standalone keeps the historic '<Table>/' key;
+        // parent-scoped renders get '<Table>/child'. NOT keyed per parent id:
+        // FormHelper stores these keys unbounded, so one entry per visited parent
+        // would grow the session forever — instead the stored page is dropped when
+        // the parent id changes (search/sort intentionally carry over, matching the
+        // pre-existing '<Parent>/<Child>' desktop child-list behaviour).
+        $gcListKey = 'MarketRegime/';
+        if ($IdParent !== null && $IdParent !== '') {
+            $gcListKey = 'MarketRegime/child';
+            if (($_SESSION['mem']['ip'][$gcListKey] ?? null) !== (string) $IdParent) {
+                $_SESSION['mem']['ip'][$gcListKey] = (string) $IdParent;
+                unset($_SESSION['mem']['page'][$gcListKey]);
+            }
+        }
+
         // if Search params
-        $this->searchMs = $this->setSearchVar($request['ms'] ?? '', 'MarketRegime/');
+        $this->searchMs = $this->setSearchVar($request['ms'] ?? '', $gcListKey);
 
         // Guideline filter chips (built from the first ENUM search col).
         $trChips = '';
-        
+
 
         // order
-        $this->searchOrder = $this->setOrderVar($request['order'] ?? '', 'MarketRegime/');
+        $this->searchOrder = $this->setOrderVar($request['order'] ?? '', $gcListKey);
 
         // Clear-sort affordances (chip strip + sort-sheet row), rendered only
         // while the session carries a user ordering for this list. Both carry
@@ -324,24 +424,24 @@ class MarketRegimeForm extends MarketRegime
         // sort handler; the server drops the whole stored ordering on '*'.
         $gcSortClear = '';
         $gcSortSheetClear = '';
-        if (!empty($_SESSION['mem']['order']['MarketRegime/'])) {
+        if (!empty($_SESSION['mem']['order'][$gcListKey])) {
             $gcSortClear = div(button("<i class='ri-sort-desc'></i>"._('Sorted')."<span class='cl-active-filter-x' aria-hidden='true'>×</span>", " type='button' th='sorted' c='*' class='cl-active-filter cl-sort-clear' "), '', " class='va-mob-sortclear' ");
             $gcSortSheetClear = button("<i class='ri-arrow-go-back-line'></i> "._('Default order'), " type='button' th='sorted' c='*' class='va-mob-sortrow va-mob-sortrow-clear' ");
         }
 
         // page
-        $search['page'] = $this->setPageVar($request['pg'] ?? '', 'MarketRegime/');
+        $search['page'] = $this->setPageVar($request['pg'] ?? '', $gcListKey);
 
-        
-        
+
+
         $default_order[]['DateCreation']='DESC';
         if(empty($this->searchOrder)){
             $this->searchOrder = $default_order;
         }
-        
-        
-        
-        
+
+
+
+
 
         // Parent-scoped lists use the child pager size (same as former inlined getChildList).
         $maxPerPage = ($IdParent !== null && $IdParent !== '') ? $this->childMaxPerPage : $this->maxPerPage;
@@ -352,6 +452,7 @@ class MarketRegimeForm extends MarketRegime
         $resultsCount = 0;
         if(empty($pmpoDataIn)) {
             $pmpoData = $this->getListSearch($IdParent, $search);
+
             $pmpoData = $pmpoData->paginate($search['page'], $maxPerPage);
             $resultsCount = $pmpoData->getNbResults();
 
@@ -377,64 +478,55 @@ class MarketRegimeForm extends MarketRegime
             /**
             *	Main list loop
             **/
-            
+
             $i=0;
             $gcGroupCol = 'Symbol';
             $gcGroupNorm = function($s){ return strtolower(preg_replace('/[^a-z0-9]/i','', (string) $s)); };
             $gcGroupKey = $gcGroupNorm($gcGroupCol);
-            // Use the RAW request order, not the resolved $this->searchOrder
-            // (getListSearch mutates the latter). Empty => default landing
-            // view => list is in its default (name) order => group A–Z, as
-            // the guideline screenshots show. A user sort only keeps the
-            // headers when it is the name column ascending.
-            $gcReqOrder = $request['order'] ?? '';
+            // $this->searchOrder is the ordering this list actually runs with: the
+            // session ordering for this list, or the schema default ($default_order,
+            // resolved just above) when the session carries none. A table that
+            // declares NO default order leaves it empty — the query emits no ORDER BY,
+            // so the list is NOT name-ordered and gets no headers. Only the first
+            // entry with a truthy sens decides (that is the primary sort column that
+            // getListSearch() applies); direction-agnostic, since a Z→A sort groups
+            // just as well as A→Z. Compared on the NORMALISED FULL column name so a
+            // dotted FK label ('Product.Name') matches its own sort key.
+            // Child-context lists (IdParent set) never letter-group: their order is
+            // the child ranking/FK order, not the name column.
             $gcGroupOn = false;
-            // Child-context lists (IdParent set) never letter-group: their
-            // default order is the child ranking/FK order, not the name
-            // column, so the empty-order assumption below doesn't hold and
-            // the letters render as stray one-letter rows in the drawer.
-            if (empty($IdParent)) {
-                if ($gcReqOrder === '' || $gcReqOrder === null) {
-                    $gcGroupOn = false;
-                } else {
-                    $gcOd = is_array($gcReqOrder) ? $gcReqOrder : json_decode((string) $gcReqOrder, true);
-                    if (is_array($gcOd) && isset($gcOd['col'])) {
-                        $gcFc = (string) $gcOd['col'];
-                        if (strpos($gcFc, '.') !== false) { $gcParts = explode('.', $gcFc); $gcFc = end($gcParts); }
-                        $gcSens = strtolower((string) ($gcOd['sens'] ?? ''));
-                        if ($gcGroupNorm($gcFc) === $gcGroupKey && $gcSens !== 'desc') { $gcGroupOn = true; }
+            if (empty($IdParent) && is_array($this->searchOrder)) {
+                foreach ($this->searchOrder as $gcOrdEntry) {
+                    if (!is_array($gcOrdEntry)) { continue; }
+                    foreach ($gcOrdEntry as $gcOrdCol => $gcOrdSens) {
+                        if (!$gcOrdSens) { continue; }
+                        $gcGroupOn = ($gcGroupNorm($gcOrdCol) === $gcGroupKey);
+                        break 2;
                     }
                 }
             }
             $gcGroupLetter = null;
-            
+
             if(!$this->setReadOnly && !$this->setListRemoveDelete){
                 if($_SESSION[_AUTH_VAR]->hasRights('MarketRegime', 'd')){
                     $this->canDelete = htmlLink("<i class='ri-delete-bin-7-line'></i>", "Javascript:", "class='ac-delete-link' j='deleteMarketRegime' ");
                 }
             }
-        
+
             $gcListRows = [];
             $gcListRowsDt = [];
             foreach($pcData as $data) {
-                if ($gcGroupOn) {
-                    $gcVal = (string) ((($altValue['Symbol'] !== null ) ? $altValue['Symbol'] : $data->getSymbol()));
-                    $gcL = mb_strtoupper(mb_substr(trim($gcVal), 0, 1));
-                    if ($gcL !== '' && $gcL !== $gcGroupLetter) {
-                        $gcGroupLetter = $gcL;
-                        $tr .= div(htmlspecialchars($gcL), '', " class='va-mob-sect-head' ");
-                    }
-                }
                 # hoist the row PK encodings once — reused by the mobile + desktop row wrappers below
                 $__pkJsonEsc = htmlspecialchars(json_encode($data->getPrimaryKey()), ENT_QUOTES);
                 $__pkEsc = htmlspecialchars((string)$data->getPrimaryKey(), ENT_QUOTES);
                 $this->listActionCell = '';
-                
-                
-                
-                
 
-                $actionCell =  td($this->canDelete . $this->listActionCell, " class='actionrow' ");
+
+
+
+
+                $actionInner = '' . $this->canDelete . $this->listActionCell;
+                $actionCell =  td($actionInner, " class='actionrow' ");
 
                 $gcRowHtml = div(
  ''
@@ -443,8 +535,8 @@ class MarketRegimeForm extends MarketRegime
    . div(''  . span(htmlspecialchars((string)((($altValue['Tf'] !== null ) ? $altValue['Tf'] : $data->getTf())))." ", "   i='" . $__pkJsonEsc . "' c='Tf' class=''  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['Price'] !== null ) ? $altValue['Price'] : str_replace(',', '.', (string)($data->getPrice() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Price' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['Trend'] !== null ) ? $altValue['Trend'] : isntPo($data->getTrend()))))." ", "   i='" . $__pkJsonEsc . "' c='Trend' class='center'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['Rsi14'] !== null ) ? $altValue['Rsi14'] : str_replace(',', '.', (string)($data->getRsi14() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Rsi14' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['AtrPct'] !== null ) ? $altValue['AtrPct'] : str_replace(',', '.', (string)($data->getAtrPct() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='AtrPct' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['Adx14'] !== null ) ? $altValue['Adx14'] : str_replace(',', '.', (string)($data->getAdx14() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Adx14' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['AtrPctRank'] !== null ) ? $altValue['AtrPctRank'] : str_replace(',', '.', (string)($data->getAtrPctRank() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='AtrPctRank' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['TakerBuyRatio'] !== null ) ? $altValue['TakerBuyRatio'] : str_replace(',', '.', (string)($data->getTakerBuyRatio() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='TakerBuyRatio' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['VolZscore'] !== null ) ? $altValue['VolZscore'] : str_replace(',', '.', (string)($data->getVolZscore() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='VolZscore' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['Er20'] !== null ) ? $altValue['Er20'] : str_replace(',', '.', (string)($data->getEr20() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Er20' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['Chop14'] !== null ) ? $altValue['Chop14'] : str_replace(',', '.', (string)($data->getChop14() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='Chop14' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['FundingPct'] !== null ) ? $altValue['FundingPct'] : str_replace(',', '.', (string)($data->getFundingPct() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='FundingPct' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['FundingRate'] !== null ) ? $altValue['FundingRate'] : str_replace(',', '.', (string)($data->getFundingRate() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='FundingRate' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['DepthImbalance'] !== null ) ? $altValue['DepthImbalance'] : str_replace(',', '.', (string)($data->getDepthImbalance() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='DepthImbalance' class='right'  j='editMarketRegime'") . span(htmlspecialchars((string)((($altValue['DepthImbalanceAvg'] !== null ) ? $altValue['DepthImbalanceAvg'] : str_replace(',', '.', (string)($data->getDepthImbalanceAvg() ?? '')))))." ", "   i='" . $__pkJsonEsc . "' c='DepthImbalanceAvg' class='right'  j='editMarketRegime'") . $cCmoreCols ,''," class='meta' ")
  ,'', " class='body' ")
 . div('' . '<i class="ri-arrow-right-s-line chev"></i>',''," class='trail' ")
-. $actionCell
-                , '', " 
+. div($actionInner, '', " class='actionrow' ")
+                , '', "
                         rid='".$__pkJsonEsc."' data-iterator='".$pcData->getPosition()."'
                         r='data'
                         class='va-mob-row ".$hook['class']." '
@@ -467,25 +559,37 @@ class MarketRegimeForm extends MarketRegime
                 td(span(htmlspecialchars((string)((($altValue['FundingRate'] !== null ) ? $altValue['FundingRate'] : str_replace(',', '.', (string)($data->getFundingRate() ?? '')))))." "), "  i='" . $__pkJsonEsc . "' c='FundingRate' class='right'  j='editMarketRegime'") .
                 td(span(htmlspecialchars((string)((($altValue['DepthImbalance'] !== null ) ? $altValue['DepthImbalance'] : str_replace(',', '.', (string)($data->getDepthImbalance() ?? '')))))." "), "  i='" . $__pkJsonEsc . "' c='DepthImbalance' class='right'  j='editMarketRegime'") .
                 td(span(htmlspecialchars((string)((($altValue['DepthImbalanceAvg'] !== null ) ? $altValue['DepthImbalanceAvg'] : str_replace(',', '.', (string)($data->getDepthImbalanceAvg() ?? '')))))." "), "  i='" . $__pkJsonEsc . "' c='DepthImbalanceAvg' class='right'  j='editMarketRegime'") .  $actionCell, "  rid='".$__pkJsonEsc."' data-iterator='".$pcData->getPosition()."' r='data' class='va-dt-row ".$hook['class']." ' id='MarketRegimeDtRow".$__pkEsc."'");
-                
+
+                # A10: the letter header reads $this->listCardNameVar, which for an
+                # FK-labelled list is a local ($<Rel>_Name) or an $altValue key the
+                # row body above assigns — so it is pushed here, after the body ran
+                # and before the row itself, keeping header→row order.
+
+                if ($gcGroupOn) {
+                    $gcVal = (string) ((($altValue['Symbol'] !== null ) ? $altValue['Symbol'] : $data->getSymbol()));
+                    $gcL = mb_strtoupper(mb_substr(trim($gcVal), 0, 1));
+                    if ($gcL !== '' && $gcL !== $gcGroupLetter) {
+                        $gcGroupLetter = $gcL;
+                        $gcListRows[] = div(htmlspecialchars($gcL), '', " class='va-mob-sect-head' ");
+                    }
+                }
                 $gcListRows[] = $gcRowHtml;
                 $gcListRowsDt[] = $gcDtRowHtml;
 
                 $i++;
-                $altValue = null;
+                $altValue = $__altValueInit;
             }
             $tr .= implode('', $gcListRows);
             $trDt .= implode('', $gcListRowsDt);
             $tr .= input('hidden', 'rowCountMarketRegime', $i);
-        }
 
-        
+        }
 
         ## @Paging
         $pagerRow = $this->getPager($pmpoData, $resultsCount, $search);
         $bottomRow = div($pagerRow,'bottomPagerRow', "class='tablesorter'");
 
-        
+
 
         $controlsContent = $this->getListHeader('list-button');
 
@@ -495,11 +599,11 @@ class MarketRegimeForm extends MarketRegime
                 div(
                     href(span(_('Open/close menu')),'javascript:','class="toggle-menu button-link-blue trigger-menu"')
                     .$this->getListHeader('add')
-                    
+
                 ,'','class="default-controls"')
                 .div($controlsContent,'MarketRegimeControlsList', "class='custom-controls'")
                 .$this->hookSwHeader.$HelpDiv
-                
+
             ,'','class="sw-header"')
 
             /*.div(
@@ -543,23 +647,23 @@ class MarketRegimeForm extends MarketRegime
                 ,'listForm',' class="ac-list" ')
                 .$this->hookListBottom
                 .$bottomRow
-            , 'MarketRegimeListForm', " class='va-mob proto-app' data-model='MarketRegime' data-table='MarketRegime' data-ui='".$this->uiTabsId."' ");
+            , 'MarketRegimeListForm', " class='va-mob proto-app' data-model='MarketRegime' data-table='MarketRegime' data-gc-db='market_regime' data-ui='".$this->uiTabsId."' ");
 
-        
+
 
 
 
         $return['onReadyJs'] =
             $HelpDivJs
-            
+
             ."
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         (function(){var r=document.getElementById('tabsContain');if(r&&window.gcSelectBox){gcSelectBox.bindWithin(r);}})();
         ".$this->hookListReadyJsFirst.$editEvent."
         var __ab=document.getElementById('addMarketRegimeAutoc');
@@ -569,12 +673,12 @@ class MarketRegimeForm extends MarketRegime
                 fetch('"._SITE_URL."GuiManager',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','X-Requested-With':'XMLHttpRequest'},body:__b.toString()}).then(function(){document.location='"._SITE_URL.$this->virtualClassName."/edit/';});
             });
         }
-        
-        
+
+
         ".$this->orderReadyJsOrder."
         ".$this->hookListReadyJs;
-        
-        $return['js'] .= script("". $this->hookListJs);
+
+        $return['js'] .= script($this->hookListJs);
         return $return;
     }
     /*
@@ -588,46 +692,38 @@ class MarketRegimeForm extends MarketRegime
 
 
         if( $data['Trend'] == '' )unset($data['Trend']);
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
         #
 
-        //integer not required
+        //decimal not required
         $e->setPrice( ($data['Price'] == '' ) ? null : $data['Price']);
         $e->setTrend(($data['Trend'] == '' ) ? null : $data['Trend']);
-        //integer not required
+        //decimal not required
         $e->setRsi14( ($data['Rsi14'] == '' ) ? null : $data['Rsi14']);
-        //integer not required
+        //decimal not required
         $e->setAtrPct( ($data['AtrPct'] == '' ) ? null : $data['AtrPct']);
-        //integer not required
+        //decimal not required
         $e->setAdx14( ($data['Adx14'] == '' ) ? null : $data['Adx14']);
-        //integer not required
+        //decimal not required
         $e->setAtrPctRank( ($data['AtrPctRank'] == '' ) ? null : $data['AtrPctRank']);
-        //integer not required
+        //decimal not required
         $e->setTakerBuyRatio( ($data['TakerBuyRatio'] == '' ) ? null : $data['TakerBuyRatio']);
-        //integer not required
+        //decimal not required
         $e->setVolZscore( ($data['VolZscore'] == '' ) ? null : $data['VolZscore']);
-        //integer not required
+        //decimal not required
         $e->setEr20( ($data['Er20'] == '' ) ? null : $data['Er20']);
-        //integer not required
+        //decimal not required
         $e->setChop14( ($data['Chop14'] == '' ) ? null : $data['Chop14']);
-        //integer not required
+        //decimal not required
         $e->setFundingPct( ($data['FundingPct'] == '' ) ? null : $data['FundingPct']);
-        //integer not required
+        //decimal not required
         $e->setFundingRate( ($data['FundingRate'] == '' ) ? null : $data['FundingRate']);
-        //integer not required
+        //decimal not required
         $e->setDepthImbalance( ($data['DepthImbalance'] == '' ) ? null : $data['DepthImbalance']);
-        //integer not required
+        //decimal not required
         $e->setDepthImbalanceAvg( ($data['DepthImbalanceAvg'] == '' ) ? null : $data['DepthImbalanceAvg']);
-        $e->setDateCreation( ($data['DateCreation'] == '' || $data['DateCreation'] == 'null' || substr($data['DateCreation'],0,10) == '-0001-11-30') ? null : $data['DateCreation'] );
-        $e->setDateModification( ($data['DateModification'] == '' || $data['DateModification'] == 'null' || substr($data['DateModification'],0,10) == '-0001-11-30') ? null : $data['DateModification'] );
-        //foreign
-        $e->setIdGroupCreation(( $data['IdGroupCreation'] == '' ) ? null : $data['IdGroupCreation']);
-        //foreign
-        $e->setIdCreation(( $data['IdCreation'] == '' ) ? null : $data['IdCreation']);
-        //foreign
-        $e->setIdModification(( $data['IdModification'] == '' ) ? null : $data['IdModification']);
         #
 
         return $e;
@@ -645,7 +741,7 @@ class MarketRegimeForm extends MarketRegime
 
 
         if( $data['Trend'] == '' )unset($data['Trend']);
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
 
@@ -692,21 +788,6 @@ class MarketRegimeForm extends MarketRegime
         if(isset($data['DepthImbalanceAvg'])){
             $e->setDepthImbalanceAvg( ($data['DepthImbalanceAvg'] == '' ) ? null : $data['DepthImbalanceAvg']);
         }
-        if(isset($data['DateCreation'])){
-            $e->setDateCreation( ($data['DateCreation'] == '' || $data['DateCreation'] == 'null' || substr($data['DateCreation'],0,10) == '-0001-11-30') ? null : $data['DateCreation'] );
-        }
-        if(isset($data['DateModification'])){
-            $e->setDateModification( ($data['DateModification'] == '' || $data['DateModification'] == 'null' || substr($data['DateModification'],0,10) == '-0001-11-30') ? null : $data['DateModification'] );
-        }
-        if( isset($data['IdGroupCreation']) ){
-            $e->setIdGroupCreation(( $data['IdGroupCreation'] == '' ) ? null : $data['IdGroupCreation']);
-        }
-        if( isset($data['IdCreation']) ){
-            $e->setIdCreation(( $data['IdCreation'] == '' ) ? null : $data['IdCreation']);
-        }
-        if( isset($data['IdModification']) ){
-            $e->setIdModification(( $data['IdModification'] == '' ) ? null : $data['IdModification']);
-        }
         $e->setNew(false);
         return $e;
     }
@@ -727,14 +808,11 @@ class MarketRegimeForm extends MarketRegime
 
         $HelpDivJs = '';
         $HelpDiv = '';
-        $childTable = [];
+        $childTable = ['html' => '', 'js' => '', 'onReadyJs' => ''];
         $script_autoc_one = '';
         $ongletf = '';
         $mceInclude = '';
-        $ip_save = '';
-        $ip_save = '';
         $IdParent = 0;
-        $editDialog = ( $data['dialog'] ) ? $data['dialog'] : 'editDialog';
         $uiTabsId = ( $uiTabsId === null ) ? 'tabsContain' : $uiTabsId;
         $jet = 'tr';
 
@@ -748,13 +826,13 @@ class MarketRegimeForm extends MarketRegime
             $jet = $jsElementType;
         }
 
-        if($data['data']['ip']){
+        if(!empty($data['data']['ip'])){
             $data['ip'] = $data['data']['ip'];
-            $data['pc'] = $data['data']['pc'];
-            $data['tp'] = $data['data']['tp'];
+            $data['pc'] = $data['data']['pc'] ?? '';
+            $data['tp'] = $data['data']['tp'] ?? '';
         }
 
-        if($data['pc']) {
+        if(!empty($data['pc'])) {
             switch($data['pc']){
 
                 case 'AuthyGroup':
@@ -781,12 +859,12 @@ class MarketRegimeForm extends MarketRegime
         $this->SaveButtonJs = "";
 
         if($_SESSION[_AUTH_VAR]->hasRights('MarketRegime', 'a') && !$this->setReadOnly) {
-            $this->formAddButton = htmlLink(_("Add new"), 'Javascript:;' , "id='addMarketRegime' title='"._('Add')."' class='button-link-blue add-button'");
+            $this->formAddButton = htmlLink(_("Add new"), 'Javascript:;' , "id='addMarketRegimeForm' title='"._('Add')."' class='button-link-blue add-button'");
             $this->bindEditJs = "";
-                if ($this->formAddButton) { $this->formAddButton = str_replace("add-button'", "add-button' data-gc-add='".$this->virtualClassName."' data-gc-ip='".($IdParent ?: '')."'", $this->formAddButton); }
+                if ($this->formAddButton) { $this->formAddButton = str_replace("add-button'", "add-button' data-gc-add='".$this->virtualClassName."' data-gc-ip='".htmlspecialchars((string) ($IdParent ?: ''), ENT_QUOTES)."'", $this->formAddButton); }
         }
 
-        if($id && !$data['reload']) {
+        if($id && empty($data['reload'])) {
 
 
             $q = MarketRegimeQuery::create()
@@ -879,6 +957,13 @@ $this->fields['MarketRegime']['DepthImbalanceAvg']['html'] = stdFieldRow(_("Dept
                             .$this->hookListSearchButton
                         ,""," class='form-savehidden' ");
         }
+        // add_hooks: afterFormObj (always emitted — the stub lives in the FormWrapper)
+        if (method_exists($this, 'afterFormObj')) { $this->afterFormObj($data, $dataObj); }
+        $gcFirstTabActive = true;
+        if (!empty($this->formCustomTabs)) {
+            throw new \LogicException('MarketRegime: addFormTab() needs add_tab_columns (without add_field_groups) on the table — there is no tab strip to put the tab in');
+        }
+
 
 
 
@@ -935,9 +1020,6 @@ $this->fields['MarketRegime']['DepthImbalanceAvg']['html'] = stdFieldRow(_("Dept
                         href('<i class="ri-arrow-left-s-line"></i>'._('Regime History'), _SITE_URL.'MarketRegime', "class='nav-btn'")
                         .div(
                             span(_('Regime History'), "class='nav-title-type'")
-                            .(isset($_gcNameVal) && trim((string)$_gcNameVal) !== ''
-                                ? span(htmlspecialchars($_gcNameVal), "class='nav-title-name'")
-                                : '')
                         , '', "class='nav-title'")
                         .$this->formSaveBtn
                         .href('<i class="ri-close-line"></i>', _SITE_URL.'MarketRegime', "class='nav-btn nav-close' title='"._('Close')."' aria-label='"._('Close')."'")
@@ -985,10 +1067,10 @@ $this->fields['MarketRegime']['Symbol']['html']
         // first tab active by default; the stale session ['ogf'] value is inert.
         $tabs_act = '';
 
-        if($_SESSION['mem']['MarketRegime']['ixmemautocapp'] and $_GET['Autocapp'] == 1) {
-            $Autocapp = $_SESSION['mem']['MarketRegime']['ixmemautocapp'];
-            unset($_SESSION['mem']['MarketRegime']['ixmemautocapp']);
-        }
+        // The ['ixmemautocapp'] restore block is gone: nothing in the emitter,
+        // the runtime or the template ever writes that session key, so the
+        // condition was dead — and with it an unguarded $_GET['Autocapp'] read
+        // (a warning on every form render) and an $Autocapp local nothing read.
 
         $return['js'] .= $childTable['js']
         . script($this->hookFormIncludeJs) ."
@@ -1002,7 +1084,7 @@ $this->fields['MarketRegime']['Symbol']['html']
         ".$this->SaveButtonJs."
 
         ".$childTable['onReadyJs']."
-        ".$error['onReadyJs']."
+        ".($error['onReadyJs'] ?? '')."
         ".$tabs_act."
         ".$this->hookFormReadyJs
         .$script_autoc_one
@@ -1016,64 +1098,104 @@ $this->fields['MarketRegime']['Symbol']['html']
 
     function lockFormField($fields, $dataObj)
     {
+        if($fields === 'all') {
+            $fields = array_keys($this->fields['MarketRegime']);
+        } elseif(!is_array($fields)) {
+            return;
+        }
+        foreach($fields as $field) {
+            if(!isset($this->gcFieldRoBuilt[$field])) {
+                $this->gcFieldRoBuilt[$field] = true;
+                $this->gcBuildFieldRo($field, $dataObj);
+            }
+            $this->fields['MarketRegime'][$field]['html'] = $this->fieldsRo['MarketRegime'][$field]['html'] ?? '';
+        }
+    }
 
+    /** Build ONE column's read-only markup into $this->fieldsRo (A43). */
+    private function gcBuildFieldRo($field, $dataObj)
+    {
+        switch($field) {
+            case 'Symbol':
         $this->fieldsRo['MarketRegime']['Symbol']['html'] = stdFieldRow(_("Symbol"), div( htmlspecialchars((string)($dataObj->getSymbol()), ENT_QUOTES), 'Symbol_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Symbol', $dataObj->getSymbol(), "s='d'"), 'Symbol', "", $this->commentsSymbol, $this->commentsSymbol_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Tf':
         $this->fieldsRo['MarketRegime']['Tf']['html'] = stdFieldRow(_("Timeframe"), div( htmlspecialchars((string)($dataObj->getTf()), ENT_QUOTES), 'Tf_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Tf', $dataObj->getTf(), "s='d'"), 'Tf', "", $this->commentsTf, $this->commentsTf_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Price':
         $this->fieldsRo['MarketRegime']['Price']['html'] = stdFieldRow(_("Price"), div( htmlspecialchars((string)($dataObj->getPrice()), ENT_QUOTES), 'Price_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Price', $dataObj->getPrice(), "s='d'"), 'Price', "", $this->commentsPrice, $this->commentsPrice_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Trend':
         $this->fieldsRo['MarketRegime']['Trend']['html'] = stdFieldRow(_("Trend"), div( htmlspecialchars((string)($dataObj->getTrend()), ENT_QUOTES), 'Trend_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Trend', $dataObj->getTrend(), "s='d'"), 'Trend', "", $this->commentsTrend, $this->commentsTrend_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Rsi14':
         $this->fieldsRo['MarketRegime']['Rsi14']['html'] = stdFieldRow(_("RSI14"), div( htmlspecialchars((string)($dataObj->getRsi14()), ENT_QUOTES), 'Rsi14_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Rsi14', $dataObj->getRsi14(), "s='d'"), 'Rsi14', "", $this->commentsRsi14, $this->commentsRsi14_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'AtrPct':
         $this->fieldsRo['MarketRegime']['AtrPct']['html'] = stdFieldRow(_("ATR %"), div( htmlspecialchars((string)($dataObj->getAtrPct()), ENT_QUOTES), 'AtrPct_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'AtrPct', $dataObj->getAtrPct(), "s='d'"), 'AtrPct', "", $this->commentsAtrPct, $this->commentsAtrPct_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Adx14':
         $this->fieldsRo['MarketRegime']['Adx14']['html'] = stdFieldRow(_("ADX14"), div( htmlspecialchars((string)($dataObj->getAdx14()), ENT_QUOTES), 'Adx14_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Adx14', $dataObj->getAdx14(), "s='d'"), 'Adx14', "", $this->commentsAdx14, $this->commentsAdx14_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'AtrPctRank':
         $this->fieldsRo['MarketRegime']['AtrPctRank']['html'] = stdFieldRow(_("ATR% percentile"), div( htmlspecialchars((string)($dataObj->getAtrPctRank()), ENT_QUOTES), 'AtrPctRank_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'AtrPctRank', $dataObj->getAtrPctRank(), "s='d'"), 'AtrPctRank', "", $this->commentsAtrPctRank, $this->commentsAtrPctRank_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'TakerBuyRatio':
         $this->fieldsRo['MarketRegime']['TakerBuyRatio']['html'] = stdFieldRow(_("Taker buy ratio"), div( htmlspecialchars((string)($dataObj->getTakerBuyRatio()), ENT_QUOTES), 'TakerBuyRatio_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'TakerBuyRatio', $dataObj->getTakerBuyRatio(), "s='d'"), 'TakerBuyRatio', "", $this->commentsTakerBuyRatio, $this->commentsTakerBuyRatio_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'VolZscore':
         $this->fieldsRo['MarketRegime']['VolZscore']['html'] = stdFieldRow(_("Volume z-score"), div( htmlspecialchars((string)($dataObj->getVolZscore()), ENT_QUOTES), 'VolZscore_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'VolZscore', $dataObj->getVolZscore(), "s='d'"), 'VolZscore', "", $this->commentsVolZscore, $this->commentsVolZscore_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Er20':
         $this->fieldsRo['MarketRegime']['Er20']['html'] = stdFieldRow(_("Efficiency ratio"), div( htmlspecialchars((string)($dataObj->getEr20()), ENT_QUOTES), 'Er20_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Er20', $dataObj->getEr20(), "s='d'"), 'Er20', "", $this->commentsEr20, $this->commentsEr20_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Chop14':
         $this->fieldsRo['MarketRegime']['Chop14']['html'] = stdFieldRow(_("Choppiness"), div( htmlspecialchars((string)($dataObj->getChop14()), ENT_QUOTES), 'Chop14_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Chop14', $dataObj->getChop14(), "s='d'"), 'Chop14', "", $this->commentsChop14, $this->commentsChop14_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'FundingPct':
         $this->fieldsRo['MarketRegime']['FundingPct']['html'] = stdFieldRow(_("Funding 30d percentile"), div( htmlspecialchars((string)($dataObj->getFundingPct()), ENT_QUOTES), 'FundingPct_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'FundingPct', $dataObj->getFundingPct(), "s='d'"), 'FundingPct', "", $this->commentsFundingPct, $this->commentsFundingPct_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'FundingRate':
         $this->fieldsRo['MarketRegime']['FundingRate']['html'] = stdFieldRow(_("Funding rate"), div( htmlspecialchars((string)($dataObj->getFundingRate()), ENT_QUOTES), 'FundingRate_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'FundingRate', $dataObj->getFundingRate(), "s='d'"), 'FundingRate', "", $this->commentsFundingRate, $this->commentsFundingRate_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'DepthImbalance':
         $this->fieldsRo['MarketRegime']['DepthImbalance']['html'] = stdFieldRow(_("Depth imbalance"), div( htmlspecialchars((string)($dataObj->getDepthImbalance()), ENT_QUOTES), 'DepthImbalance_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'DepthImbalance', $dataObj->getDepthImbalance(), "s='d'"), 'DepthImbalance', "", $this->commentsDepthImbalance, $this->commentsDepthImbalance_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'DepthImbalanceAvg':
         $this->fieldsRo['MarketRegime']['DepthImbalanceAvg']['html'] = stdFieldRow(_("Depth imbalance (smoothed)"), div( htmlspecialchars((string)($dataObj->getDepthImbalanceAvg()), ENT_QUOTES), 'DepthImbalanceAvg_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'DepthImbalanceAvg', $dataObj->getDepthImbalanceAvg(), "s='d'"), 'DepthImbalanceAvg', "", $this->commentsDepthImbalanceAvg, $this->commentsDepthImbalanceAvg_css, 'readonly half', ' ', 'no', 'v2');
 
-
-        if($fields == 'all') {
-            foreach($this->fields['MarketRegime'] as $field => $ar) {
-                $this->fields['MarketRegime'][$field]['html'] = $this->fieldsRo['MarketRegime'][$field]['html'];
-            }
-        } elseif(is_array($fields)) {
-            foreach($fields as $field) {
-                $this->fields['MarketRegime'][$field]['html'] = $this->fieldsRo['MarketRegime'][$field]['html'];
-            }
+            break;
         }
     }
 }

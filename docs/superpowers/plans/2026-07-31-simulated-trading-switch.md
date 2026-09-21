@@ -1165,7 +1165,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 **Files:** none (operational).
 
 - [ ] **Step 1:** Confirm local suite green + `./gc doctor apigtbot` clean.
-- [ ] **Step 2:** Deploy: from `/path/to/gc` run `./gc deploy apigtbot` bare (no pipes), answer `-y`-equivalent prompt to apply the additive schema. Show dry-run/advisory output to the user if anything looks off.
+- [ ] **Step 2:** Deploy: from `/path/to` run `./gc deploy apigtbot` bare (no pipes), answer `-y`-equivalent prompt to apply the additive schema. Show dry-run/advisory output to the user if anything looks off.
 - [ ] **Step 3:** For each prod run (BTC 1, BNB 4, SOL 5, ETH 6) via the apigtbot MCP tools: `gtbot_stop`, then `crm_update` GridRun `{simulated: 1, status: 'Live'}` (leave `sim_bal_*` null — PaperGateway seeds quote=budget, base=0 on first boot), then `gtbot_start` (or let the watchdog respawn).
 - [ ] **Step 4:** Verify each run via `gtbot_status`: `mode: simulated`, heartbeat fresh, boot event shows mainnet paper mode, `mode_switch` event closed out the old testnet opens.
 - [ ] **Step 5:** Telegram sanity: confirm the bot_start lifecycle message arrived.

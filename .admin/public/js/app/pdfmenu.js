@@ -5,11 +5,8 @@
  *   gcPdfMenu.mount(formEl, { model, id, drive, driveBrowser })
  * from the edit form's onReadyJs; everything below is client behavior for
  * the markup this file builds. Endpoints are the emitted with_pdf service
- * actions (printable / pdfdownload / generatepdf / pdfbackup / opengdrive).
- *
- * Versioning contract: Regenerate replaces the current copy in place;
- * "Backup this version" renames it to _bak<N> — the only way versions
- * accumulate.
+ * actions (printable / pdfdownload / generatepdf / opengdrive). The two that
+ * WRITE — generatepdf, opengdrive — are POSTed; only the reads are GETs.
  */
 (function () {
     'use strict';
@@ -33,11 +30,35 @@
         return _SITE_URL + cfg.model + '/' + action + '?i=' + encodeURIComponent(cfg.id);
     }
 
-    function fetchJson(url) {
-        return fetch(url, {
+    // The record id has to travel in the BODY on a POST: RouteHelper merges the
+    // query string into the service args for GET only (getPOSTArgs reads the
+    // parsed body), so a ?i= on a POST is simply not seen and the service
+    // answers 404 "Record not found".
+    function actionBody(cfg) {
+        var b = new URLSearchParams();
+        b.set('i', cfg.id);
+        return b.toString();
+    }
+
+    // Every endpoint below that WRITES is reached with POST: the runtime refuses
+    // a mutating action over GET (AuthyMiddleware::checkMutatingGet -> 405), and
+    // the CSRF token is attached automatically by the window.fetch wrapper in
+    // index.js for any non-GET same-origin request.
+    function post(cfg, action) {
+        return fetch(actionUrl(cfg, action), {
+            method: 'POST',
             credentials: 'same-origin',
-            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-        }).then(function (r) { return r.json(); });
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+            },
+            body: actionBody(cfg)
+        });
+    }
+
+    function postJson(cfg, action) {
+        return post(cfg, action).then(function (r) { return r.json(); });
     }
 
     function buildMenu(cfg) {
@@ -83,7 +104,10 @@
             dd.hidden = !dd.hidden;
             btn.setAttribute('aria-expanded', dd.hidden ? 'false' : 'true');
         });
-        document.addEventListener('click', function (e) {
+        // Self-removing: one document listener per mounted menu used to
+        // outlive every closed drawer.
+        document.addEventListener('click', function onDocClick(e) {
+            if (!wrap.isConnected) { document.removeEventListener('click', onDocClick); return; }
             if (!dd.hidden && !wrap.contains(e.target)) { close(); }
         });
 
@@ -99,8 +123,22 @@
                     window.open(actionUrl(cfg, 'pdfdownload'), '_blank');
                     break;
                 case 'regen':
-                    window.open(actionUrl(cfg, 'generatepdf'), '_blank');
-                    toast('PDF regenerated');
+                    // generatepdf REGENERATES the stored PDF, so it must be a
+                    // POST. Open the tab synchronously (popup blockers only
+                    // allow a window.open inside the click) and point it at the
+                    // read-only pdfdownload once the regeneration has answered:
+                    // that keeps the old UX — the fresh PDF inline in a new tab,
+                    // with its real filename from Content-Disposition — which a
+                    // blob: URL built from the POST body would lose.
+                    var pdfTab = window.open('about:blank', '_blank');
+                    post(cfg, 'generatepdf').then(function (r) {
+                        if (!r.ok) { throw new Error('generate failed'); }
+                        if (pdfTab) { pdfTab.location = actionUrl(cfg, 'pdfdownload'); }
+                        toast('PDF regenerated');
+                    }).catch(function () {
+                        if (pdfTab) { pdfTab.close(); }
+                        fail('PDF generation failed');
+                    });
                     break;
                 case 'gdrive':
                     // Open the tab synchronously so popup blockers allow it,
@@ -109,14 +147,15 @@
                     // before navigating (defence-in-depth against a poisoned
                     // redirect target).
                     var tab = window.open('about:blank', '_blank');
-                    fetchJson(actionUrl(cfg, 'opengdrive')).then(function (res) {
+                    postJson(cfg, 'opengdrive').then(function (res) {
+                        // tab is null when a popup blocker refused it.
                         if (res && res.status === 'success' && /^https:\/\//i.test(res.url || '')) {
-                            tab.location = res.url;
+                            if (tab) { tab.location = res.url; } else { fail('Allow pop-ups to open the Drive folder'); }
                         } else {
-                            tab.close();
+                            if (tab) { tab.close(); }
                             fail((res && res.message) || 'Drive folder unavailable');
                         }
-                    }).catch(function () { tab.close(); fail('Drive folder unavailable'); });
+                    }).catch(function () { if (tab) { tab.close(); } fail('Drive folder unavailable'); });
                     break;
                 case 'browser':
                     window.open(_SITE_URL + 'DriveFile', '_blank');

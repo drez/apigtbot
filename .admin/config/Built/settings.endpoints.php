@@ -190,55 +190,6 @@ $query['push_device'] = [
     'order' => [],
     'page' => [],
 ];
-$table['country'] = [
-    'id_country' => [
-        'type' => 'INTEGER',
-    ],
-    'name' => [
-        'type' => 'VARCHAR',
-        'description' => 'Name',
-    ],
-    'code' => [
-        'type' => 'VARCHAR',
-        'description' => 'Code',
-    ],
-    'timezone' => [
-        'type' => 'VARCHAR',
-        'description' => 'Timezone',
-    ],
-    'timezone_code' => [
-        'type' => 'VARCHAR',
-        'description' => 'Timezone code',
-    ],
-    'priority' => [
-        'type' => 'INTEGER',
-        'description' => 'Priority',
-    ],
-    'date_creation' => [
-        'type' => 'TIMESTAMP',
-    ],
-    'date_modification' => [
-        'type' => 'TIMESTAMP',
-    ],
-    'id_group_creation' => [
-        'type' => 'INTEGER',
-    ],
-    'id_creation' => [
-        'type' => 'INTEGER',
-    ],
-    'id_modification' => [
-        'type' => 'INTEGER',
-    ],
-];
-
-$query['country'] = [
-    'select' => $table['country'],
-    'filter' => [],
-    'join' => [],
-    'limit' => [],
-    'order' => [],
-    'page' => [],
-];
 $table['grid_run'] = [
     'id_grid_run' => [
         'type' => 'INTEGER',
@@ -261,6 +212,7 @@ $table['grid_run'] = [
             'Live',
             'Halted',
             'Done',
+            'Retiring',
         ],
     ],
     'kill_switch' => [
@@ -327,6 +279,14 @@ $table['grid_run'] = [
         'type' => 'INTEGER',
         'description' => 'Deployed budget %',
     ],
+    'alloc_mode' => [
+        'type' => 'ENUM',
+        'description' => 'Allocation mode',
+        'valueSet' => [
+            'Auto',
+            'Fixed',
+        ],
+    ],
     'fee_pct' => [
         'type' => 'DECIMAL',
         'description' => 'Fee per side',
@@ -346,6 +306,14 @@ $table['grid_run'] = [
     'max_unrealized_loss_quote' => [
         'type' => 'DECIMAL',
         'description' => 'Max unrealized loss',
+    ],
+    'sell_at_loss' => [
+        'type' => 'BOOLEAN',
+        'description' => 'Sell at loss',
+    ],
+    'sell_when_starved' => [
+        'type' => 'BOOLEAN',
+        'description' => 'Sell at loss when starved',
     ],
     'breakout_buffer_pct' => [
         'type' => 'DECIMAL',
@@ -398,6 +366,18 @@ $table['grid_run'] = [
     'atr_initial_mult' => [
         'type' => 'DECIMAL',
         'description' => 'Initial stop x ATR',
+    ],
+    'trend_stop_floor_pct' => [
+        'type' => 'DECIMAL',
+        'description' => 'Trail stop floor (fraction of HWM)',
+    ],
+    'trend_signal' => [
+        'type' => 'ENUM',
+        'description' => 'Trend entry signal',
+        'valueSet' => [
+            'Donchian',
+            'EmaCross1d',
+        ],
     ],
     'reentry_cooldown' => [
         'type' => 'INTEGER',
@@ -462,6 +442,201 @@ $table['grid_run'] = [
 
 $query['grid_run'] = [
     'select' => $table['grid_run'],
+    'filter' => [],
+    'join' => [],
+    'limit' => [],
+    'order' => [],
+    'page' => [],
+];
+$table['fleet_slot'] = [
+    'id_fleet_slot' => [
+        'type' => 'INTEGER',
+    ],
+    'symbol' => [
+        'type' => 'VARCHAR',
+        'description' => 'Symbol',
+    ],
+    'algo' => [
+        'type' => 'ENUM',
+        'description' => 'Algorithm',
+        'valueSet' => [
+            'Trend',
+            'Grid',
+        ],
+    ],
+    'target_slice' => [
+        'type' => 'DECIMAL',
+        'description' => 'Target slice (USDT)',
+    ],
+    'enabled' => [
+        'type' => 'BOOLEAN',
+        'description' => 'Enabled',
+    ],
+    'state' => [
+        'type' => 'ENUM',
+        'description' => 'Arm state',
+        'valueSet' => [
+            'idle',
+            'active',
+            'winding_down',
+        ],
+    ],
+    'confirm_up' => [
+        'type' => 'INTEGER',
+        'description' => 'Consecutive TREND_UP passes',
+    ],
+    'confirm_down' => [
+        'type' => 'INTEGER',
+        'description' => 'Consecutive non-TREND_UP passes',
+    ],
+    'last_verdict' => [
+        'type' => 'VARCHAR',
+        'description' => 'Last verdict',
+    ],
+    'verdict_at' => [
+        'type' => 'TIMESTAMP',
+        'description' => 'Verdict at',
+    ],
+    'episode_started_at' => [
+        'type' => 'TIMESTAMP',
+        'description' => 'TREND_UP episode started',
+    ],
+    'activation' => [
+        'type' => 'LONGVARCHAR',
+        'description' => 'Activation payload',
+    ],
+    'id_grid_run' => [
+        'type' => 'INTEGER',
+        'description' => 'Run',
+    ],
+    'last_empty_alert_at' => [
+        'type' => 'TIMESTAMP',
+        'description' => 'Empty alerted at',
+    ],
+    'last_parked_alert_at' => [
+        'type' => 'TIMESTAMP',
+        'description' => 'Parked alerted at',
+    ],
+    'date_creation' => [
+        'type' => 'TIMESTAMP',
+    ],
+    'date_modification' => [
+        'type' => 'TIMESTAMP',
+    ],
+    'id_group_creation' => [
+        'type' => 'INTEGER',
+    ],
+    'id_creation' => [
+        'type' => 'INTEGER',
+    ],
+    'id_modification' => [
+        'type' => 'INTEGER',
+    ],
+];
+
+$query['fleet_slot'] = [
+    'select' => $table['fleet_slot'],
+    'filter' => [],
+    'join' => [],
+    'limit' => [],
+    'order' => [],
+    'page' => [],
+];
+$table['regime_episode'] = [
+    'id_regime_episode' => [
+        'type' => 'INTEGER',
+    ],
+    'symbol' => [
+        'type' => 'VARCHAR',
+        'description' => 'Symbol',
+    ],
+    'algo' => [
+        'type' => 'ENUM',
+        'description' => 'Algorithm',
+        'valueSet' => [
+            'Trend',
+            'Grid',
+        ],
+    ],
+    'id_fleet_slot' => [
+        'type' => 'INTEGER',
+        'description' => 'Slot',
+    ],
+    'id_grid_run' => [
+        'type' => 'INTEGER',
+        'description' => 'Run',
+    ],
+    'verdict' => [
+        'type' => 'VARCHAR',
+        'description' => 'Verdict',
+    ],
+    'opened_at' => [
+        'type' => 'TIMESTAMP',
+        'description' => 'Opened at',
+    ],
+    'closed_at' => [
+        'type' => 'TIMESTAMP',
+        'description' => 'Closed at',
+    ],
+    'price_open' => [
+        'type' => 'DECIMAL',
+        'description' => 'Price at open',
+    ],
+    'price_close' => [
+        'type' => 'DECIMAL',
+        'description' => 'Price at close',
+    ],
+    'engaged_pct_tw' => [
+        'type' => 'DECIMAL',
+        'description' => 'Engaged % (time-weighted)',
+    ],
+    'samples' => [
+        'type' => 'INTEGER',
+        'description' => 'Samples',
+    ],
+    'realized' => [
+        'type' => 'DECIMAL',
+        'description' => 'Realized (USDT)',
+    ],
+    'mtm_close' => [
+        'type' => 'DECIMAL',
+        'description' => 'Mark-to-market at close',
+    ],
+    'hodl_pct' => [
+        'type' => 'DECIMAL',
+        'description' => 'HODL move %',
+    ],
+    'captured_pct' => [
+        'type' => 'DECIMAL',
+        'description' => 'Captured % of HODL',
+    ],
+    'idle_samples' => [
+        'type' => 'INTEGER',
+        'description' => 'Consecutive sub-floor samples',
+    ],
+    'idle_alerted_at' => [
+        'type' => 'TIMESTAMP',
+        'description' => 'Idle alerted at',
+    ],
+    'date_creation' => [
+        'type' => 'TIMESTAMP',
+    ],
+    'date_modification' => [
+        'type' => 'TIMESTAMP',
+    ],
+    'id_group_creation' => [
+        'type' => 'INTEGER',
+    ],
+    'id_creation' => [
+        'type' => 'INTEGER',
+    ],
+    'id_modification' => [
+        'type' => 'INTEGER',
+    ],
+];
+
+$query['regime_episode'] = [
+    'select' => $table['regime_episode'],
     'filter' => [],
     'join' => [],
     'limit' => [],
@@ -1021,6 +1196,74 @@ $query['market_regime'] = [
     'order' => [],
     'page' => [],
 ];
+$table['market_candle'] = [
+    'id_market_candle' => [
+        'type' => 'INTEGER',
+    ],
+    'symbol' => [
+        'type' => 'VARCHAR',
+        'description' => 'Symbol',
+    ],
+    'tf' => [
+        'type' => 'ENUM',
+        'description' => 'Timeframe',
+        'valueSet' => [
+            '1m',
+            '5m',
+            '15m',
+            '1h',
+            '4h',
+        ],
+    ],
+    'open_time' => [
+        'type' => 'INTEGER',
+        'description' => 'Open time (epoch s)',
+    ],
+    'open' => [
+        'type' => 'DECIMAL',
+        'description' => 'Open',
+    ],
+    'high' => [
+        'type' => 'DECIMAL',
+        'description' => 'High',
+    ],
+    'low' => [
+        'type' => 'DECIMAL',
+        'description' => 'Low',
+    ],
+    'close' => [
+        'type' => 'DECIMAL',
+        'description' => 'Close',
+    ],
+    'volume' => [
+        'type' => 'DECIMAL',
+        'description' => 'Volume',
+    ],
+    'date_creation' => [
+        'type' => 'TIMESTAMP',
+    ],
+    'date_modification' => [
+        'type' => 'TIMESTAMP',
+    ],
+    'id_group_creation' => [
+        'type' => 'INTEGER',
+    ],
+    'id_creation' => [
+        'type' => 'INTEGER',
+    ],
+    'id_modification' => [
+        'type' => 'INTEGER',
+    ],
+];
+
+$query['market_candle'] = [
+    'select' => $table['market_candle'],
+    'filter' => [],
+    'join' => [],
+    'limit' => [],
+    'order' => [],
+    'page' => [],
+];
 $table['bot_decision'] = [
     'id_bot_decision' => [
         'type' => 'INTEGER',
@@ -1102,7 +1345,33 @@ $table['bot_decision'] = [
             'Flat',
             'Loss',
             'Superseded',
+            'Worse',
         ],
+    ],
+    'counterfactual_delta' => [
+        'type' => 'DECIMAL',
+        'description' => 'vs no-change (sim)',
+    ],
+    'candidate_delta' => [
+        'type' => 'ENUM',
+        'description' => 'vs candidate',
+        'valueSet' => [
+            'same',
+            'deviated',
+            'none',
+        ],
+    ],
+    'requested_json' => [
+        'type' => 'LONGVARCHAR',
+        'description' => 'Requested (pre-gate)',
+    ],
+    'clamps_json' => [
+        'type' => 'LONGVARCHAR',
+        'description' => 'Clamp trail',
+    ],
+    'brief_json' => [
+        'type' => 'LONGVARCHAR',
+        'description' => 'Brief snapshot',
     ],
     'date_creation' => [
         'type' => 'TIMESTAMP',
@@ -1123,6 +1392,217 @@ $table['bot_decision'] = [
 
 $query['bot_decision'] = [
     'select' => $table['bot_decision'],
+    'filter' => [],
+    'join' => [],
+    'limit' => [],
+    'order' => [],
+    'page' => [],
+];
+$table['market_outlook'] = [
+    'id_market_outlook' => [
+        'type' => 'INTEGER',
+    ],
+    'symbol' => [
+        'type' => 'VARCHAR',
+        'description' => 'Symbol',
+    ],
+    'kind' => [
+        'type' => 'VARCHAR',
+        'description' => 'Kind',
+    ],
+    'verdict' => [
+        'type' => 'VARCHAR',
+        'description' => 'Verdict',
+    ],
+    'prev_verdict' => [
+        'type' => 'VARCHAR',
+        'description' => 'Previous',
+    ],
+    'price_at' => [
+        'type' => 'DECIMAL',
+        'description' => 'Price at call',
+    ],
+    'called_at' => [
+        'type' => 'TIMESTAMP',
+        'description' => 'Called at',
+    ],
+    'detail' => [
+        'type' => 'LONGVARCHAR',
+        'description' => 'Detail',
+    ],
+    'eval_status' => [
+        'type' => 'VARCHAR',
+        'description' => 'Eval',
+    ],
+    'price_7d' => [
+        'type' => 'DECIMAL',
+        'description' => 'Price +7d',
+    ],
+    'price_30d' => [
+        'type' => 'DECIMAL',
+        'description' => 'Price +30d',
+    ],
+    'ret_7d' => [
+        'type' => 'DECIMAL',
+        'description' => 'Return 7d %',
+    ],
+    'ret_30d' => [
+        'type' => 'DECIMAL',
+        'description' => 'Return 30d %',
+    ],
+    'max_adverse_pct' => [
+        'type' => 'DECIMAL',
+        'description' => 'Max adverse 30d %',
+    ],
+    'hit_7d' => [
+        'type' => 'BOOLEAN',
+        'description' => 'Hit 7d',
+    ],
+    'hit_30d' => [
+        'type' => 'BOOLEAN',
+        'description' => 'Hit 30d',
+    ],
+    'scored_at' => [
+        'type' => 'TIMESTAMP',
+        'description' => 'Scored at',
+    ],
+    'date_creation' => [
+        'type' => 'TIMESTAMP',
+    ],
+    'date_modification' => [
+        'type' => 'TIMESTAMP',
+    ],
+    'id_group_creation' => [
+        'type' => 'INTEGER',
+    ],
+    'id_creation' => [
+        'type' => 'INTEGER',
+    ],
+    'id_modification' => [
+        'type' => 'INTEGER',
+    ],
+];
+
+$query['market_outlook'] = [
+    'select' => $table['market_outlook'],
+    'filter' => [],
+    'join' => [],
+    'limit' => [],
+    'order' => [],
+    'page' => [],
+];
+$table['market_outlook_state'] = [
+    'id_market_outlook_state' => [
+        'type' => 'INTEGER',
+    ],
+    'symbol' => [
+        'type' => 'VARCHAR',
+        'description' => 'Symbol',
+    ],
+    'verdict' => [
+        'type' => 'VARCHAR',
+        'description' => 'Verdict',
+    ],
+    'verdict_since' => [
+        'type' => 'TIMESTAMP',
+        'description' => 'Since',
+    ],
+    'price_at_verdict' => [
+        'type' => 'DECIMAL',
+        'description' => 'Price at verdict',
+    ],
+    'candidate' => [
+        'type' => 'VARCHAR',
+        'description' => 'Candidate',
+    ],
+    'candidate_passes' => [
+        'type' => 'INTEGER',
+        'description' => 'Candidate passes',
+    ],
+    'last_raw' => [
+        'type' => 'VARCHAR',
+        'description' => 'Last raw read',
+    ],
+    'last_pass_at' => [
+        'type' => 'TIMESTAMP',
+        'description' => 'Last pass',
+    ],
+    'date_creation' => [
+        'type' => 'TIMESTAMP',
+    ],
+    'date_modification' => [
+        'type' => 'TIMESTAMP',
+    ],
+    'id_group_creation' => [
+        'type' => 'INTEGER',
+    ],
+    'id_creation' => [
+        'type' => 'INTEGER',
+    ],
+    'id_modification' => [
+        'type' => 'INTEGER',
+    ],
+];
+
+$query['market_outlook_state'] = [
+    'select' => $table['market_outlook_state'],
+    'filter' => [],
+    'join' => [],
+    'limit' => [],
+    'order' => [],
+    'page' => [],
+];
+$table['wallet_nav'] = [
+    'id_wallet_nav' => [
+        'type' => 'INTEGER',
+    ],
+    'mode' => [
+        'type' => 'ENUM',
+        'description' => 'Mode',
+        'valueSet' => [
+            'sim',
+            'real',
+        ],
+    ],
+    'equity_quote' => [
+        'type' => 'DECIMAL',
+        'description' => 'Equity (USDT)',
+    ],
+    'budget_quote' => [
+        'type' => 'DECIMAL',
+        'description' => 'Shared budget',
+    ],
+    'ref_symbol' => [
+        'type' => 'VARCHAR',
+        'description' => 'HODL reference',
+    ],
+    'ref_price' => [
+        'type' => 'DECIMAL',
+        'description' => 'Reference price',
+    ],
+    'unpriced' => [
+        'type' => 'VARCHAR',
+        'description' => 'Unpriced assets',
+    ],
+    'date_creation' => [
+        'type' => 'TIMESTAMP',
+    ],
+    'date_modification' => [
+        'type' => 'TIMESTAMP',
+    ],
+    'id_group_creation' => [
+        'type' => 'INTEGER',
+    ],
+    'id_creation' => [
+        'type' => 'INTEGER',
+    ],
+    'id_modification' => [
+        'type' => 'INTEGER',
+    ],
+];
+
+$query['wallet_nav'] = [
+    'select' => $table['wallet_nav'],
     'filter' => [],
     'join' => [],
     'limit' => [],
@@ -1626,6 +2106,115 @@ $query['authy_refresh_token'] = [
     'order' => [],
     'page' => [],
 ];
+$table['grid_run_audit'] = [
+    'id_grid_run_audit' => [
+        'type' => 'INTEGER',
+    ],
+    'id_grid_run' => [
+        'type' => 'INTEGER',
+        'description' => 'Record',
+    ],
+    'field' => [
+        'type' => 'VARCHAR',
+        'description' => 'Field',
+    ],
+    'value_from' => [
+        'type' => 'LONGVARCHAR',
+        'description' => 'From',
+    ],
+    'value_to' => [
+        'type' => 'LONGVARCHAR',
+        'description' => 'To',
+    ],
+    'actor' => [
+        'type' => 'VARCHAR',
+        'description' => 'Actor',
+    ],
+    'source' => [
+        'type' => 'ENUM',
+        'description' => 'Source',
+        'valueSet' => [
+            'gui',
+            'api',
+            'mcp',
+            'cli',
+            'daemon',
+        ],
+    ],
+    'date_creation' => [
+        'type' => 'TIMESTAMP',
+    ],
+    'date_modification' => [
+        'type' => 'TIMESTAMP',
+    ],
+    'id_group_creation' => [
+        'type' => 'INTEGER',
+    ],
+    'id_creation' => [
+        'type' => 'INTEGER',
+    ],
+    'id_modification' => [
+        'type' => 'INTEGER',
+    ],
+];
+
+$query['grid_run_audit'] = [
+    'select' => $table['grid_run_audit'],
+    'filter' => [],
+    'join' => [],
+    'limit' => [],
+    'order' => [],
+    'page' => [],
+];
+$table['country'] = [
+    'id_country' => [
+        'type' => 'INTEGER',
+    ],
+    'name' => [
+        'type' => 'VARCHAR',
+        'description' => 'Name',
+    ],
+    'code' => [
+        'type' => 'VARCHAR',
+        'description' => 'Code',
+    ],
+    'timezone' => [
+        'type' => 'VARCHAR',
+        'description' => 'Timezone',
+    ],
+    'timezone_code' => [
+        'type' => 'VARCHAR',
+        'description' => 'Timezone code',
+    ],
+    'priority' => [
+        'type' => 'INTEGER',
+        'description' => 'Priority',
+    ],
+    'date_creation' => [
+        'type' => 'TIMESTAMP',
+    ],
+    'date_modification' => [
+        'type' => 'TIMESTAMP',
+    ],
+    'id_group_creation' => [
+        'type' => 'INTEGER',
+    ],
+    'id_creation' => [
+        'type' => 'INTEGER',
+    ],
+    'id_modification' => [
+        'type' => 'INTEGER',
+    ],
+];
+
+$query['country'] = [
+    'select' => $table['country'],
+    'filter' => [],
+    'join' => [],
+    'limit' => [],
+    'order' => [],
+    'page' => [],
+];
 $table['oauth_client'] = [
     'id_oauth_client' => [
         'type' => 'INTEGER',
@@ -2025,40 +2614,6 @@ return [
             ]
         ],
     ],
-    'country[/{id}]' => [
-        'description' => 'Country',
-        'type' => 'custom',
-        'GET' => [
-            'request' => [
-                'id' => [
-                    'type' => 'INTEGER',
-                    'name' => 'id_country'
-                ]
-            ],
-            'response' => [
-                'data' => $table['country']
-            ]
-        ],
-        'POST' =>  [
-            'request' => [
-                'fields' => $table['country'],
-                'query' => $query
-            ],
-            'response' => [
-                'ids' => [],
-                'count' => []
-            ]
-        ],
-        'PATCH' =>  [
-            'request' => $table['country']
-            ],
-        'DELETE' =>  [
-            'request' => [
-                        'type' => 'INTEGER',
-                        'name' => 'id_country'
-            ]
-        ],
-    ],
     'grid_run[/{id}]' => [
         'description' => 'Grid Run',
         'type' => 'custom',
@@ -2090,6 +2645,74 @@ return [
             'request' => [
                         'type' => 'INTEGER',
                         'name' => 'id_grid_run'
+            ]
+        ],
+    ],
+    'fleet_slot[/{id}]' => [
+        'description' => 'Fleet slot',
+        'type' => 'custom',
+        'GET' => [
+            'request' => [
+                'id' => [
+                    'type' => 'INTEGER',
+                    'name' => 'id_fleet_slot'
+                ]
+            ],
+            'response' => [
+                'data' => $table['fleet_slot']
+            ]
+        ],
+        'POST' =>  [
+            'request' => [
+                'fields' => $table['fleet_slot'],
+                'query' => $query
+            ],
+            'response' => [
+                'ids' => [],
+                'count' => []
+            ]
+        ],
+        'PATCH' =>  [
+            'request' => $table['fleet_slot']
+            ],
+        'DELETE' =>  [
+            'request' => [
+                        'type' => 'INTEGER',
+                        'name' => 'id_fleet_slot'
+            ]
+        ],
+    ],
+    'regime_episode[/{id}]' => [
+        'description' => 'Regime episode',
+        'type' => 'custom',
+        'GET' => [
+            'request' => [
+                'id' => [
+                    'type' => 'INTEGER',
+                    'name' => 'id_regime_episode'
+                ]
+            ],
+            'response' => [
+                'data' => $table['regime_episode']
+            ]
+        ],
+        'POST' =>  [
+            'request' => [
+                'fields' => $table['regime_episode'],
+                'query' => $query
+            ],
+            'response' => [
+                'ids' => [],
+                'count' => []
+            ]
+        ],
+        'PATCH' =>  [
+            'request' => $table['regime_episode']
+            ],
+        'DELETE' =>  [
+            'request' => [
+                        'type' => 'INTEGER',
+                        'name' => 'id_regime_episode'
             ]
         ],
     ],
@@ -2331,6 +2954,40 @@ return [
             ]
         ],
     ],
+    'market_candle[/{id}]' => [
+        'description' => 'Candles',
+        'type' => 'custom',
+        'GET' => [
+            'request' => [
+                'id' => [
+                    'type' => 'INTEGER',
+                    'name' => 'id_market_candle'
+                ]
+            ],
+            'response' => [
+                'data' => $table['market_candle']
+            ]
+        ],
+        'POST' =>  [
+            'request' => [
+                'fields' => $table['market_candle'],
+                'query' => $query
+            ],
+            'response' => [
+                'ids' => [],
+                'count' => []
+            ]
+        ],
+        'PATCH' =>  [
+            'request' => $table['market_candle']
+            ],
+        'DELETE' =>  [
+            'request' => [
+                        'type' => 'INTEGER',
+                        'name' => 'id_market_candle'
+            ]
+        ],
+    ],
     'bot_decision[/{id}]' => [
         'description' => 'Refit Decision',
         'type' => 'custom',
@@ -2362,6 +3019,108 @@ return [
             'request' => [
                         'type' => 'INTEGER',
                         'name' => 'id_bot_decision'
+            ]
+        ],
+    ],
+    'market_outlook[/{id}]' => [
+        'description' => 'Market Outlook',
+        'type' => 'custom',
+        'GET' => [
+            'request' => [
+                'id' => [
+                    'type' => 'INTEGER',
+                    'name' => 'id_market_outlook'
+                ]
+            ],
+            'response' => [
+                'data' => $table['market_outlook']
+            ]
+        ],
+        'POST' =>  [
+            'request' => [
+                'fields' => $table['market_outlook'],
+                'query' => $query
+            ],
+            'response' => [
+                'ids' => [],
+                'count' => []
+            ]
+        ],
+        'PATCH' =>  [
+            'request' => $table['market_outlook']
+            ],
+        'DELETE' =>  [
+            'request' => [
+                        'type' => 'INTEGER',
+                        'name' => 'id_market_outlook'
+            ]
+        ],
+    ],
+    'market_outlook_state[/{id}]' => [
+        'description' => 'Outlook State',
+        'type' => 'custom',
+        'GET' => [
+            'request' => [
+                'id' => [
+                    'type' => 'INTEGER',
+                    'name' => 'id_market_outlook_state'
+                ]
+            ],
+            'response' => [
+                'data' => $table['market_outlook_state']
+            ]
+        ],
+        'POST' =>  [
+            'request' => [
+                'fields' => $table['market_outlook_state'],
+                'query' => $query
+            ],
+            'response' => [
+                'ids' => [],
+                'count' => []
+            ]
+        ],
+        'PATCH' =>  [
+            'request' => $table['market_outlook_state']
+            ],
+        'DELETE' =>  [
+            'request' => [
+                        'type' => 'INTEGER',
+                        'name' => 'id_market_outlook_state'
+            ]
+        ],
+    ],
+    'wallet_nav[/{id}]' => [
+        'description' => 'Wallet NAV',
+        'type' => 'custom',
+        'GET' => [
+            'request' => [
+                'id' => [
+                    'type' => 'INTEGER',
+                    'name' => 'id_wallet_nav'
+                ]
+            ],
+            'response' => [
+                'data' => $table['wallet_nav']
+            ]
+        ],
+        'POST' =>  [
+            'request' => [
+                'fields' => $table['wallet_nav'],
+                'query' => $query
+            ],
+            'response' => [
+                'ids' => [],
+                'count' => []
+            ]
+        ],
+        'PATCH' =>  [
+            'request' => $table['wallet_nav']
+            ],
+        'DELETE' =>  [
+            'request' => [
+                        'type' => 'INTEGER',
+                        'name' => 'id_wallet_nav'
             ]
         ],
     ],
@@ -2702,6 +3461,74 @@ return [
             'request' => [
                         'type' => 'INTEGER',
                         'name' => 'id_authy_refresh_token'
+            ]
+        ],
+    ],
+    'grid_run_audit[/{id}]' => [
+        'description' => 'Change history',
+        'type' => 'custom',
+        'GET' => [
+            'request' => [
+                'id' => [
+                    'type' => 'INTEGER',
+                    'name' => 'id_grid_run_audit'
+                ]
+            ],
+            'response' => [
+                'data' => $table['grid_run_audit']
+            ]
+        ],
+        'POST' =>  [
+            'request' => [
+                'fields' => $table['grid_run_audit'],
+                'query' => $query
+            ],
+            'response' => [
+                'ids' => [],
+                'count' => []
+            ]
+        ],
+        'PATCH' =>  [
+            'request' => $table['grid_run_audit']
+            ],
+        'DELETE' =>  [
+            'request' => [
+                        'type' => 'INTEGER',
+                        'name' => 'id_grid_run_audit'
+            ]
+        ],
+    ],
+    'country[/{id}]' => [
+        'description' => 'Country',
+        'type' => 'custom',
+        'GET' => [
+            'request' => [
+                'id' => [
+                    'type' => 'INTEGER',
+                    'name' => 'id_country'
+                ]
+            ],
+            'response' => [
+                'data' => $table['country']
+            ]
+        ],
+        'POST' =>  [
+            'request' => [
+                'fields' => $table['country'],
+                'query' => $query
+            ],
+            'response' => [
+                'ids' => [],
+                'count' => []
+            ]
+        ],
+        'PATCH' =>  [
+            'request' => $table['country']
+            ],
+        'DELETE' =>  [
+            'request' => [
+                        'type' => 'INTEGER',
+                        'name' => 'id_country'
             ]
         ],
     ],

@@ -18,9 +18,12 @@ use App\BotCommand;
 use App\BotDecision;
 use App\BotEvent;
 use App\BotOrder;
+use App\FleetSlot;
 use App\GridRun;
+use App\GridRunAudit;
 use App\GridRunPeer;
 use App\GridRunQuery;
+use App\RegimeEpisode;
 use App\TradeCycle;
 
 /**
@@ -43,11 +46,14 @@ use App\TradeCycle;
  * @method GridRunQuery orderByAllocation($order = Criteria::ASC) Order by the allocation column
  * @method GridRunQuery orderByBudgetQuote($order = Criteria::ASC) Order by the budget_quote column
  * @method GridRunQuery orderByDeployPct($order = Criteria::ASC) Order by the deploy_pct column
+ * @method GridRunQuery orderByAllocMode($order = Criteria::ASC) Order by the alloc_mode column
  * @method GridRunQuery orderByFeePct($order = Criteria::ASC) Order by the fee_pct column
  * @method GridRunQuery orderByMaxPositionQuote($order = Criteria::ASC) Order by the max_position_quote column
  * @method GridRunQuery orderByMaxOrderQuote($order = Criteria::ASC) Order by the max_order_quote column
  * @method GridRunQuery orderByDailyLossLimitQuote($order = Criteria::ASC) Order by the daily_loss_limit_quote column
  * @method GridRunQuery orderByMaxUnrealizedLossQuote($order = Criteria::ASC) Order by the max_unrealized_loss_quote column
+ * @method GridRunQuery orderBySellAtLoss($order = Criteria::ASC) Order by the sell_at_loss column
+ * @method GridRunQuery orderBySellWhenStarved($order = Criteria::ASC) Order by the sell_when_starved column
  * @method GridRunQuery orderByBreakoutBufferPct($order = Criteria::ASC) Order by the breakout_buffer_pct column
  * @method GridRunQuery orderByBreakoutPolicy($order = Criteria::ASC) Order by the breakout_policy column
  * @method GridRunQuery orderByMaxOpenOrders($order = Criteria::ASC) Order by the max_open_orders column
@@ -59,6 +65,8 @@ use App\TradeCycle;
  * @method GridRunQuery orderByAtrPeriod($order = Criteria::ASC) Order by the atr_period column
  * @method GridRunQuery orderByAtrStopMult($order = Criteria::ASC) Order by the atr_stop_mult column
  * @method GridRunQuery orderByAtrInitialMult($order = Criteria::ASC) Order by the atr_initial_mult column
+ * @method GridRunQuery orderByTrendStopFloorPct($order = Criteria::ASC) Order by the trend_stop_floor_pct column
+ * @method GridRunQuery orderByTrendSignal($order = Criteria::ASC) Order by the trend_signal column
  * @method GridRunQuery orderByReentryCooldown($order = Criteria::ASC) Order by the reentry_cooldown column
  * @method GridRunQuery orderByEngineState($order = Criteria::ASC) Order by the engine_state column
  * @method GridRunQuery orderByLastTickAt($order = Criteria::ASC) Order by the last_tick_at column
@@ -91,11 +99,14 @@ use App\TradeCycle;
  * @method GridRunQuery groupByAllocation() Group by the allocation column
  * @method GridRunQuery groupByBudgetQuote() Group by the budget_quote column
  * @method GridRunQuery groupByDeployPct() Group by the deploy_pct column
+ * @method GridRunQuery groupByAllocMode() Group by the alloc_mode column
  * @method GridRunQuery groupByFeePct() Group by the fee_pct column
  * @method GridRunQuery groupByMaxPositionQuote() Group by the max_position_quote column
  * @method GridRunQuery groupByMaxOrderQuote() Group by the max_order_quote column
  * @method GridRunQuery groupByDailyLossLimitQuote() Group by the daily_loss_limit_quote column
  * @method GridRunQuery groupByMaxUnrealizedLossQuote() Group by the max_unrealized_loss_quote column
+ * @method GridRunQuery groupBySellAtLoss() Group by the sell_at_loss column
+ * @method GridRunQuery groupBySellWhenStarved() Group by the sell_when_starved column
  * @method GridRunQuery groupByBreakoutBufferPct() Group by the breakout_buffer_pct column
  * @method GridRunQuery groupByBreakoutPolicy() Group by the breakout_policy column
  * @method GridRunQuery groupByMaxOpenOrders() Group by the max_open_orders column
@@ -107,6 +118,8 @@ use App\TradeCycle;
  * @method GridRunQuery groupByAtrPeriod() Group by the atr_period column
  * @method GridRunQuery groupByAtrStopMult() Group by the atr_stop_mult column
  * @method GridRunQuery groupByAtrInitialMult() Group by the atr_initial_mult column
+ * @method GridRunQuery groupByTrendStopFloorPct() Group by the trend_stop_floor_pct column
+ * @method GridRunQuery groupByTrendSignal() Group by the trend_signal column
  * @method GridRunQuery groupByReentryCooldown() Group by the reentry_cooldown column
  * @method GridRunQuery groupByEngineState() Group by the engine_state column
  * @method GridRunQuery groupByLastTickAt() Group by the last_tick_at column
@@ -140,6 +153,14 @@ use App\TradeCycle;
  * @method GridRunQuery rightJoinAuthyRelatedByIdModification($relationAlias = null) Adds a RIGHT JOIN clause to the query using the AuthyRelatedByIdModification relation
  * @method GridRunQuery innerJoinAuthyRelatedByIdModification($relationAlias = null) Adds a INNER JOIN clause to the query using the AuthyRelatedByIdModification relation
  *
+ * @method GridRunQuery leftJoinFleetSlot($relationAlias = null) Adds a LEFT JOIN clause to the query using the FleetSlot relation
+ * @method GridRunQuery rightJoinFleetSlot($relationAlias = null) Adds a RIGHT JOIN clause to the query using the FleetSlot relation
+ * @method GridRunQuery innerJoinFleetSlot($relationAlias = null) Adds a INNER JOIN clause to the query using the FleetSlot relation
+ *
+ * @method GridRunQuery leftJoinRegimeEpisode($relationAlias = null) Adds a LEFT JOIN clause to the query using the RegimeEpisode relation
+ * @method GridRunQuery rightJoinRegimeEpisode($relationAlias = null) Adds a RIGHT JOIN clause to the query using the RegimeEpisode relation
+ * @method GridRunQuery innerJoinRegimeEpisode($relationAlias = null) Adds a INNER JOIN clause to the query using the RegimeEpisode relation
+ *
  * @method GridRunQuery leftJoinBotOrder($relationAlias = null) Adds a LEFT JOIN clause to the query using the BotOrder relation
  * @method GridRunQuery rightJoinBotOrder($relationAlias = null) Adds a RIGHT JOIN clause to the query using the BotOrder relation
  * @method GridRunQuery innerJoinBotOrder($relationAlias = null) Adds a INNER JOIN clause to the query using the BotOrder relation
@@ -160,6 +181,10 @@ use App\TradeCycle;
  * @method GridRunQuery rightJoinBotDecision($relationAlias = null) Adds a RIGHT JOIN clause to the query using the BotDecision relation
  * @method GridRunQuery innerJoinBotDecision($relationAlias = null) Adds a INNER JOIN clause to the query using the BotDecision relation
  *
+ * @method GridRunQuery leftJoinGridRunAudit($relationAlias = null) Adds a LEFT JOIN clause to the query using the GridRunAudit relation
+ * @method GridRunQuery rightJoinGridRunAudit($relationAlias = null) Adds a RIGHT JOIN clause to the query using the GridRunAudit relation
+ * @method GridRunQuery innerJoinGridRunAudit($relationAlias = null) Adds a INNER JOIN clause to the query using the GridRunAudit relation
+ *
  * @method GridRun findOne(?PropelPDO $con = null) Return the first GridRun matching the query
  * @method GridRun findOneOrCreate(?PropelPDO $con = null) Return the first GridRun matching the query, or a new GridRun object populated from the query conditions when no match is found
  *
@@ -177,11 +202,14 @@ use App\TradeCycle;
  * @method GridRun findOneByAllocation(int $allocation) Return the first GridRun filtered by the allocation column
  * @method GridRun findOneByBudgetQuote(string $budget_quote) Return the first GridRun filtered by the budget_quote column
  * @method GridRun findOneByDeployPct(int $deploy_pct) Return the first GridRun filtered by the deploy_pct column
+ * @method GridRun findOneByAllocMode(int $alloc_mode) Return the first GridRun filtered by the alloc_mode column
  * @method GridRun findOneByFeePct(string $fee_pct) Return the first GridRun filtered by the fee_pct column
  * @method GridRun findOneByMaxPositionQuote(string $max_position_quote) Return the first GridRun filtered by the max_position_quote column
  * @method GridRun findOneByMaxOrderQuote(string $max_order_quote) Return the first GridRun filtered by the max_order_quote column
  * @method GridRun findOneByDailyLossLimitQuote(string $daily_loss_limit_quote) Return the first GridRun filtered by the daily_loss_limit_quote column
  * @method GridRun findOneByMaxUnrealizedLossQuote(string $max_unrealized_loss_quote) Return the first GridRun filtered by the max_unrealized_loss_quote column
+ * @method GridRun findOneBySellAtLoss(boolean $sell_at_loss) Return the first GridRun filtered by the sell_at_loss column
+ * @method GridRun findOneBySellWhenStarved(boolean $sell_when_starved) Return the first GridRun filtered by the sell_when_starved column
  * @method GridRun findOneByBreakoutBufferPct(string $breakout_buffer_pct) Return the first GridRun filtered by the breakout_buffer_pct column
  * @method GridRun findOneByBreakoutPolicy(int $breakout_policy) Return the first GridRun filtered by the breakout_policy column
  * @method GridRun findOneByMaxOpenOrders(int $max_open_orders) Return the first GridRun filtered by the max_open_orders column
@@ -193,6 +221,8 @@ use App\TradeCycle;
  * @method GridRun findOneByAtrPeriod(int $atr_period) Return the first GridRun filtered by the atr_period column
  * @method GridRun findOneByAtrStopMult(string $atr_stop_mult) Return the first GridRun filtered by the atr_stop_mult column
  * @method GridRun findOneByAtrInitialMult(string $atr_initial_mult) Return the first GridRun filtered by the atr_initial_mult column
+ * @method GridRun findOneByTrendStopFloorPct(string $trend_stop_floor_pct) Return the first GridRun filtered by the trend_stop_floor_pct column
+ * @method GridRun findOneByTrendSignal(int $trend_signal) Return the first GridRun filtered by the trend_signal column
  * @method GridRun findOneByReentryCooldown(int $reentry_cooldown) Return the first GridRun filtered by the reentry_cooldown column
  * @method GridRun findOneByEngineState(string $engine_state) Return the first GridRun filtered by the engine_state column
  * @method GridRun findOneByLastTickAt(string $last_tick_at) Return the first GridRun filtered by the last_tick_at column
@@ -225,11 +255,14 @@ use App\TradeCycle;
  * @method array findByAllocation(int $allocation) Return GridRun objects filtered by the allocation column
  * @method array findByBudgetQuote(string $budget_quote) Return GridRun objects filtered by the budget_quote column
  * @method array findByDeployPct(int $deploy_pct) Return GridRun objects filtered by the deploy_pct column
+ * @method array findByAllocMode(int $alloc_mode) Return GridRun objects filtered by the alloc_mode column
  * @method array findByFeePct(string $fee_pct) Return GridRun objects filtered by the fee_pct column
  * @method array findByMaxPositionQuote(string $max_position_quote) Return GridRun objects filtered by the max_position_quote column
  * @method array findByMaxOrderQuote(string $max_order_quote) Return GridRun objects filtered by the max_order_quote column
  * @method array findByDailyLossLimitQuote(string $daily_loss_limit_quote) Return GridRun objects filtered by the daily_loss_limit_quote column
  * @method array findByMaxUnrealizedLossQuote(string $max_unrealized_loss_quote) Return GridRun objects filtered by the max_unrealized_loss_quote column
+ * @method array findBySellAtLoss(boolean $sell_at_loss) Return GridRun objects filtered by the sell_at_loss column
+ * @method array findBySellWhenStarved(boolean $sell_when_starved) Return GridRun objects filtered by the sell_when_starved column
  * @method array findByBreakoutBufferPct(string $breakout_buffer_pct) Return GridRun objects filtered by the breakout_buffer_pct column
  * @method array findByBreakoutPolicy(int $breakout_policy) Return GridRun objects filtered by the breakout_policy column
  * @method array findByMaxOpenOrders(int $max_open_orders) Return GridRun objects filtered by the max_open_orders column
@@ -241,6 +274,8 @@ use App\TradeCycle;
  * @method array findByAtrPeriod(int $atr_period) Return GridRun objects filtered by the atr_period column
  * @method array findByAtrStopMult(string $atr_stop_mult) Return GridRun objects filtered by the atr_stop_mult column
  * @method array findByAtrInitialMult(string $atr_initial_mult) Return GridRun objects filtered by the atr_initial_mult column
+ * @method array findByTrendStopFloorPct(string $trend_stop_floor_pct) Return GridRun objects filtered by the trend_stop_floor_pct column
+ * @method array findByTrendSignal(int $trend_signal) Return GridRun objects filtered by the trend_signal column
  * @method array findByReentryCooldown(int $reentry_cooldown) Return GridRun objects filtered by the reentry_cooldown column
  * @method array findByEngineState(string $engine_state) Return GridRun objects filtered by the engine_state column
  * @method array findByLastTickAt(string $last_tick_at) Return GridRun objects filtered by the last_tick_at column
@@ -365,7 +400,7 @@ abstract class BaseGridRunQuery extends ModelCriteria
      */
     protected function findPkSimple($key, $con)
     {
-        $sql = 'SELECT `id_grid_run`, `label`, `symbol`, `status`, `kill_switch`, `profile`, `algo`, `simulated`, `p_low`, `p_high`, `n_levels`, `spacing`, `allocation`, `budget_quote`, `deploy_pct`, `fee_pct`, `max_position_quote`, `max_order_quote`, `daily_loss_limit_quote`, `max_unrealized_loss_quote`, `breakout_buffer_pct`, `breakout_policy`, `max_open_orders`, `max_buy_levels_below`, `trend_tf`, `donchian_period`, `trend_ema_fast`, `trend_ema_slow`, `atr_period`, `atr_stop_mult`, `atr_initial_mult`, `reentry_cooldown`, `engine_state`, `last_tick_at`, `last_price`, `bal_base`, `bal_quote`, `sim_bal_base`, `sim_bal_quote`, `run_uid`, `applied_geometry`, `ledger_reset_at`, `date_creation`, `date_modification`, `id_group_creation`, `id_creation`, `id_modification` FROM `grid_run` WHERE `id_grid_run` = :p0';
+        $sql = 'SELECT `id_grid_run`, `label`, `symbol`, `status`, `kill_switch`, `profile`, `algo`, `simulated`, `p_low`, `p_high`, `n_levels`, `spacing`, `allocation`, `budget_quote`, `deploy_pct`, `alloc_mode`, `fee_pct`, `max_position_quote`, `max_order_quote`, `daily_loss_limit_quote`, `max_unrealized_loss_quote`, `sell_at_loss`, `sell_when_starved`, `breakout_buffer_pct`, `breakout_policy`, `max_open_orders`, `max_buy_levels_below`, `trend_tf`, `donchian_period`, `trend_ema_fast`, `trend_ema_slow`, `atr_period`, `atr_stop_mult`, `atr_initial_mult`, `trend_stop_floor_pct`, `trend_signal`, `reentry_cooldown`, `engine_state`, `last_tick_at`, `last_price`, `bal_base`, `bal_quote`, `sim_bal_base`, `sim_bal_quote`, `run_uid`, `applied_geometry`, `ledger_reset_at`, `date_creation`, `date_modification`, `id_group_creation`, `id_creation`, `id_modification` FROM `grid_run` WHERE `id_grid_run` = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -957,6 +992,33 @@ abstract class BaseGridRunQuery extends ModelCriteria
     }
 
     /**
+     * Filter the query on the alloc_mode column
+     *
+     * @param     mixed $allocMode The value to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return GridRunQuery The current query, for fluid interface
+     * @throws PropelException - if the value is not accepted by the enum.
+     */
+    public function filterByAllocMode($allocMode = null, $comparison = null)
+    {
+        if (is_scalar($allocMode)) {
+            $allocMode = GridRunPeer::getSqlValueForEnum(GridRunPeer::ALLOC_MODE, $allocMode);
+        } elseif (is_array($allocMode)) {
+            $convertedValues = array();
+            foreach ($allocMode as $value) {
+                $convertedValues[] = GridRunPeer::getSqlValueForEnum(GridRunPeer::ALLOC_MODE, $value);
+            }
+            $allocMode = $convertedValues;
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(GridRunPeer::ALLOC_MODE, $allocMode, $comparison);
+    }
+
+    /**
      * Filter the query on the fee_pct column
      *
      * Example usage:
@@ -1164,6 +1226,60 @@ abstract class BaseGridRunQuery extends ModelCriteria
         }
 
         return $this->addUsingAlias(GridRunPeer::MAX_UNREALIZED_LOSS_QUOTE, $maxUnrealizedLossQuote, $comparison);
+    }
+
+    /**
+     * Filter the query on the sell_at_loss column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterBySellAtLoss(true); // WHERE sell_at_loss = true
+     * $query->filterBySellAtLoss('yes'); // WHERE sell_at_loss = true
+     * </code>
+     *
+     * @param     boolean|string $sellAtLoss The value to use as filter.
+     *              Non-boolean arguments are converted using the following rules:
+     *                * 1, '1', 'true',  'on',  and 'yes' are converted to boolean true
+     *                * 0, '0', 'false', 'off', and 'no'  are converted to boolean false
+     *              Check on string values is case insensitive (so 'FaLsE' is seen as 'false').
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return GridRunQuery The current query, for fluid interface
+     */
+    public function filterBySellAtLoss($sellAtLoss = null, $comparison = null)
+    {
+        if (is_string($sellAtLoss)) {
+            $sellAtLoss = in_array(strtolower($sellAtLoss), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+        }
+
+        return $this->addUsingAlias(GridRunPeer::SELL_AT_LOSS, $sellAtLoss, $comparison);
+    }
+
+    /**
+     * Filter the query on the sell_when_starved column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterBySellWhenStarved(true); // WHERE sell_when_starved = true
+     * $query->filterBySellWhenStarved('yes'); // WHERE sell_when_starved = true
+     * </code>
+     *
+     * @param     boolean|string $sellWhenStarved The value to use as filter.
+     *              Non-boolean arguments are converted using the following rules:
+     *                * 1, '1', 'true',  'on',  and 'yes' are converted to boolean true
+     *                * 0, '0', 'false', 'off', and 'no'  are converted to boolean false
+     *              Check on string values is case insensitive (so 'FaLsE' is seen as 'false').
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return GridRunQuery The current query, for fluid interface
+     */
+    public function filterBySellWhenStarved($sellWhenStarved = null, $comparison = null)
+    {
+        if (is_string($sellWhenStarved)) {
+            $sellWhenStarved = in_array(strtolower($sellWhenStarved), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+        }
+
+        return $this->addUsingAlias(GridRunPeer::SELL_WHEN_STARVED, $sellWhenStarved, $comparison);
     }
 
     /**
@@ -1596,6 +1712,75 @@ abstract class BaseGridRunQuery extends ModelCriteria
         }
 
         return $this->addUsingAlias(GridRunPeer::ATR_INITIAL_MULT, $atrInitialMult, $comparison);
+    }
+
+    /**
+     * Filter the query on the trend_stop_floor_pct column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByTrendStopFloorPct(1234); // WHERE trend_stop_floor_pct = 1234
+     * $query->filterByTrendStopFloorPct(array(12, 34)); // WHERE trend_stop_floor_pct IN (12, 34)
+     * $query->filterByTrendStopFloorPct(array('min' => 12)); // WHERE trend_stop_floor_pct >= 12
+     * $query->filterByTrendStopFloorPct(array('max' => 12)); // WHERE trend_stop_floor_pct <= 12
+     * </code>
+     *
+     * @param     mixed $trendStopFloorPct The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return GridRunQuery The current query, for fluid interface
+     */
+    public function filterByTrendStopFloorPct($trendStopFloorPct = null, $comparison = null)
+    {
+        if (is_array($trendStopFloorPct)) {
+            $useMinMax = false;
+            if (isset($trendStopFloorPct['min'])) {
+                $this->addUsingAlias(GridRunPeer::TREND_STOP_FLOOR_PCT, $trendStopFloorPct['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($trendStopFloorPct['max'])) {
+                $this->addUsingAlias(GridRunPeer::TREND_STOP_FLOOR_PCT, $trendStopFloorPct['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(GridRunPeer::TREND_STOP_FLOOR_PCT, $trendStopFloorPct, $comparison);
+    }
+
+    /**
+     * Filter the query on the trend_signal column
+     *
+     * @param     mixed $trendSignal The value to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return GridRunQuery The current query, for fluid interface
+     * @throws PropelException - if the value is not accepted by the enum.
+     */
+    public function filterByTrendSignal($trendSignal = null, $comparison = null)
+    {
+        if (is_scalar($trendSignal)) {
+            $trendSignal = GridRunPeer::getSqlValueForEnum(GridRunPeer::TREND_SIGNAL, $trendSignal);
+        } elseif (is_array($trendSignal)) {
+            $convertedValues = array();
+            foreach ($trendSignal as $value) {
+                $convertedValues[] = GridRunPeer::getSqlValueForEnum(GridRunPeer::TREND_SIGNAL, $value);
+            }
+            $trendSignal = $convertedValues;
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(GridRunPeer::TREND_SIGNAL, $trendSignal, $comparison);
     }
 
     /**
@@ -2470,6 +2655,154 @@ abstract class BaseGridRunQuery extends ModelCriteria
     }
 
     /**
+     * Filter the query by a related FleetSlot object
+     *
+     * @param   FleetSlot|PropelObjectCollection $fleetSlot  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 GridRunQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByFleetSlot($fleetSlot, $comparison = null)
+    {
+        if ($fleetSlot instanceof FleetSlot) {
+            return $this
+                ->addUsingAlias(GridRunPeer::ID_GRID_RUN, $fleetSlot->getIdGridRun(), $comparison);
+        } elseif ($fleetSlot instanceof PropelObjectCollection) {
+            return $this
+                ->useFleetSlotQuery()
+                ->filterByPrimaryKeys($fleetSlot->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByFleetSlot() only accepts arguments of type FleetSlot or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the FleetSlot relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return GridRunQuery The current query, for fluid interface
+     */
+    public function joinFleetSlot($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('FleetSlot');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'FleetSlot');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the FleetSlot relation FleetSlot object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\FleetSlotQuery A secondary query class using the current class as primary query
+     */
+    public function useFleetSlotQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinFleetSlot($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'FleetSlot', '\App\FleetSlotQuery');
+    }
+
+    /**
+     * Filter the query by a related RegimeEpisode object
+     *
+     * @param   RegimeEpisode|PropelObjectCollection $regimeEpisode  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 GridRunQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByRegimeEpisode($regimeEpisode, $comparison = null)
+    {
+        if ($regimeEpisode instanceof RegimeEpisode) {
+            return $this
+                ->addUsingAlias(GridRunPeer::ID_GRID_RUN, $regimeEpisode->getIdGridRun(), $comparison);
+        } elseif ($regimeEpisode instanceof PropelObjectCollection) {
+            return $this
+                ->useRegimeEpisodeQuery()
+                ->filterByPrimaryKeys($regimeEpisode->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByRegimeEpisode() only accepts arguments of type RegimeEpisode or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the RegimeEpisode relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return GridRunQuery The current query, for fluid interface
+     */
+    public function joinRegimeEpisode($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('RegimeEpisode');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'RegimeEpisode');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the RegimeEpisode relation RegimeEpisode object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\RegimeEpisodeQuery A secondary query class using the current class as primary query
+     */
+    public function useRegimeEpisodeQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinRegimeEpisode($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'RegimeEpisode', '\App\RegimeEpisodeQuery');
+    }
+
+    /**
      * Filter the query by a related BotOrder object
      *
      * @param   BotOrder|PropelObjectCollection $botOrder  the related object to use as filter
@@ -2840,6 +3173,80 @@ abstract class BaseGridRunQuery extends ModelCriteria
     }
 
     /**
+     * Filter the query by a related GridRunAudit object
+     *
+     * @param   GridRunAudit|PropelObjectCollection $gridRunAudit  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 GridRunQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByGridRunAudit($gridRunAudit, $comparison = null)
+    {
+        if ($gridRunAudit instanceof GridRunAudit) {
+            return $this
+                ->addUsingAlias(GridRunPeer::ID_GRID_RUN, $gridRunAudit->getIdGridRun(), $comparison);
+        } elseif ($gridRunAudit instanceof PropelObjectCollection) {
+            return $this
+                ->useGridRunAuditQuery()
+                ->filterByPrimaryKeys($gridRunAudit->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByGridRunAudit() only accepts arguments of type GridRunAudit or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the GridRunAudit relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return GridRunQuery The current query, for fluid interface
+     */
+    public function joinGridRunAudit($relationAlias = null, $joinType = 'LEFT JOIN')
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('GridRunAudit');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'GridRunAudit');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the GridRunAudit relation GridRunAudit object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\GridRunAuditQuery A secondary query class using the current class as primary query
+     */
+    public function useGridRunAuditQuery($relationAlias = null, $joinType = 'LEFT JOIN')
+    {
+        return $this
+            ->joinGridRunAudit($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'GridRunAudit', '\App\GridRunAuditQuery');
+    }
+
+    /**
      * Exclude object from result
      *
      * @param   GridRun $gridRun Object to remove from the list of results
@@ -2864,7 +3271,7 @@ abstract class BaseGridRunQuery extends ModelCriteria
     protected function basePostDelete($affectedRows, PropelPDO $con)
     {
         // GoatCheese behavior
-        
+
                 if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                     \ApiGoat\Utility\TableVersion::bump('grid_run');
                 }
@@ -2881,7 +3288,7 @@ abstract class BaseGridRunQuery extends ModelCriteria
     protected function basePostUpdate($affectedRows, PropelPDO $con)
     {
         // GoatCheese behavior
-        
+
                 if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                     \ApiGoat\Utility\TableVersion::bump('grid_run');
                 }

@@ -54,7 +54,27 @@ return [
             'upload' => false,
             'mass' => false,
         ],
+        'FleetSlot' => [
+            'upload' => false,
+            'mass' => false,
+        ],
         'GridRun' => [
+            'upload' => false,
+            'mass' => false,
+        ],
+        'GridRunAudit' => [
+            'upload' => false,
+            'mass' => false,
+        ],
+        'MarketCandle' => [
+            'upload' => false,
+            'mass' => false,
+        ],
+        'MarketOutlook' => [
+            'upload' => false,
+            'mass' => false,
+        ],
+        'MarketOutlookState' => [
             'upload' => false,
             'mass' => false,
         ],
@@ -74,6 +94,10 @@ return [
             'upload' => false,
             'mass' => false,
         ],
+        'RegimeEpisode' => [
+            'upload' => false,
+            'mass' => false,
+        ],
         'SimWallet' => [
             'upload' => false,
             'mass' => false,
@@ -87,6 +111,10 @@ return [
             'mass' => false,
         ],
         'TradeCycle' => [
+            'upload' => false,
+            'mass' => false,
+        ],
+        'WalletNav' => [
             'upload' => false,
             'mass' => false,
         ],

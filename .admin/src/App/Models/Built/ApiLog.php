@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseApiLog;
 
-require 'om/BaseApiLog.php';
+require_once __DIR__ . '/om/BaseApiLog.php';
 
 
 /**

@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseTemplate;
 
-require 'om/BaseTemplate.php';
+require_once __DIR__ . '/om/BaseTemplate.php';
 
 
 /**

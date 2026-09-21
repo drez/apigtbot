@@ -12,10 +12,8 @@ class GtbotStopTool extends AbstractGtbotBase
 
     public function description(): string
     {
-        return 'Enqueue a Pause for a grid run: the daemon keeps its heartbeat but stops placing '
-            . 'orders (open orders stay working). For an emergency stop that cancels buys, use '
-            . 'gtbot_kill instead. A call without confirm:true changes nothing — it echoes the '
-            . 'pending action; re-call with confirm:true after user approval.';
+        return 'Enqueue Pause (heartbeat continues, no new orders; open orders keep working). For an emergency '
+            . 'stop use gtbot_kill. Without confirm:true it only echoes the pending action.';
     }
 
     public function inputSchema(): array

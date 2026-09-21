@@ -384,7 +384,7 @@ abstract class BaseTemplate extends BaseObject implements Persistent
         }
 
         if (strpos($format, '%') !== false) {
-            return strftime($format, $dt->format('U'));
+            return self::formatStrftime($format, $dt);
         }
 
         return $dt->format($format);
@@ -425,7 +425,7 @@ abstract class BaseTemplate extends BaseObject implements Persistent
         }
 
         if (strpos($format, '%') !== false) {
-            return strftime($format, $dt->format('U'));
+            return self::formatStrftime($format, $dt);
         }
 
         return $dt->format($format);
@@ -466,6 +466,97 @@ abstract class BaseTemplate extends BaseObject implements Persistent
     {
 
         return $this->id_modification;
+    }
+
+    /**
+     * strftime()-compatible formatting for the temporal accessors above.
+     *
+     * strftime() is deprecated as of PHP 8.1 and removed in PHP 9, so the
+     * conversion specifiers are expanded here instead. The expansion follows the
+     * C/POSIX locale, which is what these accessors have always resolved to in
+     * practice. Anything not in the tables below -- including the %E / %O locale
+     * modifiers and a trailing bare '%' -- raises rather than silently
+     * mis-formatting.
+     *
+     * The one deliberate divergence from strftime() is %s: PHP's strftime()
+     * double-applies the timezone offset for that specifier, this returns the
+     * true Unix timestamp.
+     *
+     * @param  string   $format A strftime()-style format string.
+     * @param  DateTime $dt     The value to format.
+     * @return string
+     * @throws PropelException If the format uses an unsupported conversion specifier.
+     */
+    protected static function formatStrftime($format, $dt)
+    {
+        // Composite specifiers, expanded to their C/POSIX-locale definitions.
+        static $composite = array(
+            'c' => '%a %b %e %H:%M:%S %Y',
+            'D' => '%m/%d/%y',
+            'F' => '%Y-%m-%d',
+            'r' => '%I:%M:%S %p',
+            'R' => '%H:%M',
+            'T' => '%H:%M:%S',
+            'x' => '%m/%d/%y',
+            'X' => '%H:%M:%S',
+        );
+        // Specifiers that are exactly one date() format character.
+        static $direct = array(
+            'a' => 'D', 'A' => 'l', 'b' => 'M', 'h' => 'M', 'B' => 'F',
+            'd' => 'd', 'H' => 'H', 'I' => 'h', 'm' => 'm', 'M' => 'i',
+            'p' => 'A', 'P' => 'a', 's' => 'U', 'S' => 's', 'u' => 'N',
+            'w' => 'w', 'y' => 'y', 'Y' => 'Y', 'G' => 'o', 'z' => 'O',
+            'Z' => 'T',
+        );
+        // Literal passthroughs.
+        static $literal = array('n' => "\n", 't' => "\t", '%' => '%');
+
+        $out = '';
+        $len = strlen($format);
+
+        for ($i = 0; $i < $len; $i++) {
+            if ('%' !== $format[$i]) {
+                $out .= $format[$i];
+                continue;
+            }
+            if (++$i === $len) {
+                throw new PropelException("Malformed strftime() format string (trailing '%'): " . var_export($format, true));
+            }
+
+            $c = $format[$i];
+
+            if (isset($composite[$c])) {
+                $out .= self::formatStrftime($composite[$c], $dt);
+            } elseif (isset($direct[$c])) {
+                $out .= $dt->format($direct[$c]);
+            } elseif (isset($literal[$c])) {
+                $out .= $literal[$c];
+            } elseif ('e' === $c) {
+                $out .= sprintf('%2d', $dt->format('j'));                // space-padded day of the month
+            } elseif ('k' === $c) {
+                $out .= sprintf('%2d', $dt->format('G'));                // space-padded hour, 24h clock
+            } elseif ('l' === $c) {
+                $out .= sprintf('%2d', $dt->format('g'));                // space-padded hour, 12h clock
+            } elseif ('j' === $c) {
+                $out .= sprintf('%03d', $dt->format('z') + 1);           // day of the year, 001-366
+            } elseif ('V' === $c) {
+                $out .= sprintf('%02d', $dt->format('W'));               // ISO-8601 week number
+            } elseif ('C' === $c) {
+                $out .= sprintf('%02d', (int) ($dt->format('Y') / 100)); // century
+            } elseif ('g' === $c) {
+                $out .= substr('0' . $dt->format('o'), -2);              // 2-digit ISO-8601 year
+            } elseif ('U' === $c) {
+                // Week of the year, Sunday as the first day: (yday + 7 - wday) / 7.
+                $out .= sprintf('%02d', (int) (($dt->format('z') + 7 - $dt->format('w')) / 7));
+            } elseif ('W' === $c) {
+                // Week of the year, Monday as the first day: (yday + 7 - (wday + 6) % 7) / 7.
+                $out .= sprintf('%02d', (int) (($dt->format('z') + 7 - ($dt->format('N') - 1)) / 7));
+            } else {
+                throw new PropelException("Unsupported strftime() conversion specifier '%" . $c . "' in format " . var_export($format, true));
+            }
+        }
+
+        return $out;
     }
 
     /**
@@ -981,7 +1072,7 @@ abstract class BaseTemplate extends BaseObject implements Persistent
                 $deleteQuery->delete($con);
                 $this->postDelete($con);
                 // GoatCheese behavior
-                
+
                             if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                                 \ApiGoat\Utility\TableVersion::bump('template');
                             }
@@ -1024,25 +1115,17 @@ abstract class BaseTemplate extends BaseObject implements Persistent
         $isInsert = $this->isNew();
         try {
             $ret = $this->preSave($con);
-            // GoatCheese behavior
-            
-                    if ($this->isColumnModified(\App\TemplatePeer::BODY) && $this->getBody() !== null) {
-                        $this->setBody(\ApiGoat\Utility\HtmlSanitizer::clean((string) $this->getBody()));
-                    }
-                    if ($this->isColumnModified(\App\TemplatePeer::FOOTER) && $this->getFooter() !== null) {
-                        $this->setFooter(\ApiGoat\Utility\HtmlSanitizer::clean((string) $this->getFooter()));
-                    }
             if ($isInsert) {
                 $ret = $ret && $this->preInsert($con);
                 // add_tablestamp behavior
 
                     $this->setDateCreation(time());
                     $this->setDateModification(time());
-                    $this->setIdGroupCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
+                    $this->setIdGroupCreation( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
                     if(!$this->getIdCreation())
-                        $this->setIdCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                        $this->setIdCreation( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
                     if(!$this->getIdModification())
-                        $this->setIdModification( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                        $this->setIdModification( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
 
             } else {
                 $ret = $ret && $this->preUpdate($con);
@@ -1050,11 +1133,11 @@ abstract class BaseTemplate extends BaseObject implements Persistent
                 if ($this->isModified() ) {
                     $this->setDateCreation( $this->getDateCreation() );
                     $this->setDateModification(time());
-                    $this->setIdGroupCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
+                    $this->setIdGroupCreation( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
                     if(!$this->getIdCreation())
-                        $this->setIdCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                        $this->setIdCreation( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
                     if(!$this->getIdModification())
-                        $this->setIdModification( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                        $this->setIdModification( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
                 }
             }
             if ($ret) {
@@ -1066,7 +1149,7 @@ abstract class BaseTemplate extends BaseObject implements Persistent
                 }
                 $this->postSave($con);
                 // GoatCheese behavior
-                
+
                             if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                                 \ApiGoat\Utility\TableVersion::bump('template');
                             }

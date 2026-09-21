@@ -66,6 +66,9 @@ class DashboardDataTest extends TestCase
     protected function tearDown(): void
     {
         \Propel::getConnection()->rollBack();
+        // Config rows edited here (use-all-funds flag) stay in Propel's instance
+        // pool with their in-memory value after the rollback — drop them
+        \App\ConfigPeer::clearInstancePool();
     }
 
     private function order(string $side, string $state, string $price, string $qty, string $filled = '0'): void
@@ -93,6 +96,26 @@ class DashboardDataTest extends TestCase
         $c->setRealizedPnl($pnl);
         $c->setFeesTotal($fees);
         $c->save();
+    }
+
+    public function testGlobalBandBudgetFollowsWalletWhenUseAllFundsIsOn(): void
+    {
+        $flag = \App\ConfigQuery::create()->findOneByConfig(\App\Domains\Bot\BudgetPool::CONFIG_USE_ALL) ?? (new \App\Config())->setConfig(\App\Domains\Bot\BudgetPool::CONFIG_USE_ALL);
+        $flag->setValue('1');
+        $flag->save();
+        // the fixture run is pinned to REAL mode: the wallet is what the
+        // daemon stamped on the run row, not sim_wallet
+        // the wallet can only pull the cap DOWN: gtbot_shared_budget_quote is
+        // the ceiling (operator rule 2026-09-19), so use a wallet BELOW the seed
+        $this->run->setBalQuote('800');
+        $this->run->setBalBase('0');
+        $this->run->save();
+
+        $band = DashboardData::globalBand();
+
+        $this->assertTrue($band['use_all_funds']);
+        $this->assertSame('800', bcadd($band['budget'], '0', 0), 'cap follows the wallet down');
+        $this->assertSame(0, bccomp($band['budget_fixed'], \App\Domains\Bot\SimWallet::sharedBudget(), 12), 'the seed stays');
     }
 
     public function testRunHeaderReflectsFreshHeartbeat(): void
@@ -155,6 +178,14 @@ class DashboardDataTest extends TestCase
         $this->assertSame(0, bccomp($k['invested'], '61', 6));
     }
 
+    public function testRunHeaderExposesSellAtLoss(): void
+    {
+        $this->assertFalse((new DashboardData($this->run))->runHeader()['sell_at_loss'], 'default OFF');
+        $this->run->setSellAtLoss(true);
+        $this->run->save();
+        $this->assertTrue((new DashboardData($this->run))->runHeader()['sell_at_loss']);
+    }
+
     public function testRunHeaderExposesLastPrice(): void
     {
         $this->run->setLastPrice('66500');
@@ -202,33 +233,6 @@ class DashboardDataTest extends TestCase
         $this->assertSame(0, bccomp($k['account_value'], '1210', 6));         // 900 + 0.005 × 62000
     }
 
-    public function testTradePointsExcludeCanceledOrders(): void
-    {
-        $this->order('Buy', 'Filled', '60000', '0.001', '0.001');
-        $this->order('Buy', 'Canceled', '58000', '0.001');
-        $pts = (new DashboardData($this->run))->tradePoints();
-        $this->assertCount(1, $pts, 'canceled orders are bookkeeping, not trades');
-        $this->assertSame('Filled', $pts[0]['state']);
-    }
-
-    public function testTradePointsChronologicalAndExcludeVetoes(): void
-    {
-        $this->order('Buy', 'Filled', '60000', '0.001', '0.001');
-        $this->order('Sell', 'SELL_OPEN', '61000', '0.001');
-        $this->order('Buy', 'Vetoed', '58000', '0.001');
-        $pts = (new DashboardData($this->run))->tradePoints();
-        $this->assertCount(2, $pts, 'vetoed orders excluded');
-        $this->assertSame('Buy', $pts[0]['side']); // oldest first
-        $this->assertSame('Sell', $pts[1]['side']);
-    }
-
-    public function testTradePointsCarryTimestamps(): void
-    {
-        $this->order('Buy', 'Filled', '61000', '0.002');
-        $pts = (new DashboardData($this->run))->tradePoints();
-        $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $pts[0]['at']);
-    }
-
     public function testChartMarkersSelectLifecycleKindsChronologically(): void
     {
         $this->event('Info', 'reloading', 'new code detected on disk — restarting to load it');
@@ -242,91 +246,124 @@ class DashboardDataTest extends TestCase
         $this->assertNotEmpty($markers[0]['at']);
     }
 
-    public function testViewModelCarriesMarkers(): void
+    // ── trading chart model (Dashboard/chart endpoint) ────────────────
+
+    private function seedCandles(string $symbol, string $tf, int $from, int $n): void
     {
-        $this->event('Info', 'bot_start', 'resumed via command');
+        $step = \App\Domains\Bot\CandleStore::TF_SECONDS[$tf];
+        $rows = [];
+        for ($i = 0; $i < $n; $i++) {
+            $rows[] = ['open_time' => $from + $i * $step, 'open' => '60000', 'high' => '61000', 'low' => '59000', 'close' => '60500', 'volume' => '3'];
+        }
+        \App\Domains\Bot\CandleStore::upsert($symbol, $tf, $rows);
+    }
+
+    public function testChartModelCarriesCandlesFillsLadderAndGrid(): void
+    {
+        $symbol = 'CHART' . strtoupper(bin2hex(random_bytes(3)));
+        $this->run->setSymbol($symbol);
+        $this->run->setLastPrice('60250');
+        $this->run->save();
+        $from = intdiv(time(), 3600) * 3600 - 4 * 3600;
+        $this->seedCandles($symbol, '1h', $from, 5);
+        $this->order('Buy', 'Filled', '60000', '0.002', '0.002');
+        $this->order('Sell', 'SELL_OPEN', '61000', '0.002');
+        $this->order('Buy', 'Canceled', '58000', '0.001');
+        $this->order('Buy', 'Vetoed', '57000', '0.001');
+
+        $m = (new DashboardData($this->run))->chartModel('1h');
+
+        $this->assertSame('1h', $m['tf']);
+        $this->assertSame(3600, $m['tf_seconds']);
+        $this->assertSame($symbol, $m['symbol']);
+        $this->assertFalse($m['stale'], 'newest bar is the current hour');
+        $this->assertCount(5, $m['candles']);
+        $this->assertSame($from, $m['candles'][0]['time'], 'oldest first');
+        $this->assertSame(['time', 'open', 'high', 'low', 'close', 'volume'], array_keys($m['candles'][0]));
+
+        $this->assertCount(1, $m['fills'], 'only filled orders are fills — open, canceled, vetoed excluded');
+        $this->assertSame('Buy', $m['fills'][0]['side']);
+        $this->assertSame(60000.0, $m['fills'][0]['price']);
+        $this->assertSame(0.002, $m['fills'][0]['qty']);
+        $this->assertEqualsWithDelta(time(), $m['fills'][0]['time'], 120, 'fill time is epoch seconds of date_modification');
+
+        $this->assertSame([['price' => 61000.0, 'side' => 'Sell', 'level' => 1]], $m['orders_open']);
+        $this->assertSame(60000.0, $m['grid']['p_low']);
+        $this->assertSame(72000.0, $m['grid']['p_high']);
+        $this->assertCount(13, $m['grid']['levels'], 'n_levels + 1 lines');
+        $this->assertSame(60250.0, $m['last_price']);
+        $this->assertNull($m['trend'], 'grid run carries no trend block');
+        $this->assertSame([], $m['events']);
+    }
+
+    public function testChartModelStaleWhenTheSeriesIsOldOrEmpty(): void
+    {
+        $symbol = 'CHART' . strtoupper(bin2hex(random_bytes(3)));
+        $this->run->setSymbol($symbol);
+        $this->run->save();
+        $this->assertTrue((new DashboardData($this->run))->chartModel('5m')['stale'], 'no bars at all');
+        $this->seedCandles($symbol, '5m', time() - 7200, 3);
+        $this->assertTrue((new DashboardData($this->run))->chartModel('5m')['stale'], 'newest bar is ~2h old on a 5m series');
+    }
+
+    public function testChartModelTrendBlockReadsEngineState(): void
+    {
+        $this->run->setAlgo('Trend');
+        $this->run->setEngineState(json_encode(['algo' => 'Trend', 'qty' => '0.01', 'entry' => '61000', 'hwm' => '63000', 'stop' => '60100']));
+        $this->run->save();
+        $m = (new DashboardData($this->run))->chartModel('15m');
+        $this->assertSame(['entry' => 61000.0, 'stop' => 60100.0, 'hwm' => 63000.0, 'qty' => 0.01], $m['trend']);
+
+        // flat position: keys present, values null
+        $this->run->setEngineState(json_encode(['algo' => 'Trend', 'qty' => '0', 'entry' => null, 'hwm' => null, 'stop' => null]));
+        $this->run->save();
+        $m = (new DashboardData($this->run))->chartModel('15m');
+        $this->assertNull($m['trend']['stop']);
+        $this->assertSame(0.0, $m['trend']['qty']);
+    }
+
+    public function testChartModelFillAndEventTimesIgnoreTheSessionTimezone(): void
+    {
+        // Stamps are written by the daemon in the process default timezone
+        // (php.ini, UTC on prod); the dashboard request runs in the user's
+        // session timezone (legacy.php). Parsing a UTC stamp in -0400 would
+        // land every fill four hours late on the chart.
+        $this->order('Buy', 'Filled', '60000', '0.002', '0.002');
+        $this->event('Info', 'trend_activate', 'trend arm on');
+        $tz = date_default_timezone_get();
+        date_default_timezone_set('America/New_York');
+        try {
+            $m = (new DashboardData($this->run))->chartModel('1m');
+        } finally {
+            date_default_timezone_set($tz);
+        }
+        $this->assertEqualsWithDelta(time(), $m['fills'][0]['time'], 120, 'fill epoch must not shift with the session timezone');
+        $this->assertEqualsWithDelta(time(), $m['events'][0]['time'], 120, 'event epoch must not shift with the session timezone');
+    }
+
+    public function testChartModelEventsCarryLabelsAndEpochTimes(): void
+    {
+        $this->event('Info', 'reloading', 'restart on deploy');
+        $this->event('Info', 'placed', 'not a marker');
+        $this->event('Info', 'trend_activate', 'trend arm on');
+        $m = (new DashboardData($this->run))->chartModel('1m');
+        $this->assertSame(['algo_update', 'trend_activate'], array_column($m['events'], 'kind'));
+        $this->assertSame(['algo update', 'trend arm on'], array_column($m['events'], 'label'));
+        $this->assertEqualsWithDelta(time(), $m['events'][0]['time'], 120);
+    }
+
+    public function testChartModelRejectsUnknownTimeframe(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        (new DashboardData($this->run))->chartModel('1d');
+    }
+
+    public function testViewModelNoLongerCarriesTheSvgChartFeeds(): void
+    {
         $vm = (new DashboardData($this->run))->viewModel('https://x.local/');
-        $this->assertSame('bot_start', $vm['markers'][0]['kind']);
-    }
-
-    // ── price history (pale historical line feed) ──────────────────────
-
-    private function seedMarketSummary(string $symbol, string $tf, array $candles, string $computedAt): void
-    {
-        $compact = array_map(static fn ($c) => [$c['high'], $c['low'], $c['close']], $candles);
-        $m = new \App\MarketSummary();
-        $m->setSymbol($symbol);
-        $m->setTf($tf);
-        $m->setCandlesUsed(count($compact));
-        $m->setRecentCandles(json_encode($compact, JSON_UNESCAPED_SLASHES));
-        $m->setComputedAt($computedAt);
-        $m->save();
-    }
-
-    public function testPriceHistoryReconstructsTimestampsFromComputedAt(): void
-    {
-        $symbol = 'HISTUSDT' . bin2hex(random_bytes(4));
-        $this->run->setSymbol($symbol);
-        $this->run->save();
-
-        $this->seedMarketSummary($symbol, '1h', [
-            ['high' => '61000', 'low' => '60000', 'close' => '60500'],
-            ['high' => '61200', 'low' => '60400', 'close' => '60900'],
-            ['high' => '61500', 'low' => '60700', 'close' => '61100'],
-        ], '2026-07-31 15:00:00');
-
-        $history = (new DashboardData($this->run))->priceHistory();
-
-        $this->assertCount(3, $history);
-        $this->assertSame('2026-07-31 13:00:00', $history[0]['at']);
-        $this->assertSame('2026-07-31 14:00:00', $history[1]['at']);
-        $this->assertSame('2026-07-31 15:00:00', $history[2]['at']);
-        $this->assertSame('60500', $history[0]['close']);
-        $this->assertSame('60900', $history[1]['close']);
-        $this->assertSame('61100', $history[2]['close']);
-        $this->assertIsString($history[0]['close']);
-    }
-
-    public function testPriceHistoryFallsBackAcrossTfPriority(): void
-    {
-        $symbol = 'HISTFALLBACK' . bin2hex(random_bytes(4));
-        $this->run->setSymbol($symbol);
-        $this->run->save();
-
-        // no 1h/15m rows — only 4h is populated, which must still be picked up
-        $this->seedMarketSummary($symbol, '4h', [
-            ['high' => '61000', 'low' => '60000', 'close' => '60500'],
-            ['high' => '61500', 'low' => '60700', 'close' => '61100'],
-        ], '2026-07-31 12:00:00');
-
-        $history = (new DashboardData($this->run))->priceHistory();
-
-        $this->assertCount(2, $history);
-        $this->assertSame('2026-07-31 08:00:00', $history[0]['at']);
-        $this->assertSame('2026-07-31 12:00:00', $history[1]['at']);
-    }
-
-    public function testPriceHistoryEmptyWhenNoMarketSummaryRow(): void
-    {
-        $symbol = 'NOHISTUSDT' . bin2hex(random_bytes(4));
-        $this->run->setSymbol($symbol);
-        $this->run->save();
-
-        $this->assertSame([], (new DashboardData($this->run))->priceHistory());
-    }
-
-    public function testViewModelCarriesPriceHistory(): void
-    {
-        $symbol = 'HISTVM' . bin2hex(random_bytes(4));
-        $this->run->setSymbol($symbol);
-        $this->run->save();
-
-        $this->seedMarketSummary($symbol, '1h', [
-            ['high' => '61000', 'low' => '60000', 'close' => '60500'],
-        ], '2026-07-31 15:00:00');
-
-        $vm = (new DashboardData($this->run))->viewModel('https://x.local/');
-        $this->assertSame('60500', $vm['history'][0]['close']);
+        foreach (['points', 'history', 'markers', 'grid_levels'] as $k) {
+            $this->assertArrayNotHasKey($k, $vm, "$k moved to chartModel()");
+        }
     }
 
     public function testDailyPnlZeroFillsWindow(): void
@@ -369,7 +406,7 @@ class DashboardDataTest extends TestCase
         $live = $this->extraRun('Live');
         $this->extraRun('Draft');
         $this->extraRun('Done');
-        $this->extraRun('Halted');
+        $held = $this->extraRun('Halted');
 
         $ids = array_map(
             static fn (GridRun $r): int => (int) $r->getIdGridRun(),
@@ -380,8 +417,11 @@ class DashboardDataTest extends TestCase
         $b = (int) $live->getIdGridRun();
         $this->assertContains($a, $ids);
         $this->assertContains($b, $ids);
+        // Halted keeps its tab (Hold funds parks a run there; its Release
+        // button needs a home) — Draft and Done stay off the dashboard.
+        $this->assertContains((int) $held->getIdGridRun(), $ids);
         $this->assertLessThan(array_search($b, $ids, true), array_search($a, $ids, true));
-        foreach (['Draft', 'Done', 'Halted'] as $status) {
+        foreach (['Draft', 'Done'] as $status) {
             foreach (DashboardData::activeRuns() as $r) {
                 $this->assertNotSame($status, (string) $r->getStatus());
             }
@@ -429,6 +469,26 @@ class DashboardDataTest extends TestCase
         $this->assertTrue($other['kill_switch']);
         $this->assertTrue($other['heartbeat_stale']); // never ticked
         $this->assertStringContainsString('?run=' . $other['id'], $other['href']);
+    }
+
+    public function testHaltedRunIsHeldNotStale(): void
+    {
+        // A Halted run has no daemon BY DESIGN (Hold funds stops it, the
+        // watchdog skips it) — its frozen tick is not a stale heartbeat.
+        $held = $this->extraRun('Halted'); // never ticked
+        $tabs = DashboardData::tabs(DashboardData::activeRuns(), (int) $this->run->getIdGridRun(), 'https://x.test');
+        $tab = array_column($tabs, null, 'id')[(int) $held->getIdGridRun()];
+        $this->assertTrue($tab['held']);
+        $this->assertFalse($tab['heartbeat_stale']);
+
+        $h = (new DashboardData($held))->runHeader();
+        $this->assertTrue($h['held']);
+        $this->assertFalse($h['heartbeat_stale']);
+
+        // a ticking run is not held
+        $mine = array_column($tabs, null, 'id')[(int) $this->run->getIdGridRun()];
+        $this->assertFalse($mine['held']);
+        $this->assertFalse((new DashboardData($this->run))->runHeader()['held']);
     }
 
     public function testSharedWalletRealModeUsesFreshestStampedRunAndPerRunBase(): void

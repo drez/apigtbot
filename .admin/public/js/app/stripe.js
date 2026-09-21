@@ -10,7 +10,7 @@
  * 'subscription'.
  *
  * Menu items (nav "Payment" dropdown):
- *  - "Request payment link" (always): GET <model>/stripecheckout?i=<pk> ->
+ *  - "Request payment link" (always): POST <model>/stripecheckout?i=<pk> ->
  *    {status:'ok', url, pay_url, payment_id} -> alertb with the pay_url
  *    (app-hosted short link) + a copy-to-clipboard button, and an "Open"
  *    link pointed at the raw Stripe-hosted `url`.
@@ -21,19 +21,22 @@
  *    consumes for any model, parses the returned rows
  *    (Classes/include/getList.php emits every row as
  *    `.va-mob-row[rid=<pk>]`, the one stable cross-table convention) into a
- *    selectable list, then on pick GET
+ *    selectable list, then on pick POST
  *    <model>/stripecheckout?i=<pk>&price=<id>.
  *  - "Charge saved card" (only when modes includes 'payment'):
- *    gcScreens.confirm() first, then GET <model>/stripecharge?i=<pk> ->
+ *    gcScreens.confirm() first, then POST <model>/stripecharge?i=<pk> ->
  *    {status, payment_status, message} -> alertb the result.
  *  - "Payment status" (always): GET <model>/stripestatus?i=<pk> ->
  *    {status:'ok', payments:[{payment_id,status,amount,currency,
  *    receipt_url,error}]} -> alertb a rendered ledger table.
  *
- * All five actions are plain GET, so — like gcPdfMenu — no CSRF header is
- * attached (the CSRF gate only covers state-changing session-auth
- * POST/PUT/PATCH/DELETE; window.fetch is still the page's globally wrapped
- * fetch from index.js, same as gcPdfMenu relies on). Every server response
+ * The three WRITES (stripecheckout, stripecharge) go over POST; only the
+ * reads (stripestatus, the StripePrice list fragment) are GETs. The CSRF
+ * header is attached automatically: window.fetch is the page's globally
+ * wrapped fetch from index.js, which adds X-Csrf-Token to every same-origin
+ * non-GET request — the same gate AuthyMiddleware::checkCsrf verifies, and
+ * the reason these are no longer reachable over GET at all (the middleware
+ * answers 405 for a mutating action on GET). Every server response
  * is JSON; on error ({status:'error', message}, possibly a non-2xx HTTP
  * status) the message surfaces via alertb. All dialogs go through
  * alertb()/gcScreens.confirm() — NEVER native alert/confirm/prompt.
@@ -87,6 +90,36 @@
         }).then(function (r) { return r.json(); });
     }
 
+    // stripecheckout / stripecharge WRITE (a Checkout session, a PaymentIntent
+    // against the saved card), so they go over POST: the runtime refuses a
+    // mutating action reached with GET (405), and index.js's window.fetch
+    // wrapper attaches the CSRF token to every same-origin non-GET request.
+    // fetchJson stays for the reads (stripestatus).
+    //
+    // The parameters have to travel in the BODY as well: RouteHelper merges the
+    // query string into the service args for GET only (getPOSTArgs reads the
+    // parsed body), so a POST carrying ?i= alone reaches the service with no
+    // record id at all.
+    function postJson(cfg, action, extra) {
+        var b = new URLSearchParams();
+        b.set('i', cfg.pk);
+        if (extra) {
+            Object.keys(extra).forEach(function (k) {
+                if (extra[k] !== undefined && extra[k] !== null && extra[k] !== '') { b.set(k, extra[k]); }
+            });
+        }
+        return fetch(actionUrl(cfg, action, extra), {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+            },
+            body: b.toString()
+        }).then(function (r) { return r.json(); });
+    }
+
     // ---------------------------------------------------------- payment link
 
     function showLink(res) {
@@ -102,7 +135,7 @@
     }
 
     function requestLink(cfg) {
-        fetchJson(actionUrl(cfg, 'stripecheckout')).then(function (res) {
+        postJson(cfg, 'stripecheckout').then(function (res) {
             if (!res || res.status !== 'ok') {
                 fail((res && res.message) || 'Could not create a payment link');
                 return;
@@ -115,7 +148,7 @@
 
     function chargeSaved(cfg) {
         var run = function () {
-            fetchJson(actionUrl(cfg, 'stripecharge')).then(function (res) {
+            postJson(cfg, 'stripecharge').then(function (res) {
                 if (!res || res.status !== 'ok') {
                     fail((res && res.message) || 'Charge failed');
                     return;
@@ -194,7 +227,7 @@
     }
 
     function startSubscription(cfg, priceId) {
-        fetchJson(actionUrl(cfg, 'stripecheckout', { price: priceId })).then(function (res) {
+        postJson(cfg, 'stripecheckout', { price: priceId }).then(function (res) {
             if (!res || res.status !== 'ok') {
                 fail((res && res.message) || 'Could not start subscription checkout');
                 return;
@@ -286,7 +319,10 @@
             dd.hidden = !dd.hidden;
             btn.setAttribute('aria-expanded', dd.hidden ? 'false' : 'true');
         });
-        document.addEventListener('click', function (e) {
+        // Self-removing: one document listener per mounted menu used to
+        // outlive every closed drawer.
+        document.addEventListener('click', function onDocClick(e) {
+            if (!wrap.isConnected) { document.removeEventListener('click', onDocClick); return; }
             if (!dd.hidden && !wrap.contains(e.target)) { close(); }
         });
 

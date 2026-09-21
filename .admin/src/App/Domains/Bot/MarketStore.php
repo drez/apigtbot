@@ -3,6 +3,7 @@
 namespace App\Domains\Bot;
 
 use App\MarketSummary;
+use App\MarketSummaryPeer;
 use App\MarketSummaryQuery;
 
 /**
@@ -24,6 +25,15 @@ final class MarketStore
      */
     public static function upsert(string $symbol, string $tf, array $summary, array $candles, ?array $extras = null): void
     {
+        // Hydrate the row as it actually IS, not as this process last left it.
+        // Propel serves findOne() from its instance pool and then writes only
+        // the columns that differ FROM THAT OBJECT — so in a long-lived daemon
+        // an upsert computes its diff against a copy the collector cron has
+        // since overwritten, and silently skips every column whose pooled value
+        // happens to match (computed_at, written twice in the same second, is
+        // the one that matters: the freshness stamp never lands and the row
+        // reads stale forever). See self::rows().
+        MarketSummaryPeer::clearInstancePool();
         $row = MarketSummaryQuery::create()
             ->filterBySymbol($symbol)
             ->filterByTf($tf)
@@ -105,31 +115,31 @@ final class MarketStore
     public static function summaries(string $symbol, int $staleAfter = 1800): array
     {
         $out = [];
-        foreach (MarketSummaryQuery::create()->filterBySymbol($symbol)->find() as $r) {
-            $computed = $r->getComputedAt('Y-m-d H:i:s');
+        foreach (self::rows($symbol) as $r) {
+            $computed = $r['ComputedAt'] !== null ? (string) $r['ComputedAt'] : null;
             $age = $computed ? (time() - strtotime($computed)) : null;
-            $out[(string) $r->getTf()] = [
-                'price' => self::num($r->getPrice()),
-                'ema20' => self::num($r->getEma20()),
-                'ema50' => self::num($r->getEma50()),
-                'ema200' => self::num($r->getEma200()),
-                'rsi14' => self::num($r->getRsi14()),
-                'atr14' => self::num($r->getAtr14()),
-                'atr_pct' => self::num($r->getAtrPct()),
-                'trend' => (string) $r->getTrend(),
-                'swing_high' => self::num($r->getSwingHigh()),
-                'swing_low' => self::num($r->getSwingLow()),
-                'candles_used' => (int) $r->getCandlesUsed(),
-                'adx14' => self::num($r->getAdx14()),
-                'atr_pct_rank' => self::num($r->getAtrPctRank()),
-                'taker_buy_ratio' => self::num($r->getTakerBuyRatio()),
-                'vol_zscore' => self::num($r->getVolZscore()),
-                'er20' => self::num($r->getEr20()),
-                'chop14' => self::num($r->getChop14()),
-                'funding_pct' => self::num($r->getFundingPct()),
-                'funding_rate' => $r->getFundingRate() !== null ? (float) $r->getFundingRate() : null,
-                'depth_imbalance' => $r->getDepthImbalance() !== null ? (float) $r->getDepthImbalance() : null,
-                'depth_imbalance_avg' => self::num($r->getDepthImbalanceAvg()),
+            $out[(string) $r['Tf']] = [
+                'price' => self::num($r['Price']),
+                'ema20' => self::num($r['Ema20']),
+                'ema50' => self::num($r['Ema50']),
+                'ema200' => self::num($r['Ema200']),
+                'rsi14' => self::num($r['Rsi14']),
+                'atr14' => self::num($r['Atr14']),
+                'atr_pct' => self::num($r['AtrPct']),
+                'trend' => self::enum($r['Trend']),
+                'swing_high' => self::num($r['SwingHigh']),
+                'swing_low' => self::num($r['SwingLow']),
+                'candles_used' => (int) $r['CandlesUsed'],
+                'adx14' => self::num($r['Adx14']),
+                'atr_pct_rank' => self::num($r['AtrPctRank']),
+                'taker_buy_ratio' => self::num($r['TakerBuyRatio']),
+                'vol_zscore' => self::num($r['VolZscore']),
+                'er20' => self::num($r['Er20']),
+                'chop14' => self::num($r['Chop14']),
+                'funding_pct' => self::num($r['FundingPct']),
+                'funding_rate' => $r['FundingRate'] !== null ? (float) $r['FundingRate'] : null,
+                'depth_imbalance' => $r['DepthImbalance'] !== null ? (float) $r['DepthImbalance'] : null,
+                'depth_imbalance_avg' => self::num($r['DepthImbalanceAvg']),
                 'computed_at' => $computed,
                 'age_seconds' => $age,
                 'stale' => $age === null || $age > $staleAfter,
@@ -139,16 +149,54 @@ final class MarketStore
     }
 
     /**
+     * select(): raw rows, never pooled objects. Propel does not re-hydrate an
+     * object already in its instance pool, so a hydrated read inside a
+     * long-lived daemon serves the summary AS OF that process's first read and
+     * every later collection — the cron writes one every 10 minutes, from its
+     * own process — stays invisible until restart. Prod 2026-09-14: run 9's
+     * daemon self-clocked a stale/refresh cycle every 1800s against a row that
+     * was in fact seconds old, and run 8's core arm (whose branch never hits
+     * that fallback refresh) sat on a 1d summary pooled five days earlier,
+     * unable to enter or exit. Same trap as BudgetGuard::check and
+     * DrawdownGuard::equity, fixed the same way.
+     *
+     * recent_candles is deliberately NOT selected here — it is a ~300-bar blob
+     * per row that summaries() never exposes; candles() selects it on its own.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private static function rows(string $symbol): array
+    {
+        return MarketSummaryQuery::create()
+            ->filterBySymbol($symbol)
+            ->select([
+                'Tf', 'Price', 'Ema20', 'Ema50', 'Ema200', 'Rsi14', 'Atr14', 'AtrPct', 'Trend',
+                'SwingHigh', 'SwingLow', 'CandlesUsed', 'Adx14', 'AtrPctRank', 'TakerBuyRatio',
+                'VolZscore', 'Er20', 'Chop14', 'FundingPct', 'FundingRate', 'DepthImbalance',
+                'DepthImbalanceAvg', 'ComputedAt',
+            ])
+            ->find()->getArrayCopy();
+    }
+
+    /**
      * Recent candles for one (symbol, tf) from the DB.
      * @return array<int, array{high:string, low:string, close:string}>
      */
     public static function candles(string $symbol, string $tf): array
     {
-        $r = MarketSummaryQuery::create()->filterBySymbol($symbol)->filterByTf($tf)->findOne();
-        if (!$r || !$r->getRecentCandles()) {
+        // select(): raw row, never the pooled object — this blob IS the tape the
+        // entry signal walks (Donchian high/low, EMA cross), so a pooled read
+        // freezes the in-progress bar and hides every breakout inside the
+        // freeze window. See self::rows().
+        $r = MarketSummaryQuery::create()
+            ->filterBySymbol($symbol)
+            ->filterByTf($tf)
+            ->select(['Tf', 'RecentCandles'])
+            ->findOne();
+        if (!$r || empty($r['RecentCandles'])) {
             return [];
         }
-        $raw = json_decode((string) $r->getRecentCandles(), true);
+        $raw = json_decode((string) $r['RecentCandles'], true);
         if (!is_array($raw)) {
             return [];
         }
@@ -158,5 +206,20 @@ final class MarketStore
     private static function num($v): ?float
     {
         return $v === null ? null : (float) $v;
+    }
+
+    /**
+     * market_summary.trend is an ENUM: Propel stores the INDEX and only the
+     * generated getter maps it back. select() hands us the raw index, so do
+     * the mapping here — without it every consumer reads a bare '4' where it
+     * expects 'strong_down'.
+     */
+    private static function enum($v): string
+    {
+        if ($v === null || $v === '') {
+            return '';
+        }
+        $set = MarketSummaryPeer::getValueSet(MarketSummaryPeer::TREND);
+        return (string) ($set[(int) $v] ?? $v);
     }
 }

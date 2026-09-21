@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseAuthyQuery;
 
-require 'om/BaseAuthyQuery.php';
+require_once __DIR__ . '/om/BaseAuthyQuery.php';
 
 
 /**

@@ -5,40 +5,19 @@ namespace Tests\Custom\Bot;
 use ApiGoat\Sessions\AuthySession;
 use App\BotEventQuery;
 use App\GridRun;
+use ApiGoat\Mcp\ToolError;
 use App\Mcp\Tools\GtbotSetGridTool;
-use PHPUnit\Framework\TestCase;
+use Tests\Builder\Support\DbTestCase;
 
-class GtbotSetGridToolTest extends TestCase
+class GtbotSetGridToolTest extends DbTestCase
 {
-    private static bool $booted = false;
     private GridRun $run;
-
-    public static function setUpBeforeClass(): void
-    {
-        if (self::$booted) {
-            return;
-        }
-        $admin = dirname(__DIR__, 3);
-        require_once $admin . '/vendor/autoload.php';
-        (new \Ahc\Env\Loader())->load($admin . '/.env');
-        if (!defined('_AUTH_VAR')) {
-            require $admin . '/config/Built/config.php';
-        }
-        if (!\Propel::isInit()) {
-            require $admin . '/config/Built/propel.php';
-        }
-        if (session_status() === PHP_SESSION_NONE) {
-            @session_start();
-        }
-        $_SESSION[_AUTH_VAR] = new AuthySession();
-        self::$booted = true;
-    }
 
     protected function setUp(): void
     {
-        \Propel::getConnection()->beginTransaction();
+        parent::setUp();
         $r = new GridRun();
-        $r->setLabel('setgrid-' . bin2hex(random_bytes(4)));
+        $r->setLabel(static::uniq('setgrid'));
         $r->setSymbol('BTCUSDT');
         $r->setStatus('Testnet');
         $r->setPLow('60000');
@@ -54,15 +33,14 @@ class GtbotSetGridToolTest extends TestCase
         $r->setBreakoutBufferPct('0.02');
         $r->setBreakoutPolicy('HaltAndHold');
         $r->setMaxOpenOrders(30);
-        $r->setRunUid('setgrid');
+        $r->setRunUid(static::uniq('setgrid'));
         $r->setLastTickAt(date('Y-m-d H:i:s'));
         $r->save();
+        // mode() is config-driven and prod seeds it to mechanical, which refuses
+        // every geometry change. These cases are written against routine mode,
+        // so pin it; testMechanicalModeRefusesAGeometryChange overrides it.
+        $this->setMode(\App\Domains\Bot\MechanicalRefit::MODE_ROUTINE);
         $this->run = $r;
-    }
-
-    protected function tearDown(): void
-    {
-        \Propel::getConnection()->rollBack();
     }
 
     private function tool(?string $price = '66000'): GtbotSetGridTool
@@ -79,6 +57,63 @@ class GtbotSetGridToolTest extends TestCase
     private function session(): AuthySession
     {
         return $this->createMock(AuthySession::class);
+    }
+
+    private function setMode(string $mode): void
+    {
+        $c = \App\ConfigQuery::create()->findOneByConfig(\App\Domains\Bot\MechanicalRefit::CONFIG_MODE)
+            ?? (new \App\Config())->setConfig(\App\Domains\Bot\MechanicalRefit::CONFIG_MODE);
+        $c->setValue($mode);
+        $c->save();
+        // Config rows keep their in-memory value after a write, so the read
+        // inside MechanicalRefit::mode() would serve the pooled one
+        \App\ConfigPeer::clearInstancePool();
+    }
+
+    public function testMechanicalModeRefusesAGeometryChange(): void
+    {
+        $this->setMode('mechanical');
+        try {
+            $this->expectException(ToolError::class);
+            $this->expectExceptionMessageMatches('/MECHANICAL/');
+            $this->tool()->handle([
+                'p_low' => '62000', 'p_high' => '70000', 'n_levels' => 14,
+                'reason' => 'the routine trying to move the ladder',
+            ], $this->session());
+        } finally {
+            $this->setMode('routine');
+            \App\ConfigPeer::clearInstancePool();
+        }
+    }
+
+    public function testMechanicalModeAcceptsADeployOnlyCallEvenOutsideTheRange(): void
+    {
+        $this->setMode('mechanical');
+        try {
+            // price 75000 is above the fixture's [60000, 72000]: a geometry
+            // call would fail the bracket check; a deploy-only call passes
+            $out = $this->decode($this->tool('75000')->handle([
+                'p_low' => '60000', 'p_high' => '72000', 'n_levels' => 12,
+                'deploy_pct' => 40,
+                'reason' => 'deploy only — geometry is mechanical',
+            ], $this->session()));
+            $this->assertTrue($out['applied']);
+            $this->run->reload();
+            $this->assertSame(40, (int) $this->run->getDeployPct());
+            $this->assertSame(12, (int) $this->run->getNLevels());
+            // deploy-only mechanical calls keep their decision journal — deploy
+            // is the routine's one remaining lever there, and the cron clock
+            // filters by source=Cron so the stamped row cannot restart it.
+            $d = \App\BotDecisionQuery::create()
+                ->filterByIdGridRun((int) $this->run->getIdGridRun())
+                ->filterBySource('Claude')
+                ->orderByIdBotDecision(\Criteria::DESC)
+                ->findOne();
+            $this->assertNotNull($d, 'deploy-only calls keep their decision receipt');
+        } finally {
+            $this->setMode('routine');
+            \App\ConfigPeer::clearInstancePool();
+        }
     }
 
     public function testAppliesGeometryToActiveRun(): void
@@ -117,6 +152,14 @@ class GtbotSetGridToolTest extends TestCase
             ->orderByIdBotDecision(\Criteria::DESC)
             ->findOne();
         $this->assertSame(40, (int) $d->getDeployPct());
+        // decision receipt: requested geometry + (empty) clamp trail + candidate verdict
+        $req = json_decode((string) $d->getRequestedJson(), true);
+        $this->assertSame(['62000', '70000', 14, 40], [$req['p_low'], $req['p_high'], $req['n_levels'], $req['deploy_pct']]);
+        $this->assertSame([], json_decode((string) $d->getClampsJson(), true), 'no gate fired → empty trail');
+        $this->assertContains((string) $d->getCandidateDelta(), ['same', 'deviated', 'none']);
+        $brief = json_decode((string) $d->getBriefJson(), true);
+        $this->assertArrayHasKey('regime', $brief);
+        $this->assertSame(['clamps' => [], 'candidate_delta' => (string) $d->getCandidateDelta()], $out['receipt']);
     }
 
     public function testDeployPctOutOfRangeIsRejected(): void
@@ -190,6 +233,13 @@ class GtbotSetGridToolTest extends TestCase
         $this->assertStringContainsString('hostile regime', (string) ($out['regime_gate'] ?? ''));
         $this->run->reload();
         $this->assertSame(25, (int) $this->run->getDeployPct(), 'sweep gate: down|adx>=30 caps deploy at 25');
+        // the clamp is on the record: requested 100, regime_gate → 25
+        $d = \App\BotDecisionQuery::create()->filterByIdGridRun((int) $this->run->getIdGridRun())->orderByIdBotDecision(\Criteria::DESC)->findOne();
+        $clamps = json_decode((string) $d->getClampsJson(), true);
+        $this->assertCount(1, $clamps);
+        $this->assertSame(['regime_gate', 100, 25], [$clamps[0]['limit'], $clamps[0]['before'], $clamps[0]['after']]);
+        $this->assertSame(100, json_decode((string) $d->getRequestedJson(), true)['deploy_pct']);
+        $this->assertSame('regime_gate', $out['receipt']['clamps'][0]['limit']);
     }
 
     public function testFriendlyRegimeDoesNotCap(): void

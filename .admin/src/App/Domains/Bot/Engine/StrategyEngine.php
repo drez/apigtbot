@@ -35,6 +35,19 @@ interface StrategyEngine
     /** Post-fill semantics for a non-legacy engine order. */
     public function onBuyFill(\App\BotOrder $row, string $executed, string $fee, string $price): void;
 
+    /**
+     * An exit of this engine's own traded — AN ENGINE BOOKS ITS OWN FILLS.
+     * The shell has booked the fill on the ledger (Daemon::bookFill) and hands
+     * over what the account actually delivered; the cycle, the position and
+     * the re-arm are the engine's, because only it knows what this fill did to
+     * the position it is running.
+     *
+     * $executed is NOT always the whole order: an exit canceled after part of
+     * it traded comes through here too (Daemon::bookCanceledRemainder), with
+     * the rest still held. An engine that assumes "sell filled ⇒ position
+     * closed" books base it never sold, and — for an engine that tracks its
+     * position off the book — can never read flat again.
+     */
     public function onSellFill(\App\BotOrder $row, string $executed, string $fee, string $price): void;
 
     /** A working exit of THIS engine's own (non-legacy) left the book without
@@ -61,6 +74,11 @@ interface StrategyEngine
      * rebase check — all of which must see a trend position exactly as they
      * see grid inventory, or those rails run blind for one algorithm.
      */
+    /** The shell placed this engine's exit for LESS than it asked (floored to
+     *  the lot step, or shrunk to what the account holds — Daemon::
+     *  placeShrunkExit): hold, and later book, what the exit carries. */
+    public function onExitResized(int $levelIdx, string $placedQty): void;
+
     public function heldQty(): string;
 
     /**
@@ -86,6 +104,20 @@ interface StrategyEngine
      * immediately at the better price anyway.
      */
     public function handoffUnguardedPosition(): void;
+
+    /**
+     * Sell whatever this engine holds that is NOT already represented by a
+     * working exit, at $price — the engine half of kill+flatten
+     * (Daemon::flattenInventory has already repriced the working exits to the
+     * mark). An engine whose position IS its open book has nothing to do here;
+     * one that tracks a position in engine_state (Trend) owns the only record
+     * of that inventory and must place its exit itself.
+     *
+     * The loss rules bind here too: an engine that would realize a loss with
+     * grid_run.sell_at_loss OFF holds instead (TrendEngine::mayExitAt), same
+     * as it does for a stop-out.
+     */
+    public function liquidate(string $price): void;
 
     /** One-time cutover INTO this engine when run.algo changed since last boot.
      *  The shell has already torn the previous engine's book down (open buys

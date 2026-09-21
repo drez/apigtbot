@@ -993,7 +993,7 @@ abstract class BaseAuthyGroupXQuery extends ModelCriteria
     protected function basePostDelete($affectedRows, PropelPDO $con)
     {
         // GoatCheese behavior
-        
+
                 if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                     \ApiGoat\Utility\TableVersion::bump('authy_group_x');
                 }
@@ -1010,7 +1010,7 @@ abstract class BaseAuthyGroupXQuery extends ModelCriteria
     protected function basePostUpdate($affectedRows, PropelPDO $con)
     {
         // GoatCheese behavior
-        
+
                 if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                     \ApiGoat\Utility\TableVersion::bump('authy_group_x');
                 }

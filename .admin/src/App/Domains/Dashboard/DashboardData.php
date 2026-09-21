@@ -4,20 +4,22 @@ namespace App\Domains\Dashboard;
 
 use App\BotEventQuery;
 use App\BotOrderQuery;
+use App\Domains\Bot\CandleStore;
 use App\Domains\Bot\DrawdownGuard;
-use App\Domains\Bot\MarketStore;
 use App\Domains\Bot\OrderStore;
+use App\Domains\Bot\BudgetPool;
 use App\Domains\Bot\SimWallet;
 use App\GridRun;
 use App\GridRunQuery;
-use App\MarketSummaryQuery;
 use App\TradeCycleQuery;
 
 /**
  * Exchange-free query layer for the dashboard — plain DB reads over the active
  * run's rows, returning scalars/arrays so DashboardRenderer has zero ORM
  * coupling (and can be unit-tested with a hand-built view model). No Binance
- * calls: the daemon owns the exchange; the dashboard reflects persisted state.
+ * calls: the daemon owns the exchange; the dashboard reflects persisted state
+ * — the trading chart included (chartModel() reads the collector-fed
+ * CandleStore, never the exchange).
  */
 final class DashboardData
 {
@@ -33,8 +35,10 @@ final class DashboardData
     /** Every run a tab should exist for: Live/Testnet/DryRun, oldest first. */
     public static function activeRuns(): array
     {
+        // Halted runs keep their tab: a run parked via "Hold funds" must stay
+        // reachable so its "Release funds" button has somewhere to live.
         return GridRunQuery::create()
-            ->filterByStatus(['Live', 'Testnet', 'DryRun'], \Criteria::IN)
+            ->filterByStatus(['Live', 'Testnet', 'DryRun', 'Halted'], \Criteria::IN)
             ->orderByIdGridRun()
             ->find()
             ->getArrayCopy();
@@ -54,6 +58,12 @@ final class DashboardData
                 return $run;
             }
         }
+        // Default tab: prefer a run that's actually trading over a held one.
+        foreach ($active as $run) {
+            if ((string) $run->getStatus() !== 'Halted') {
+                return $run;
+            }
+        }
         return $active[0] ?? null;
     }
 
@@ -67,20 +77,41 @@ final class DashboardData
     {
         $tabs = [];
         foreach ($active as $run) {
-            $last = $run->getLastTickAt('Y-m-d H:i:s');
-            $age = $last ? (time() - strtotime($last)) : null;
             $id = (int) $run->getIdGridRun();
             $tabs[] = [
                 'id' => $id,
                 'symbol' => (string) $run->getSymbol(),
                 'status' => (string) $run->getStatus(),
                 'kill_switch' => (bool) $run->getKillSwitch(),
-                'heartbeat_stale' => $age === null || $age > 90,
+                'held' => self::isHeld($run),
+                'heartbeat_stale' => self::heartbeatStale($run),
                 'selected' => $id === $selectedId,
                 'href' => rtrim($baseUrl, '/') . '/?run=' . $id,
             ];
         }
         return $tabs;
+    }
+
+    /**
+     * A Halted run is parked by the operator (Hold funds / manual status):
+     * its daemon exited on purpose and the watchdog does not respawn it, so
+     * its frozen tick is expected — not a stale heartbeat (prod run 9,
+     * 2026-09-15: halted trend arm read "heartbeat stale" for a day).
+     */
+    public static function isHeld(GridRun $run): bool
+    {
+        return (string) $run->getStatus() === 'Halted';
+    }
+
+    /** Heartbeat older than 90 s (or never ticked) on a run that should be running. */
+    public static function heartbeatStale(GridRun $run): bool
+    {
+        if (self::isHeld($run)) {
+            return false;
+        }
+        $last = $run->getLastTickAt('Y-m-d H:i:s');
+        $age = $last ? (time() - strtotime($last)) : null;
+        return $age === null || $age > 90;
     }
 
     /** Latest running (or otherwise latest non-Done) run, mirroring the MCP tools. */
@@ -129,15 +160,18 @@ final class DashboardData
             return null;
         }
         $last = $this->run->getLastTickAt('Y-m-d H:i:s');
-        $age = $last ? (time() - strtotime($last)) : null;
         return [
             'id' => (int) $this->run->getIdGridRun(),
             'label' => (string) $this->run->getLabel(),
             'symbol' => (string) $this->run->getSymbol(),
             'status' => (string) $this->run->getStatus(),
             'kill_switch' => (bool) $this->run->getKillSwitch(),
+            'sell_at_loss' => (bool) $this->run->getSellAtLoss(),
+            'sell_when_starved' => (bool) $this->run->getSellWhenStarved(),
+            'deploy_pct' => (int) $this->run->getDeployPct(), // 0 = entries off, exits only (see the renderer's pill)
             'last_tick_at' => $last ?: '—',
-            'heartbeat_stale' => $age === null || $age > 90,
+            'held' => self::isHeld($this->run),
+            'heartbeat_stale' => self::heartbeatStale($this->run),
             'p_low' => (string) $this->run->getPLow(),
             'p_high' => (string) $this->run->getPHigh(),
             'last_price' => (string) ($this->run->getLastPrice() ?? ''),
@@ -250,37 +284,62 @@ final class DashboardData
             'bal_base' => $balBase,
             'bal_quote' => $balQuote,
             'account_value' => $accountValue,
+        ] + $this->allocation();
+    }
+
+    /**
+     * How this run's slice is being used, and what that slice earns.
+     *
+     * `committed` is the quote the allocator may NOT reclaim (it is tied up in
+     * inventory); `idle` is what a rebalance could actually move. `per_1k_day`
+     * is the capital-efficiency score auto-allocate ranks runs by — null until
+     * the run has enough cycles to have earned an opinion.
+     */
+    private function allocation(): array
+    {
+        $run = $this->run;
+        if ($run === null) {
+            return [];
+        }
+        $slice = bcadd((string) $run->getBudgetQuote(), '0', 0);
+        $floor = \App\Domains\Bot\Allocator::hardFloor($run);
+        $mode = \App\Domains\Bot\Allocator::effectiveMode($run);
+
+        $store = new \App\Domains\Bot\OrderStore(
+            (int) $run->getIdGridRun(),
+            (string) $run->getRunUid(),
+            $run->getLedgerResetAt('Y-m-d H:i:s'),
+            (bool) $run->getSimulated()
+        );
+        $invested = $store->investedQuote();
+        $legacy = $store->legacyReserveQuote();
+        $committed = bccomp($invested, $legacy, self::SCALE) >= 0 ? $invested : $legacy;
+        $idle = bcsub($slice, $committed, self::SCALE);
+        if (bccomp($idle, '0', self::SCALE) < 0) {
+            $idle = '0';
+        }
+
+        $days = \App\Domains\Bot\AllocScore::windowDays();
+        $score = \App\Domains\Bot\AllocScore::score($run, $days);
+
+        return [
+            'alloc_slice' => $slice,
+            'alloc_floor' => $floor,
+            'alloc_committed' => $committed,
+            'alloc_idle' => $idle,
+            'alloc_mode' => (string) ($run->getAllocMode() ?: 'Auto'),
+            'alloc_auto' => $mode['auto'],
+            'alloc_mode_why' => $mode['why'],
+            'alloc_window_days' => $days,
+            'alloc_per_1k_day' => $score['per_1k_day'],
+            'alloc_net' => $score['net'],
+            'alloc_cycles' => $score['cycles'],
+            'alloc_eligible' => $score['eligible'],
+            'alloc_why' => $score['why'],
         ];
     }
 
-    /** Recent order points (oldest→newest) for the trade-point chart. */
-    public function tradePoints(int $limit = 60): array
-    {
-        if (!$this->run) {
-            return [];
-        }
-        // Canceled orders are bookkeeping (refits, prunes, restarts) — showing
-        // them as dots made the chart misrepresent actual trading activity.
-        $rows = $this->orderQ()
-            ->filterByState(['Vetoed', 'Canceled'], \Criteria::NOT_IN)
-            ->orderByIdBotOrder(\Criteria::DESC)
-            ->limit($limit)
-            ->find()
-            ->getArrayCopy();
-        $out = [];
-        foreach (array_reverse($rows) as $o) {
-            $out[] = [
-                'price' => (string) $o->getPrice(),
-                'side' => (string) $o->getSide(),
-                'state' => (string) $o->getState(),
-                'level' => (int) $o->getLevelIdx(),
-                'at' => $o->getDateCreation('Y-m-d H:i:s'),
-            ];
-        }
-        return $out;
-    }
-
-    /** Event kinds drawn as vertical marker lines on the trade chart.
+    /** Event kinds drawn as lifecycle markers on the trade chart.
      *  'reloading' is the pre-algo_update kind for code-deploy restarts —
      *  kept so history recorded before the rename still shows.
      *  algo_switch/algo_cutover/engine_missing/stranded_book are the
@@ -290,19 +349,57 @@ final class DashboardData
      *  tranche fill, every ratchet, every stop hit) and would flood the
      *  newest-20 chartMarkers() window, evicting the lifecycle markers this
      *  list exists to surface — it belongs in the event feed/Telegram, not
-     *  the chart. Every kind listed here MUST have a TradeChart::
-     *  MARKER_CLASS entry (pinned by MarkerKindCoverageTest) — a marker
-     *  with no class silently never draws. */
+     *  the chart. Every kind listed here MUST have a MARKER_LABEL entry
+     *  (pinned by MarkerKindCoverageTest) — a marker with no label is
+     *  dropped by chartModel(). */
     private const MARKER_KINDS = [
         'algo_update', 'reloading', 'bot_start', 'bot_stop', 'bot_restart',
         'algo_switch', 'algo_cutover', 'engine_missing', 'stranded_book',
+        'trend_activate', 'trend_deactivate', 'trend_release',
+        'run_retired', 'run_finalized',
+    ];
+
+    /** Marker text per chart-worthy kind (after the 'reloading' rewrite). */
+    private const MARKER_LABEL = [
+        'algo_update' => 'algo update',
+        'bot_start' => 'start',
+        'bot_stop' => 'stop',
+        'bot_restart' => 'restart',
+        'algo_switch' => 'algo switch',
+        'algo_cutover' => 'algo cutover',
+        'engine_missing' => 'engine missing',
+        'stranded_book' => 'stranded book',
+        'trend_activate' => 'trend arm on',
+        'trend_deactivate' => 'trend arm off',
+        'trend_release' => 'trend slice released',
+        'run_retired' => 'retired',
+        'run_finalized' => 'archived',
     ];
 
     /**
      * Recent lifecycle events (algo deploys, start/stop/restart) for the
-     * chart, oldest→newest. TradeChart interleaves them between trade points
-     * by timestamp.
+     * chart, oldest→newest; chartModel() places them on the candle they
+     * fall in.
      */
+    /** Epoch seconds of a DB stamp written by the daemon.
+     *
+     *  Propel stamps date_creation/date_modification in the writing
+     *  process's default timezone — the daemon's, i.e. php.ini
+     *  (UTC on prod). The dashboard request runs in the user's session
+     *  timezone (legacy.php overrides the default), so a bare strtotime()
+     *  would read a UTC stamp as local time and place every fill hours
+     *  away from the candle it happened in. Parse in the writer's zone. */
+    private static function stampEpoch(string $stamp): int
+    {
+        static $zone = null;
+        $zone ??= new \DateTimeZone(ini_get('date.timezone') ?: 'UTC');
+        try {
+            return (new \DateTimeImmutable($stamp, $zone))->getTimestamp();
+        } catch (\Exception) {
+            return 0;
+        }
+    }
+
     public function chartMarkers(int $limit = 20): array
     {
         if (!$this->run) {
@@ -325,48 +422,6 @@ final class DashboardData
             ];
         }
         return $out;
-    }
-
-    /** Timeframe → seconds per candle, in the priority order tried by priceHistory(). */
-    private const HISTORY_TF_SECONDS = ['15m' => 900, '1h' => 3600, '4h' => 14400, '1d' => 86400];
-
-    /**
-     * Pale historical price line feed for the run's symbol, oldest→newest.
-     * MarketStore::candles() carries no timestamps, so they are reconstructed
-     * from the matching market_summary row's computed_at (the newest
-     * candle's time): candle i (0-based, N total) sits at
-     * computed_at − (N−1−i) × tfSeconds. Tries '15m','1h','4h','1d' in order,
-     * first non-empty wins; empty when no market_summary row exists yet
-     * (local dev) — the chart falls back to its current behavior.
-     *
-     * @return array<int, array{at:string, close:string}>
-     */
-    public function priceHistory(): array
-    {
-        if (!$this->run) {
-            return [];
-        }
-        $symbol = (string) $this->run->getSymbol();
-        foreach (self::HISTORY_TF_SECONDS as $tf => $tfSeconds) {
-            $candles = MarketStore::candles($symbol, $tf);
-            if (!$candles) {
-                continue;
-            }
-            $row = MarketSummaryQuery::create()->filterBySymbol($symbol)->filterByTf($tf)->findOne();
-            $computedAt = $row ? $row->getComputedAt('Y-m-d H:i:s') : null;
-            if ($computedAt === null) {
-                continue;
-            }
-            $newestTs = strtotime($computedAt);
-            $n = count($candles);
-            $out = [];
-            foreach ($candles as $i => $c) {
-                $ts = $newestTs - ($n - 1 - $i) * $tfSeconds;
-                $out[] = ['at' => date('Y-m-d H:i:s', $ts), 'close' => (string) $c['close']];
-            }
-            return $out;
-        }
-        return [];
     }
 
     public function latestCycles(int $limit = 8): array
@@ -561,6 +616,7 @@ final class DashboardData
      *   mode:string, budget:string, slices_sum:string, wallet_usdt:?string,
      *   account_value:?string, value_partial:bool, realized_total:string,
      *   realized_today:string, total_pl:?string,
+     *   budget_allocatable:string, pool_reserve_pct:string,
      *   drawdown_floor:?string, drawdown_under:bool,
      *   assets:array<int, array{asset:string, qty:string, value:?string}>,
      *   holdings_value:?string, open_sell_value:string, open_buy_value:string,
@@ -573,7 +629,18 @@ final class DashboardData
         $wallet = self::computeSharedWallet();
         $runs = GridRunQuery::create()->filterByStatus('Done', \Criteria::NOT_EQUAL)->find()->getArrayCopy();
 
-        $budget = SimWallet::sharedBudget();
+        // the pool cap (follows the wallet when gtbot_use_all_funds is on);
+        // total_pl stays relative to the fixed seed — that is the deposit
+        $budgetFixed = SimWallet::sharedBudget();
+        $budget = BudgetPool::cap();
+        $useAllFunds = BudgetPool::useAllFunds();
+        // What the automatic allocators may plan against (cap minus
+        // gtbot_pool_reserve_pct). The tile shows it so the operator can see
+        // why the slices stop short of the budget; free_budget and every
+        // other number on the band stay on the cap, which is what the
+        // overcommit guard enforces.
+        $allocatable = BudgetPool::allocatable();
+        $reservePct = BudgetPool::reservePct();
         $slicesSum = '0';
         foreach (GridRunQuery::create()->filterByStatus(self::BUDGET_SCOPE_STATUSES, \Criteria::IN)->find() as $r) {
             $slicesSum = bcadd($slicesSum, (string) $r->getBudgetQuote(), self::SCALE);
@@ -638,7 +705,7 @@ final class DashboardData
             }
         }
 
-        $totalPl = $accountValue !== null ? bcsub($accountValue, $budget, self::SCALE) : null;
+        $totalPl = $accountValue !== null ? bcsub($accountValue, $budgetFixed, self::SCALE) : null;
 
         // holdings_value: every non-USDT wallet asset priced at its matching
         // run's last_price — reuses the asset pricing already computed above
@@ -682,13 +749,17 @@ final class DashboardData
 
         // wallet-level drawdown floor (DrawdownGuard) — shown on the
         // Account value tile; red when equity is under it
-        $ddFloor = DrawdownGuard::floor();
+        $ddFloor = DrawdownGuard::floor(DrawdownGuard::equity()['source']);
         $ddUnder = $ddFloor !== null && $accountValue !== null
             && bccomp($accountValue, $ddFloor, self::SCALE) < 0;
 
         return [
             'mode' => $mode,
             'budget' => $budget,
+            'budget_fixed' => $budgetFixed,
+            'use_all_funds' => $useAllFunds,
+            'budget_allocatable' => $allocatable,
+            'pool_reserve_pct' => $reservePct,
             'slices_sum' => $slicesSum,
             'wallet_usdt' => $walletUsdt,
             'account_value' => $accountValue,
@@ -706,6 +777,109 @@ final class DashboardData
         ];
     }
 
+    /** Chart timeframes the dashboard offers (candle store intervals). */
+    public const CHART_TFS = CandleStore::INTERVALS;
+
+    /** Bars the chart endpoint returns per request. */
+    private const CHART_BARS = 1500;
+
+    /**
+     * Everything the trading chart draws for one timeframe: the persisted
+     * OHLCV candles for the run's symbol, the run's fills placed at their
+     * fill time (date_modification — date_creation is placement), the
+     * working ladder, the grid geometry, the trend arm's entry/stop/hwm
+     * (engine_state, Trend runs only) and the lifecycle markers. Times are
+     * epoch seconds so the client aligns bot activity bar-for-bar.
+     *
+     * @throws \InvalidArgumentException on an unknown timeframe
+     */
+    public function chartModel(string $tf): array
+    {
+        if (!in_array($tf, self::CHART_TFS, true)) {
+            throw new \InvalidArgumentException("unknown chart timeframe '$tf'");
+        }
+        if (!$this->run) {
+            return [];
+        }
+        $symbol = (string) $this->run->getSymbol();
+        $candles = CandleStore::series($symbol, $tf, self::CHART_BARS);
+        $newest = $candles ? $candles[count($candles) - 1]['time'] : null;
+        $tfSec = CandleStore::TF_SECONDS[$tf];
+        // the collector passes every 1–10 min; a series whose newest bar is
+        // older than three bars (or 15 min for the long timeframes) is stale
+        $stale = $newest === null || (time() - $newest) > max(3 * $tfSec, 900) + $tfSec;
+
+        $fills = [];
+        $rows = $this->orderQ()
+            ->filterByState(['Filled', 'PartFilled'], \Criteria::IN)
+            ->orderByIdBotOrder(\Criteria::DESC)
+            ->limit(500)
+            ->find()
+            ->getArrayCopy();
+        foreach (array_reverse($rows) as $o) {
+            $at = $o->getDateModification('Y-m-d H:i:s') ?: $o->getDateCreation('Y-m-d H:i:s');
+            $fills[] = [
+                'time' => $at ? self::stampEpoch($at) : 0,
+                'price' => (float) $o->getPrice(),
+                'qty' => (float) ((string) $o->getFilledQty() !== '' && bccomp((string) $o->getFilledQty(), '0', 8) > 0 ? $o->getFilledQty() : $o->getQty()),
+                'side' => (string) $o->getSide(),
+                'level' => (int) $o->getLevelIdx(),
+                'state' => (string) $o->getState(),
+            ];
+        }
+
+        $open = [];
+        foreach ($this->orderQ()->filterByState(['BUY_OPEN', 'SELL_OPEN'], \Criteria::IN)->find() as $o) {
+            $open[] = ['price' => (float) $o->getPrice(), 'side' => (string) $o->getSide(), 'level' => (int) $o->getLevelIdx()];
+        }
+
+        $trend = null;
+        if ((string) $this->run->getAlgo() === 'Trend') {
+            $state = json_decode((string) ($this->run->getEngineState() ?? ''), true);
+            $state = is_array($state) ? $state : [];
+            $num = static fn ($v) => $v === null || $v === '' ? null : (float) $v;
+            $trend = [
+                'entry' => $num($state['entry'] ?? null),
+                'stop' => $num($state['stop'] ?? null),
+                'hwm' => $num($state['hwm'] ?? null),
+                'qty' => $num($state['qty'] ?? null),
+            ];
+        }
+
+        $events = [];
+        foreach ($this->chartMarkers() as $m) {
+            if (!isset(self::MARKER_LABEL[$m['kind']])) {
+                continue;
+            }
+            $events[] = [
+                'time' => self::stampEpoch($m['at']),
+                'kind' => $m['kind'],
+                'label' => self::MARKER_LABEL[$m['kind']],
+                'message' => $m['message'],
+            ];
+        }
+
+        return [
+            'run' => (int) $this->run->getIdGridRun(),
+            'symbol' => $symbol,
+            'tf' => $tf,
+            'tf_seconds' => $tfSec,
+            'server_time' => time(),
+            'stale' => $stale,
+            'candles' => $candles,
+            'fills' => $fills,
+            'orders_open' => $open,
+            'grid' => [
+                'p_low' => (float) $this->run->getPLow(),
+                'p_high' => (float) $this->run->getPHigh(),
+                'levels' => array_map('floatval', $this->gridLevels()),
+            ],
+            'trend' => $trend,
+            'events' => $events,
+            'last_price' => $this->run->getLastPrice() !== null ? (float) $this->run->getLastPrice() : null,
+        ];
+    }
+
     /** Full view model consumed by DashboardRenderer. */
     public function viewModel(string $baseUrl): array
     {
@@ -713,10 +887,6 @@ final class DashboardData
             'baseUrl' => $baseUrl,
             'run' => $this->runHeader(),
             'kpis' => $this->kpis(),
-            'points' => $this->tradePoints(),
-            'history' => $this->priceHistory(),
-            'markers' => $this->chartMarkers(),
-            'grid_levels' => $this->gridLevels(),
             'cycles' => $this->latestCycles(),
             'events' => $this->latestEvents(),
             'daily' => $this->dailyPnl(),

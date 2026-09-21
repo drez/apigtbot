@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseAuthyLog;
 
-require 'om/BaseAuthyLog.php';
+require_once __DIR__ . '/om/BaseAuthyLog.php';
 
 
 /**

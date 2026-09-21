@@ -6,7 +6,7 @@ use App\ApiLog;
 use App\ApiRbac;
 use App\ApiRbacPeer;
 use App\Domains\Bot\RoutineLiveness;
-use PHPUnit\Framework\TestCase;
+use Tests\Builder\Support\DbTestCase;
 
 /**
  * Detecting a dead refit routine: "no refit lately" is the wrong signal (a
@@ -14,41 +14,14 @@ use PHPUnit\Framework\TestCase;
  * gtbot_* MCP tools, and every call lands in api_log. Prolonged silence
  * there = the routine/MCP link is down.
  */
-class RoutineLivenessTest extends TestCase
+class RoutineLivenessTest extends DbTestCase
 {
-    private static bool $booted = false;
-
-    public static function setUpBeforeClass(): void
-    {
-        if (self::$booted) {
-            return;
-        }
-        $admin = dirname(__DIR__, 3);
-        require_once $admin . '/vendor/autoload.php';
-        (new \Ahc\Env\Loader())->load($admin . '/.env');
-        if (!defined('_AUTH_VAR')) {
-            require $admin . '/config/Built/config.php';
-        }
-        if (!\Propel::isInit()) {
-            require $admin . '/config/Built/propel.php';
-        }
-        if (session_status() === PHP_SESSION_NONE) {
-            @session_start();
-        }
-        $_SESSION[_AUTH_VAR] = new \ApiGoat\Sessions\AuthySession();
-        self::$booted = true;
-    }
-
     protected function setUp(): void
     {
-        \Propel::getConnection()->beginTransaction();
-        // isolate from real prod/dev traffic rows in api_log
+        parent::setUp();
+        // isolate from real prod/dev traffic rows in api_log (inside this
+        // worker's own transaction — rolled back with everything else)
         \Propel::getConnection()->exec('DELETE FROM api_log');
-    }
-
-    protected function tearDown(): void
-    {
-        \Propel::getConnection()->rollBack();
     }
 
     private function logCall(string $model, string $action, int $ts): void
@@ -97,5 +70,14 @@ class RoutineLivenessTest extends TestCase
     public function testNoActivityAtAllIsSilent(): void
     {
         $this->assertTrue(RoutineLiveness::isSilent(7200), 'an active run with no routine EVER is exactly the unsafe setup');
+    }
+
+    public function testToolSpecificSilenceIgnoresOtherGtbotTools(): void
+    {
+        $this->logCall('gtbot_status', 'mcp', time() - 300);
+        $this->assertFalse(RoutineLiveness::isSilent(7200), 'any gtbot call keeps the generic liveness alive');
+        $this->assertTrue(RoutineLiveness::isSilentFor('gtbot_set_grid', 7200), 'deploy ownership needs actual set_grid calls, not any MCP poke');
+        $this->logCall('gtbot_set_grid', 'mcp', time() - 300);
+        $this->assertFalse(RoutineLiveness::isSilentFor('gtbot_set_grid', 7200));
     }
 }

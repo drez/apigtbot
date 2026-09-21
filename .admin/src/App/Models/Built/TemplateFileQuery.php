@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseTemplateFileQuery;
 
-require 'om/BaseTemplateFileQuery.php';
+require_once __DIR__ . '/om/BaseTemplateFileQuery.php';
 
 
 /**

@@ -3,6 +3,11 @@ DirectoryIndex public/index.php
 SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
 <IfModule mod_rewrite.c>
   RewriteEngine on
+  # gc-security-php: the !-f passthrough below EXECUTES any real .php under
+  # .admin/ (config/, scripts/, tests/, src/, vendor/ ...) with no login. Only
+  # public/ holds web entry points; everything else is CLI/include-only.
+  RewriteCond %{REQUEST_FILENAME} -f
+  RewriteRule ^(?!public/).*\.(php[0-9]?|phtml|phar)$ - [F,NC]
   # gc-security: never serve build/DB/backup/log/secret artifacts. The
   # front controller below only rewrites when the target does NOT exist
   # (!-f), so any real file under .admin/ (db-backup.sql, build.properties,

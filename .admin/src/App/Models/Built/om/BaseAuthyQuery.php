@@ -27,7 +27,12 @@ use App\BotEvent;
 use App\BotOrder;
 use App\Config;
 use App\Country;
+use App\FleetSlot;
 use App\GridRun;
+use App\GridRunAudit;
+use App\MarketCandle;
+use App\MarketOutlook;
+use App\MarketOutlookState;
 use App\MarketRegime;
 use App\MarketSummary;
 use App\MessageI18n;
@@ -36,10 +41,12 @@ use App\OauthAuthCode;
 use App\OauthClient;
 use App\OauthRefreshToken;
 use App\PushDevice;
+use App\RegimeEpisode;
 use App\SimWallet;
 use App\Template;
 use App\TemplateFile;
 use App\TradeCycle;
+use App\WalletNav;
 
 /**
  * Base class that represents a query for the 'authy' table.
@@ -156,14 +163,6 @@ use App\TradeCycle;
  * @method AuthyQuery rightJoinPushDeviceRelatedByIdModification($relationAlias = null) Adds a RIGHT JOIN clause to the query using the PushDeviceRelatedByIdModification relation
  * @method AuthyQuery innerJoinPushDeviceRelatedByIdModification($relationAlias = null) Adds a INNER JOIN clause to the query using the PushDeviceRelatedByIdModification relation
  *
- * @method AuthyQuery leftJoinCountryRelatedByIdCreation($relationAlias = null) Adds a LEFT JOIN clause to the query using the CountryRelatedByIdCreation relation
- * @method AuthyQuery rightJoinCountryRelatedByIdCreation($relationAlias = null) Adds a RIGHT JOIN clause to the query using the CountryRelatedByIdCreation relation
- * @method AuthyQuery innerJoinCountryRelatedByIdCreation($relationAlias = null) Adds a INNER JOIN clause to the query using the CountryRelatedByIdCreation relation
- *
- * @method AuthyQuery leftJoinCountryRelatedByIdModification($relationAlias = null) Adds a LEFT JOIN clause to the query using the CountryRelatedByIdModification relation
- * @method AuthyQuery rightJoinCountryRelatedByIdModification($relationAlias = null) Adds a RIGHT JOIN clause to the query using the CountryRelatedByIdModification relation
- * @method AuthyQuery innerJoinCountryRelatedByIdModification($relationAlias = null) Adds a INNER JOIN clause to the query using the CountryRelatedByIdModification relation
- *
  * @method AuthyQuery leftJoinGridRunRelatedByIdCreation($relationAlias = null) Adds a LEFT JOIN clause to the query using the GridRunRelatedByIdCreation relation
  * @method AuthyQuery rightJoinGridRunRelatedByIdCreation($relationAlias = null) Adds a RIGHT JOIN clause to the query using the GridRunRelatedByIdCreation relation
  * @method AuthyQuery innerJoinGridRunRelatedByIdCreation($relationAlias = null) Adds a INNER JOIN clause to the query using the GridRunRelatedByIdCreation relation
@@ -171,6 +170,22 @@ use App\TradeCycle;
  * @method AuthyQuery leftJoinGridRunRelatedByIdModification($relationAlias = null) Adds a LEFT JOIN clause to the query using the GridRunRelatedByIdModification relation
  * @method AuthyQuery rightJoinGridRunRelatedByIdModification($relationAlias = null) Adds a RIGHT JOIN clause to the query using the GridRunRelatedByIdModification relation
  * @method AuthyQuery innerJoinGridRunRelatedByIdModification($relationAlias = null) Adds a INNER JOIN clause to the query using the GridRunRelatedByIdModification relation
+ *
+ * @method AuthyQuery leftJoinFleetSlotRelatedByIdCreation($relationAlias = null) Adds a LEFT JOIN clause to the query using the FleetSlotRelatedByIdCreation relation
+ * @method AuthyQuery rightJoinFleetSlotRelatedByIdCreation($relationAlias = null) Adds a RIGHT JOIN clause to the query using the FleetSlotRelatedByIdCreation relation
+ * @method AuthyQuery innerJoinFleetSlotRelatedByIdCreation($relationAlias = null) Adds a INNER JOIN clause to the query using the FleetSlotRelatedByIdCreation relation
+ *
+ * @method AuthyQuery leftJoinFleetSlotRelatedByIdModification($relationAlias = null) Adds a LEFT JOIN clause to the query using the FleetSlotRelatedByIdModification relation
+ * @method AuthyQuery rightJoinFleetSlotRelatedByIdModification($relationAlias = null) Adds a RIGHT JOIN clause to the query using the FleetSlotRelatedByIdModification relation
+ * @method AuthyQuery innerJoinFleetSlotRelatedByIdModification($relationAlias = null) Adds a INNER JOIN clause to the query using the FleetSlotRelatedByIdModification relation
+ *
+ * @method AuthyQuery leftJoinRegimeEpisodeRelatedByIdCreation($relationAlias = null) Adds a LEFT JOIN clause to the query using the RegimeEpisodeRelatedByIdCreation relation
+ * @method AuthyQuery rightJoinRegimeEpisodeRelatedByIdCreation($relationAlias = null) Adds a RIGHT JOIN clause to the query using the RegimeEpisodeRelatedByIdCreation relation
+ * @method AuthyQuery innerJoinRegimeEpisodeRelatedByIdCreation($relationAlias = null) Adds a INNER JOIN clause to the query using the RegimeEpisodeRelatedByIdCreation relation
+ *
+ * @method AuthyQuery leftJoinRegimeEpisodeRelatedByIdModification($relationAlias = null) Adds a LEFT JOIN clause to the query using the RegimeEpisodeRelatedByIdModification relation
+ * @method AuthyQuery rightJoinRegimeEpisodeRelatedByIdModification($relationAlias = null) Adds a RIGHT JOIN clause to the query using the RegimeEpisodeRelatedByIdModification relation
+ * @method AuthyQuery innerJoinRegimeEpisodeRelatedByIdModification($relationAlias = null) Adds a INNER JOIN clause to the query using the RegimeEpisodeRelatedByIdModification relation
  *
  * @method AuthyQuery leftJoinBotOrderRelatedByIdCreation($relationAlias = null) Adds a LEFT JOIN clause to the query using the BotOrderRelatedByIdCreation relation
  * @method AuthyQuery rightJoinBotOrderRelatedByIdCreation($relationAlias = null) Adds a RIGHT JOIN clause to the query using the BotOrderRelatedByIdCreation relation
@@ -228,6 +243,14 @@ use App\TradeCycle;
  * @method AuthyQuery rightJoinMarketRegimeRelatedByIdModification($relationAlias = null) Adds a RIGHT JOIN clause to the query using the MarketRegimeRelatedByIdModification relation
  * @method AuthyQuery innerJoinMarketRegimeRelatedByIdModification($relationAlias = null) Adds a INNER JOIN clause to the query using the MarketRegimeRelatedByIdModification relation
  *
+ * @method AuthyQuery leftJoinMarketCandleRelatedByIdCreation($relationAlias = null) Adds a LEFT JOIN clause to the query using the MarketCandleRelatedByIdCreation relation
+ * @method AuthyQuery rightJoinMarketCandleRelatedByIdCreation($relationAlias = null) Adds a RIGHT JOIN clause to the query using the MarketCandleRelatedByIdCreation relation
+ * @method AuthyQuery innerJoinMarketCandleRelatedByIdCreation($relationAlias = null) Adds a INNER JOIN clause to the query using the MarketCandleRelatedByIdCreation relation
+ *
+ * @method AuthyQuery leftJoinMarketCandleRelatedByIdModification($relationAlias = null) Adds a LEFT JOIN clause to the query using the MarketCandleRelatedByIdModification relation
+ * @method AuthyQuery rightJoinMarketCandleRelatedByIdModification($relationAlias = null) Adds a RIGHT JOIN clause to the query using the MarketCandleRelatedByIdModification relation
+ * @method AuthyQuery innerJoinMarketCandleRelatedByIdModification($relationAlias = null) Adds a INNER JOIN clause to the query using the MarketCandleRelatedByIdModification relation
+ *
  * @method AuthyQuery leftJoinBotDecisionRelatedByIdCreation($relationAlias = null) Adds a LEFT JOIN clause to the query using the BotDecisionRelatedByIdCreation relation
  * @method AuthyQuery rightJoinBotDecisionRelatedByIdCreation($relationAlias = null) Adds a RIGHT JOIN clause to the query using the BotDecisionRelatedByIdCreation relation
  * @method AuthyQuery innerJoinBotDecisionRelatedByIdCreation($relationAlias = null) Adds a INNER JOIN clause to the query using the BotDecisionRelatedByIdCreation relation
@@ -235,6 +258,30 @@ use App\TradeCycle;
  * @method AuthyQuery leftJoinBotDecisionRelatedByIdModification($relationAlias = null) Adds a LEFT JOIN clause to the query using the BotDecisionRelatedByIdModification relation
  * @method AuthyQuery rightJoinBotDecisionRelatedByIdModification($relationAlias = null) Adds a RIGHT JOIN clause to the query using the BotDecisionRelatedByIdModification relation
  * @method AuthyQuery innerJoinBotDecisionRelatedByIdModification($relationAlias = null) Adds a INNER JOIN clause to the query using the BotDecisionRelatedByIdModification relation
+ *
+ * @method AuthyQuery leftJoinMarketOutlookRelatedByIdCreation($relationAlias = null) Adds a LEFT JOIN clause to the query using the MarketOutlookRelatedByIdCreation relation
+ * @method AuthyQuery rightJoinMarketOutlookRelatedByIdCreation($relationAlias = null) Adds a RIGHT JOIN clause to the query using the MarketOutlookRelatedByIdCreation relation
+ * @method AuthyQuery innerJoinMarketOutlookRelatedByIdCreation($relationAlias = null) Adds a INNER JOIN clause to the query using the MarketOutlookRelatedByIdCreation relation
+ *
+ * @method AuthyQuery leftJoinMarketOutlookRelatedByIdModification($relationAlias = null) Adds a LEFT JOIN clause to the query using the MarketOutlookRelatedByIdModification relation
+ * @method AuthyQuery rightJoinMarketOutlookRelatedByIdModification($relationAlias = null) Adds a RIGHT JOIN clause to the query using the MarketOutlookRelatedByIdModification relation
+ * @method AuthyQuery innerJoinMarketOutlookRelatedByIdModification($relationAlias = null) Adds a INNER JOIN clause to the query using the MarketOutlookRelatedByIdModification relation
+ *
+ * @method AuthyQuery leftJoinMarketOutlookStateRelatedByIdCreation($relationAlias = null) Adds a LEFT JOIN clause to the query using the MarketOutlookStateRelatedByIdCreation relation
+ * @method AuthyQuery rightJoinMarketOutlookStateRelatedByIdCreation($relationAlias = null) Adds a RIGHT JOIN clause to the query using the MarketOutlookStateRelatedByIdCreation relation
+ * @method AuthyQuery innerJoinMarketOutlookStateRelatedByIdCreation($relationAlias = null) Adds a INNER JOIN clause to the query using the MarketOutlookStateRelatedByIdCreation relation
+ *
+ * @method AuthyQuery leftJoinMarketOutlookStateRelatedByIdModification($relationAlias = null) Adds a LEFT JOIN clause to the query using the MarketOutlookStateRelatedByIdModification relation
+ * @method AuthyQuery rightJoinMarketOutlookStateRelatedByIdModification($relationAlias = null) Adds a RIGHT JOIN clause to the query using the MarketOutlookStateRelatedByIdModification relation
+ * @method AuthyQuery innerJoinMarketOutlookStateRelatedByIdModification($relationAlias = null) Adds a INNER JOIN clause to the query using the MarketOutlookStateRelatedByIdModification relation
+ *
+ * @method AuthyQuery leftJoinWalletNavRelatedByIdCreation($relationAlias = null) Adds a LEFT JOIN clause to the query using the WalletNavRelatedByIdCreation relation
+ * @method AuthyQuery rightJoinWalletNavRelatedByIdCreation($relationAlias = null) Adds a RIGHT JOIN clause to the query using the WalletNavRelatedByIdCreation relation
+ * @method AuthyQuery innerJoinWalletNavRelatedByIdCreation($relationAlias = null) Adds a INNER JOIN clause to the query using the WalletNavRelatedByIdCreation relation
+ *
+ * @method AuthyQuery leftJoinWalletNavRelatedByIdModification($relationAlias = null) Adds a LEFT JOIN clause to the query using the WalletNavRelatedByIdModification relation
+ * @method AuthyQuery rightJoinWalletNavRelatedByIdModification($relationAlias = null) Adds a RIGHT JOIN clause to the query using the WalletNavRelatedByIdModification relation
+ * @method AuthyQuery innerJoinWalletNavRelatedByIdModification($relationAlias = null) Adds a INNER JOIN clause to the query using the WalletNavRelatedByIdModification relation
  *
  * @method AuthyQuery leftJoinAuthyGroupRelatedByIdCreation($relationAlias = null) Adds a LEFT JOIN clause to the query using the AuthyGroupRelatedByIdCreation relation
  * @method AuthyQuery rightJoinAuthyGroupRelatedByIdCreation($relationAlias = null) Adds a RIGHT JOIN clause to the query using the AuthyGroupRelatedByIdCreation relation
@@ -299,6 +346,22 @@ use App\TradeCycle;
  * @method AuthyQuery leftJoinAuthyRefreshTokenRelatedByIdModification($relationAlias = null) Adds a LEFT JOIN clause to the query using the AuthyRefreshTokenRelatedByIdModification relation
  * @method AuthyQuery rightJoinAuthyRefreshTokenRelatedByIdModification($relationAlias = null) Adds a RIGHT JOIN clause to the query using the AuthyRefreshTokenRelatedByIdModification relation
  * @method AuthyQuery innerJoinAuthyRefreshTokenRelatedByIdModification($relationAlias = null) Adds a INNER JOIN clause to the query using the AuthyRefreshTokenRelatedByIdModification relation
+ *
+ * @method AuthyQuery leftJoinGridRunAuditRelatedByIdCreation($relationAlias = null) Adds a LEFT JOIN clause to the query using the GridRunAuditRelatedByIdCreation relation
+ * @method AuthyQuery rightJoinGridRunAuditRelatedByIdCreation($relationAlias = null) Adds a RIGHT JOIN clause to the query using the GridRunAuditRelatedByIdCreation relation
+ * @method AuthyQuery innerJoinGridRunAuditRelatedByIdCreation($relationAlias = null) Adds a INNER JOIN clause to the query using the GridRunAuditRelatedByIdCreation relation
+ *
+ * @method AuthyQuery leftJoinGridRunAuditRelatedByIdModification($relationAlias = null) Adds a LEFT JOIN clause to the query using the GridRunAuditRelatedByIdModification relation
+ * @method AuthyQuery rightJoinGridRunAuditRelatedByIdModification($relationAlias = null) Adds a RIGHT JOIN clause to the query using the GridRunAuditRelatedByIdModification relation
+ * @method AuthyQuery innerJoinGridRunAuditRelatedByIdModification($relationAlias = null) Adds a INNER JOIN clause to the query using the GridRunAuditRelatedByIdModification relation
+ *
+ * @method AuthyQuery leftJoinCountryRelatedByIdCreation($relationAlias = null) Adds a LEFT JOIN clause to the query using the CountryRelatedByIdCreation relation
+ * @method AuthyQuery rightJoinCountryRelatedByIdCreation($relationAlias = null) Adds a RIGHT JOIN clause to the query using the CountryRelatedByIdCreation relation
+ * @method AuthyQuery innerJoinCountryRelatedByIdCreation($relationAlias = null) Adds a INNER JOIN clause to the query using the CountryRelatedByIdCreation relation
+ *
+ * @method AuthyQuery leftJoinCountryRelatedByIdModification($relationAlias = null) Adds a LEFT JOIN clause to the query using the CountryRelatedByIdModification relation
+ * @method AuthyQuery rightJoinCountryRelatedByIdModification($relationAlias = null) Adds a RIGHT JOIN clause to the query using the CountryRelatedByIdModification relation
+ * @method AuthyQuery innerJoinCountryRelatedByIdModification($relationAlias = null) Adds a INNER JOIN clause to the query using the CountryRelatedByIdModification relation
  *
  * @method AuthyQuery leftJoinOauthClientRelatedByIdCreation($relationAlias = null) Adds a LEFT JOIN clause to the query using the OauthClientRelatedByIdCreation relation
  * @method AuthyQuery rightJoinOauthClientRelatedByIdCreation($relationAlias = null) Adds a RIGHT JOIN clause to the query using the OauthClientRelatedByIdCreation relation
@@ -2465,154 +2528,6 @@ abstract class BaseAuthyQuery extends ModelCriteria
     }
 
     /**
-     * Filter the query by a related Country object
-     *
-     * @param   Country|PropelObjectCollection $country  the related object to use as filter
-     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
-     *
-     * @return                 AuthyQuery The current query, for fluid interface
-     * @throws PropelException - if the provided filter is invalid.
-     */
-    public function filterByCountryRelatedByIdCreation($country, $comparison = null)
-    {
-        if ($country instanceof Country) {
-            return $this
-                ->addUsingAlias(AuthyPeer::ID_AUTHY, $country->getIdCreation(), $comparison);
-        } elseif ($country instanceof PropelObjectCollection) {
-            return $this
-                ->useCountryRelatedByIdCreationQuery()
-                ->filterByPrimaryKeys($country->getPrimaryKeys())
-                ->endUse();
-        } else {
-            throw new PropelException('filterByCountryRelatedByIdCreation() only accepts arguments of type Country or PropelCollection');
-        }
-    }
-
-    /**
-     * Adds a JOIN clause to the query using the CountryRelatedByIdCreation relation
-     *
-     * @param     string $relationAlias optional alias for the relation
-     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
-     *
-     * @return AuthyQuery The current query, for fluid interface
-     */
-    public function joinCountryRelatedByIdCreation($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
-    {
-        $tableMap = $this->getTableMap();
-        $relationMap = $tableMap->getRelation('CountryRelatedByIdCreation');
-
-        // create a ModelJoin object for this join
-        $join = new ModelJoin();
-        $join->setJoinType($joinType);
-        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-        if ($previousJoin = $this->getPreviousJoin()) {
-            $join->setPreviousJoin($previousJoin);
-        }
-
-        // add the ModelJoin to the current object
-        if ($relationAlias) {
-            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
-            $this->addJoinObject($join, $relationAlias);
-        } else {
-            $this->addJoinObject($join, 'CountryRelatedByIdCreation');
-        }
-
-        return $this;
-    }
-
-    /**
-     * Use the CountryRelatedByIdCreation relation Country object
-     *
-     * @see       useQuery()
-     *
-     * @param     string $relationAlias optional alias for the relation,
-     *                                   to be used as main alias in the secondary query
-     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
-     *
-     * @return   \App\CountryQuery A secondary query class using the current class as primary query
-     */
-    public function useCountryRelatedByIdCreationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
-    {
-        return $this
-            ->joinCountryRelatedByIdCreation($relationAlias, $joinType)
-            ->useQuery($relationAlias ? $relationAlias : 'CountryRelatedByIdCreation', '\App\CountryQuery');
-    }
-
-    /**
-     * Filter the query by a related Country object
-     *
-     * @param   Country|PropelObjectCollection $country  the related object to use as filter
-     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
-     *
-     * @return                 AuthyQuery The current query, for fluid interface
-     * @throws PropelException - if the provided filter is invalid.
-     */
-    public function filterByCountryRelatedByIdModification($country, $comparison = null)
-    {
-        if ($country instanceof Country) {
-            return $this
-                ->addUsingAlias(AuthyPeer::ID_AUTHY, $country->getIdModification(), $comparison);
-        } elseif ($country instanceof PropelObjectCollection) {
-            return $this
-                ->useCountryRelatedByIdModificationQuery()
-                ->filterByPrimaryKeys($country->getPrimaryKeys())
-                ->endUse();
-        } else {
-            throw new PropelException('filterByCountryRelatedByIdModification() only accepts arguments of type Country or PropelCollection');
-        }
-    }
-
-    /**
-     * Adds a JOIN clause to the query using the CountryRelatedByIdModification relation
-     *
-     * @param     string $relationAlias optional alias for the relation
-     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
-     *
-     * @return AuthyQuery The current query, for fluid interface
-     */
-    public function joinCountryRelatedByIdModification($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
-    {
-        $tableMap = $this->getTableMap();
-        $relationMap = $tableMap->getRelation('CountryRelatedByIdModification');
-
-        // create a ModelJoin object for this join
-        $join = new ModelJoin();
-        $join->setJoinType($joinType);
-        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-        if ($previousJoin = $this->getPreviousJoin()) {
-            $join->setPreviousJoin($previousJoin);
-        }
-
-        // add the ModelJoin to the current object
-        if ($relationAlias) {
-            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
-            $this->addJoinObject($join, $relationAlias);
-        } else {
-            $this->addJoinObject($join, 'CountryRelatedByIdModification');
-        }
-
-        return $this;
-    }
-
-    /**
-     * Use the CountryRelatedByIdModification relation Country object
-     *
-     * @see       useQuery()
-     *
-     * @param     string $relationAlias optional alias for the relation,
-     *                                   to be used as main alias in the secondary query
-     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
-     *
-     * @return   \App\CountryQuery A secondary query class using the current class as primary query
-     */
-    public function useCountryRelatedByIdModificationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
-    {
-        return $this
-            ->joinCountryRelatedByIdModification($relationAlias, $joinType)
-            ->useQuery($relationAlias ? $relationAlias : 'CountryRelatedByIdModification', '\App\CountryQuery');
-    }
-
-    /**
      * Filter the query by a related GridRun object
      *
      * @param   GridRun|PropelObjectCollection $gridRun  the related object to use as filter
@@ -2758,6 +2673,302 @@ abstract class BaseAuthyQuery extends ModelCriteria
         return $this
             ->joinGridRunRelatedByIdModification($relationAlias, $joinType)
             ->useQuery($relationAlias ? $relationAlias : 'GridRunRelatedByIdModification', '\App\GridRunQuery');
+    }
+
+    /**
+     * Filter the query by a related FleetSlot object
+     *
+     * @param   FleetSlot|PropelObjectCollection $fleetSlot  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByFleetSlotRelatedByIdCreation($fleetSlot, $comparison = null)
+    {
+        if ($fleetSlot instanceof FleetSlot) {
+            return $this
+                ->addUsingAlias(AuthyPeer::ID_AUTHY, $fleetSlot->getIdCreation(), $comparison);
+        } elseif ($fleetSlot instanceof PropelObjectCollection) {
+            return $this
+                ->useFleetSlotRelatedByIdCreationQuery()
+                ->filterByPrimaryKeys($fleetSlot->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByFleetSlotRelatedByIdCreation() only accepts arguments of type FleetSlot or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the FleetSlotRelatedByIdCreation relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyQuery The current query, for fluid interface
+     */
+    public function joinFleetSlotRelatedByIdCreation($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('FleetSlotRelatedByIdCreation');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'FleetSlotRelatedByIdCreation');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the FleetSlotRelatedByIdCreation relation FleetSlot object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\FleetSlotQuery A secondary query class using the current class as primary query
+     */
+    public function useFleetSlotRelatedByIdCreationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinFleetSlotRelatedByIdCreation($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'FleetSlotRelatedByIdCreation', '\App\FleetSlotQuery');
+    }
+
+    /**
+     * Filter the query by a related FleetSlot object
+     *
+     * @param   FleetSlot|PropelObjectCollection $fleetSlot  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByFleetSlotRelatedByIdModification($fleetSlot, $comparison = null)
+    {
+        if ($fleetSlot instanceof FleetSlot) {
+            return $this
+                ->addUsingAlias(AuthyPeer::ID_AUTHY, $fleetSlot->getIdModification(), $comparison);
+        } elseif ($fleetSlot instanceof PropelObjectCollection) {
+            return $this
+                ->useFleetSlotRelatedByIdModificationQuery()
+                ->filterByPrimaryKeys($fleetSlot->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByFleetSlotRelatedByIdModification() only accepts arguments of type FleetSlot or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the FleetSlotRelatedByIdModification relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyQuery The current query, for fluid interface
+     */
+    public function joinFleetSlotRelatedByIdModification($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('FleetSlotRelatedByIdModification');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'FleetSlotRelatedByIdModification');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the FleetSlotRelatedByIdModification relation FleetSlot object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\FleetSlotQuery A secondary query class using the current class as primary query
+     */
+    public function useFleetSlotRelatedByIdModificationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinFleetSlotRelatedByIdModification($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'FleetSlotRelatedByIdModification', '\App\FleetSlotQuery');
+    }
+
+    /**
+     * Filter the query by a related RegimeEpisode object
+     *
+     * @param   RegimeEpisode|PropelObjectCollection $regimeEpisode  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByRegimeEpisodeRelatedByIdCreation($regimeEpisode, $comparison = null)
+    {
+        if ($regimeEpisode instanceof RegimeEpisode) {
+            return $this
+                ->addUsingAlias(AuthyPeer::ID_AUTHY, $regimeEpisode->getIdCreation(), $comparison);
+        } elseif ($regimeEpisode instanceof PropelObjectCollection) {
+            return $this
+                ->useRegimeEpisodeRelatedByIdCreationQuery()
+                ->filterByPrimaryKeys($regimeEpisode->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByRegimeEpisodeRelatedByIdCreation() only accepts arguments of type RegimeEpisode or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the RegimeEpisodeRelatedByIdCreation relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyQuery The current query, for fluid interface
+     */
+    public function joinRegimeEpisodeRelatedByIdCreation($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('RegimeEpisodeRelatedByIdCreation');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'RegimeEpisodeRelatedByIdCreation');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the RegimeEpisodeRelatedByIdCreation relation RegimeEpisode object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\RegimeEpisodeQuery A secondary query class using the current class as primary query
+     */
+    public function useRegimeEpisodeRelatedByIdCreationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinRegimeEpisodeRelatedByIdCreation($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'RegimeEpisodeRelatedByIdCreation', '\App\RegimeEpisodeQuery');
+    }
+
+    /**
+     * Filter the query by a related RegimeEpisode object
+     *
+     * @param   RegimeEpisode|PropelObjectCollection $regimeEpisode  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByRegimeEpisodeRelatedByIdModification($regimeEpisode, $comparison = null)
+    {
+        if ($regimeEpisode instanceof RegimeEpisode) {
+            return $this
+                ->addUsingAlias(AuthyPeer::ID_AUTHY, $regimeEpisode->getIdModification(), $comparison);
+        } elseif ($regimeEpisode instanceof PropelObjectCollection) {
+            return $this
+                ->useRegimeEpisodeRelatedByIdModificationQuery()
+                ->filterByPrimaryKeys($regimeEpisode->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByRegimeEpisodeRelatedByIdModification() only accepts arguments of type RegimeEpisode or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the RegimeEpisodeRelatedByIdModification relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyQuery The current query, for fluid interface
+     */
+    public function joinRegimeEpisodeRelatedByIdModification($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('RegimeEpisodeRelatedByIdModification');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'RegimeEpisodeRelatedByIdModification');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the RegimeEpisodeRelatedByIdModification relation RegimeEpisode object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\RegimeEpisodeQuery A secondary query class using the current class as primary query
+     */
+    public function useRegimeEpisodeRelatedByIdModificationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinRegimeEpisodeRelatedByIdModification($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'RegimeEpisodeRelatedByIdModification', '\App\RegimeEpisodeQuery');
     }
 
     /**
@@ -3797,6 +4008,154 @@ abstract class BaseAuthyQuery extends ModelCriteria
     }
 
     /**
+     * Filter the query by a related MarketCandle object
+     *
+     * @param   MarketCandle|PropelObjectCollection $marketCandle  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByMarketCandleRelatedByIdCreation($marketCandle, $comparison = null)
+    {
+        if ($marketCandle instanceof MarketCandle) {
+            return $this
+                ->addUsingAlias(AuthyPeer::ID_AUTHY, $marketCandle->getIdCreation(), $comparison);
+        } elseif ($marketCandle instanceof PropelObjectCollection) {
+            return $this
+                ->useMarketCandleRelatedByIdCreationQuery()
+                ->filterByPrimaryKeys($marketCandle->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByMarketCandleRelatedByIdCreation() only accepts arguments of type MarketCandle or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the MarketCandleRelatedByIdCreation relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyQuery The current query, for fluid interface
+     */
+    public function joinMarketCandleRelatedByIdCreation($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('MarketCandleRelatedByIdCreation');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'MarketCandleRelatedByIdCreation');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the MarketCandleRelatedByIdCreation relation MarketCandle object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\MarketCandleQuery A secondary query class using the current class as primary query
+     */
+    public function useMarketCandleRelatedByIdCreationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinMarketCandleRelatedByIdCreation($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'MarketCandleRelatedByIdCreation', '\App\MarketCandleQuery');
+    }
+
+    /**
+     * Filter the query by a related MarketCandle object
+     *
+     * @param   MarketCandle|PropelObjectCollection $marketCandle  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByMarketCandleRelatedByIdModification($marketCandle, $comparison = null)
+    {
+        if ($marketCandle instanceof MarketCandle) {
+            return $this
+                ->addUsingAlias(AuthyPeer::ID_AUTHY, $marketCandle->getIdModification(), $comparison);
+        } elseif ($marketCandle instanceof PropelObjectCollection) {
+            return $this
+                ->useMarketCandleRelatedByIdModificationQuery()
+                ->filterByPrimaryKeys($marketCandle->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByMarketCandleRelatedByIdModification() only accepts arguments of type MarketCandle or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the MarketCandleRelatedByIdModification relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyQuery The current query, for fluid interface
+     */
+    public function joinMarketCandleRelatedByIdModification($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('MarketCandleRelatedByIdModification');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'MarketCandleRelatedByIdModification');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the MarketCandleRelatedByIdModification relation MarketCandle object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\MarketCandleQuery A secondary query class using the current class as primary query
+     */
+    public function useMarketCandleRelatedByIdModificationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinMarketCandleRelatedByIdModification($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'MarketCandleRelatedByIdModification', '\App\MarketCandleQuery');
+    }
+
+    /**
      * Filter the query by a related BotDecision object
      *
      * @param   BotDecision|PropelObjectCollection $botDecision  the related object to use as filter
@@ -3942,6 +4301,450 @@ abstract class BaseAuthyQuery extends ModelCriteria
         return $this
             ->joinBotDecisionRelatedByIdModification($relationAlias, $joinType)
             ->useQuery($relationAlias ? $relationAlias : 'BotDecisionRelatedByIdModification', '\App\BotDecisionQuery');
+    }
+
+    /**
+     * Filter the query by a related MarketOutlook object
+     *
+     * @param   MarketOutlook|PropelObjectCollection $marketOutlook  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByMarketOutlookRelatedByIdCreation($marketOutlook, $comparison = null)
+    {
+        if ($marketOutlook instanceof MarketOutlook) {
+            return $this
+                ->addUsingAlias(AuthyPeer::ID_AUTHY, $marketOutlook->getIdCreation(), $comparison);
+        } elseif ($marketOutlook instanceof PropelObjectCollection) {
+            return $this
+                ->useMarketOutlookRelatedByIdCreationQuery()
+                ->filterByPrimaryKeys($marketOutlook->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByMarketOutlookRelatedByIdCreation() only accepts arguments of type MarketOutlook or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the MarketOutlookRelatedByIdCreation relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyQuery The current query, for fluid interface
+     */
+    public function joinMarketOutlookRelatedByIdCreation($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('MarketOutlookRelatedByIdCreation');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'MarketOutlookRelatedByIdCreation');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the MarketOutlookRelatedByIdCreation relation MarketOutlook object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\MarketOutlookQuery A secondary query class using the current class as primary query
+     */
+    public function useMarketOutlookRelatedByIdCreationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinMarketOutlookRelatedByIdCreation($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'MarketOutlookRelatedByIdCreation', '\App\MarketOutlookQuery');
+    }
+
+    /**
+     * Filter the query by a related MarketOutlook object
+     *
+     * @param   MarketOutlook|PropelObjectCollection $marketOutlook  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByMarketOutlookRelatedByIdModification($marketOutlook, $comparison = null)
+    {
+        if ($marketOutlook instanceof MarketOutlook) {
+            return $this
+                ->addUsingAlias(AuthyPeer::ID_AUTHY, $marketOutlook->getIdModification(), $comparison);
+        } elseif ($marketOutlook instanceof PropelObjectCollection) {
+            return $this
+                ->useMarketOutlookRelatedByIdModificationQuery()
+                ->filterByPrimaryKeys($marketOutlook->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByMarketOutlookRelatedByIdModification() only accepts arguments of type MarketOutlook or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the MarketOutlookRelatedByIdModification relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyQuery The current query, for fluid interface
+     */
+    public function joinMarketOutlookRelatedByIdModification($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('MarketOutlookRelatedByIdModification');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'MarketOutlookRelatedByIdModification');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the MarketOutlookRelatedByIdModification relation MarketOutlook object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\MarketOutlookQuery A secondary query class using the current class as primary query
+     */
+    public function useMarketOutlookRelatedByIdModificationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinMarketOutlookRelatedByIdModification($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'MarketOutlookRelatedByIdModification', '\App\MarketOutlookQuery');
+    }
+
+    /**
+     * Filter the query by a related MarketOutlookState object
+     *
+     * @param   MarketOutlookState|PropelObjectCollection $marketOutlookState  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByMarketOutlookStateRelatedByIdCreation($marketOutlookState, $comparison = null)
+    {
+        if ($marketOutlookState instanceof MarketOutlookState) {
+            return $this
+                ->addUsingAlias(AuthyPeer::ID_AUTHY, $marketOutlookState->getIdCreation(), $comparison);
+        } elseif ($marketOutlookState instanceof PropelObjectCollection) {
+            return $this
+                ->useMarketOutlookStateRelatedByIdCreationQuery()
+                ->filterByPrimaryKeys($marketOutlookState->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByMarketOutlookStateRelatedByIdCreation() only accepts arguments of type MarketOutlookState or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the MarketOutlookStateRelatedByIdCreation relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyQuery The current query, for fluid interface
+     */
+    public function joinMarketOutlookStateRelatedByIdCreation($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('MarketOutlookStateRelatedByIdCreation');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'MarketOutlookStateRelatedByIdCreation');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the MarketOutlookStateRelatedByIdCreation relation MarketOutlookState object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\MarketOutlookStateQuery A secondary query class using the current class as primary query
+     */
+    public function useMarketOutlookStateRelatedByIdCreationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinMarketOutlookStateRelatedByIdCreation($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'MarketOutlookStateRelatedByIdCreation', '\App\MarketOutlookStateQuery');
+    }
+
+    /**
+     * Filter the query by a related MarketOutlookState object
+     *
+     * @param   MarketOutlookState|PropelObjectCollection $marketOutlookState  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByMarketOutlookStateRelatedByIdModification($marketOutlookState, $comparison = null)
+    {
+        if ($marketOutlookState instanceof MarketOutlookState) {
+            return $this
+                ->addUsingAlias(AuthyPeer::ID_AUTHY, $marketOutlookState->getIdModification(), $comparison);
+        } elseif ($marketOutlookState instanceof PropelObjectCollection) {
+            return $this
+                ->useMarketOutlookStateRelatedByIdModificationQuery()
+                ->filterByPrimaryKeys($marketOutlookState->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByMarketOutlookStateRelatedByIdModification() only accepts arguments of type MarketOutlookState or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the MarketOutlookStateRelatedByIdModification relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyQuery The current query, for fluid interface
+     */
+    public function joinMarketOutlookStateRelatedByIdModification($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('MarketOutlookStateRelatedByIdModification');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'MarketOutlookStateRelatedByIdModification');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the MarketOutlookStateRelatedByIdModification relation MarketOutlookState object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\MarketOutlookStateQuery A secondary query class using the current class as primary query
+     */
+    public function useMarketOutlookStateRelatedByIdModificationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinMarketOutlookStateRelatedByIdModification($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'MarketOutlookStateRelatedByIdModification', '\App\MarketOutlookStateQuery');
+    }
+
+    /**
+     * Filter the query by a related WalletNav object
+     *
+     * @param   WalletNav|PropelObjectCollection $walletNav  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByWalletNavRelatedByIdCreation($walletNav, $comparison = null)
+    {
+        if ($walletNav instanceof WalletNav) {
+            return $this
+                ->addUsingAlias(AuthyPeer::ID_AUTHY, $walletNav->getIdCreation(), $comparison);
+        } elseif ($walletNav instanceof PropelObjectCollection) {
+            return $this
+                ->useWalletNavRelatedByIdCreationQuery()
+                ->filterByPrimaryKeys($walletNav->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByWalletNavRelatedByIdCreation() only accepts arguments of type WalletNav or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the WalletNavRelatedByIdCreation relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyQuery The current query, for fluid interface
+     */
+    public function joinWalletNavRelatedByIdCreation($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('WalletNavRelatedByIdCreation');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'WalletNavRelatedByIdCreation');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the WalletNavRelatedByIdCreation relation WalletNav object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\WalletNavQuery A secondary query class using the current class as primary query
+     */
+    public function useWalletNavRelatedByIdCreationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinWalletNavRelatedByIdCreation($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'WalletNavRelatedByIdCreation', '\App\WalletNavQuery');
+    }
+
+    /**
+     * Filter the query by a related WalletNav object
+     *
+     * @param   WalletNav|PropelObjectCollection $walletNav  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByWalletNavRelatedByIdModification($walletNav, $comparison = null)
+    {
+        if ($walletNav instanceof WalletNav) {
+            return $this
+                ->addUsingAlias(AuthyPeer::ID_AUTHY, $walletNav->getIdModification(), $comparison);
+        } elseif ($walletNav instanceof PropelObjectCollection) {
+            return $this
+                ->useWalletNavRelatedByIdModificationQuery()
+                ->filterByPrimaryKeys($walletNav->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByWalletNavRelatedByIdModification() only accepts arguments of type WalletNav or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the WalletNavRelatedByIdModification relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyQuery The current query, for fluid interface
+     */
+    public function joinWalletNavRelatedByIdModification($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('WalletNavRelatedByIdModification');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'WalletNavRelatedByIdModification');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the WalletNavRelatedByIdModification relation WalletNav object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\WalletNavQuery A secondary query class using the current class as primary query
+     */
+    public function useWalletNavRelatedByIdModificationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinWalletNavRelatedByIdModification($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'WalletNavRelatedByIdModification', '\App\WalletNavQuery');
     }
 
     /**
@@ -5126,6 +5929,302 @@ abstract class BaseAuthyQuery extends ModelCriteria
         return $this
             ->joinAuthyRefreshTokenRelatedByIdModification($relationAlias, $joinType)
             ->useQuery($relationAlias ? $relationAlias : 'AuthyRefreshTokenRelatedByIdModification', '\App\AuthyRefreshTokenQuery');
+    }
+
+    /**
+     * Filter the query by a related GridRunAudit object
+     *
+     * @param   GridRunAudit|PropelObjectCollection $gridRunAudit  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByGridRunAuditRelatedByIdCreation($gridRunAudit, $comparison = null)
+    {
+        if ($gridRunAudit instanceof GridRunAudit) {
+            return $this
+                ->addUsingAlias(AuthyPeer::ID_AUTHY, $gridRunAudit->getIdCreation(), $comparison);
+        } elseif ($gridRunAudit instanceof PropelObjectCollection) {
+            return $this
+                ->useGridRunAuditRelatedByIdCreationQuery()
+                ->filterByPrimaryKeys($gridRunAudit->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByGridRunAuditRelatedByIdCreation() only accepts arguments of type GridRunAudit or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the GridRunAuditRelatedByIdCreation relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyQuery The current query, for fluid interface
+     */
+    public function joinGridRunAuditRelatedByIdCreation($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('GridRunAuditRelatedByIdCreation');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'GridRunAuditRelatedByIdCreation');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the GridRunAuditRelatedByIdCreation relation GridRunAudit object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\GridRunAuditQuery A secondary query class using the current class as primary query
+     */
+    public function useGridRunAuditRelatedByIdCreationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinGridRunAuditRelatedByIdCreation($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'GridRunAuditRelatedByIdCreation', '\App\GridRunAuditQuery');
+    }
+
+    /**
+     * Filter the query by a related GridRunAudit object
+     *
+     * @param   GridRunAudit|PropelObjectCollection $gridRunAudit  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByGridRunAuditRelatedByIdModification($gridRunAudit, $comparison = null)
+    {
+        if ($gridRunAudit instanceof GridRunAudit) {
+            return $this
+                ->addUsingAlias(AuthyPeer::ID_AUTHY, $gridRunAudit->getIdModification(), $comparison);
+        } elseif ($gridRunAudit instanceof PropelObjectCollection) {
+            return $this
+                ->useGridRunAuditRelatedByIdModificationQuery()
+                ->filterByPrimaryKeys($gridRunAudit->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByGridRunAuditRelatedByIdModification() only accepts arguments of type GridRunAudit or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the GridRunAuditRelatedByIdModification relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyQuery The current query, for fluid interface
+     */
+    public function joinGridRunAuditRelatedByIdModification($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('GridRunAuditRelatedByIdModification');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'GridRunAuditRelatedByIdModification');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the GridRunAuditRelatedByIdModification relation GridRunAudit object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\GridRunAuditQuery A secondary query class using the current class as primary query
+     */
+    public function useGridRunAuditRelatedByIdModificationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinGridRunAuditRelatedByIdModification($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'GridRunAuditRelatedByIdModification', '\App\GridRunAuditQuery');
+    }
+
+    /**
+     * Filter the query by a related Country object
+     *
+     * @param   Country|PropelObjectCollection $country  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByCountryRelatedByIdCreation($country, $comparison = null)
+    {
+        if ($country instanceof Country) {
+            return $this
+                ->addUsingAlias(AuthyPeer::ID_AUTHY, $country->getIdCreation(), $comparison);
+        } elseif ($country instanceof PropelObjectCollection) {
+            return $this
+                ->useCountryRelatedByIdCreationQuery()
+                ->filterByPrimaryKeys($country->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByCountryRelatedByIdCreation() only accepts arguments of type Country or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the CountryRelatedByIdCreation relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyQuery The current query, for fluid interface
+     */
+    public function joinCountryRelatedByIdCreation($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('CountryRelatedByIdCreation');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'CountryRelatedByIdCreation');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the CountryRelatedByIdCreation relation Country object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\CountryQuery A secondary query class using the current class as primary query
+     */
+    public function useCountryRelatedByIdCreationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinCountryRelatedByIdCreation($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'CountryRelatedByIdCreation', '\App\CountryQuery');
+    }
+
+    /**
+     * Filter the query by a related Country object
+     *
+     * @param   Country|PropelObjectCollection $country  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByCountryRelatedByIdModification($country, $comparison = null)
+    {
+        if ($country instanceof Country) {
+            return $this
+                ->addUsingAlias(AuthyPeer::ID_AUTHY, $country->getIdModification(), $comparison);
+        } elseif ($country instanceof PropelObjectCollection) {
+            return $this
+                ->useCountryRelatedByIdModificationQuery()
+                ->filterByPrimaryKeys($country->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByCountryRelatedByIdModification() only accepts arguments of type Country or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the CountryRelatedByIdModification relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyQuery The current query, for fluid interface
+     */
+    public function joinCountryRelatedByIdModification($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('CountryRelatedByIdModification');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'CountryRelatedByIdModification');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the CountryRelatedByIdModification relation Country object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\CountryQuery A secondary query class using the current class as primary query
+     */
+    public function useCountryRelatedByIdModificationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinCountryRelatedByIdModification($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'CountryRelatedByIdModification', '\App\CountryQuery');
     }
 
     /**
@@ -6318,7 +7417,7 @@ abstract class BaseAuthyQuery extends ModelCriteria
     protected function basePreSelect(PropelPDO $con)
     {
         // GoatCheese behavior
-        
+
                 if (defined('_AUTH_VAR') && isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR])
                     && method_exists($_SESSION[_AUTH_VAR], 'get')
                     && $_SESSION[_AUTH_VAR]->get('connected') == 'YES'
@@ -6338,7 +7437,7 @@ abstract class BaseAuthyQuery extends ModelCriteria
     protected function basePreDelete(PropelPDO $con)
     {
         // GoatCheese behavior
-        
+
                 if (defined('_AUTH_VAR') && isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR])
                     && method_exists($_SESSION[_AUTH_VAR], 'get')
                     && $_SESSION[_AUTH_VAR]->get('connected') == 'YES'
@@ -6359,7 +7458,7 @@ abstract class BaseAuthyQuery extends ModelCriteria
     protected function basePostDelete($affectedRows, PropelPDO $con)
     {
         // GoatCheese behavior
-        
+
                 if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                     \ApiGoat\Utility\TableVersion::bump('authy');
                 }
@@ -6377,7 +7476,7 @@ abstract class BaseAuthyQuery extends ModelCriteria
     protected function basePreUpdate(&$values, PropelPDO $con, $forceIndividualSaves = false)
     {
         // GoatCheese behavior
-        
+
                 if (defined('_AUTH_VAR') && isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR])
                     && method_exists($_SESSION[_AUTH_VAR], 'get')
                     && $_SESSION[_AUTH_VAR]->get('connected') == 'YES'
@@ -6398,7 +7497,7 @@ abstract class BaseAuthyQuery extends ModelCriteria
     protected function basePostUpdate($affectedRows, PropelPDO $con)
     {
         // GoatCheese behavior
-        
+
                 if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                     \ApiGoat\Utility\TableVersion::bump('authy');
                 }

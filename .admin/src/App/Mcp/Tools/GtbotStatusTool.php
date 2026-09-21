@@ -18,10 +18,8 @@ class GtbotStatusTool extends AbstractGtbotBase
 
     public function description(): string
     {
-        return 'Read-only status of a grid run: mode, kill switch, heartbeat freshness, requested vs '
-            . 'APPLIED grid geometry (refits apply within a tick; refit_pending=true is a transient state '
-            . 'while a partial fill is booked), open buy/sell counts, invested quote, realized '
-            . 'PnL (total + today), cycle count and recent alerts. Defaults to the most recent non-Done run.';
+        return 'Read-only run status: mode, kill switch, heartbeat, requested vs APPLIED geometry (refit_pending), '
+            . 'open buys/sells, invested, realized PnL, cycles, recent alerts, drawdown block. Drill-down behind gtbot_routine_brief.';
     }
 
     public function inputSchema(): array
@@ -103,6 +101,8 @@ class GtbotStatusTool extends AbstractGtbotBase
                 'status' => (string) $run->getStatus(),
                 'kill_switch' => (bool) $run->getKillSwitch(),
                 'profile' => (string) $run->getProfile(),
+                'sell_at_loss' => (bool) $run->getSellAtLoss(),
+                'sell_when_starved' => (bool) $run->getSellWhenStarved(),
                 'algo' => $algo,
             ],
             'mode' => $simulated ? 'simulated' : 'real',
@@ -133,16 +133,21 @@ class GtbotStatusTool extends AbstractGtbotBase
     /** Global wallet-floor snapshot — same numbers the daemons enforce. */
     private static function drawdownBlock(): array
     {
-        $floor = DrawdownGuard::floor();
+        // the floor follows the wallet equity() MEASURED (2026-09-21): the
+        // paper pool seed on paper, the funded real account once real money
+        // is exposed. Reading floor() without the source printed a paper
+        // floor beside a real equity.
+        $eq = DrawdownGuard::equity();
+        $floor = DrawdownGuard::floor($eq['source']);
         if ($floor === null) {
             return ['enabled' => false];
         }
-        $eq = DrawdownGuard::equity();
         return [
             'enabled' => true,
             'equity' => bcadd($eq['equity'], '0', 2),
             'floor' => bcadd($floor, '0', 2),
-            'budget' => SimWallet::sharedBudget(),
+            'source' => $eq['source'],
+            'budget' => DrawdownGuard::baselineFor($eq['source']),
             'max_drawdown_pct' => DrawdownGuard::maxDrawdownPct(),
             'tripped' => bccomp($eq['equity'], $floor, 12) < 0,
             'unpriced' => $eq['unpriced'],

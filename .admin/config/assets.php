@@ -16,6 +16,7 @@ if ($buildId === '') {
 
 $Assets = new Assets(['deployment_type' => _DEPLOYMENT_TYPE, 'pipeline' => $buildId]);
 $Assets->add('public/css/main.css');
+$Assets->add('public/css/project.css'); // per-project styles (project.scss → project.css on gc build)
 $Assets->add('public/css/remix/remixicon.css');
 $Assets->add('public/js/index.js');
 $Assets->add('public/js/selectbox.js');
@@ -25,13 +26,18 @@ $Assets->add('public/js/app/shell.js');
 $Assets->add('public/js/app/screens.js');
 $Assets->add('public/js/app/drawer.js');
 $Assets->add('public/js/app/autocomplete.js');
+$Assets->add('public/js/app/cascade.js');
 $Assets->add('public/js/app/taginput.js');
 $Assets->add('public/js/app/upload.js');
 $Assets->add('public/js/app/colorfield.js');
 $Assets->add('public/js/app/locationfield.js');
 $Assets->add('public/js/app/pdfmenu.js');
+$Assets->add('public/js/app/realtime.js');
 $Assets->add('public/js/app/stripe.js');
 $Assets->add('public/js/pwa.js');
+// Per-project client code. LAST so everything above is already defined, and
+// never overwritten by --sync-template (see TemplateSync's $ignore list).
+$Assets->add('public/js/project.js');
 
 $AssetsAdmin = new Assets(['deployment_type' => _DEPLOYMENT_TYPE, 'pipeline' => false]);
 // CKEditor 5 (self-hosted UMD bundle, composer-managed — see composer.json
@@ -43,6 +49,7 @@ $AssetsAdmin->add('vendor/ckeditor/ckeditor5-self-hosted/ckeditor5/ckeditor5.css
 $AssetsAdmin->add('vendor/ckeditor/ckeditor5-self-hosted/ckeditor5/ckeditor5.umd.js');
 $AssetsAdmin->add('public/js/gceditor.js');
 $AssetsAdmin->add('public/js/ckeditor.config.js');
+$AssetsAdmin->add('public/js/vendor/lightweight-charts/lightweight-charts.standalone.production.js');
 
 $AssetsHead = new Assets(['deployment_type' => _DEPLOYMENT_TYPE, 'pipeline' => $buildId]);
 // jQuery dropped (jquery core removal): the admin client is fully vanilla.

@@ -1,0 +1,95 @@
+#!/usr/bin/env php
+<?php
+/**
+ * gtbot-audit — does the REAL account back the ledgers? (App\Domains\Bot\
+ * AccountAudit: inventory held vs tracked per asset, ledger ↔ book orders.)
+ * Read-only. A no-op while the fleet is on paper.
+ *
+ *   php bin/gtbot-audit [--json] [--alert]
+ *
+ * --alert  cron mode: a finding that SURVIVES two consecutive audits goes to
+ *          Telegram at once (one audit can race a fill the daemon is about to
+ *          book). Suggested crontab while a canary runs:
+ *            *\/10 * * * * php8.4 <admin>/bin/gtbot-audit --alert >/dev/null
+ * Exit 0 = clean (or nothing real to audit), 1 = findings, 2 = cannot audit.
+ */
+
+$admin = dirname(__DIR__);
+require $admin . '/vendor/autoload.php';
+(new \Ahc\Env\Loader())->load($admin . '/.env');
+require $admin . '/config/Built/config.php';
+require $admin . '/config/Built/propel.php';
+
+$real = \App\GridRunQuery::create()->filterBySimulated(false)->filterByStatus('Done', \Criteria::NOT_EQUAL)->count();
+if ($real === 0) {
+    fwrite(STDOUT, "gtbot-audit: no real runs — the paper wallet is its own ledger, nothing to audit\n");
+    exit(0);
+}
+
+$signer = null;
+$pem = (string) env('GTBOT_API_PRIVATE_KEY', '');
+try {
+    if ($pem !== '') {
+        $signer = \App\Domains\Bot\Gateway\Ed25519Signer::fromPemFile(str_starts_with($pem, '/') ? $pem : $admin . '/' . $pem);
+    }
+    $gateway = new \App\Domains\Bot\Gateway\BinanceGateway(
+        env('GTBOT_USE_TESTNET', '1') !== '0' ? 'https://testnet.binance.vision' : 'https://api.binance.com',
+        (string) env('GTBOT_API_KEY', ''),
+        (string) env('GTBOT_API_SECRET', ''),
+        null,
+        null,
+        $signer
+    );
+    $res = \App\Domains\Bot\AccountAudit::run($gateway);
+} catch (\Throwable $e) {
+    fwrite(STDERR, 'gtbot-audit: cannot audit — ' . $e->getMessage() . "\n");
+    exit(2);
+}
+
+if (in_array('--json', $argv, true)) {
+    fwrite(STDOUT, json_encode($res, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+} else {
+    foreach ($res['assets'] as $asset => $a) {
+        fwrite(STDOUT, sprintf("%-5s account %s  tracked %s  float %s\n", $asset, $a['account'], $a['tracked'], $a['float']));
+    }
+    foreach ($res['findings'] as $f) {
+        fwrite(STDOUT, sprintf("FINDING  %-18s %s\n", $f['kind'], $f['detail']));
+    }
+    fwrite(STDOUT, $res['ok'] ? "clean\n" : sprintf("%d finding(s)\n", count($res['findings'])));
+}
+
+if (in_array('--alert', $argv, true)) {
+    $stateFile = $admin . '/tmp/gtbot-audit.json';
+    $prev = is_file($stateFile) ? (array) json_decode((string) file_get_contents($stateFile), true) : [];
+    $now = [];
+    $lines = [];
+    foreach ($res['findings'] as $f) {
+        // AccountAudit's STABLE key (kind + asset / client order id), never
+        // the detail: the detail of an inventory_missing carries live
+        // quantities, so hashing it gave a different key every audit on an
+        // account that is trading and nothing was ever alerted (2026-09-21).
+        $key = md5((string) ($f['key'] ?? $f['kind'] . '|' . $f['detail']));
+        // seen last time and not yet told → tell; told already → stay quiet
+        $now[$key] = isset($prev[$key]) ? 'told' : 'seen';
+        if (($prev[$key] ?? null) === 'seen') {
+            $lines[] = $f['kind'] . ': ' . $f['detail'];
+        }
+    }
+    // AN UNWRITABLE STATE FILE IS NOT "CLEAN" (2026-09-21, round 2). The
+    // two-audit rule lives entirely in this file: if it cannot be written,
+    // every finding is 'seen' forever and nothing is EVER alerted — silently,
+    // because the write was @-suppressed. Say so and fail, so the cron's own
+    // failure mail is the backstop.
+    $stateOk = @file_put_contents($stateFile, json_encode($now)) !== false;
+    if ($lines !== [] && ($tg = \App\Domains\Bot\TelegramNotifier::fromEnv()) !== null) {
+        $tg->sendNow("🚨 gtbot account audit\n" . implode("\n", $lines));
+    }
+    if (!$stateOk) {
+        fwrite(STDERR, sprintf(
+            "gtbot-audit: cannot write %s — the two-audit alert state is lost, so NOTHING will ever be alerted. Fix the permissions.\n",
+            $stateFile
+        ));
+        exit(2);
+    }
+}
+exit($res['ok'] ? 0 : 1);

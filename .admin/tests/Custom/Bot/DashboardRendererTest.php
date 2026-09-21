@@ -21,10 +21,6 @@ class DashboardRendererTest extends TestCase
                 'cycles' => 3, 'open_buys' => 7, 'open_sells' => 2,
                 'inventory' => '0.0021', 'invested' => '130.0',
             ],
-            'points' => [
-                ['price' => '60000', 'side' => 'Buy', 'state' => 'Filled'],
-                ['price' => '61000', 'side' => 'Sell', 'state' => 'Filled'],
-            ],
             'cycles' => [
                 ['level' => 3, 'buy' => '60000', 'sell' => '61000', 'qty' => '0.001', 'pnl' => '0.94', 'at' => '2026-07-21 11:00'],
             ],
@@ -45,7 +41,7 @@ class DashboardRendererTest extends TestCase
         $this->assertStringContainsString('24.73', $html); // number_format 2dp
         $this->assertStringContainsString('BTC soak', $html);
         $this->assertStringContainsString('Testnet', $html);
-        $this->assertStringContainsString('<svg', $html); // trade chart embedded
+        $this->assertStringContainsString('class="dash-chart"', $html); // trading chart mount
         $this->assertStringContainsString('61,000.00', $html); // cycle row (money-formatted)
     }
 
@@ -57,6 +53,15 @@ class DashboardRendererTest extends TestCase
         $this->assertStringContainsString('is-alert', $html);
         $this->assertStringContainsString('Kill switch', $html);
         $this->assertStringContainsString('stale', strtolower($html));
+    }
+
+    public function testSellAtLossPillShowsSwitchState(): void
+    {
+        $off = (new DashboardRenderer())->render($this->vm(['run' => ['sell_at_loss' => false]]));
+        $this->assertStringContainsString('Sell at loss OFF', $off);
+        $on = (new DashboardRenderer())->render($this->vm(['run' => ['sell_at_loss' => true]]));
+        $this->assertStringContainsString('Sell at loss ON', $on);
+        $this->assertStringNotContainsString('Sell at loss OFF', $on);
     }
 
     public function testRestartButtonShownOnlyWhileKilled(): void
@@ -82,9 +87,8 @@ class DashboardRendererTest extends TestCase
     {
         // array_replace_recursive won't clear arrays with [] — set them post-merge.
         $vm = $this->vm();
-        $vm['cycles'] = $vm['events'] = $vm['points'] = $vm['daily'] = [];
+        $vm['cycles'] = $vm['events'] = $vm['daily'] = [];
         $html = (new DashboardRenderer())->render($vm);
-        $this->assertStringContainsString('No trades', $html); // chart placeholder
         $this->assertStringContainsString('No completed cycles', $html);
     }
 
@@ -221,14 +225,15 @@ class DashboardRendererTest extends TestCase
         $this->assertStringContainsString('870.00', $html);
     }
 
-    public function testCurrentPriceLinePassedToChart(): void
+    public function testChartMountCarriesRunBaseAndSymbolForProjectJs(): void
     {
-        $html = (new DashboardRenderer())->render($this->vm([
-            'run' => ['last_price' => '66500'],
-        ]));
-        $this->assertStringContainsString('tc-price', $html);
-        // default vm has no last_price → no line
-        $this->assertStringNotContainsString('tc-price', (new DashboardRenderer())->render($this->vm()));
+        // project.js (gcTradeChart) finds .dash-chart and fetches
+        // {base}Dashboard/chart?run={run}&tf=… — the three attributes are its
+        // whole contract with the server-rendered page.
+        $html = (new DashboardRenderer())->render($this->vm());
+        $this->assertStringContainsString('class="dash-chart" data-run="1" data-base="https://x.test/" data-symbol="BTCUSDT"', $html);
+        $this->assertStringContainsString('Market · BTCUSDT', $html);
+        $this->assertStringNotContainsString('tc-wrap', $html, 'the inline-SVG trade chart is gone');
     }
 
     public function testNoActiveRunRendersInviteState(): void
@@ -267,6 +272,28 @@ class DashboardRendererTest extends TestCase
         $tabs[1]['kill_switch'] = true;
         $html = (new DashboardRenderer())->render($this->vm(['tabs' => $tabs]));
         $this->assertStringContainsString('dot-alert', $html);
+    }
+
+    public function testHeldRunShowsHeldPillInsteadOfStaleHeartbeat(): void
+    {
+        $html = (new DashboardRenderer())->render($this->vm([
+            'run' => ['status' => 'Halted', 'held' => true, 'heartbeat_stale' => false],
+        ]));
+        $this->assertStringContainsString('pill is-muted', $html);
+        $this->assertStringContainsString('held', $html);
+        $this->assertStringNotContainsString('heartbeat stale', $html);
+        $this->assertStringNotContainsString('heartbeat live', $html);
+    }
+
+    public function testHeldTabGetsMutedDotNotWarn(): void
+    {
+        $tabs = $this->tabs();
+        $tabs[1]['status'] = 'Halted';
+        $tabs[1]['held'] = true;
+        $tabs[1]['heartbeat_stale'] = false;
+        $html = (new DashboardRenderer())->render($this->vm(['tabs' => $tabs]));
+        $this->assertStringContainsString('dash-tab-dot dot-held', $html);
+        $this->assertStringNotContainsString('dash-tab-dot dot-warn', $html);
     }
 
     public function testTabBarOmittedForSingleOrNoTabs(): void
@@ -311,6 +338,23 @@ class DashboardRendererTest extends TestCase
             'open_buy_value' => '95.0',
             'free_budget' => '150.0',
         ], $over);
+    }
+
+    public function testBudgetTileCarriesEditButtonWithPoolFigures(): void
+    {
+        $html = (new DashboardRenderer())->render($this->vm(['band' => $this->band()]));
+        $this->assertStringContainsString('class="dash-budget-edit"', $html);
+        $this->assertStringContainsString('data-budget="1000"', $html);
+        $this->assertStringContainsString('data-slices="600"', $html);
+        $this->assertStringContainsString('dash-budget-form', $html);
+    }
+
+    public function testBudgetTileFollowsWalletAndHidesEditWhenUseAllFunds(): void
+    {
+        $html = (new DashboardRenderer())->render($this->vm(['band' => $this->band(['budget' => '1210', 'budget_fixed' => '1000', 'use_all_funds' => true])]));
+        $this->assertStringNotContainsString('class="dash-budget-edit"', $html);
+        $this->assertStringContainsString('1,210.00', $html);
+        $this->assertStringContainsString('all wallet funds', $html);
     }
 
     public function testModePillSimulatedAndSwitchButtonTargetsReal(): void
@@ -463,5 +507,48 @@ class DashboardRendererTest extends TestCase
         // entirely (replaced by the band's holdings strip).
         $this->assertSame(1, substr_count($html, 'class="dash-mode-pill'));
         $this->assertStringNotContainsString('Shared wallet', $html);
+    }
+
+    public function testActiveRunShowsHoldFundsButton(): void
+    {
+        $html = (new DashboardRenderer())->render($this->vm());
+        $this->assertStringContainsString('dash-funds-btn', $html);
+        $this->assertStringContainsString('data-action="hold"', $html);
+        $this->assertStringContainsString('Hold funds', $html);
+        $this->assertStringNotContainsString('data-action="release"', $html);
+    }
+
+    public function testHaltedRunShowsReleaseFundsButton(): void
+    {
+        $html = (new DashboardRenderer())->render($this->vm(['run' => ['status' => 'Halted']]));
+        $this->assertStringContainsString('data-action="release"', $html);
+        $this->assertStringContainsString('Release funds', $html);
+        $this->assertStringNotContainsString('data-action="hold"', $html);
+    }
+
+    /**
+     * A run at deploy 0% still reads "Live", which is the status of a fully
+     * armed run — but it structurally cannot buy: entries are disabled and
+     * only exits keep working. Prod 2026-09-14: runs 1 and 8 both sat at
+     * deploy 0 holding inventory and were indistinguishable on the dashboard
+     * from runs that were actually trading.
+     */
+    public function testZeroDeployShowsExitOnlyPill(): void
+    {
+        $html = (new DashboardRenderer())->render($this->vm(['run' => ['deploy_pct' => 0]]));
+        $this->assertStringContainsString('deploy 0% &middot; exit only', $html);
+    }
+
+    public function testDeployingRunHasNoExitOnlyPill(): void
+    {
+        $html = (new DashboardRenderer())->render($this->vm(['run' => ['deploy_pct' => 25]]));
+        $this->assertStringNotContainsString('exit only', $html);
+    }
+
+    /** deploy_pct absent (older payloads): say nothing rather than guess. */
+    public function testMissingDeployPctShowsNoPill(): void
+    {
+        $html = (new DashboardRenderer())->render($this->vm());
+        $this->assertStringNotContainsString('exit only', $html);
     }
 }

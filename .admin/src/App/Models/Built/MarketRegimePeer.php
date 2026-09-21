@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseMarketRegimePeer;
 
-require 'om/BaseMarketRegimePeer.php';
+require_once __DIR__ . '/om/BaseMarketRegimePeer.php';
 
 
 /**

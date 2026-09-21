@@ -73,7 +73,18 @@ class BotDecisionTableMap extends TableMap
   1 => 'Flat',
   2 => 'Loss',
   3 => 'Superseded',
+  4 => 'Worse',
 ));
+        $this->addColumn('counterfactual_delta', 'CounterfactualDelta', 'DECIMAL', false, 18, null);
+        $this->addColumn('candidate_delta', 'CandidateDelta', 'ENUM', false, null, null);
+        $this->getColumn('candidate_delta', false)->setValueSet(array (
+  0 => 'same',
+  1 => 'deviated',
+  2 => 'none',
+));
+        $this->addColumn('requested_json', 'RequestedJson', 'LONGVARCHAR', false, 1023, null);
+        $this->addColumn('clamps_json', 'ClampsJson', 'LONGVARCHAR', false, 1023, null);
+        $this->addColumn('brief_json', 'BriefJson', 'LONGVARCHAR', false, 1023, null);
         $this->addColumn('date_creation', 'DateCreation', 'TIMESTAMP', false, null, null);
         $this->addColumn('date_modification', 'DateModification', 'TIMESTAMP', false, null, null);
         $this->addForeignKey('id_group_creation', 'IdGroupCreation', 'INTEGER', 'authy_group', 'id_authy_group', false, null, null);
@@ -98,6 +109,10 @@ class BotDecisionTableMap extends TableMap
         $this->addValidator('applied_at', 'match', 'propel.validator.MatchValidator', '', ('BotDecision_AppliedAt_match'));
         $this->addValidator('cycles_delta', 'match', 'propel.validator.MatchValidator', '/^(?:[0-9]*|null)$/', ('BotDecision_CyclesDelta_match_/^(?:[0-9]*|null)$/'));
         $this->addValidator('verdict', 'type', 'propel.validator.TypeValidator', 'string', ('BotDecision_Verdict_type_string'));
+        $this->addValidator('candidate_delta', 'type', 'propel.validator.TypeValidator', 'string', ('BotDecision_CandidateDelta_type_string'));
+        $this->addValidator('requested_json', 'type', 'propel.validator.TypeValidator', 'string', ('BotDecision_RequestedJson_type_string'));
+        $this->addValidator('clamps_json', 'type', 'propel.validator.TypeValidator', 'string', ('BotDecision_ClampsJson_type_string'));
+        $this->addValidator('brief_json', 'type', 'propel.validator.TypeValidator', 'string', ('BotDecision_BriefJson_type_string'));
     } // initialize()
 
     /**
@@ -126,7 +141,8 @@ class BotDecisionTableMap extends TableMap
   'set_parent_table' => 'grid_run',
   'set_child_colunms' => '{"id_grid_run":["label"]}',
   'set_order_child_list_columns' => '[["date_creation","DESC"]]',
-  'set_readonly_columns' => '["source","p_low","p_high","n_levels","reason","price_at","realized_before","eval_status","eval_at","applied_at","cycles_delta","realized_delta","price_move_pct","verdict"]',
+  'set_readonly_columns' => '["source","p_low","p_high","n_levels","reason","price_at","realized_before","eval_status","eval_at","applied_at","cycles_delta","realized_delta","price_move_pct","verdict","counterfactual_delta","candidate_delta","requested_json","clamps_json","brief_json"]',
+  'set_list_hide_columns' => '["requested_json","clamps_json","brief_json"]',
 ),
             'add_validator' =>  array (
 ),

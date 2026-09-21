@@ -42,8 +42,18 @@ use App\Config;
 use App\ConfigQuery;
 use App\Country;
 use App\CountryQuery;
+use App\FleetSlot;
+use App\FleetSlotQuery;
 use App\GridRun;
+use App\GridRunAudit;
+use App\GridRunAuditQuery;
 use App\GridRunQuery;
+use App\MarketCandle;
+use App\MarketCandleQuery;
+use App\MarketOutlook;
+use App\MarketOutlookQuery;
+use App\MarketOutlookState;
+use App\MarketOutlookStateQuery;
 use App\MarketRegime;
 use App\MarketRegimeQuery;
 use App\MarketSummary;
@@ -60,6 +70,8 @@ use App\OauthRefreshToken;
 use App\OauthRefreshTokenQuery;
 use App\PushDevice;
 use App\PushDeviceQuery;
+use App\RegimeEpisode;
+use App\RegimeEpisodeQuery;
 use App\SimWallet;
 use App\SimWalletQuery;
 use App\Template;
@@ -68,6 +80,8 @@ use App\TemplateFileQuery;
 use App\TemplateQuery;
 use App\TradeCycle;
 use App\TradeCycleQuery;
+use App\WalletNav;
+use App\WalletNavQuery;
 
 /**
  * Base class that represents a row from the 'authy' table.
@@ -348,18 +362,6 @@ abstract class BaseAuthy extends BaseObject implements Persistent
     protected $collPushDevicesRelatedByIdModificationPartial;
 
     /**
-     * @var        PropelObjectCollection|Country[] Collection to store aggregation of Country objects.
-     */
-    protected $collCountriesRelatedByIdCreation;
-    protected $collCountriesRelatedByIdCreationPartial;
-
-    /**
-     * @var        PropelObjectCollection|Country[] Collection to store aggregation of Country objects.
-     */
-    protected $collCountriesRelatedByIdModification;
-    protected $collCountriesRelatedByIdModificationPartial;
-
-    /**
      * @var        PropelObjectCollection|GridRun[] Collection to store aggregation of GridRun objects.
      */
     protected $collGridRunsRelatedByIdCreation;
@@ -370,6 +372,30 @@ abstract class BaseAuthy extends BaseObject implements Persistent
      */
     protected $collGridRunsRelatedByIdModification;
     protected $collGridRunsRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|FleetSlot[] Collection to store aggregation of FleetSlot objects.
+     */
+    protected $collFleetSlotsRelatedByIdCreation;
+    protected $collFleetSlotsRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|FleetSlot[] Collection to store aggregation of FleetSlot objects.
+     */
+    protected $collFleetSlotsRelatedByIdModification;
+    protected $collFleetSlotsRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|RegimeEpisode[] Collection to store aggregation of RegimeEpisode objects.
+     */
+    protected $collRegimeEpisodesRelatedByIdCreation;
+    protected $collRegimeEpisodesRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|RegimeEpisode[] Collection to store aggregation of RegimeEpisode objects.
+     */
+    protected $collRegimeEpisodesRelatedByIdModification;
+    protected $collRegimeEpisodesRelatedByIdModificationPartial;
 
     /**
      * @var        PropelObjectCollection|BotOrder[] Collection to store aggregation of BotOrder objects.
@@ -456,6 +482,18 @@ abstract class BaseAuthy extends BaseObject implements Persistent
     protected $collMarketRegimesRelatedByIdModificationPartial;
 
     /**
+     * @var        PropelObjectCollection|MarketCandle[] Collection to store aggregation of MarketCandle objects.
+     */
+    protected $collMarketCandlesRelatedByIdCreation;
+    protected $collMarketCandlesRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|MarketCandle[] Collection to store aggregation of MarketCandle objects.
+     */
+    protected $collMarketCandlesRelatedByIdModification;
+    protected $collMarketCandlesRelatedByIdModificationPartial;
+
+    /**
      * @var        PropelObjectCollection|BotDecision[] Collection to store aggregation of BotDecision objects.
      */
     protected $collBotDecisionsRelatedByIdCreation;
@@ -466,6 +504,42 @@ abstract class BaseAuthy extends BaseObject implements Persistent
      */
     protected $collBotDecisionsRelatedByIdModification;
     protected $collBotDecisionsRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|MarketOutlook[] Collection to store aggregation of MarketOutlook objects.
+     */
+    protected $collMarketOutlooksRelatedByIdCreation;
+    protected $collMarketOutlooksRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|MarketOutlook[] Collection to store aggregation of MarketOutlook objects.
+     */
+    protected $collMarketOutlooksRelatedByIdModification;
+    protected $collMarketOutlooksRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|MarketOutlookState[] Collection to store aggregation of MarketOutlookState objects.
+     */
+    protected $collMarketOutlookStatesRelatedByIdCreation;
+    protected $collMarketOutlookStatesRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|MarketOutlookState[] Collection to store aggregation of MarketOutlookState objects.
+     */
+    protected $collMarketOutlookStatesRelatedByIdModification;
+    protected $collMarketOutlookStatesRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|WalletNav[] Collection to store aggregation of WalletNav objects.
+     */
+    protected $collWalletNavsRelatedByIdCreation;
+    protected $collWalletNavsRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|WalletNav[] Collection to store aggregation of WalletNav objects.
+     */
+    protected $collWalletNavsRelatedByIdModification;
+    protected $collWalletNavsRelatedByIdModificationPartial;
 
     /**
      * @var        PropelObjectCollection|AuthyGroup[] Collection to store aggregation of AuthyGroup objects.
@@ -562,6 +636,30 @@ abstract class BaseAuthy extends BaseObject implements Persistent
      */
     protected $collAuthyRefreshTokensRelatedByIdModification;
     protected $collAuthyRefreshTokensRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|GridRunAudit[] Collection to store aggregation of GridRunAudit objects.
+     */
+    protected $collGridRunAuditsRelatedByIdCreation;
+    protected $collGridRunAuditsRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|GridRunAudit[] Collection to store aggregation of GridRunAudit objects.
+     */
+    protected $collGridRunAuditsRelatedByIdModification;
+    protected $collGridRunAuditsRelatedByIdModificationPartial;
+
+    /**
+     * @var        PropelObjectCollection|Country[] Collection to store aggregation of Country objects.
+     */
+    protected $collCountriesRelatedByIdCreation;
+    protected $collCountriesRelatedByIdCreationPartial;
+
+    /**
+     * @var        PropelObjectCollection|Country[] Collection to store aggregation of Country objects.
+     */
+    protected $collCountriesRelatedByIdModification;
+    protected $collCountriesRelatedByIdModificationPartial;
 
     /**
      * @var        PropelObjectCollection|OauthClient[] Collection to store aggregation of OauthClient objects.
@@ -687,7 +785,7 @@ abstract class BaseAuthy extends BaseObject implements Persistent
     protected $alreadyInClearAllReferencesDeep = false;
 
     // GoatCheese behavior
-    
+
         /** Additive-rights trigger flag: set in preSave, consumed in postSave. */
         public $gcRecomputeRights = false;
 
@@ -767,18 +865,6 @@ abstract class BaseAuthy extends BaseObject implements Persistent
      * An array of objects scheduled for deletion.
      * @var		PropelObjectCollection
      */
-    protected $countriesRelatedByIdCreationScheduledForDeletion = null;
-
-    /**
-     * An array of objects scheduled for deletion.
-     * @var		PropelObjectCollection
-     */
-    protected $countriesRelatedByIdModificationScheduledForDeletion = null;
-
-    /**
-     * An array of objects scheduled for deletion.
-     * @var		PropelObjectCollection
-     */
     protected $gridRunsRelatedByIdCreationScheduledForDeletion = null;
 
     /**
@@ -786,6 +872,30 @@ abstract class BaseAuthy extends BaseObject implements Persistent
      * @var		PropelObjectCollection
      */
     protected $gridRunsRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $fleetSlotsRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $fleetSlotsRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $regimeEpisodesRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $regimeEpisodesRelatedByIdModificationScheduledForDeletion = null;
 
     /**
      * An array of objects scheduled for deletion.
@@ -875,6 +985,18 @@ abstract class BaseAuthy extends BaseObject implements Persistent
      * An array of objects scheduled for deletion.
      * @var		PropelObjectCollection
      */
+    protected $marketCandlesRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $marketCandlesRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
     protected $botDecisionsRelatedByIdCreationScheduledForDeletion = null;
 
     /**
@@ -882,6 +1004,42 @@ abstract class BaseAuthy extends BaseObject implements Persistent
      * @var		PropelObjectCollection
      */
     protected $botDecisionsRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $marketOutlooksRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $marketOutlooksRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $marketOutlookStatesRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $marketOutlookStatesRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $walletNavsRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $walletNavsRelatedByIdModificationScheduledForDeletion = null;
 
     /**
      * An array of objects scheduled for deletion.
@@ -978,6 +1136,30 @@ abstract class BaseAuthy extends BaseObject implements Persistent
      * @var		PropelObjectCollection
      */
     protected $authyRefreshTokensRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $gridRunAuditsRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $gridRunAuditsRelatedByIdModificationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $countriesRelatedByIdCreationScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $countriesRelatedByIdModificationScheduledForDeletion = null;
 
     /**
      * An array of objects scheduled for deletion.
@@ -1191,7 +1373,7 @@ abstract class BaseAuthy extends BaseObject implements Persistent
         }
 
         if (strpos($format, '%') !== false) {
-            return strftime($format, $dt->format('U'));
+            return self::formatStrftime($format, $dt);
         }
 
         return $dt->format($format);
@@ -1488,7 +1670,7 @@ abstract class BaseAuthy extends BaseObject implements Persistent
         }
 
         if (strpos($format, '%') !== false) {
-            return strftime($format, $dt->format('U'));
+            return self::formatStrftime($format, $dt);
         }
 
         return $dt->format($format);
@@ -1529,7 +1711,7 @@ abstract class BaseAuthy extends BaseObject implements Persistent
         }
 
         if (strpos($format, '%') !== false) {
-            return strftime($format, $dt->format('U'));
+            return self::formatStrftime($format, $dt);
         }
 
         return $dt->format($format);
@@ -1570,6 +1752,97 @@ abstract class BaseAuthy extends BaseObject implements Persistent
     {
 
         return $this->id_modification;
+    }
+
+    /**
+     * strftime()-compatible formatting for the temporal accessors above.
+     *
+     * strftime() is deprecated as of PHP 8.1 and removed in PHP 9, so the
+     * conversion specifiers are expanded here instead. The expansion follows the
+     * C/POSIX locale, which is what these accessors have always resolved to in
+     * practice. Anything not in the tables below -- including the %E / %O locale
+     * modifiers and a trailing bare '%' -- raises rather than silently
+     * mis-formatting.
+     *
+     * The one deliberate divergence from strftime() is %s: PHP's strftime()
+     * double-applies the timezone offset for that specifier, this returns the
+     * true Unix timestamp.
+     *
+     * @param  string   $format A strftime()-style format string.
+     * @param  DateTime $dt     The value to format.
+     * @return string
+     * @throws PropelException If the format uses an unsupported conversion specifier.
+     */
+    protected static function formatStrftime($format, $dt)
+    {
+        // Composite specifiers, expanded to their C/POSIX-locale definitions.
+        static $composite = array(
+            'c' => '%a %b %e %H:%M:%S %Y',
+            'D' => '%m/%d/%y',
+            'F' => '%Y-%m-%d',
+            'r' => '%I:%M:%S %p',
+            'R' => '%H:%M',
+            'T' => '%H:%M:%S',
+            'x' => '%m/%d/%y',
+            'X' => '%H:%M:%S',
+        );
+        // Specifiers that are exactly one date() format character.
+        static $direct = array(
+            'a' => 'D', 'A' => 'l', 'b' => 'M', 'h' => 'M', 'B' => 'F',
+            'd' => 'd', 'H' => 'H', 'I' => 'h', 'm' => 'm', 'M' => 'i',
+            'p' => 'A', 'P' => 'a', 's' => 'U', 'S' => 's', 'u' => 'N',
+            'w' => 'w', 'y' => 'y', 'Y' => 'Y', 'G' => 'o', 'z' => 'O',
+            'Z' => 'T',
+        );
+        // Literal passthroughs.
+        static $literal = array('n' => "\n", 't' => "\t", '%' => '%');
+
+        $out = '';
+        $len = strlen($format);
+
+        for ($i = 0; $i < $len; $i++) {
+            if ('%' !== $format[$i]) {
+                $out .= $format[$i];
+                continue;
+            }
+            if (++$i === $len) {
+                throw new PropelException("Malformed strftime() format string (trailing '%'): " . var_export($format, true));
+            }
+
+            $c = $format[$i];
+
+            if (isset($composite[$c])) {
+                $out .= self::formatStrftime($composite[$c], $dt);
+            } elseif (isset($direct[$c])) {
+                $out .= $dt->format($direct[$c]);
+            } elseif (isset($literal[$c])) {
+                $out .= $literal[$c];
+            } elseif ('e' === $c) {
+                $out .= sprintf('%2d', $dt->format('j'));                // space-padded day of the month
+            } elseif ('k' === $c) {
+                $out .= sprintf('%2d', $dt->format('G'));                // space-padded hour, 24h clock
+            } elseif ('l' === $c) {
+                $out .= sprintf('%2d', $dt->format('g'));                // space-padded hour, 12h clock
+            } elseif ('j' === $c) {
+                $out .= sprintf('%03d', $dt->format('z') + 1);           // day of the year, 001-366
+            } elseif ('V' === $c) {
+                $out .= sprintf('%02d', $dt->format('W'));               // ISO-8601 week number
+            } elseif ('C' === $c) {
+                $out .= sprintf('%02d', (int) ($dt->format('Y') / 100)); // century
+            } elseif ('g' === $c) {
+                $out .= substr('0' . $dt->format('o'), -2);              // 2-digit ISO-8601 year
+            } elseif ('U' === $c) {
+                // Week of the year, Sunday as the first day: (yday + 7 - wday) / 7.
+                $out .= sprintf('%02d', (int) (($dt->format('z') + 7 - $dt->format('w')) / 7));
+            } elseif ('W' === $c) {
+                // Week of the year, Monday as the first day: (yday + 7 - (wday + 6) % 7) / 7.
+                $out .= sprintf('%02d', (int) (($dt->format('z') + 7 - ($dt->format('N') - 1)) / 7));
+            } else {
+                throw new PropelException("Unsupported strftime() conversion specifier '%" . $c . "' in format " . var_export($format, true));
+            }
+        }
+
+        return $out;
     }
 
     /**
@@ -2446,13 +2719,17 @@ abstract class BaseAuthy extends BaseObject implements Persistent
 
             $this->collPushDevicesRelatedByIdModification = null;
 
-            $this->collCountriesRelatedByIdCreation = null;
-
-            $this->collCountriesRelatedByIdModification = null;
-
             $this->collGridRunsRelatedByIdCreation = null;
 
             $this->collGridRunsRelatedByIdModification = null;
+
+            $this->collFleetSlotsRelatedByIdCreation = null;
+
+            $this->collFleetSlotsRelatedByIdModification = null;
+
+            $this->collRegimeEpisodesRelatedByIdCreation = null;
+
+            $this->collRegimeEpisodesRelatedByIdModification = null;
 
             $this->collBotOrdersRelatedByIdCreation = null;
 
@@ -2482,9 +2759,25 @@ abstract class BaseAuthy extends BaseObject implements Persistent
 
             $this->collMarketRegimesRelatedByIdModification = null;
 
+            $this->collMarketCandlesRelatedByIdCreation = null;
+
+            $this->collMarketCandlesRelatedByIdModification = null;
+
             $this->collBotDecisionsRelatedByIdCreation = null;
 
             $this->collBotDecisionsRelatedByIdModification = null;
+
+            $this->collMarketOutlooksRelatedByIdCreation = null;
+
+            $this->collMarketOutlooksRelatedByIdModification = null;
+
+            $this->collMarketOutlookStatesRelatedByIdCreation = null;
+
+            $this->collMarketOutlookStatesRelatedByIdModification = null;
+
+            $this->collWalletNavsRelatedByIdCreation = null;
+
+            $this->collWalletNavsRelatedByIdModification = null;
 
             $this->collAuthyGroupsRelatedByIdCreation = null;
 
@@ -2517,6 +2810,14 @@ abstract class BaseAuthy extends BaseObject implements Persistent
             $this->collAuthyRefreshTokensRelatedByIdCreation = null;
 
             $this->collAuthyRefreshTokensRelatedByIdModification = null;
+
+            $this->collGridRunAuditsRelatedByIdCreation = null;
+
+            $this->collGridRunAuditsRelatedByIdModification = null;
+
+            $this->collCountriesRelatedByIdCreation = null;
+
+            $this->collCountriesRelatedByIdModification = null;
 
             $this->collOauthClientsRelatedByIdCreation = null;
 
@@ -2576,7 +2877,7 @@ abstract class BaseAuthy extends BaseObject implements Persistent
                 $deleteQuery->delete($con);
                 $this->postDelete($con);
                 // GoatCheese behavior
-                
+
                             if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                                 \ApiGoat\Utility\TableVersion::bump('authy');
                             }
@@ -2643,7 +2944,7 @@ abstract class BaseAuthy extends BaseObject implements Persistent
             if ($isInsert) {
                 $ret = $ret && $this->preInsert($con);
                 // GoatCheese behavior
-                
+
                         if (defined('_AUTH_VAR') && isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR])
                             && method_exists($_SESSION[_AUTH_VAR], 'get')
                             && $_SESSION[_AUTH_VAR]->get('connected') == 'YES'
@@ -2655,11 +2956,11 @@ abstract class BaseAuthy extends BaseObject implements Persistent
 
                     $this->setDateCreation(time());
                     $this->setDateModification(time());
-                    $this->setIdGroupCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
+                    $this->setIdGroupCreation( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
                     if(!$this->getIdCreation())
-                        $this->setIdCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                        $this->setIdCreation( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
                     if(!$this->getIdModification())
-                        $this->setIdModification( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                        $this->setIdModification( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
 
             } else {
                 $ret = $ret && $this->preUpdate($con);
@@ -2667,11 +2968,11 @@ abstract class BaseAuthy extends BaseObject implements Persistent
                 if ($this->isModified() ) {
                     $this->setDateCreation( $this->getDateCreation() );
                     $this->setDateModification(time());
-                    $this->setIdGroupCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
+                    $this->setIdGroupCreation( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
                     if(!$this->getIdCreation())
-                        $this->setIdCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                        $this->setIdCreation( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
                     if(!$this->getIdModification())
-                        $this->setIdModification( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                        $this->setIdModification( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
                 }
             }
             if ($ret) {
@@ -2683,7 +2984,7 @@ abstract class BaseAuthy extends BaseObject implements Persistent
                 }
                 $this->postSave($con);
                 // GoatCheese behavior
-                
+
                             if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                                 \ApiGoat\Utility\TableVersion::bump('authy');
                             }
@@ -2889,42 +3190,6 @@ abstract class BaseAuthy extends BaseObject implements Persistent
                 }
             }
 
-            if ($this->countriesRelatedByIdCreationScheduledForDeletion !== null) {
-                if (!$this->countriesRelatedByIdCreationScheduledForDeletion->isEmpty()) {
-                    foreach ($this->countriesRelatedByIdCreationScheduledForDeletion as $countryRelatedByIdCreation) {
-                        // need to save related object because we set the relation to null
-                        $countryRelatedByIdCreation->save($con);
-                    }
-                    $this->countriesRelatedByIdCreationScheduledForDeletion = null;
-                }
-            }
-
-            if ($this->collCountriesRelatedByIdCreation !== null) {
-                foreach ($this->collCountriesRelatedByIdCreation as $referrerFK) {
-                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
-                        $affectedRows += $referrerFK->save($con);
-                    }
-                }
-            }
-
-            if ($this->countriesRelatedByIdModificationScheduledForDeletion !== null) {
-                if (!$this->countriesRelatedByIdModificationScheduledForDeletion->isEmpty()) {
-                    foreach ($this->countriesRelatedByIdModificationScheduledForDeletion as $countryRelatedByIdModification) {
-                        // need to save related object because we set the relation to null
-                        $countryRelatedByIdModification->save($con);
-                    }
-                    $this->countriesRelatedByIdModificationScheduledForDeletion = null;
-                }
-            }
-
-            if ($this->collCountriesRelatedByIdModification !== null) {
-                foreach ($this->collCountriesRelatedByIdModification as $referrerFK) {
-                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
-                        $affectedRows += $referrerFK->save($con);
-                    }
-                }
-            }
-
             if ($this->gridRunsRelatedByIdCreationScheduledForDeletion !== null) {
                 if (!$this->gridRunsRelatedByIdCreationScheduledForDeletion->isEmpty()) {
                     foreach ($this->gridRunsRelatedByIdCreationScheduledForDeletion as $gridRunRelatedByIdCreation) {
@@ -2955,6 +3220,78 @@ abstract class BaseAuthy extends BaseObject implements Persistent
 
             if ($this->collGridRunsRelatedByIdModification !== null) {
                 foreach ($this->collGridRunsRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->fleetSlotsRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->fleetSlotsRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->fleetSlotsRelatedByIdCreationScheduledForDeletion as $fleetSlotRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $fleetSlotRelatedByIdCreation->save($con);
+                    }
+                    $this->fleetSlotsRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collFleetSlotsRelatedByIdCreation !== null) {
+                foreach ($this->collFleetSlotsRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->fleetSlotsRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->fleetSlotsRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->fleetSlotsRelatedByIdModificationScheduledForDeletion as $fleetSlotRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $fleetSlotRelatedByIdModification->save($con);
+                    }
+                    $this->fleetSlotsRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collFleetSlotsRelatedByIdModification !== null) {
+                foreach ($this->collFleetSlotsRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->regimeEpisodesRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->regimeEpisodesRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->regimeEpisodesRelatedByIdCreationScheduledForDeletion as $regimeEpisodeRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $regimeEpisodeRelatedByIdCreation->save($con);
+                    }
+                    $this->regimeEpisodesRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collRegimeEpisodesRelatedByIdCreation !== null) {
+                foreach ($this->collRegimeEpisodesRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->regimeEpisodesRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->regimeEpisodesRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->regimeEpisodesRelatedByIdModificationScheduledForDeletion as $regimeEpisodeRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $regimeEpisodeRelatedByIdModification->save($con);
+                    }
+                    $this->regimeEpisodesRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collRegimeEpisodesRelatedByIdModification !== null) {
+                foreach ($this->collRegimeEpisodesRelatedByIdModification as $referrerFK) {
                     if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
                         $affectedRows += $referrerFK->save($con);
                     }
@@ -3213,6 +3550,42 @@ abstract class BaseAuthy extends BaseObject implements Persistent
                 }
             }
 
+            if ($this->marketCandlesRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->marketCandlesRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->marketCandlesRelatedByIdCreationScheduledForDeletion as $marketCandleRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $marketCandleRelatedByIdCreation->save($con);
+                    }
+                    $this->marketCandlesRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collMarketCandlesRelatedByIdCreation !== null) {
+                foreach ($this->collMarketCandlesRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->marketCandlesRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->marketCandlesRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->marketCandlesRelatedByIdModificationScheduledForDeletion as $marketCandleRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $marketCandleRelatedByIdModification->save($con);
+                    }
+                    $this->marketCandlesRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collMarketCandlesRelatedByIdModification !== null) {
+                foreach ($this->collMarketCandlesRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
             if ($this->botDecisionsRelatedByIdCreationScheduledForDeletion !== null) {
                 if (!$this->botDecisionsRelatedByIdCreationScheduledForDeletion->isEmpty()) {
                     foreach ($this->botDecisionsRelatedByIdCreationScheduledForDeletion as $botDecisionRelatedByIdCreation) {
@@ -3243,6 +3616,114 @@ abstract class BaseAuthy extends BaseObject implements Persistent
 
             if ($this->collBotDecisionsRelatedByIdModification !== null) {
                 foreach ($this->collBotDecisionsRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->marketOutlooksRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->marketOutlooksRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->marketOutlooksRelatedByIdCreationScheduledForDeletion as $marketOutlookRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $marketOutlookRelatedByIdCreation->save($con);
+                    }
+                    $this->marketOutlooksRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collMarketOutlooksRelatedByIdCreation !== null) {
+                foreach ($this->collMarketOutlooksRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->marketOutlooksRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->marketOutlooksRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->marketOutlooksRelatedByIdModificationScheduledForDeletion as $marketOutlookRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $marketOutlookRelatedByIdModification->save($con);
+                    }
+                    $this->marketOutlooksRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collMarketOutlooksRelatedByIdModification !== null) {
+                foreach ($this->collMarketOutlooksRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->marketOutlookStatesRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->marketOutlookStatesRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->marketOutlookStatesRelatedByIdCreationScheduledForDeletion as $marketOutlookStateRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $marketOutlookStateRelatedByIdCreation->save($con);
+                    }
+                    $this->marketOutlookStatesRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collMarketOutlookStatesRelatedByIdCreation !== null) {
+                foreach ($this->collMarketOutlookStatesRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->marketOutlookStatesRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->marketOutlookStatesRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->marketOutlookStatesRelatedByIdModificationScheduledForDeletion as $marketOutlookStateRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $marketOutlookStateRelatedByIdModification->save($con);
+                    }
+                    $this->marketOutlookStatesRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collMarketOutlookStatesRelatedByIdModification !== null) {
+                foreach ($this->collMarketOutlookStatesRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->walletNavsRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->walletNavsRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->walletNavsRelatedByIdCreationScheduledForDeletion as $walletNavRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $walletNavRelatedByIdCreation->save($con);
+                    }
+                    $this->walletNavsRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collWalletNavsRelatedByIdCreation !== null) {
+                foreach ($this->collWalletNavsRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->walletNavsRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->walletNavsRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->walletNavsRelatedByIdModificationScheduledForDeletion as $walletNavRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $walletNavRelatedByIdModification->save($con);
+                    }
+                    $this->walletNavsRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collWalletNavsRelatedByIdModification !== null) {
+                foreach ($this->collWalletNavsRelatedByIdModification as $referrerFK) {
                     if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
                         $affectedRows += $referrerFK->save($con);
                     }
@@ -3529,6 +4010,78 @@ abstract class BaseAuthy extends BaseObject implements Persistent
 
             if ($this->collAuthyRefreshTokensRelatedByIdModification !== null) {
                 foreach ($this->collAuthyRefreshTokensRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->gridRunAuditsRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->gridRunAuditsRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->gridRunAuditsRelatedByIdCreationScheduledForDeletion as $gridRunAuditRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $gridRunAuditRelatedByIdCreation->save($con);
+                    }
+                    $this->gridRunAuditsRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collGridRunAuditsRelatedByIdCreation !== null) {
+                foreach ($this->collGridRunAuditsRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->gridRunAuditsRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->gridRunAuditsRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->gridRunAuditsRelatedByIdModificationScheduledForDeletion as $gridRunAuditRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $gridRunAuditRelatedByIdModification->save($con);
+                    }
+                    $this->gridRunAuditsRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collGridRunAuditsRelatedByIdModification !== null) {
+                foreach ($this->collGridRunAuditsRelatedByIdModification as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->countriesRelatedByIdCreationScheduledForDeletion !== null) {
+                if (!$this->countriesRelatedByIdCreationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->countriesRelatedByIdCreationScheduledForDeletion as $countryRelatedByIdCreation) {
+                        // need to save related object because we set the relation to null
+                        $countryRelatedByIdCreation->save($con);
+                    }
+                    $this->countriesRelatedByIdCreationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collCountriesRelatedByIdCreation !== null) {
+                foreach ($this->collCountriesRelatedByIdCreation as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->countriesRelatedByIdModificationScheduledForDeletion !== null) {
+                if (!$this->countriesRelatedByIdModificationScheduledForDeletion->isEmpty()) {
+                    foreach ($this->countriesRelatedByIdModificationScheduledForDeletion as $countryRelatedByIdModification) {
+                        // need to save related object because we set the relation to null
+                        $countryRelatedByIdModification->save($con);
+                    }
+                    $this->countriesRelatedByIdModificationScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collCountriesRelatedByIdModification !== null) {
+                foreach ($this->collCountriesRelatedByIdModification as $referrerFK) {
                     if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
                         $affectedRows += $referrerFK->save($con);
                     }
@@ -4168,22 +4721,6 @@ abstract class BaseAuthy extends BaseObject implements Persistent
                     }
                 }
 
-                if ($this->collCountriesRelatedByIdCreation !== null) {
-                    foreach ($this->collCountriesRelatedByIdCreation as $referrerFK) {
-                        if (!$referrerFK->validate($columns)) {
-                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
-                        }
-                    }
-                }
-
-                if ($this->collCountriesRelatedByIdModification !== null) {
-                    foreach ($this->collCountriesRelatedByIdModification as $referrerFK) {
-                        if (!$referrerFK->validate($columns)) {
-                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
-                        }
-                    }
-                }
-
                 if ($this->collGridRunsRelatedByIdCreation !== null) {
                     foreach ($this->collGridRunsRelatedByIdCreation as $referrerFK) {
                         if (!$referrerFK->validate($columns)) {
@@ -4194,6 +4731,38 @@ abstract class BaseAuthy extends BaseObject implements Persistent
 
                 if ($this->collGridRunsRelatedByIdModification !== null) {
                     foreach ($this->collGridRunsRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collFleetSlotsRelatedByIdCreation !== null) {
+                    foreach ($this->collFleetSlotsRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collFleetSlotsRelatedByIdModification !== null) {
+                    foreach ($this->collFleetSlotsRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collRegimeEpisodesRelatedByIdCreation !== null) {
+                    foreach ($this->collRegimeEpisodesRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collRegimeEpisodesRelatedByIdModification !== null) {
+                    foreach ($this->collRegimeEpisodesRelatedByIdModification as $referrerFK) {
                         if (!$referrerFK->validate($columns)) {
                             $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
                         }
@@ -4312,6 +4881,22 @@ abstract class BaseAuthy extends BaseObject implements Persistent
                     }
                 }
 
+                if ($this->collMarketCandlesRelatedByIdCreation !== null) {
+                    foreach ($this->collMarketCandlesRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collMarketCandlesRelatedByIdModification !== null) {
+                    foreach ($this->collMarketCandlesRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
                 if ($this->collBotDecisionsRelatedByIdCreation !== null) {
                     foreach ($this->collBotDecisionsRelatedByIdCreation as $referrerFK) {
                         if (!$referrerFK->validate($columns)) {
@@ -4322,6 +4907,54 @@ abstract class BaseAuthy extends BaseObject implements Persistent
 
                 if ($this->collBotDecisionsRelatedByIdModification !== null) {
                     foreach ($this->collBotDecisionsRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collMarketOutlooksRelatedByIdCreation !== null) {
+                    foreach ($this->collMarketOutlooksRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collMarketOutlooksRelatedByIdModification !== null) {
+                    foreach ($this->collMarketOutlooksRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collMarketOutlookStatesRelatedByIdCreation !== null) {
+                    foreach ($this->collMarketOutlookStatesRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collMarketOutlookStatesRelatedByIdModification !== null) {
+                    foreach ($this->collMarketOutlookStatesRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collWalletNavsRelatedByIdCreation !== null) {
+                    foreach ($this->collWalletNavsRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collWalletNavsRelatedByIdModification !== null) {
+                    foreach ($this->collWalletNavsRelatedByIdModification as $referrerFK) {
                         if (!$referrerFK->validate($columns)) {
                             $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
                         }
@@ -4450,6 +5083,38 @@ abstract class BaseAuthy extends BaseObject implements Persistent
 
                 if ($this->collAuthyRefreshTokensRelatedByIdModification !== null) {
                     foreach ($this->collAuthyRefreshTokensRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collGridRunAuditsRelatedByIdCreation !== null) {
+                    foreach ($this->collGridRunAuditsRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collGridRunAuditsRelatedByIdModification !== null) {
+                    foreach ($this->collGridRunAuditsRelatedByIdModification as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collCountriesRelatedByIdCreation !== null) {
+                    foreach ($this->collCountriesRelatedByIdCreation as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
+                if ($this->collCountriesRelatedByIdModification !== null) {
+                    foreach ($this->collCountriesRelatedByIdModification as $referrerFK) {
                         if (!$referrerFK->validate($columns)) {
                             $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
                         }
@@ -4678,17 +5343,23 @@ abstract class BaseAuthy extends BaseObject implements Persistent
             if (null !== $this->collPushDevicesRelatedByIdModification) {
                 $result['PushDevicesRelatedByIdModification'] = $this->collPushDevicesRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
-            if (null !== $this->collCountriesRelatedByIdCreation) {
-                $result['CountriesRelatedByIdCreation'] = $this->collCountriesRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
-            }
-            if (null !== $this->collCountriesRelatedByIdModification) {
-                $result['CountriesRelatedByIdModification'] = $this->collCountriesRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
-            }
             if (null !== $this->collGridRunsRelatedByIdCreation) {
                 $result['GridRunsRelatedByIdCreation'] = $this->collGridRunsRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
             if (null !== $this->collGridRunsRelatedByIdModification) {
                 $result['GridRunsRelatedByIdModification'] = $this->collGridRunsRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collFleetSlotsRelatedByIdCreation) {
+                $result['FleetSlotsRelatedByIdCreation'] = $this->collFleetSlotsRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collFleetSlotsRelatedByIdModification) {
+                $result['FleetSlotsRelatedByIdModification'] = $this->collFleetSlotsRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collRegimeEpisodesRelatedByIdCreation) {
+                $result['RegimeEpisodesRelatedByIdCreation'] = $this->collRegimeEpisodesRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collRegimeEpisodesRelatedByIdModification) {
+                $result['RegimeEpisodesRelatedByIdModification'] = $this->collRegimeEpisodesRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
             if (null !== $this->collBotOrdersRelatedByIdCreation) {
                 $result['BotOrdersRelatedByIdCreation'] = $this->collBotOrdersRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
@@ -4732,11 +5403,35 @@ abstract class BaseAuthy extends BaseObject implements Persistent
             if (null !== $this->collMarketRegimesRelatedByIdModification) {
                 $result['MarketRegimesRelatedByIdModification'] = $this->collMarketRegimesRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
+            if (null !== $this->collMarketCandlesRelatedByIdCreation) {
+                $result['MarketCandlesRelatedByIdCreation'] = $this->collMarketCandlesRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collMarketCandlesRelatedByIdModification) {
+                $result['MarketCandlesRelatedByIdModification'] = $this->collMarketCandlesRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
             if (null !== $this->collBotDecisionsRelatedByIdCreation) {
                 $result['BotDecisionsRelatedByIdCreation'] = $this->collBotDecisionsRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
             if (null !== $this->collBotDecisionsRelatedByIdModification) {
                 $result['BotDecisionsRelatedByIdModification'] = $this->collBotDecisionsRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collMarketOutlooksRelatedByIdCreation) {
+                $result['MarketOutlooksRelatedByIdCreation'] = $this->collMarketOutlooksRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collMarketOutlooksRelatedByIdModification) {
+                $result['MarketOutlooksRelatedByIdModification'] = $this->collMarketOutlooksRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collMarketOutlookStatesRelatedByIdCreation) {
+                $result['MarketOutlookStatesRelatedByIdCreation'] = $this->collMarketOutlookStatesRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collMarketOutlookStatesRelatedByIdModification) {
+                $result['MarketOutlookStatesRelatedByIdModification'] = $this->collMarketOutlookStatesRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collWalletNavsRelatedByIdCreation) {
+                $result['WalletNavsRelatedByIdCreation'] = $this->collWalletNavsRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collWalletNavsRelatedByIdModification) {
+                $result['WalletNavsRelatedByIdModification'] = $this->collWalletNavsRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
             if (null !== $this->collAuthyGroupsRelatedByIdCreation) {
                 $result['AuthyGroupsRelatedByIdCreation'] = $this->collAuthyGroupsRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
@@ -4785,6 +5480,18 @@ abstract class BaseAuthy extends BaseObject implements Persistent
             }
             if (null !== $this->collAuthyRefreshTokensRelatedByIdModification) {
                 $result['AuthyRefreshTokensRelatedByIdModification'] = $this->collAuthyRefreshTokensRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collGridRunAuditsRelatedByIdCreation) {
+                $result['GridRunAuditsRelatedByIdCreation'] = $this->collGridRunAuditsRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collGridRunAuditsRelatedByIdModification) {
+                $result['GridRunAuditsRelatedByIdModification'] = $this->collGridRunAuditsRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collCountriesRelatedByIdCreation) {
+                $result['CountriesRelatedByIdCreation'] = $this->collCountriesRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collCountriesRelatedByIdModification) {
+                $result['CountriesRelatedByIdModification'] = $this->collCountriesRelatedByIdModification->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
             if (null !== $this->collOauthClientsRelatedByIdCreation) {
                 $result['OauthClientsRelatedByIdCreation'] = $this->collOauthClientsRelatedByIdCreation->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
@@ -5206,18 +5913,6 @@ abstract class BaseAuthy extends BaseObject implements Persistent
                 }
             }
 
-            foreach ($this->getCountriesRelatedByIdCreation() as $relObj) {
-                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
-                    $copyObj->addCountryRelatedByIdCreation($relObj->copy($deepCopy));
-                }
-            }
-
-            foreach ($this->getCountriesRelatedByIdModification() as $relObj) {
-                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
-                    $copyObj->addCountryRelatedByIdModification($relObj->copy($deepCopy));
-                }
-            }
-
             foreach ($this->getGridRunsRelatedByIdCreation() as $relObj) {
                 if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
                     $copyObj->addGridRunRelatedByIdCreation($relObj->copy($deepCopy));
@@ -5227,6 +5922,30 @@ abstract class BaseAuthy extends BaseObject implements Persistent
             foreach ($this->getGridRunsRelatedByIdModification() as $relObj) {
                 if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
                     $copyObj->addGridRunRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getFleetSlotsRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addFleetSlotRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getFleetSlotsRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addFleetSlotRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getRegimeEpisodesRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addRegimeEpisodeRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getRegimeEpisodesRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addRegimeEpisodeRelatedByIdModification($relObj->copy($deepCopy));
                 }
             }
 
@@ -5314,6 +6033,18 @@ abstract class BaseAuthy extends BaseObject implements Persistent
                 }
             }
 
+            foreach ($this->getMarketCandlesRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addMarketCandleRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getMarketCandlesRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addMarketCandleRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
             foreach ($this->getBotDecisionsRelatedByIdCreation() as $relObj) {
                 if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
                     $copyObj->addBotDecisionRelatedByIdCreation($relObj->copy($deepCopy));
@@ -5323,6 +6054,42 @@ abstract class BaseAuthy extends BaseObject implements Persistent
             foreach ($this->getBotDecisionsRelatedByIdModification() as $relObj) {
                 if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
                     $copyObj->addBotDecisionRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getMarketOutlooksRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addMarketOutlookRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getMarketOutlooksRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addMarketOutlookRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getMarketOutlookStatesRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addMarketOutlookStateRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getMarketOutlookStatesRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addMarketOutlookStateRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getWalletNavsRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addWalletNavRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getWalletNavsRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addWalletNavRelatedByIdModification($relObj->copy($deepCopy));
                 }
             }
 
@@ -5419,6 +6186,30 @@ abstract class BaseAuthy extends BaseObject implements Persistent
             foreach ($this->getAuthyRefreshTokensRelatedByIdModification() as $relObj) {
                 if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
                     $copyObj->addAuthyRefreshTokenRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getGridRunAuditsRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addGridRunAuditRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getGridRunAuditsRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addGridRunAuditRelatedByIdModification($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getCountriesRelatedByIdCreation() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addCountryRelatedByIdCreation($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getCountriesRelatedByIdModification() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addCountryRelatedByIdModification($relObj->copy($deepCopy));
                 }
             }
 
@@ -5790,17 +6581,23 @@ abstract class BaseAuthy extends BaseObject implements Persistent
         if ('PushDeviceRelatedByIdModification' == $relationName) {
             $this->initPushDevicesRelatedByIdModification();
         }
-        if ('CountryRelatedByIdCreation' == $relationName) {
-            $this->initCountriesRelatedByIdCreation();
-        }
-        if ('CountryRelatedByIdModification' == $relationName) {
-            $this->initCountriesRelatedByIdModification();
-        }
         if ('GridRunRelatedByIdCreation' == $relationName) {
             $this->initGridRunsRelatedByIdCreation();
         }
         if ('GridRunRelatedByIdModification' == $relationName) {
             $this->initGridRunsRelatedByIdModification();
+        }
+        if ('FleetSlotRelatedByIdCreation' == $relationName) {
+            $this->initFleetSlotsRelatedByIdCreation();
+        }
+        if ('FleetSlotRelatedByIdModification' == $relationName) {
+            $this->initFleetSlotsRelatedByIdModification();
+        }
+        if ('RegimeEpisodeRelatedByIdCreation' == $relationName) {
+            $this->initRegimeEpisodesRelatedByIdCreation();
+        }
+        if ('RegimeEpisodeRelatedByIdModification' == $relationName) {
+            $this->initRegimeEpisodesRelatedByIdModification();
         }
         if ('BotOrderRelatedByIdCreation' == $relationName) {
             $this->initBotOrdersRelatedByIdCreation();
@@ -5844,11 +6641,35 @@ abstract class BaseAuthy extends BaseObject implements Persistent
         if ('MarketRegimeRelatedByIdModification' == $relationName) {
             $this->initMarketRegimesRelatedByIdModification();
         }
+        if ('MarketCandleRelatedByIdCreation' == $relationName) {
+            $this->initMarketCandlesRelatedByIdCreation();
+        }
+        if ('MarketCandleRelatedByIdModification' == $relationName) {
+            $this->initMarketCandlesRelatedByIdModification();
+        }
         if ('BotDecisionRelatedByIdCreation' == $relationName) {
             $this->initBotDecisionsRelatedByIdCreation();
         }
         if ('BotDecisionRelatedByIdModification' == $relationName) {
             $this->initBotDecisionsRelatedByIdModification();
+        }
+        if ('MarketOutlookRelatedByIdCreation' == $relationName) {
+            $this->initMarketOutlooksRelatedByIdCreation();
+        }
+        if ('MarketOutlookRelatedByIdModification' == $relationName) {
+            $this->initMarketOutlooksRelatedByIdModification();
+        }
+        if ('MarketOutlookStateRelatedByIdCreation' == $relationName) {
+            $this->initMarketOutlookStatesRelatedByIdCreation();
+        }
+        if ('MarketOutlookStateRelatedByIdModification' == $relationName) {
+            $this->initMarketOutlookStatesRelatedByIdModification();
+        }
+        if ('WalletNavRelatedByIdCreation' == $relationName) {
+            $this->initWalletNavsRelatedByIdCreation();
+        }
+        if ('WalletNavRelatedByIdModification' == $relationName) {
+            $this->initWalletNavsRelatedByIdModification();
         }
         if ('AuthyGroupRelatedByIdCreation' == $relationName) {
             $this->initAuthyGroupsRelatedByIdCreation();
@@ -5897,6 +6718,18 @@ abstract class BaseAuthy extends BaseObject implements Persistent
         }
         if ('AuthyRefreshTokenRelatedByIdModification' == $relationName) {
             $this->initAuthyRefreshTokensRelatedByIdModification();
+        }
+        if ('GridRunAuditRelatedByIdCreation' == $relationName) {
+            $this->initGridRunAuditsRelatedByIdCreation();
+        }
+        if ('GridRunAuditRelatedByIdModification' == $relationName) {
+            $this->initGridRunAuditsRelatedByIdModification();
+        }
+        if ('CountryRelatedByIdCreation' == $relationName) {
+            $this->initCountriesRelatedByIdCreation();
+        }
+        if ('CountryRelatedByIdModification' == $relationName) {
+            $this->initCountriesRelatedByIdModification();
         }
         if ('OauthClientRelatedByIdCreation' == $relationName) {
             $this->initOauthClientsRelatedByIdCreation();
@@ -7671,490 +8504,6 @@ abstract class BaseAuthy extends BaseObject implements Persistent
     }
 
     /**
-     * Clears out the collCountriesRelatedByIdCreation collection
-     *
-     * This does not modify the database; however, it will remove any associated objects, causing
-     * them to be refetched by subsequent calls to accessor method.
-     *
-     * @return Authy The current object (for fluent API support)
-     * @see        addCountriesRelatedByIdCreation()
-     */
-    public function clearCountriesRelatedByIdCreation()
-    {
-        $this->collCountriesRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
-        $this->collCountriesRelatedByIdCreationPartial = null;
-
-        return $this;
-    }
-
-    /**
-     * reset is the collCountriesRelatedByIdCreation collection loaded partially
-     *
-     * @return void
-     */
-    public function resetPartialCountriesRelatedByIdCreation($v = true)
-    {
-        $this->collCountriesRelatedByIdCreationPartial = $v;
-    }
-
-    /**
-     * Initializes the collCountriesRelatedByIdCreation collection.
-     *
-     * By default this just sets the collCountriesRelatedByIdCreation collection to an empty array (like clearcollCountriesRelatedByIdCreation());
-     * however, you may wish to override this method in your stub class to provide setting appropriate
-     * to your application -- for example, setting the initial array to the values stored in database.
-     *
-     * @param boolean $overrideExisting If set to true, the method call initializes
-     *                                        the collection even if it is not empty
-     *
-     * @return void
-     */
-    public function initCountriesRelatedByIdCreation($overrideExisting = true)
-    {
-        if (null !== $this->collCountriesRelatedByIdCreation && !$overrideExisting) {
-            return;
-        }
-        $this->collCountriesRelatedByIdCreation = new PropelObjectCollection();
-        $this->collCountriesRelatedByIdCreation->setModel('Country');
-    }
-
-    /**
-     * Gets an array of Country objects which contain a foreign key that references this object.
-     *
-     * If the $criteria is not null, it is used to always fetch the results from the database.
-     * Otherwise the results are fetched from the database the first time, then cached.
-     * Next time the same method is called without $criteria, the cached collection is returned.
-     * If this Authy is new, it will return
-     * an empty collection or the current collection; the criteria is ignored on a new object.
-     *
-     * @param Criteria $criteria optional Criteria object to narrow the query
-     * @param PropelPDO $con optional connection object
-     * @return PropelObjectCollection|Country[] List of Country objects
-     * @throws PropelException
-     */
-    public function getCountriesRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
-    {
-        $partial = $this->collCountriesRelatedByIdCreationPartial && !$this->isNew();
-        if (null === $this->collCountriesRelatedByIdCreation || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collCountriesRelatedByIdCreation) {
-                // return empty collection
-                $this->initCountriesRelatedByIdCreation();
-            } else {
-                $collCountriesRelatedByIdCreation = CountryQuery::create(null, $criteria)
-                    ->filterByAuthyRelatedByIdCreation($this)
-                    ->find($con);
-                if (null !== $criteria) {
-                    if (false !== $this->collCountriesRelatedByIdCreationPartial && count($collCountriesRelatedByIdCreation)) {
-                      $this->initCountriesRelatedByIdCreation(false);
-
-                      foreach ($collCountriesRelatedByIdCreation as $obj) {
-                        if (false == $this->collCountriesRelatedByIdCreation->contains($obj)) {
-                          $this->collCountriesRelatedByIdCreation->append($obj);
-                        }
-                      }
-
-                      $this->collCountriesRelatedByIdCreationPartial = true;
-                    }
-
-                    $collCountriesRelatedByIdCreation->getInternalIterator()->rewind();
-
-                    return $collCountriesRelatedByIdCreation;
-                }
-
-                if ($partial && $this->collCountriesRelatedByIdCreation) {
-                    foreach ($this->collCountriesRelatedByIdCreation as $obj) {
-                        if ($obj->isNew()) {
-                            $collCountriesRelatedByIdCreation[] = $obj;
-                        }
-                    }
-                }
-
-                $this->collCountriesRelatedByIdCreation = $collCountriesRelatedByIdCreation;
-                $this->collCountriesRelatedByIdCreationPartial = false;
-            }
-        }
-
-        return $this->collCountriesRelatedByIdCreation;
-    }
-
-    /**
-     * Sets a collection of CountryRelatedByIdCreation objects related by a one-to-many relationship
-     * to the current object.
-     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
-     * and new objects from the given Propel collection.
-     *
-     * @param PropelCollection $countriesRelatedByIdCreation A Propel collection.
-     * @param PropelPDO $con Optional connection object
-     * @return Authy The current object (for fluent API support)
-     */
-    public function setCountriesRelatedByIdCreation(PropelCollection $countriesRelatedByIdCreation, ?PropelPDO $con = null)
-    {
-        $countriesRelatedByIdCreationToDelete = $this->getCountriesRelatedByIdCreation(new Criteria(), $con)->diff($countriesRelatedByIdCreation);
-
-
-        $this->countriesRelatedByIdCreationScheduledForDeletion = $countriesRelatedByIdCreationToDelete;
-
-        foreach ($countriesRelatedByIdCreationToDelete as $countryRelatedByIdCreationRemoved) {
-            $countryRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
-        }
-
-        $this->collCountriesRelatedByIdCreation = null;
-        foreach ($countriesRelatedByIdCreation as $countryRelatedByIdCreation) {
-            $this->addCountryRelatedByIdCreation($countryRelatedByIdCreation);
-        }
-
-        $this->collCountriesRelatedByIdCreation = $countriesRelatedByIdCreation;
-        $this->collCountriesRelatedByIdCreationPartial = false;
-
-        return $this;
-    }
-
-    /**
-     * Returns the number of related Country objects.
-     *
-     * @param Criteria $criteria
-     * @param boolean $distinct
-     * @param PropelPDO $con
-     * @return int             Count of related Country objects.
-     * @throws PropelException
-     */
-    public function countCountriesRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
-    {
-        $partial = $this->collCountriesRelatedByIdCreationPartial && !$this->isNew();
-        if (null === $this->collCountriesRelatedByIdCreation || null !== $criteria || $partial) {
-            if ($this->isNew() && null === $this->collCountriesRelatedByIdCreation) {
-                return 0;
-            }
-
-            if ($partial && !$criteria) {
-                return count($this->getCountriesRelatedByIdCreation());
-            }
-            $query = CountryQuery::create(null, $criteria);
-            if ($distinct) {
-                $query->distinct();
-            }
-
-            return $query
-                ->filterByAuthyRelatedByIdCreation($this)
-                ->count($con);
-        }
-
-        return count($this->collCountriesRelatedByIdCreation);
-    }
-
-    /**
-     * Method called to associate a Country object to this object
-     * through the Country foreign key attribute.
-     *
-     * @param    Country $l Country
-     * @return Authy The current object (for fluent API support)
-     */
-    public function addCountryRelatedByIdCreation(Country $l)
-    {
-        if ($this->collCountriesRelatedByIdCreation === null) {
-            $this->initCountriesRelatedByIdCreation();
-            $this->collCountriesRelatedByIdCreationPartial = true;
-        }
-
-        if (!in_array($l, $this->collCountriesRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
-            $this->doAddCountryRelatedByIdCreation($l);
-
-            if ($this->countriesRelatedByIdCreationScheduledForDeletion and $this->countriesRelatedByIdCreationScheduledForDeletion->contains($l)) {
-                $this->countriesRelatedByIdCreationScheduledForDeletion->remove($this->countriesRelatedByIdCreationScheduledForDeletion->search($l));
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param	CountryRelatedByIdCreation $countryRelatedByIdCreation The countryRelatedByIdCreation object to add.
-     */
-    protected function doAddCountryRelatedByIdCreation($countryRelatedByIdCreation)
-    {
-        $this->collCountriesRelatedByIdCreation[]= $countryRelatedByIdCreation;
-        $countryRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
-    }
-
-    /**
-     * @param	CountryRelatedByIdCreation $countryRelatedByIdCreation The countryRelatedByIdCreation object to remove.
-     * @return Authy The current object (for fluent API support)
-     */
-    public function removeCountryRelatedByIdCreation($countryRelatedByIdCreation)
-    {
-        if ($this->getCountriesRelatedByIdCreation()->contains($countryRelatedByIdCreation)) {
-            $this->collCountriesRelatedByIdCreation->remove($this->collCountriesRelatedByIdCreation->search($countryRelatedByIdCreation));
-            if (null === $this->countriesRelatedByIdCreationScheduledForDeletion) {
-                $this->countriesRelatedByIdCreationScheduledForDeletion = clone $this->collCountriesRelatedByIdCreation;
-                $this->countriesRelatedByIdCreationScheduledForDeletion->clear();
-            }
-            $this->countriesRelatedByIdCreationScheduledForDeletion[]= $countryRelatedByIdCreation;
-            $countryRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
-        }
-
-        return $this;
-    }
-
-
-    /**
-
-     *
-     * @param Criteria $criteria optional Criteria object to narrow the query
-     * @param PropelPDO $con optional connection object
-     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
-     * @return PropelObjectCollection|Country[] List of Country objects
-     */
-    public function getCountriesRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
-    {
-        $query = CountryQuery::create(null, $criteria);
-        $query->joinWith('AuthyGroup', $join_behavior);
-
-        return $this->getCountriesRelatedByIdCreation($query, $con);
-    }
-
-    /**
-     * Clears out the collCountriesRelatedByIdModification collection
-     *
-     * This does not modify the database; however, it will remove any associated objects, causing
-     * them to be refetched by subsequent calls to accessor method.
-     *
-     * @return Authy The current object (for fluent API support)
-     * @see        addCountriesRelatedByIdModification()
-     */
-    public function clearCountriesRelatedByIdModification()
-    {
-        $this->collCountriesRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
-        $this->collCountriesRelatedByIdModificationPartial = null;
-
-        return $this;
-    }
-
-    /**
-     * reset is the collCountriesRelatedByIdModification collection loaded partially
-     *
-     * @return void
-     */
-    public function resetPartialCountriesRelatedByIdModification($v = true)
-    {
-        $this->collCountriesRelatedByIdModificationPartial = $v;
-    }
-
-    /**
-     * Initializes the collCountriesRelatedByIdModification collection.
-     *
-     * By default this just sets the collCountriesRelatedByIdModification collection to an empty array (like clearcollCountriesRelatedByIdModification());
-     * however, you may wish to override this method in your stub class to provide setting appropriate
-     * to your application -- for example, setting the initial array to the values stored in database.
-     *
-     * @param boolean $overrideExisting If set to true, the method call initializes
-     *                                        the collection even if it is not empty
-     *
-     * @return void
-     */
-    public function initCountriesRelatedByIdModification($overrideExisting = true)
-    {
-        if (null !== $this->collCountriesRelatedByIdModification && !$overrideExisting) {
-            return;
-        }
-        $this->collCountriesRelatedByIdModification = new PropelObjectCollection();
-        $this->collCountriesRelatedByIdModification->setModel('Country');
-    }
-
-    /**
-     * Gets an array of Country objects which contain a foreign key that references this object.
-     *
-     * If the $criteria is not null, it is used to always fetch the results from the database.
-     * Otherwise the results are fetched from the database the first time, then cached.
-     * Next time the same method is called without $criteria, the cached collection is returned.
-     * If this Authy is new, it will return
-     * an empty collection or the current collection; the criteria is ignored on a new object.
-     *
-     * @param Criteria $criteria optional Criteria object to narrow the query
-     * @param PropelPDO $con optional connection object
-     * @return PropelObjectCollection|Country[] List of Country objects
-     * @throws PropelException
-     */
-    public function getCountriesRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
-    {
-        $partial = $this->collCountriesRelatedByIdModificationPartial && !$this->isNew();
-        if (null === $this->collCountriesRelatedByIdModification || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collCountriesRelatedByIdModification) {
-                // return empty collection
-                $this->initCountriesRelatedByIdModification();
-            } else {
-                $collCountriesRelatedByIdModification = CountryQuery::create(null, $criteria)
-                    ->filterByAuthyRelatedByIdModification($this)
-                    ->find($con);
-                if (null !== $criteria) {
-                    if (false !== $this->collCountriesRelatedByIdModificationPartial && count($collCountriesRelatedByIdModification)) {
-                      $this->initCountriesRelatedByIdModification(false);
-
-                      foreach ($collCountriesRelatedByIdModification as $obj) {
-                        if (false == $this->collCountriesRelatedByIdModification->contains($obj)) {
-                          $this->collCountriesRelatedByIdModification->append($obj);
-                        }
-                      }
-
-                      $this->collCountriesRelatedByIdModificationPartial = true;
-                    }
-
-                    $collCountriesRelatedByIdModification->getInternalIterator()->rewind();
-
-                    return $collCountriesRelatedByIdModification;
-                }
-
-                if ($partial && $this->collCountriesRelatedByIdModification) {
-                    foreach ($this->collCountriesRelatedByIdModification as $obj) {
-                        if ($obj->isNew()) {
-                            $collCountriesRelatedByIdModification[] = $obj;
-                        }
-                    }
-                }
-
-                $this->collCountriesRelatedByIdModification = $collCountriesRelatedByIdModification;
-                $this->collCountriesRelatedByIdModificationPartial = false;
-            }
-        }
-
-        return $this->collCountriesRelatedByIdModification;
-    }
-
-    /**
-     * Sets a collection of CountryRelatedByIdModification objects related by a one-to-many relationship
-     * to the current object.
-     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
-     * and new objects from the given Propel collection.
-     *
-     * @param PropelCollection $countriesRelatedByIdModification A Propel collection.
-     * @param PropelPDO $con Optional connection object
-     * @return Authy The current object (for fluent API support)
-     */
-    public function setCountriesRelatedByIdModification(PropelCollection $countriesRelatedByIdModification, ?PropelPDO $con = null)
-    {
-        $countriesRelatedByIdModificationToDelete = $this->getCountriesRelatedByIdModification(new Criteria(), $con)->diff($countriesRelatedByIdModification);
-
-
-        $this->countriesRelatedByIdModificationScheduledForDeletion = $countriesRelatedByIdModificationToDelete;
-
-        foreach ($countriesRelatedByIdModificationToDelete as $countryRelatedByIdModificationRemoved) {
-            $countryRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
-        }
-
-        $this->collCountriesRelatedByIdModification = null;
-        foreach ($countriesRelatedByIdModification as $countryRelatedByIdModification) {
-            $this->addCountryRelatedByIdModification($countryRelatedByIdModification);
-        }
-
-        $this->collCountriesRelatedByIdModification = $countriesRelatedByIdModification;
-        $this->collCountriesRelatedByIdModificationPartial = false;
-
-        return $this;
-    }
-
-    /**
-     * Returns the number of related Country objects.
-     *
-     * @param Criteria $criteria
-     * @param boolean $distinct
-     * @param PropelPDO $con
-     * @return int             Count of related Country objects.
-     * @throws PropelException
-     */
-    public function countCountriesRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
-    {
-        $partial = $this->collCountriesRelatedByIdModificationPartial && !$this->isNew();
-        if (null === $this->collCountriesRelatedByIdModification || null !== $criteria || $partial) {
-            if ($this->isNew() && null === $this->collCountriesRelatedByIdModification) {
-                return 0;
-            }
-
-            if ($partial && !$criteria) {
-                return count($this->getCountriesRelatedByIdModification());
-            }
-            $query = CountryQuery::create(null, $criteria);
-            if ($distinct) {
-                $query->distinct();
-            }
-
-            return $query
-                ->filterByAuthyRelatedByIdModification($this)
-                ->count($con);
-        }
-
-        return count($this->collCountriesRelatedByIdModification);
-    }
-
-    /**
-     * Method called to associate a Country object to this object
-     * through the Country foreign key attribute.
-     *
-     * @param    Country $l Country
-     * @return Authy The current object (for fluent API support)
-     */
-    public function addCountryRelatedByIdModification(Country $l)
-    {
-        if ($this->collCountriesRelatedByIdModification === null) {
-            $this->initCountriesRelatedByIdModification();
-            $this->collCountriesRelatedByIdModificationPartial = true;
-        }
-
-        if (!in_array($l, $this->collCountriesRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
-            $this->doAddCountryRelatedByIdModification($l);
-
-            if ($this->countriesRelatedByIdModificationScheduledForDeletion and $this->countriesRelatedByIdModificationScheduledForDeletion->contains($l)) {
-                $this->countriesRelatedByIdModificationScheduledForDeletion->remove($this->countriesRelatedByIdModificationScheduledForDeletion->search($l));
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param	CountryRelatedByIdModification $countryRelatedByIdModification The countryRelatedByIdModification object to add.
-     */
-    protected function doAddCountryRelatedByIdModification($countryRelatedByIdModification)
-    {
-        $this->collCountriesRelatedByIdModification[]= $countryRelatedByIdModification;
-        $countryRelatedByIdModification->setAuthyRelatedByIdModification($this);
-    }
-
-    /**
-     * @param	CountryRelatedByIdModification $countryRelatedByIdModification The countryRelatedByIdModification object to remove.
-     * @return Authy The current object (for fluent API support)
-     */
-    public function removeCountryRelatedByIdModification($countryRelatedByIdModification)
-    {
-        if ($this->getCountriesRelatedByIdModification()->contains($countryRelatedByIdModification)) {
-            $this->collCountriesRelatedByIdModification->remove($this->collCountriesRelatedByIdModification->search($countryRelatedByIdModification));
-            if (null === $this->countriesRelatedByIdModificationScheduledForDeletion) {
-                $this->countriesRelatedByIdModificationScheduledForDeletion = clone $this->collCountriesRelatedByIdModification;
-                $this->countriesRelatedByIdModificationScheduledForDeletion->clear();
-            }
-            $this->countriesRelatedByIdModificationScheduledForDeletion[]= $countryRelatedByIdModification;
-            $countryRelatedByIdModification->setAuthyRelatedByIdModification(null);
-        }
-
-        return $this;
-    }
-
-
-    /**
-
-     *
-     * @param Criteria $criteria optional Criteria object to narrow the query
-     * @param PropelPDO $con optional connection object
-     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
-     * @return PropelObjectCollection|Country[] List of Country objects
-     */
-    public function getCountriesRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
-    {
-        $query = CountryQuery::create(null, $criteria);
-        $query->joinWith('AuthyGroup', $join_behavior);
-
-        return $this->getCountriesRelatedByIdModification($query, $con);
-    }
-
-    /**
      * Clears out the collGridRunsRelatedByIdCreation collection
      *
      * This does not modify the database; however, it will remove any associated objects, causing
@@ -8636,6 +8985,1076 @@ abstract class BaseAuthy extends BaseObject implements Persistent
         $query->joinWith('AuthyGroup', $join_behavior);
 
         return $this->getGridRunsRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collFleetSlotsRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addFleetSlotsRelatedByIdCreation()
+     */
+    public function clearFleetSlotsRelatedByIdCreation()
+    {
+        $this->collFleetSlotsRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collFleetSlotsRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collFleetSlotsRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialFleetSlotsRelatedByIdCreation($v = true)
+    {
+        $this->collFleetSlotsRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collFleetSlotsRelatedByIdCreation collection.
+     *
+     * By default this just sets the collFleetSlotsRelatedByIdCreation collection to an empty array (like clearcollFleetSlotsRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initFleetSlotsRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collFleetSlotsRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collFleetSlotsRelatedByIdCreation = new PropelObjectCollection();
+        $this->collFleetSlotsRelatedByIdCreation->setModel('FleetSlot');
+    }
+
+    /**
+     * Gets an array of FleetSlot objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|FleetSlot[] List of FleetSlot objects
+     * @throws PropelException
+     */
+    public function getFleetSlotsRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collFleetSlotsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collFleetSlotsRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collFleetSlotsRelatedByIdCreation) {
+                // return empty collection
+                $this->initFleetSlotsRelatedByIdCreation();
+            } else {
+                $collFleetSlotsRelatedByIdCreation = FleetSlotQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collFleetSlotsRelatedByIdCreationPartial && count($collFleetSlotsRelatedByIdCreation)) {
+                      $this->initFleetSlotsRelatedByIdCreation(false);
+
+                      foreach ($collFleetSlotsRelatedByIdCreation as $obj) {
+                        if (false == $this->collFleetSlotsRelatedByIdCreation->contains($obj)) {
+                          $this->collFleetSlotsRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collFleetSlotsRelatedByIdCreationPartial = true;
+                    }
+
+                    $collFleetSlotsRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collFleetSlotsRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collFleetSlotsRelatedByIdCreation) {
+                    foreach ($this->collFleetSlotsRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collFleetSlotsRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collFleetSlotsRelatedByIdCreation = $collFleetSlotsRelatedByIdCreation;
+                $this->collFleetSlotsRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collFleetSlotsRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of FleetSlotRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $fleetSlotsRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setFleetSlotsRelatedByIdCreation(PropelCollection $fleetSlotsRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $fleetSlotsRelatedByIdCreationToDelete = $this->getFleetSlotsRelatedByIdCreation(new Criteria(), $con)->diff($fleetSlotsRelatedByIdCreation);
+
+
+        $this->fleetSlotsRelatedByIdCreationScheduledForDeletion = $fleetSlotsRelatedByIdCreationToDelete;
+
+        foreach ($fleetSlotsRelatedByIdCreationToDelete as $fleetSlotRelatedByIdCreationRemoved) {
+            $fleetSlotRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collFleetSlotsRelatedByIdCreation = null;
+        foreach ($fleetSlotsRelatedByIdCreation as $fleetSlotRelatedByIdCreation) {
+            $this->addFleetSlotRelatedByIdCreation($fleetSlotRelatedByIdCreation);
+        }
+
+        $this->collFleetSlotsRelatedByIdCreation = $fleetSlotsRelatedByIdCreation;
+        $this->collFleetSlotsRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related FleetSlot objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related FleetSlot objects.
+     * @throws PropelException
+     */
+    public function countFleetSlotsRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collFleetSlotsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collFleetSlotsRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collFleetSlotsRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getFleetSlotsRelatedByIdCreation());
+            }
+            $query = FleetSlotQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collFleetSlotsRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a FleetSlot object to this object
+     * through the FleetSlot foreign key attribute.
+     *
+     * @param    FleetSlot $l FleetSlot
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addFleetSlotRelatedByIdCreation(FleetSlot $l)
+    {
+        if ($this->collFleetSlotsRelatedByIdCreation === null) {
+            $this->initFleetSlotsRelatedByIdCreation();
+            $this->collFleetSlotsRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collFleetSlotsRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddFleetSlotRelatedByIdCreation($l);
+
+            if ($this->fleetSlotsRelatedByIdCreationScheduledForDeletion and $this->fleetSlotsRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->fleetSlotsRelatedByIdCreationScheduledForDeletion->remove($this->fleetSlotsRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	FleetSlotRelatedByIdCreation $fleetSlotRelatedByIdCreation The fleetSlotRelatedByIdCreation object to add.
+     */
+    protected function doAddFleetSlotRelatedByIdCreation($fleetSlotRelatedByIdCreation)
+    {
+        $this->collFleetSlotsRelatedByIdCreation[]= $fleetSlotRelatedByIdCreation;
+        $fleetSlotRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	FleetSlotRelatedByIdCreation $fleetSlotRelatedByIdCreation The fleetSlotRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeFleetSlotRelatedByIdCreation($fleetSlotRelatedByIdCreation)
+    {
+        if ($this->getFleetSlotsRelatedByIdCreation()->contains($fleetSlotRelatedByIdCreation)) {
+            $this->collFleetSlotsRelatedByIdCreation->remove($this->collFleetSlotsRelatedByIdCreation->search($fleetSlotRelatedByIdCreation));
+            if (null === $this->fleetSlotsRelatedByIdCreationScheduledForDeletion) {
+                $this->fleetSlotsRelatedByIdCreationScheduledForDeletion = clone $this->collFleetSlotsRelatedByIdCreation;
+                $this->fleetSlotsRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->fleetSlotsRelatedByIdCreationScheduledForDeletion[]= $fleetSlotRelatedByIdCreation;
+            $fleetSlotRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|FleetSlot[] List of FleetSlot objects
+     */
+    public function getFleetSlotsRelatedByIdCreationJoinGridRun($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = FleetSlotQuery::create(null, $criteria);
+        $query->joinWith('GridRun', $join_behavior);
+
+        return $this->getFleetSlotsRelatedByIdCreation($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|FleetSlot[] List of FleetSlot objects
+     */
+    public function getFleetSlotsRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = FleetSlotQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getFleetSlotsRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collFleetSlotsRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addFleetSlotsRelatedByIdModification()
+     */
+    public function clearFleetSlotsRelatedByIdModification()
+    {
+        $this->collFleetSlotsRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collFleetSlotsRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collFleetSlotsRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialFleetSlotsRelatedByIdModification($v = true)
+    {
+        $this->collFleetSlotsRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collFleetSlotsRelatedByIdModification collection.
+     *
+     * By default this just sets the collFleetSlotsRelatedByIdModification collection to an empty array (like clearcollFleetSlotsRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initFleetSlotsRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collFleetSlotsRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collFleetSlotsRelatedByIdModification = new PropelObjectCollection();
+        $this->collFleetSlotsRelatedByIdModification->setModel('FleetSlot');
+    }
+
+    /**
+     * Gets an array of FleetSlot objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|FleetSlot[] List of FleetSlot objects
+     * @throws PropelException
+     */
+    public function getFleetSlotsRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collFleetSlotsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collFleetSlotsRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collFleetSlotsRelatedByIdModification) {
+                // return empty collection
+                $this->initFleetSlotsRelatedByIdModification();
+            } else {
+                $collFleetSlotsRelatedByIdModification = FleetSlotQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collFleetSlotsRelatedByIdModificationPartial && count($collFleetSlotsRelatedByIdModification)) {
+                      $this->initFleetSlotsRelatedByIdModification(false);
+
+                      foreach ($collFleetSlotsRelatedByIdModification as $obj) {
+                        if (false == $this->collFleetSlotsRelatedByIdModification->contains($obj)) {
+                          $this->collFleetSlotsRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collFleetSlotsRelatedByIdModificationPartial = true;
+                    }
+
+                    $collFleetSlotsRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collFleetSlotsRelatedByIdModification;
+                }
+
+                if ($partial && $this->collFleetSlotsRelatedByIdModification) {
+                    foreach ($this->collFleetSlotsRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collFleetSlotsRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collFleetSlotsRelatedByIdModification = $collFleetSlotsRelatedByIdModification;
+                $this->collFleetSlotsRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collFleetSlotsRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of FleetSlotRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $fleetSlotsRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setFleetSlotsRelatedByIdModification(PropelCollection $fleetSlotsRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $fleetSlotsRelatedByIdModificationToDelete = $this->getFleetSlotsRelatedByIdModification(new Criteria(), $con)->diff($fleetSlotsRelatedByIdModification);
+
+
+        $this->fleetSlotsRelatedByIdModificationScheduledForDeletion = $fleetSlotsRelatedByIdModificationToDelete;
+
+        foreach ($fleetSlotsRelatedByIdModificationToDelete as $fleetSlotRelatedByIdModificationRemoved) {
+            $fleetSlotRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collFleetSlotsRelatedByIdModification = null;
+        foreach ($fleetSlotsRelatedByIdModification as $fleetSlotRelatedByIdModification) {
+            $this->addFleetSlotRelatedByIdModification($fleetSlotRelatedByIdModification);
+        }
+
+        $this->collFleetSlotsRelatedByIdModification = $fleetSlotsRelatedByIdModification;
+        $this->collFleetSlotsRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related FleetSlot objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related FleetSlot objects.
+     * @throws PropelException
+     */
+    public function countFleetSlotsRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collFleetSlotsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collFleetSlotsRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collFleetSlotsRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getFleetSlotsRelatedByIdModification());
+            }
+            $query = FleetSlotQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collFleetSlotsRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a FleetSlot object to this object
+     * through the FleetSlot foreign key attribute.
+     *
+     * @param    FleetSlot $l FleetSlot
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addFleetSlotRelatedByIdModification(FleetSlot $l)
+    {
+        if ($this->collFleetSlotsRelatedByIdModification === null) {
+            $this->initFleetSlotsRelatedByIdModification();
+            $this->collFleetSlotsRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collFleetSlotsRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddFleetSlotRelatedByIdModification($l);
+
+            if ($this->fleetSlotsRelatedByIdModificationScheduledForDeletion and $this->fleetSlotsRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->fleetSlotsRelatedByIdModificationScheduledForDeletion->remove($this->fleetSlotsRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	FleetSlotRelatedByIdModification $fleetSlotRelatedByIdModification The fleetSlotRelatedByIdModification object to add.
+     */
+    protected function doAddFleetSlotRelatedByIdModification($fleetSlotRelatedByIdModification)
+    {
+        $this->collFleetSlotsRelatedByIdModification[]= $fleetSlotRelatedByIdModification;
+        $fleetSlotRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	FleetSlotRelatedByIdModification $fleetSlotRelatedByIdModification The fleetSlotRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeFleetSlotRelatedByIdModification($fleetSlotRelatedByIdModification)
+    {
+        if ($this->getFleetSlotsRelatedByIdModification()->contains($fleetSlotRelatedByIdModification)) {
+            $this->collFleetSlotsRelatedByIdModification->remove($this->collFleetSlotsRelatedByIdModification->search($fleetSlotRelatedByIdModification));
+            if (null === $this->fleetSlotsRelatedByIdModificationScheduledForDeletion) {
+                $this->fleetSlotsRelatedByIdModificationScheduledForDeletion = clone $this->collFleetSlotsRelatedByIdModification;
+                $this->fleetSlotsRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->fleetSlotsRelatedByIdModificationScheduledForDeletion[]= $fleetSlotRelatedByIdModification;
+            $fleetSlotRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|FleetSlot[] List of FleetSlot objects
+     */
+    public function getFleetSlotsRelatedByIdModificationJoinGridRun($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = FleetSlotQuery::create(null, $criteria);
+        $query->joinWith('GridRun', $join_behavior);
+
+        return $this->getFleetSlotsRelatedByIdModification($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|FleetSlot[] List of FleetSlot objects
+     */
+    public function getFleetSlotsRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = FleetSlotQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getFleetSlotsRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collRegimeEpisodesRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addRegimeEpisodesRelatedByIdCreation()
+     */
+    public function clearRegimeEpisodesRelatedByIdCreation()
+    {
+        $this->collRegimeEpisodesRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collRegimeEpisodesRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collRegimeEpisodesRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialRegimeEpisodesRelatedByIdCreation($v = true)
+    {
+        $this->collRegimeEpisodesRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collRegimeEpisodesRelatedByIdCreation collection.
+     *
+     * By default this just sets the collRegimeEpisodesRelatedByIdCreation collection to an empty array (like clearcollRegimeEpisodesRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initRegimeEpisodesRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collRegimeEpisodesRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collRegimeEpisodesRelatedByIdCreation = new PropelObjectCollection();
+        $this->collRegimeEpisodesRelatedByIdCreation->setModel('RegimeEpisode');
+    }
+
+    /**
+     * Gets an array of RegimeEpisode objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|RegimeEpisode[] List of RegimeEpisode objects
+     * @throws PropelException
+     */
+    public function getRegimeEpisodesRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collRegimeEpisodesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collRegimeEpisodesRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collRegimeEpisodesRelatedByIdCreation) {
+                // return empty collection
+                $this->initRegimeEpisodesRelatedByIdCreation();
+            } else {
+                $collRegimeEpisodesRelatedByIdCreation = RegimeEpisodeQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collRegimeEpisodesRelatedByIdCreationPartial && count($collRegimeEpisodesRelatedByIdCreation)) {
+                      $this->initRegimeEpisodesRelatedByIdCreation(false);
+
+                      foreach ($collRegimeEpisodesRelatedByIdCreation as $obj) {
+                        if (false == $this->collRegimeEpisodesRelatedByIdCreation->contains($obj)) {
+                          $this->collRegimeEpisodesRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collRegimeEpisodesRelatedByIdCreationPartial = true;
+                    }
+
+                    $collRegimeEpisodesRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collRegimeEpisodesRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collRegimeEpisodesRelatedByIdCreation) {
+                    foreach ($this->collRegimeEpisodesRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collRegimeEpisodesRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collRegimeEpisodesRelatedByIdCreation = $collRegimeEpisodesRelatedByIdCreation;
+                $this->collRegimeEpisodesRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collRegimeEpisodesRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of RegimeEpisodeRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $regimeEpisodesRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setRegimeEpisodesRelatedByIdCreation(PropelCollection $regimeEpisodesRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $regimeEpisodesRelatedByIdCreationToDelete = $this->getRegimeEpisodesRelatedByIdCreation(new Criteria(), $con)->diff($regimeEpisodesRelatedByIdCreation);
+
+
+        $this->regimeEpisodesRelatedByIdCreationScheduledForDeletion = $regimeEpisodesRelatedByIdCreationToDelete;
+
+        foreach ($regimeEpisodesRelatedByIdCreationToDelete as $regimeEpisodeRelatedByIdCreationRemoved) {
+            $regimeEpisodeRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collRegimeEpisodesRelatedByIdCreation = null;
+        foreach ($regimeEpisodesRelatedByIdCreation as $regimeEpisodeRelatedByIdCreation) {
+            $this->addRegimeEpisodeRelatedByIdCreation($regimeEpisodeRelatedByIdCreation);
+        }
+
+        $this->collRegimeEpisodesRelatedByIdCreation = $regimeEpisodesRelatedByIdCreation;
+        $this->collRegimeEpisodesRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related RegimeEpisode objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related RegimeEpisode objects.
+     * @throws PropelException
+     */
+    public function countRegimeEpisodesRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collRegimeEpisodesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collRegimeEpisodesRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collRegimeEpisodesRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getRegimeEpisodesRelatedByIdCreation());
+            }
+            $query = RegimeEpisodeQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collRegimeEpisodesRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a RegimeEpisode object to this object
+     * through the RegimeEpisode foreign key attribute.
+     *
+     * @param    RegimeEpisode $l RegimeEpisode
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addRegimeEpisodeRelatedByIdCreation(RegimeEpisode $l)
+    {
+        if ($this->collRegimeEpisodesRelatedByIdCreation === null) {
+            $this->initRegimeEpisodesRelatedByIdCreation();
+            $this->collRegimeEpisodesRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collRegimeEpisodesRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddRegimeEpisodeRelatedByIdCreation($l);
+
+            if ($this->regimeEpisodesRelatedByIdCreationScheduledForDeletion and $this->regimeEpisodesRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->regimeEpisodesRelatedByIdCreationScheduledForDeletion->remove($this->regimeEpisodesRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	RegimeEpisodeRelatedByIdCreation $regimeEpisodeRelatedByIdCreation The regimeEpisodeRelatedByIdCreation object to add.
+     */
+    protected function doAddRegimeEpisodeRelatedByIdCreation($regimeEpisodeRelatedByIdCreation)
+    {
+        $this->collRegimeEpisodesRelatedByIdCreation[]= $regimeEpisodeRelatedByIdCreation;
+        $regimeEpisodeRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	RegimeEpisodeRelatedByIdCreation $regimeEpisodeRelatedByIdCreation The regimeEpisodeRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeRegimeEpisodeRelatedByIdCreation($regimeEpisodeRelatedByIdCreation)
+    {
+        if ($this->getRegimeEpisodesRelatedByIdCreation()->contains($regimeEpisodeRelatedByIdCreation)) {
+            $this->collRegimeEpisodesRelatedByIdCreation->remove($this->collRegimeEpisodesRelatedByIdCreation->search($regimeEpisodeRelatedByIdCreation));
+            if (null === $this->regimeEpisodesRelatedByIdCreationScheduledForDeletion) {
+                $this->regimeEpisodesRelatedByIdCreationScheduledForDeletion = clone $this->collRegimeEpisodesRelatedByIdCreation;
+                $this->regimeEpisodesRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->regimeEpisodesRelatedByIdCreationScheduledForDeletion[]= $regimeEpisodeRelatedByIdCreation;
+            $regimeEpisodeRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|RegimeEpisode[] List of RegimeEpisode objects
+     */
+    public function getRegimeEpisodesRelatedByIdCreationJoinFleetSlot($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = RegimeEpisodeQuery::create(null, $criteria);
+        $query->joinWith('FleetSlot', $join_behavior);
+
+        return $this->getRegimeEpisodesRelatedByIdCreation($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|RegimeEpisode[] List of RegimeEpisode objects
+     */
+    public function getRegimeEpisodesRelatedByIdCreationJoinGridRun($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = RegimeEpisodeQuery::create(null, $criteria);
+        $query->joinWith('GridRun', $join_behavior);
+
+        return $this->getRegimeEpisodesRelatedByIdCreation($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|RegimeEpisode[] List of RegimeEpisode objects
+     */
+    public function getRegimeEpisodesRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = RegimeEpisodeQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getRegimeEpisodesRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collRegimeEpisodesRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addRegimeEpisodesRelatedByIdModification()
+     */
+    public function clearRegimeEpisodesRelatedByIdModification()
+    {
+        $this->collRegimeEpisodesRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collRegimeEpisodesRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collRegimeEpisodesRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialRegimeEpisodesRelatedByIdModification($v = true)
+    {
+        $this->collRegimeEpisodesRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collRegimeEpisodesRelatedByIdModification collection.
+     *
+     * By default this just sets the collRegimeEpisodesRelatedByIdModification collection to an empty array (like clearcollRegimeEpisodesRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initRegimeEpisodesRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collRegimeEpisodesRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collRegimeEpisodesRelatedByIdModification = new PropelObjectCollection();
+        $this->collRegimeEpisodesRelatedByIdModification->setModel('RegimeEpisode');
+    }
+
+    /**
+     * Gets an array of RegimeEpisode objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|RegimeEpisode[] List of RegimeEpisode objects
+     * @throws PropelException
+     */
+    public function getRegimeEpisodesRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collRegimeEpisodesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collRegimeEpisodesRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collRegimeEpisodesRelatedByIdModification) {
+                // return empty collection
+                $this->initRegimeEpisodesRelatedByIdModification();
+            } else {
+                $collRegimeEpisodesRelatedByIdModification = RegimeEpisodeQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collRegimeEpisodesRelatedByIdModificationPartial && count($collRegimeEpisodesRelatedByIdModification)) {
+                      $this->initRegimeEpisodesRelatedByIdModification(false);
+
+                      foreach ($collRegimeEpisodesRelatedByIdModification as $obj) {
+                        if (false == $this->collRegimeEpisodesRelatedByIdModification->contains($obj)) {
+                          $this->collRegimeEpisodesRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collRegimeEpisodesRelatedByIdModificationPartial = true;
+                    }
+
+                    $collRegimeEpisodesRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collRegimeEpisodesRelatedByIdModification;
+                }
+
+                if ($partial && $this->collRegimeEpisodesRelatedByIdModification) {
+                    foreach ($this->collRegimeEpisodesRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collRegimeEpisodesRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collRegimeEpisodesRelatedByIdModification = $collRegimeEpisodesRelatedByIdModification;
+                $this->collRegimeEpisodesRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collRegimeEpisodesRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of RegimeEpisodeRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $regimeEpisodesRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setRegimeEpisodesRelatedByIdModification(PropelCollection $regimeEpisodesRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $regimeEpisodesRelatedByIdModificationToDelete = $this->getRegimeEpisodesRelatedByIdModification(new Criteria(), $con)->diff($regimeEpisodesRelatedByIdModification);
+
+
+        $this->regimeEpisodesRelatedByIdModificationScheduledForDeletion = $regimeEpisodesRelatedByIdModificationToDelete;
+
+        foreach ($regimeEpisodesRelatedByIdModificationToDelete as $regimeEpisodeRelatedByIdModificationRemoved) {
+            $regimeEpisodeRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collRegimeEpisodesRelatedByIdModification = null;
+        foreach ($regimeEpisodesRelatedByIdModification as $regimeEpisodeRelatedByIdModification) {
+            $this->addRegimeEpisodeRelatedByIdModification($regimeEpisodeRelatedByIdModification);
+        }
+
+        $this->collRegimeEpisodesRelatedByIdModification = $regimeEpisodesRelatedByIdModification;
+        $this->collRegimeEpisodesRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related RegimeEpisode objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related RegimeEpisode objects.
+     * @throws PropelException
+     */
+    public function countRegimeEpisodesRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collRegimeEpisodesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collRegimeEpisodesRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collRegimeEpisodesRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getRegimeEpisodesRelatedByIdModification());
+            }
+            $query = RegimeEpisodeQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collRegimeEpisodesRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a RegimeEpisode object to this object
+     * through the RegimeEpisode foreign key attribute.
+     *
+     * @param    RegimeEpisode $l RegimeEpisode
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addRegimeEpisodeRelatedByIdModification(RegimeEpisode $l)
+    {
+        if ($this->collRegimeEpisodesRelatedByIdModification === null) {
+            $this->initRegimeEpisodesRelatedByIdModification();
+            $this->collRegimeEpisodesRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collRegimeEpisodesRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddRegimeEpisodeRelatedByIdModification($l);
+
+            if ($this->regimeEpisodesRelatedByIdModificationScheduledForDeletion and $this->regimeEpisodesRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->regimeEpisodesRelatedByIdModificationScheduledForDeletion->remove($this->regimeEpisodesRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	RegimeEpisodeRelatedByIdModification $regimeEpisodeRelatedByIdModification The regimeEpisodeRelatedByIdModification object to add.
+     */
+    protected function doAddRegimeEpisodeRelatedByIdModification($regimeEpisodeRelatedByIdModification)
+    {
+        $this->collRegimeEpisodesRelatedByIdModification[]= $regimeEpisodeRelatedByIdModification;
+        $regimeEpisodeRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	RegimeEpisodeRelatedByIdModification $regimeEpisodeRelatedByIdModification The regimeEpisodeRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeRegimeEpisodeRelatedByIdModification($regimeEpisodeRelatedByIdModification)
+    {
+        if ($this->getRegimeEpisodesRelatedByIdModification()->contains($regimeEpisodeRelatedByIdModification)) {
+            $this->collRegimeEpisodesRelatedByIdModification->remove($this->collRegimeEpisodesRelatedByIdModification->search($regimeEpisodeRelatedByIdModification));
+            if (null === $this->regimeEpisodesRelatedByIdModificationScheduledForDeletion) {
+                $this->regimeEpisodesRelatedByIdModificationScheduledForDeletion = clone $this->collRegimeEpisodesRelatedByIdModification;
+                $this->regimeEpisodesRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->regimeEpisodesRelatedByIdModificationScheduledForDeletion[]= $regimeEpisodeRelatedByIdModification;
+            $regimeEpisodeRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|RegimeEpisode[] List of RegimeEpisode objects
+     */
+    public function getRegimeEpisodesRelatedByIdModificationJoinFleetSlot($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = RegimeEpisodeQuery::create(null, $criteria);
+        $query->joinWith('FleetSlot', $join_behavior);
+
+        return $this->getRegimeEpisodesRelatedByIdModification($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|RegimeEpisode[] List of RegimeEpisode objects
+     */
+    public function getRegimeEpisodesRelatedByIdModificationJoinGridRun($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = RegimeEpisodeQuery::create(null, $criteria);
+        $query->joinWith('GridRun', $join_behavior);
+
+        return $this->getRegimeEpisodesRelatedByIdModification($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|RegimeEpisode[] List of RegimeEpisode objects
+     */
+    public function getRegimeEpisodesRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = RegimeEpisodeQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getRegimeEpisodesRelatedByIdModification($query, $con);
     }
 
     /**
@@ -12163,6 +13582,490 @@ abstract class BaseAuthy extends BaseObject implements Persistent
     }
 
     /**
+     * Clears out the collMarketCandlesRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addMarketCandlesRelatedByIdCreation()
+     */
+    public function clearMarketCandlesRelatedByIdCreation()
+    {
+        $this->collMarketCandlesRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collMarketCandlesRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collMarketCandlesRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialMarketCandlesRelatedByIdCreation($v = true)
+    {
+        $this->collMarketCandlesRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collMarketCandlesRelatedByIdCreation collection.
+     *
+     * By default this just sets the collMarketCandlesRelatedByIdCreation collection to an empty array (like clearcollMarketCandlesRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initMarketCandlesRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collMarketCandlesRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collMarketCandlesRelatedByIdCreation = new PropelObjectCollection();
+        $this->collMarketCandlesRelatedByIdCreation->setModel('MarketCandle');
+    }
+
+    /**
+     * Gets an array of MarketCandle objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|MarketCandle[] List of MarketCandle objects
+     * @throws PropelException
+     */
+    public function getMarketCandlesRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketCandlesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collMarketCandlesRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collMarketCandlesRelatedByIdCreation) {
+                // return empty collection
+                $this->initMarketCandlesRelatedByIdCreation();
+            } else {
+                $collMarketCandlesRelatedByIdCreation = MarketCandleQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collMarketCandlesRelatedByIdCreationPartial && count($collMarketCandlesRelatedByIdCreation)) {
+                      $this->initMarketCandlesRelatedByIdCreation(false);
+
+                      foreach ($collMarketCandlesRelatedByIdCreation as $obj) {
+                        if (false == $this->collMarketCandlesRelatedByIdCreation->contains($obj)) {
+                          $this->collMarketCandlesRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collMarketCandlesRelatedByIdCreationPartial = true;
+                    }
+
+                    $collMarketCandlesRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collMarketCandlesRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collMarketCandlesRelatedByIdCreation) {
+                    foreach ($this->collMarketCandlesRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collMarketCandlesRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collMarketCandlesRelatedByIdCreation = $collMarketCandlesRelatedByIdCreation;
+                $this->collMarketCandlesRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collMarketCandlesRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of MarketCandleRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $marketCandlesRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setMarketCandlesRelatedByIdCreation(PropelCollection $marketCandlesRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $marketCandlesRelatedByIdCreationToDelete = $this->getMarketCandlesRelatedByIdCreation(new Criteria(), $con)->diff($marketCandlesRelatedByIdCreation);
+
+
+        $this->marketCandlesRelatedByIdCreationScheduledForDeletion = $marketCandlesRelatedByIdCreationToDelete;
+
+        foreach ($marketCandlesRelatedByIdCreationToDelete as $marketCandleRelatedByIdCreationRemoved) {
+            $marketCandleRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collMarketCandlesRelatedByIdCreation = null;
+        foreach ($marketCandlesRelatedByIdCreation as $marketCandleRelatedByIdCreation) {
+            $this->addMarketCandleRelatedByIdCreation($marketCandleRelatedByIdCreation);
+        }
+
+        $this->collMarketCandlesRelatedByIdCreation = $marketCandlesRelatedByIdCreation;
+        $this->collMarketCandlesRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related MarketCandle objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related MarketCandle objects.
+     * @throws PropelException
+     */
+    public function countMarketCandlesRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketCandlesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collMarketCandlesRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collMarketCandlesRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getMarketCandlesRelatedByIdCreation());
+            }
+            $query = MarketCandleQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collMarketCandlesRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a MarketCandle object to this object
+     * through the MarketCandle foreign key attribute.
+     *
+     * @param    MarketCandle $l MarketCandle
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addMarketCandleRelatedByIdCreation(MarketCandle $l)
+    {
+        if ($this->collMarketCandlesRelatedByIdCreation === null) {
+            $this->initMarketCandlesRelatedByIdCreation();
+            $this->collMarketCandlesRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collMarketCandlesRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddMarketCandleRelatedByIdCreation($l);
+
+            if ($this->marketCandlesRelatedByIdCreationScheduledForDeletion and $this->marketCandlesRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->marketCandlesRelatedByIdCreationScheduledForDeletion->remove($this->marketCandlesRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	MarketCandleRelatedByIdCreation $marketCandleRelatedByIdCreation The marketCandleRelatedByIdCreation object to add.
+     */
+    protected function doAddMarketCandleRelatedByIdCreation($marketCandleRelatedByIdCreation)
+    {
+        $this->collMarketCandlesRelatedByIdCreation[]= $marketCandleRelatedByIdCreation;
+        $marketCandleRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	MarketCandleRelatedByIdCreation $marketCandleRelatedByIdCreation The marketCandleRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeMarketCandleRelatedByIdCreation($marketCandleRelatedByIdCreation)
+    {
+        if ($this->getMarketCandlesRelatedByIdCreation()->contains($marketCandleRelatedByIdCreation)) {
+            $this->collMarketCandlesRelatedByIdCreation->remove($this->collMarketCandlesRelatedByIdCreation->search($marketCandleRelatedByIdCreation));
+            if (null === $this->marketCandlesRelatedByIdCreationScheduledForDeletion) {
+                $this->marketCandlesRelatedByIdCreationScheduledForDeletion = clone $this->collMarketCandlesRelatedByIdCreation;
+                $this->marketCandlesRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->marketCandlesRelatedByIdCreationScheduledForDeletion[]= $marketCandleRelatedByIdCreation;
+            $marketCandleRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|MarketCandle[] List of MarketCandle objects
+     */
+    public function getMarketCandlesRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = MarketCandleQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getMarketCandlesRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collMarketCandlesRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addMarketCandlesRelatedByIdModification()
+     */
+    public function clearMarketCandlesRelatedByIdModification()
+    {
+        $this->collMarketCandlesRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collMarketCandlesRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collMarketCandlesRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialMarketCandlesRelatedByIdModification($v = true)
+    {
+        $this->collMarketCandlesRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collMarketCandlesRelatedByIdModification collection.
+     *
+     * By default this just sets the collMarketCandlesRelatedByIdModification collection to an empty array (like clearcollMarketCandlesRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initMarketCandlesRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collMarketCandlesRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collMarketCandlesRelatedByIdModification = new PropelObjectCollection();
+        $this->collMarketCandlesRelatedByIdModification->setModel('MarketCandle');
+    }
+
+    /**
+     * Gets an array of MarketCandle objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|MarketCandle[] List of MarketCandle objects
+     * @throws PropelException
+     */
+    public function getMarketCandlesRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketCandlesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collMarketCandlesRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collMarketCandlesRelatedByIdModification) {
+                // return empty collection
+                $this->initMarketCandlesRelatedByIdModification();
+            } else {
+                $collMarketCandlesRelatedByIdModification = MarketCandleQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collMarketCandlesRelatedByIdModificationPartial && count($collMarketCandlesRelatedByIdModification)) {
+                      $this->initMarketCandlesRelatedByIdModification(false);
+
+                      foreach ($collMarketCandlesRelatedByIdModification as $obj) {
+                        if (false == $this->collMarketCandlesRelatedByIdModification->contains($obj)) {
+                          $this->collMarketCandlesRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collMarketCandlesRelatedByIdModificationPartial = true;
+                    }
+
+                    $collMarketCandlesRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collMarketCandlesRelatedByIdModification;
+                }
+
+                if ($partial && $this->collMarketCandlesRelatedByIdModification) {
+                    foreach ($this->collMarketCandlesRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collMarketCandlesRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collMarketCandlesRelatedByIdModification = $collMarketCandlesRelatedByIdModification;
+                $this->collMarketCandlesRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collMarketCandlesRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of MarketCandleRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $marketCandlesRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setMarketCandlesRelatedByIdModification(PropelCollection $marketCandlesRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $marketCandlesRelatedByIdModificationToDelete = $this->getMarketCandlesRelatedByIdModification(new Criteria(), $con)->diff($marketCandlesRelatedByIdModification);
+
+
+        $this->marketCandlesRelatedByIdModificationScheduledForDeletion = $marketCandlesRelatedByIdModificationToDelete;
+
+        foreach ($marketCandlesRelatedByIdModificationToDelete as $marketCandleRelatedByIdModificationRemoved) {
+            $marketCandleRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collMarketCandlesRelatedByIdModification = null;
+        foreach ($marketCandlesRelatedByIdModification as $marketCandleRelatedByIdModification) {
+            $this->addMarketCandleRelatedByIdModification($marketCandleRelatedByIdModification);
+        }
+
+        $this->collMarketCandlesRelatedByIdModification = $marketCandlesRelatedByIdModification;
+        $this->collMarketCandlesRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related MarketCandle objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related MarketCandle objects.
+     * @throws PropelException
+     */
+    public function countMarketCandlesRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketCandlesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collMarketCandlesRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collMarketCandlesRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getMarketCandlesRelatedByIdModification());
+            }
+            $query = MarketCandleQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collMarketCandlesRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a MarketCandle object to this object
+     * through the MarketCandle foreign key attribute.
+     *
+     * @param    MarketCandle $l MarketCandle
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addMarketCandleRelatedByIdModification(MarketCandle $l)
+    {
+        if ($this->collMarketCandlesRelatedByIdModification === null) {
+            $this->initMarketCandlesRelatedByIdModification();
+            $this->collMarketCandlesRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collMarketCandlesRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddMarketCandleRelatedByIdModification($l);
+
+            if ($this->marketCandlesRelatedByIdModificationScheduledForDeletion and $this->marketCandlesRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->marketCandlesRelatedByIdModificationScheduledForDeletion->remove($this->marketCandlesRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	MarketCandleRelatedByIdModification $marketCandleRelatedByIdModification The marketCandleRelatedByIdModification object to add.
+     */
+    protected function doAddMarketCandleRelatedByIdModification($marketCandleRelatedByIdModification)
+    {
+        $this->collMarketCandlesRelatedByIdModification[]= $marketCandleRelatedByIdModification;
+        $marketCandleRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	MarketCandleRelatedByIdModification $marketCandleRelatedByIdModification The marketCandleRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeMarketCandleRelatedByIdModification($marketCandleRelatedByIdModification)
+    {
+        if ($this->getMarketCandlesRelatedByIdModification()->contains($marketCandleRelatedByIdModification)) {
+            $this->collMarketCandlesRelatedByIdModification->remove($this->collMarketCandlesRelatedByIdModification->search($marketCandleRelatedByIdModification));
+            if (null === $this->marketCandlesRelatedByIdModificationScheduledForDeletion) {
+                $this->marketCandlesRelatedByIdModificationScheduledForDeletion = clone $this->collMarketCandlesRelatedByIdModification;
+                $this->marketCandlesRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->marketCandlesRelatedByIdModificationScheduledForDeletion[]= $marketCandleRelatedByIdModification;
+            $marketCandleRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|MarketCandle[] List of MarketCandle objects
+     */
+    public function getMarketCandlesRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = MarketCandleQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getMarketCandlesRelatedByIdModification($query, $con);
+    }
+
+    /**
      * Clears out the collBotDecisionsRelatedByIdCreation collection
      *
      * This does not modify the database; however, it will remove any associated objects, causing
@@ -12678,6 +14581,1458 @@ abstract class BaseAuthy extends BaseObject implements Persistent
         $query->joinWith('AuthyGroup', $join_behavior);
 
         return $this->getBotDecisionsRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collMarketOutlooksRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addMarketOutlooksRelatedByIdCreation()
+     */
+    public function clearMarketOutlooksRelatedByIdCreation()
+    {
+        $this->collMarketOutlooksRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collMarketOutlooksRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collMarketOutlooksRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialMarketOutlooksRelatedByIdCreation($v = true)
+    {
+        $this->collMarketOutlooksRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collMarketOutlooksRelatedByIdCreation collection.
+     *
+     * By default this just sets the collMarketOutlooksRelatedByIdCreation collection to an empty array (like clearcollMarketOutlooksRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initMarketOutlooksRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collMarketOutlooksRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collMarketOutlooksRelatedByIdCreation = new PropelObjectCollection();
+        $this->collMarketOutlooksRelatedByIdCreation->setModel('MarketOutlook');
+    }
+
+    /**
+     * Gets an array of MarketOutlook objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|MarketOutlook[] List of MarketOutlook objects
+     * @throws PropelException
+     */
+    public function getMarketOutlooksRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketOutlooksRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collMarketOutlooksRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collMarketOutlooksRelatedByIdCreation) {
+                // return empty collection
+                $this->initMarketOutlooksRelatedByIdCreation();
+            } else {
+                $collMarketOutlooksRelatedByIdCreation = MarketOutlookQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collMarketOutlooksRelatedByIdCreationPartial && count($collMarketOutlooksRelatedByIdCreation)) {
+                      $this->initMarketOutlooksRelatedByIdCreation(false);
+
+                      foreach ($collMarketOutlooksRelatedByIdCreation as $obj) {
+                        if (false == $this->collMarketOutlooksRelatedByIdCreation->contains($obj)) {
+                          $this->collMarketOutlooksRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collMarketOutlooksRelatedByIdCreationPartial = true;
+                    }
+
+                    $collMarketOutlooksRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collMarketOutlooksRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collMarketOutlooksRelatedByIdCreation) {
+                    foreach ($this->collMarketOutlooksRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collMarketOutlooksRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collMarketOutlooksRelatedByIdCreation = $collMarketOutlooksRelatedByIdCreation;
+                $this->collMarketOutlooksRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collMarketOutlooksRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of MarketOutlookRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $marketOutlooksRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setMarketOutlooksRelatedByIdCreation(PropelCollection $marketOutlooksRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $marketOutlooksRelatedByIdCreationToDelete = $this->getMarketOutlooksRelatedByIdCreation(new Criteria(), $con)->diff($marketOutlooksRelatedByIdCreation);
+
+
+        $this->marketOutlooksRelatedByIdCreationScheduledForDeletion = $marketOutlooksRelatedByIdCreationToDelete;
+
+        foreach ($marketOutlooksRelatedByIdCreationToDelete as $marketOutlookRelatedByIdCreationRemoved) {
+            $marketOutlookRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collMarketOutlooksRelatedByIdCreation = null;
+        foreach ($marketOutlooksRelatedByIdCreation as $marketOutlookRelatedByIdCreation) {
+            $this->addMarketOutlookRelatedByIdCreation($marketOutlookRelatedByIdCreation);
+        }
+
+        $this->collMarketOutlooksRelatedByIdCreation = $marketOutlooksRelatedByIdCreation;
+        $this->collMarketOutlooksRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related MarketOutlook objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related MarketOutlook objects.
+     * @throws PropelException
+     */
+    public function countMarketOutlooksRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketOutlooksRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collMarketOutlooksRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collMarketOutlooksRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getMarketOutlooksRelatedByIdCreation());
+            }
+            $query = MarketOutlookQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collMarketOutlooksRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a MarketOutlook object to this object
+     * through the MarketOutlook foreign key attribute.
+     *
+     * @param    MarketOutlook $l MarketOutlook
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addMarketOutlookRelatedByIdCreation(MarketOutlook $l)
+    {
+        if ($this->collMarketOutlooksRelatedByIdCreation === null) {
+            $this->initMarketOutlooksRelatedByIdCreation();
+            $this->collMarketOutlooksRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collMarketOutlooksRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddMarketOutlookRelatedByIdCreation($l);
+
+            if ($this->marketOutlooksRelatedByIdCreationScheduledForDeletion and $this->marketOutlooksRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->marketOutlooksRelatedByIdCreationScheduledForDeletion->remove($this->marketOutlooksRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	MarketOutlookRelatedByIdCreation $marketOutlookRelatedByIdCreation The marketOutlookRelatedByIdCreation object to add.
+     */
+    protected function doAddMarketOutlookRelatedByIdCreation($marketOutlookRelatedByIdCreation)
+    {
+        $this->collMarketOutlooksRelatedByIdCreation[]= $marketOutlookRelatedByIdCreation;
+        $marketOutlookRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	MarketOutlookRelatedByIdCreation $marketOutlookRelatedByIdCreation The marketOutlookRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeMarketOutlookRelatedByIdCreation($marketOutlookRelatedByIdCreation)
+    {
+        if ($this->getMarketOutlooksRelatedByIdCreation()->contains($marketOutlookRelatedByIdCreation)) {
+            $this->collMarketOutlooksRelatedByIdCreation->remove($this->collMarketOutlooksRelatedByIdCreation->search($marketOutlookRelatedByIdCreation));
+            if (null === $this->marketOutlooksRelatedByIdCreationScheduledForDeletion) {
+                $this->marketOutlooksRelatedByIdCreationScheduledForDeletion = clone $this->collMarketOutlooksRelatedByIdCreation;
+                $this->marketOutlooksRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->marketOutlooksRelatedByIdCreationScheduledForDeletion[]= $marketOutlookRelatedByIdCreation;
+            $marketOutlookRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|MarketOutlook[] List of MarketOutlook objects
+     */
+    public function getMarketOutlooksRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = MarketOutlookQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getMarketOutlooksRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collMarketOutlooksRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addMarketOutlooksRelatedByIdModification()
+     */
+    public function clearMarketOutlooksRelatedByIdModification()
+    {
+        $this->collMarketOutlooksRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collMarketOutlooksRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collMarketOutlooksRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialMarketOutlooksRelatedByIdModification($v = true)
+    {
+        $this->collMarketOutlooksRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collMarketOutlooksRelatedByIdModification collection.
+     *
+     * By default this just sets the collMarketOutlooksRelatedByIdModification collection to an empty array (like clearcollMarketOutlooksRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initMarketOutlooksRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collMarketOutlooksRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collMarketOutlooksRelatedByIdModification = new PropelObjectCollection();
+        $this->collMarketOutlooksRelatedByIdModification->setModel('MarketOutlook');
+    }
+
+    /**
+     * Gets an array of MarketOutlook objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|MarketOutlook[] List of MarketOutlook objects
+     * @throws PropelException
+     */
+    public function getMarketOutlooksRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketOutlooksRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collMarketOutlooksRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collMarketOutlooksRelatedByIdModification) {
+                // return empty collection
+                $this->initMarketOutlooksRelatedByIdModification();
+            } else {
+                $collMarketOutlooksRelatedByIdModification = MarketOutlookQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collMarketOutlooksRelatedByIdModificationPartial && count($collMarketOutlooksRelatedByIdModification)) {
+                      $this->initMarketOutlooksRelatedByIdModification(false);
+
+                      foreach ($collMarketOutlooksRelatedByIdModification as $obj) {
+                        if (false == $this->collMarketOutlooksRelatedByIdModification->contains($obj)) {
+                          $this->collMarketOutlooksRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collMarketOutlooksRelatedByIdModificationPartial = true;
+                    }
+
+                    $collMarketOutlooksRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collMarketOutlooksRelatedByIdModification;
+                }
+
+                if ($partial && $this->collMarketOutlooksRelatedByIdModification) {
+                    foreach ($this->collMarketOutlooksRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collMarketOutlooksRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collMarketOutlooksRelatedByIdModification = $collMarketOutlooksRelatedByIdModification;
+                $this->collMarketOutlooksRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collMarketOutlooksRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of MarketOutlookRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $marketOutlooksRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setMarketOutlooksRelatedByIdModification(PropelCollection $marketOutlooksRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $marketOutlooksRelatedByIdModificationToDelete = $this->getMarketOutlooksRelatedByIdModification(new Criteria(), $con)->diff($marketOutlooksRelatedByIdModification);
+
+
+        $this->marketOutlooksRelatedByIdModificationScheduledForDeletion = $marketOutlooksRelatedByIdModificationToDelete;
+
+        foreach ($marketOutlooksRelatedByIdModificationToDelete as $marketOutlookRelatedByIdModificationRemoved) {
+            $marketOutlookRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collMarketOutlooksRelatedByIdModification = null;
+        foreach ($marketOutlooksRelatedByIdModification as $marketOutlookRelatedByIdModification) {
+            $this->addMarketOutlookRelatedByIdModification($marketOutlookRelatedByIdModification);
+        }
+
+        $this->collMarketOutlooksRelatedByIdModification = $marketOutlooksRelatedByIdModification;
+        $this->collMarketOutlooksRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related MarketOutlook objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related MarketOutlook objects.
+     * @throws PropelException
+     */
+    public function countMarketOutlooksRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketOutlooksRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collMarketOutlooksRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collMarketOutlooksRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getMarketOutlooksRelatedByIdModification());
+            }
+            $query = MarketOutlookQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collMarketOutlooksRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a MarketOutlook object to this object
+     * through the MarketOutlook foreign key attribute.
+     *
+     * @param    MarketOutlook $l MarketOutlook
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addMarketOutlookRelatedByIdModification(MarketOutlook $l)
+    {
+        if ($this->collMarketOutlooksRelatedByIdModification === null) {
+            $this->initMarketOutlooksRelatedByIdModification();
+            $this->collMarketOutlooksRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collMarketOutlooksRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddMarketOutlookRelatedByIdModification($l);
+
+            if ($this->marketOutlooksRelatedByIdModificationScheduledForDeletion and $this->marketOutlooksRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->marketOutlooksRelatedByIdModificationScheduledForDeletion->remove($this->marketOutlooksRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	MarketOutlookRelatedByIdModification $marketOutlookRelatedByIdModification The marketOutlookRelatedByIdModification object to add.
+     */
+    protected function doAddMarketOutlookRelatedByIdModification($marketOutlookRelatedByIdModification)
+    {
+        $this->collMarketOutlooksRelatedByIdModification[]= $marketOutlookRelatedByIdModification;
+        $marketOutlookRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	MarketOutlookRelatedByIdModification $marketOutlookRelatedByIdModification The marketOutlookRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeMarketOutlookRelatedByIdModification($marketOutlookRelatedByIdModification)
+    {
+        if ($this->getMarketOutlooksRelatedByIdModification()->contains($marketOutlookRelatedByIdModification)) {
+            $this->collMarketOutlooksRelatedByIdModification->remove($this->collMarketOutlooksRelatedByIdModification->search($marketOutlookRelatedByIdModification));
+            if (null === $this->marketOutlooksRelatedByIdModificationScheduledForDeletion) {
+                $this->marketOutlooksRelatedByIdModificationScheduledForDeletion = clone $this->collMarketOutlooksRelatedByIdModification;
+                $this->marketOutlooksRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->marketOutlooksRelatedByIdModificationScheduledForDeletion[]= $marketOutlookRelatedByIdModification;
+            $marketOutlookRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|MarketOutlook[] List of MarketOutlook objects
+     */
+    public function getMarketOutlooksRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = MarketOutlookQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getMarketOutlooksRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collMarketOutlookStatesRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addMarketOutlookStatesRelatedByIdCreation()
+     */
+    public function clearMarketOutlookStatesRelatedByIdCreation()
+    {
+        $this->collMarketOutlookStatesRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collMarketOutlookStatesRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collMarketOutlookStatesRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialMarketOutlookStatesRelatedByIdCreation($v = true)
+    {
+        $this->collMarketOutlookStatesRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collMarketOutlookStatesRelatedByIdCreation collection.
+     *
+     * By default this just sets the collMarketOutlookStatesRelatedByIdCreation collection to an empty array (like clearcollMarketOutlookStatesRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initMarketOutlookStatesRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collMarketOutlookStatesRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collMarketOutlookStatesRelatedByIdCreation = new PropelObjectCollection();
+        $this->collMarketOutlookStatesRelatedByIdCreation->setModel('MarketOutlookState');
+    }
+
+    /**
+     * Gets an array of MarketOutlookState objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|MarketOutlookState[] List of MarketOutlookState objects
+     * @throws PropelException
+     */
+    public function getMarketOutlookStatesRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketOutlookStatesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collMarketOutlookStatesRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collMarketOutlookStatesRelatedByIdCreation) {
+                // return empty collection
+                $this->initMarketOutlookStatesRelatedByIdCreation();
+            } else {
+                $collMarketOutlookStatesRelatedByIdCreation = MarketOutlookStateQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collMarketOutlookStatesRelatedByIdCreationPartial && count($collMarketOutlookStatesRelatedByIdCreation)) {
+                      $this->initMarketOutlookStatesRelatedByIdCreation(false);
+
+                      foreach ($collMarketOutlookStatesRelatedByIdCreation as $obj) {
+                        if (false == $this->collMarketOutlookStatesRelatedByIdCreation->contains($obj)) {
+                          $this->collMarketOutlookStatesRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collMarketOutlookStatesRelatedByIdCreationPartial = true;
+                    }
+
+                    $collMarketOutlookStatesRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collMarketOutlookStatesRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collMarketOutlookStatesRelatedByIdCreation) {
+                    foreach ($this->collMarketOutlookStatesRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collMarketOutlookStatesRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collMarketOutlookStatesRelatedByIdCreation = $collMarketOutlookStatesRelatedByIdCreation;
+                $this->collMarketOutlookStatesRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collMarketOutlookStatesRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of MarketOutlookStateRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $marketOutlookStatesRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setMarketOutlookStatesRelatedByIdCreation(PropelCollection $marketOutlookStatesRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $marketOutlookStatesRelatedByIdCreationToDelete = $this->getMarketOutlookStatesRelatedByIdCreation(new Criteria(), $con)->diff($marketOutlookStatesRelatedByIdCreation);
+
+
+        $this->marketOutlookStatesRelatedByIdCreationScheduledForDeletion = $marketOutlookStatesRelatedByIdCreationToDelete;
+
+        foreach ($marketOutlookStatesRelatedByIdCreationToDelete as $marketOutlookStateRelatedByIdCreationRemoved) {
+            $marketOutlookStateRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collMarketOutlookStatesRelatedByIdCreation = null;
+        foreach ($marketOutlookStatesRelatedByIdCreation as $marketOutlookStateRelatedByIdCreation) {
+            $this->addMarketOutlookStateRelatedByIdCreation($marketOutlookStateRelatedByIdCreation);
+        }
+
+        $this->collMarketOutlookStatesRelatedByIdCreation = $marketOutlookStatesRelatedByIdCreation;
+        $this->collMarketOutlookStatesRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related MarketOutlookState objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related MarketOutlookState objects.
+     * @throws PropelException
+     */
+    public function countMarketOutlookStatesRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketOutlookStatesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collMarketOutlookStatesRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collMarketOutlookStatesRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getMarketOutlookStatesRelatedByIdCreation());
+            }
+            $query = MarketOutlookStateQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collMarketOutlookStatesRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a MarketOutlookState object to this object
+     * through the MarketOutlookState foreign key attribute.
+     *
+     * @param    MarketOutlookState $l MarketOutlookState
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addMarketOutlookStateRelatedByIdCreation(MarketOutlookState $l)
+    {
+        if ($this->collMarketOutlookStatesRelatedByIdCreation === null) {
+            $this->initMarketOutlookStatesRelatedByIdCreation();
+            $this->collMarketOutlookStatesRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collMarketOutlookStatesRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddMarketOutlookStateRelatedByIdCreation($l);
+
+            if ($this->marketOutlookStatesRelatedByIdCreationScheduledForDeletion and $this->marketOutlookStatesRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->marketOutlookStatesRelatedByIdCreationScheduledForDeletion->remove($this->marketOutlookStatesRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	MarketOutlookStateRelatedByIdCreation $marketOutlookStateRelatedByIdCreation The marketOutlookStateRelatedByIdCreation object to add.
+     */
+    protected function doAddMarketOutlookStateRelatedByIdCreation($marketOutlookStateRelatedByIdCreation)
+    {
+        $this->collMarketOutlookStatesRelatedByIdCreation[]= $marketOutlookStateRelatedByIdCreation;
+        $marketOutlookStateRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	MarketOutlookStateRelatedByIdCreation $marketOutlookStateRelatedByIdCreation The marketOutlookStateRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeMarketOutlookStateRelatedByIdCreation($marketOutlookStateRelatedByIdCreation)
+    {
+        if ($this->getMarketOutlookStatesRelatedByIdCreation()->contains($marketOutlookStateRelatedByIdCreation)) {
+            $this->collMarketOutlookStatesRelatedByIdCreation->remove($this->collMarketOutlookStatesRelatedByIdCreation->search($marketOutlookStateRelatedByIdCreation));
+            if (null === $this->marketOutlookStatesRelatedByIdCreationScheduledForDeletion) {
+                $this->marketOutlookStatesRelatedByIdCreationScheduledForDeletion = clone $this->collMarketOutlookStatesRelatedByIdCreation;
+                $this->marketOutlookStatesRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->marketOutlookStatesRelatedByIdCreationScheduledForDeletion[]= $marketOutlookStateRelatedByIdCreation;
+            $marketOutlookStateRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|MarketOutlookState[] List of MarketOutlookState objects
+     */
+    public function getMarketOutlookStatesRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = MarketOutlookStateQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getMarketOutlookStatesRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collMarketOutlookStatesRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addMarketOutlookStatesRelatedByIdModification()
+     */
+    public function clearMarketOutlookStatesRelatedByIdModification()
+    {
+        $this->collMarketOutlookStatesRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collMarketOutlookStatesRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collMarketOutlookStatesRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialMarketOutlookStatesRelatedByIdModification($v = true)
+    {
+        $this->collMarketOutlookStatesRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collMarketOutlookStatesRelatedByIdModification collection.
+     *
+     * By default this just sets the collMarketOutlookStatesRelatedByIdModification collection to an empty array (like clearcollMarketOutlookStatesRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initMarketOutlookStatesRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collMarketOutlookStatesRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collMarketOutlookStatesRelatedByIdModification = new PropelObjectCollection();
+        $this->collMarketOutlookStatesRelatedByIdModification->setModel('MarketOutlookState');
+    }
+
+    /**
+     * Gets an array of MarketOutlookState objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|MarketOutlookState[] List of MarketOutlookState objects
+     * @throws PropelException
+     */
+    public function getMarketOutlookStatesRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketOutlookStatesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collMarketOutlookStatesRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collMarketOutlookStatesRelatedByIdModification) {
+                // return empty collection
+                $this->initMarketOutlookStatesRelatedByIdModification();
+            } else {
+                $collMarketOutlookStatesRelatedByIdModification = MarketOutlookStateQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collMarketOutlookStatesRelatedByIdModificationPartial && count($collMarketOutlookStatesRelatedByIdModification)) {
+                      $this->initMarketOutlookStatesRelatedByIdModification(false);
+
+                      foreach ($collMarketOutlookStatesRelatedByIdModification as $obj) {
+                        if (false == $this->collMarketOutlookStatesRelatedByIdModification->contains($obj)) {
+                          $this->collMarketOutlookStatesRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collMarketOutlookStatesRelatedByIdModificationPartial = true;
+                    }
+
+                    $collMarketOutlookStatesRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collMarketOutlookStatesRelatedByIdModification;
+                }
+
+                if ($partial && $this->collMarketOutlookStatesRelatedByIdModification) {
+                    foreach ($this->collMarketOutlookStatesRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collMarketOutlookStatesRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collMarketOutlookStatesRelatedByIdModification = $collMarketOutlookStatesRelatedByIdModification;
+                $this->collMarketOutlookStatesRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collMarketOutlookStatesRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of MarketOutlookStateRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $marketOutlookStatesRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setMarketOutlookStatesRelatedByIdModification(PropelCollection $marketOutlookStatesRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $marketOutlookStatesRelatedByIdModificationToDelete = $this->getMarketOutlookStatesRelatedByIdModification(new Criteria(), $con)->diff($marketOutlookStatesRelatedByIdModification);
+
+
+        $this->marketOutlookStatesRelatedByIdModificationScheduledForDeletion = $marketOutlookStatesRelatedByIdModificationToDelete;
+
+        foreach ($marketOutlookStatesRelatedByIdModificationToDelete as $marketOutlookStateRelatedByIdModificationRemoved) {
+            $marketOutlookStateRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collMarketOutlookStatesRelatedByIdModification = null;
+        foreach ($marketOutlookStatesRelatedByIdModification as $marketOutlookStateRelatedByIdModification) {
+            $this->addMarketOutlookStateRelatedByIdModification($marketOutlookStateRelatedByIdModification);
+        }
+
+        $this->collMarketOutlookStatesRelatedByIdModification = $marketOutlookStatesRelatedByIdModification;
+        $this->collMarketOutlookStatesRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related MarketOutlookState objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related MarketOutlookState objects.
+     * @throws PropelException
+     */
+    public function countMarketOutlookStatesRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collMarketOutlookStatesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collMarketOutlookStatesRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collMarketOutlookStatesRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getMarketOutlookStatesRelatedByIdModification());
+            }
+            $query = MarketOutlookStateQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collMarketOutlookStatesRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a MarketOutlookState object to this object
+     * through the MarketOutlookState foreign key attribute.
+     *
+     * @param    MarketOutlookState $l MarketOutlookState
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addMarketOutlookStateRelatedByIdModification(MarketOutlookState $l)
+    {
+        if ($this->collMarketOutlookStatesRelatedByIdModification === null) {
+            $this->initMarketOutlookStatesRelatedByIdModification();
+            $this->collMarketOutlookStatesRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collMarketOutlookStatesRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddMarketOutlookStateRelatedByIdModification($l);
+
+            if ($this->marketOutlookStatesRelatedByIdModificationScheduledForDeletion and $this->marketOutlookStatesRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->marketOutlookStatesRelatedByIdModificationScheduledForDeletion->remove($this->marketOutlookStatesRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	MarketOutlookStateRelatedByIdModification $marketOutlookStateRelatedByIdModification The marketOutlookStateRelatedByIdModification object to add.
+     */
+    protected function doAddMarketOutlookStateRelatedByIdModification($marketOutlookStateRelatedByIdModification)
+    {
+        $this->collMarketOutlookStatesRelatedByIdModification[]= $marketOutlookStateRelatedByIdModification;
+        $marketOutlookStateRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	MarketOutlookStateRelatedByIdModification $marketOutlookStateRelatedByIdModification The marketOutlookStateRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeMarketOutlookStateRelatedByIdModification($marketOutlookStateRelatedByIdModification)
+    {
+        if ($this->getMarketOutlookStatesRelatedByIdModification()->contains($marketOutlookStateRelatedByIdModification)) {
+            $this->collMarketOutlookStatesRelatedByIdModification->remove($this->collMarketOutlookStatesRelatedByIdModification->search($marketOutlookStateRelatedByIdModification));
+            if (null === $this->marketOutlookStatesRelatedByIdModificationScheduledForDeletion) {
+                $this->marketOutlookStatesRelatedByIdModificationScheduledForDeletion = clone $this->collMarketOutlookStatesRelatedByIdModification;
+                $this->marketOutlookStatesRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->marketOutlookStatesRelatedByIdModificationScheduledForDeletion[]= $marketOutlookStateRelatedByIdModification;
+            $marketOutlookStateRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|MarketOutlookState[] List of MarketOutlookState objects
+     */
+    public function getMarketOutlookStatesRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = MarketOutlookStateQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getMarketOutlookStatesRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collWalletNavsRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addWalletNavsRelatedByIdCreation()
+     */
+    public function clearWalletNavsRelatedByIdCreation()
+    {
+        $this->collWalletNavsRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collWalletNavsRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collWalletNavsRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialWalletNavsRelatedByIdCreation($v = true)
+    {
+        $this->collWalletNavsRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collWalletNavsRelatedByIdCreation collection.
+     *
+     * By default this just sets the collWalletNavsRelatedByIdCreation collection to an empty array (like clearcollWalletNavsRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initWalletNavsRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collWalletNavsRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collWalletNavsRelatedByIdCreation = new PropelObjectCollection();
+        $this->collWalletNavsRelatedByIdCreation->setModel('WalletNav');
+    }
+
+    /**
+     * Gets an array of WalletNav objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|WalletNav[] List of WalletNav objects
+     * @throws PropelException
+     */
+    public function getWalletNavsRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collWalletNavsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collWalletNavsRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collWalletNavsRelatedByIdCreation) {
+                // return empty collection
+                $this->initWalletNavsRelatedByIdCreation();
+            } else {
+                $collWalletNavsRelatedByIdCreation = WalletNavQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collWalletNavsRelatedByIdCreationPartial && count($collWalletNavsRelatedByIdCreation)) {
+                      $this->initWalletNavsRelatedByIdCreation(false);
+
+                      foreach ($collWalletNavsRelatedByIdCreation as $obj) {
+                        if (false == $this->collWalletNavsRelatedByIdCreation->contains($obj)) {
+                          $this->collWalletNavsRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collWalletNavsRelatedByIdCreationPartial = true;
+                    }
+
+                    $collWalletNavsRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collWalletNavsRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collWalletNavsRelatedByIdCreation) {
+                    foreach ($this->collWalletNavsRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collWalletNavsRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collWalletNavsRelatedByIdCreation = $collWalletNavsRelatedByIdCreation;
+                $this->collWalletNavsRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collWalletNavsRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of WalletNavRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $walletNavsRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setWalletNavsRelatedByIdCreation(PropelCollection $walletNavsRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $walletNavsRelatedByIdCreationToDelete = $this->getWalletNavsRelatedByIdCreation(new Criteria(), $con)->diff($walletNavsRelatedByIdCreation);
+
+
+        $this->walletNavsRelatedByIdCreationScheduledForDeletion = $walletNavsRelatedByIdCreationToDelete;
+
+        foreach ($walletNavsRelatedByIdCreationToDelete as $walletNavRelatedByIdCreationRemoved) {
+            $walletNavRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collWalletNavsRelatedByIdCreation = null;
+        foreach ($walletNavsRelatedByIdCreation as $walletNavRelatedByIdCreation) {
+            $this->addWalletNavRelatedByIdCreation($walletNavRelatedByIdCreation);
+        }
+
+        $this->collWalletNavsRelatedByIdCreation = $walletNavsRelatedByIdCreation;
+        $this->collWalletNavsRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related WalletNav objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related WalletNav objects.
+     * @throws PropelException
+     */
+    public function countWalletNavsRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collWalletNavsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collWalletNavsRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collWalletNavsRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getWalletNavsRelatedByIdCreation());
+            }
+            $query = WalletNavQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collWalletNavsRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a WalletNav object to this object
+     * through the WalletNav foreign key attribute.
+     *
+     * @param    WalletNav $l WalletNav
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addWalletNavRelatedByIdCreation(WalletNav $l)
+    {
+        if ($this->collWalletNavsRelatedByIdCreation === null) {
+            $this->initWalletNavsRelatedByIdCreation();
+            $this->collWalletNavsRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collWalletNavsRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddWalletNavRelatedByIdCreation($l);
+
+            if ($this->walletNavsRelatedByIdCreationScheduledForDeletion and $this->walletNavsRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->walletNavsRelatedByIdCreationScheduledForDeletion->remove($this->walletNavsRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	WalletNavRelatedByIdCreation $walletNavRelatedByIdCreation The walletNavRelatedByIdCreation object to add.
+     */
+    protected function doAddWalletNavRelatedByIdCreation($walletNavRelatedByIdCreation)
+    {
+        $this->collWalletNavsRelatedByIdCreation[]= $walletNavRelatedByIdCreation;
+        $walletNavRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	WalletNavRelatedByIdCreation $walletNavRelatedByIdCreation The walletNavRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeWalletNavRelatedByIdCreation($walletNavRelatedByIdCreation)
+    {
+        if ($this->getWalletNavsRelatedByIdCreation()->contains($walletNavRelatedByIdCreation)) {
+            $this->collWalletNavsRelatedByIdCreation->remove($this->collWalletNavsRelatedByIdCreation->search($walletNavRelatedByIdCreation));
+            if (null === $this->walletNavsRelatedByIdCreationScheduledForDeletion) {
+                $this->walletNavsRelatedByIdCreationScheduledForDeletion = clone $this->collWalletNavsRelatedByIdCreation;
+                $this->walletNavsRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->walletNavsRelatedByIdCreationScheduledForDeletion[]= $walletNavRelatedByIdCreation;
+            $walletNavRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|WalletNav[] List of WalletNav objects
+     */
+    public function getWalletNavsRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = WalletNavQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getWalletNavsRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collWalletNavsRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addWalletNavsRelatedByIdModification()
+     */
+    public function clearWalletNavsRelatedByIdModification()
+    {
+        $this->collWalletNavsRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collWalletNavsRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collWalletNavsRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialWalletNavsRelatedByIdModification($v = true)
+    {
+        $this->collWalletNavsRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collWalletNavsRelatedByIdModification collection.
+     *
+     * By default this just sets the collWalletNavsRelatedByIdModification collection to an empty array (like clearcollWalletNavsRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initWalletNavsRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collWalletNavsRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collWalletNavsRelatedByIdModification = new PropelObjectCollection();
+        $this->collWalletNavsRelatedByIdModification->setModel('WalletNav');
+    }
+
+    /**
+     * Gets an array of WalletNav objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|WalletNav[] List of WalletNav objects
+     * @throws PropelException
+     */
+    public function getWalletNavsRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collWalletNavsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collWalletNavsRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collWalletNavsRelatedByIdModification) {
+                // return empty collection
+                $this->initWalletNavsRelatedByIdModification();
+            } else {
+                $collWalletNavsRelatedByIdModification = WalletNavQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collWalletNavsRelatedByIdModificationPartial && count($collWalletNavsRelatedByIdModification)) {
+                      $this->initWalletNavsRelatedByIdModification(false);
+
+                      foreach ($collWalletNavsRelatedByIdModification as $obj) {
+                        if (false == $this->collWalletNavsRelatedByIdModification->contains($obj)) {
+                          $this->collWalletNavsRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collWalletNavsRelatedByIdModificationPartial = true;
+                    }
+
+                    $collWalletNavsRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collWalletNavsRelatedByIdModification;
+                }
+
+                if ($partial && $this->collWalletNavsRelatedByIdModification) {
+                    foreach ($this->collWalletNavsRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collWalletNavsRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collWalletNavsRelatedByIdModification = $collWalletNavsRelatedByIdModification;
+                $this->collWalletNavsRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collWalletNavsRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of WalletNavRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $walletNavsRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setWalletNavsRelatedByIdModification(PropelCollection $walletNavsRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $walletNavsRelatedByIdModificationToDelete = $this->getWalletNavsRelatedByIdModification(new Criteria(), $con)->diff($walletNavsRelatedByIdModification);
+
+
+        $this->walletNavsRelatedByIdModificationScheduledForDeletion = $walletNavsRelatedByIdModificationToDelete;
+
+        foreach ($walletNavsRelatedByIdModificationToDelete as $walletNavRelatedByIdModificationRemoved) {
+            $walletNavRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collWalletNavsRelatedByIdModification = null;
+        foreach ($walletNavsRelatedByIdModification as $walletNavRelatedByIdModification) {
+            $this->addWalletNavRelatedByIdModification($walletNavRelatedByIdModification);
+        }
+
+        $this->collWalletNavsRelatedByIdModification = $walletNavsRelatedByIdModification;
+        $this->collWalletNavsRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related WalletNav objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related WalletNav objects.
+     * @throws PropelException
+     */
+    public function countWalletNavsRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collWalletNavsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collWalletNavsRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collWalletNavsRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getWalletNavsRelatedByIdModification());
+            }
+            $query = WalletNavQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collWalletNavsRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a WalletNav object to this object
+     * through the WalletNav foreign key attribute.
+     *
+     * @param    WalletNav $l WalletNav
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addWalletNavRelatedByIdModification(WalletNav $l)
+    {
+        if ($this->collWalletNavsRelatedByIdModification === null) {
+            $this->initWalletNavsRelatedByIdModification();
+            $this->collWalletNavsRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collWalletNavsRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddWalletNavRelatedByIdModification($l);
+
+            if ($this->walletNavsRelatedByIdModificationScheduledForDeletion and $this->walletNavsRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->walletNavsRelatedByIdModificationScheduledForDeletion->remove($this->walletNavsRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	WalletNavRelatedByIdModification $walletNavRelatedByIdModification The walletNavRelatedByIdModification object to add.
+     */
+    protected function doAddWalletNavRelatedByIdModification($walletNavRelatedByIdModification)
+    {
+        $this->collWalletNavsRelatedByIdModification[]= $walletNavRelatedByIdModification;
+        $walletNavRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	WalletNavRelatedByIdModification $walletNavRelatedByIdModification The walletNavRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeWalletNavRelatedByIdModification($walletNavRelatedByIdModification)
+    {
+        if ($this->getWalletNavsRelatedByIdModification()->contains($walletNavRelatedByIdModification)) {
+            $this->collWalletNavsRelatedByIdModification->remove($this->collWalletNavsRelatedByIdModification->search($walletNavRelatedByIdModification));
+            if (null === $this->walletNavsRelatedByIdModificationScheduledForDeletion) {
+                $this->walletNavsRelatedByIdModificationScheduledForDeletion = clone $this->collWalletNavsRelatedByIdModification;
+                $this->walletNavsRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->walletNavsRelatedByIdModificationScheduledForDeletion[]= $walletNavRelatedByIdModification;
+            $walletNavRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|WalletNav[] List of WalletNav objects
+     */
+    public function getWalletNavsRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = WalletNavQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getWalletNavsRelatedByIdModification($query, $con);
     }
 
     /**
@@ -16621,6 +19976,1008 @@ abstract class BaseAuthy extends BaseObject implements Persistent
     }
 
     /**
+     * Clears out the collGridRunAuditsRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addGridRunAuditsRelatedByIdCreation()
+     */
+    public function clearGridRunAuditsRelatedByIdCreation()
+    {
+        $this->collGridRunAuditsRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collGridRunAuditsRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collGridRunAuditsRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialGridRunAuditsRelatedByIdCreation($v = true)
+    {
+        $this->collGridRunAuditsRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collGridRunAuditsRelatedByIdCreation collection.
+     *
+     * By default this just sets the collGridRunAuditsRelatedByIdCreation collection to an empty array (like clearcollGridRunAuditsRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initGridRunAuditsRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collGridRunAuditsRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collGridRunAuditsRelatedByIdCreation = new PropelObjectCollection();
+        $this->collGridRunAuditsRelatedByIdCreation->setModel('GridRunAudit');
+    }
+
+    /**
+     * Gets an array of GridRunAudit objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|GridRunAudit[] List of GridRunAudit objects
+     * @throws PropelException
+     */
+    public function getGridRunAuditsRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collGridRunAuditsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collGridRunAuditsRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collGridRunAuditsRelatedByIdCreation) {
+                // return empty collection
+                $this->initGridRunAuditsRelatedByIdCreation();
+            } else {
+                $collGridRunAuditsRelatedByIdCreation = GridRunAuditQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collGridRunAuditsRelatedByIdCreationPartial && count($collGridRunAuditsRelatedByIdCreation)) {
+                      $this->initGridRunAuditsRelatedByIdCreation(false);
+
+                      foreach ($collGridRunAuditsRelatedByIdCreation as $obj) {
+                        if (false == $this->collGridRunAuditsRelatedByIdCreation->contains($obj)) {
+                          $this->collGridRunAuditsRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collGridRunAuditsRelatedByIdCreationPartial = true;
+                    }
+
+                    $collGridRunAuditsRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collGridRunAuditsRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collGridRunAuditsRelatedByIdCreation) {
+                    foreach ($this->collGridRunAuditsRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collGridRunAuditsRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collGridRunAuditsRelatedByIdCreation = $collGridRunAuditsRelatedByIdCreation;
+                $this->collGridRunAuditsRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collGridRunAuditsRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of GridRunAuditRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $gridRunAuditsRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setGridRunAuditsRelatedByIdCreation(PropelCollection $gridRunAuditsRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $gridRunAuditsRelatedByIdCreationToDelete = $this->getGridRunAuditsRelatedByIdCreation(new Criteria(), $con)->diff($gridRunAuditsRelatedByIdCreation);
+
+
+        $this->gridRunAuditsRelatedByIdCreationScheduledForDeletion = $gridRunAuditsRelatedByIdCreationToDelete;
+
+        foreach ($gridRunAuditsRelatedByIdCreationToDelete as $gridRunAuditRelatedByIdCreationRemoved) {
+            $gridRunAuditRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collGridRunAuditsRelatedByIdCreation = null;
+        foreach ($gridRunAuditsRelatedByIdCreation as $gridRunAuditRelatedByIdCreation) {
+            $this->addGridRunAuditRelatedByIdCreation($gridRunAuditRelatedByIdCreation);
+        }
+
+        $this->collGridRunAuditsRelatedByIdCreation = $gridRunAuditsRelatedByIdCreation;
+        $this->collGridRunAuditsRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related GridRunAudit objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related GridRunAudit objects.
+     * @throws PropelException
+     */
+    public function countGridRunAuditsRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collGridRunAuditsRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collGridRunAuditsRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collGridRunAuditsRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getGridRunAuditsRelatedByIdCreation());
+            }
+            $query = GridRunAuditQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collGridRunAuditsRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a GridRunAudit object to this object
+     * through the GridRunAudit foreign key attribute.
+     *
+     * @param    GridRunAudit $l GridRunAudit
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addGridRunAuditRelatedByIdCreation(GridRunAudit $l)
+    {
+        if ($this->collGridRunAuditsRelatedByIdCreation === null) {
+            $this->initGridRunAuditsRelatedByIdCreation();
+            $this->collGridRunAuditsRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collGridRunAuditsRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddGridRunAuditRelatedByIdCreation($l);
+
+            if ($this->gridRunAuditsRelatedByIdCreationScheduledForDeletion and $this->gridRunAuditsRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->gridRunAuditsRelatedByIdCreationScheduledForDeletion->remove($this->gridRunAuditsRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	GridRunAuditRelatedByIdCreation $gridRunAuditRelatedByIdCreation The gridRunAuditRelatedByIdCreation object to add.
+     */
+    protected function doAddGridRunAuditRelatedByIdCreation($gridRunAuditRelatedByIdCreation)
+    {
+        $this->collGridRunAuditsRelatedByIdCreation[]= $gridRunAuditRelatedByIdCreation;
+        $gridRunAuditRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	GridRunAuditRelatedByIdCreation $gridRunAuditRelatedByIdCreation The gridRunAuditRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeGridRunAuditRelatedByIdCreation($gridRunAuditRelatedByIdCreation)
+    {
+        if ($this->getGridRunAuditsRelatedByIdCreation()->contains($gridRunAuditRelatedByIdCreation)) {
+            $this->collGridRunAuditsRelatedByIdCreation->remove($this->collGridRunAuditsRelatedByIdCreation->search($gridRunAuditRelatedByIdCreation));
+            if (null === $this->gridRunAuditsRelatedByIdCreationScheduledForDeletion) {
+                $this->gridRunAuditsRelatedByIdCreationScheduledForDeletion = clone $this->collGridRunAuditsRelatedByIdCreation;
+                $this->gridRunAuditsRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->gridRunAuditsRelatedByIdCreationScheduledForDeletion[]= $gridRunAuditRelatedByIdCreation;
+            $gridRunAuditRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|GridRunAudit[] List of GridRunAudit objects
+     */
+    public function getGridRunAuditsRelatedByIdCreationJoinGridRun($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = GridRunAuditQuery::create(null, $criteria);
+        $query->joinWith('GridRun', $join_behavior);
+
+        return $this->getGridRunAuditsRelatedByIdCreation($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|GridRunAudit[] List of GridRunAudit objects
+     */
+    public function getGridRunAuditsRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = GridRunAuditQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getGridRunAuditsRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collGridRunAuditsRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addGridRunAuditsRelatedByIdModification()
+     */
+    public function clearGridRunAuditsRelatedByIdModification()
+    {
+        $this->collGridRunAuditsRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collGridRunAuditsRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collGridRunAuditsRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialGridRunAuditsRelatedByIdModification($v = true)
+    {
+        $this->collGridRunAuditsRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collGridRunAuditsRelatedByIdModification collection.
+     *
+     * By default this just sets the collGridRunAuditsRelatedByIdModification collection to an empty array (like clearcollGridRunAuditsRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initGridRunAuditsRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collGridRunAuditsRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collGridRunAuditsRelatedByIdModification = new PropelObjectCollection();
+        $this->collGridRunAuditsRelatedByIdModification->setModel('GridRunAudit');
+    }
+
+    /**
+     * Gets an array of GridRunAudit objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|GridRunAudit[] List of GridRunAudit objects
+     * @throws PropelException
+     */
+    public function getGridRunAuditsRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collGridRunAuditsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collGridRunAuditsRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collGridRunAuditsRelatedByIdModification) {
+                // return empty collection
+                $this->initGridRunAuditsRelatedByIdModification();
+            } else {
+                $collGridRunAuditsRelatedByIdModification = GridRunAuditQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collGridRunAuditsRelatedByIdModificationPartial && count($collGridRunAuditsRelatedByIdModification)) {
+                      $this->initGridRunAuditsRelatedByIdModification(false);
+
+                      foreach ($collGridRunAuditsRelatedByIdModification as $obj) {
+                        if (false == $this->collGridRunAuditsRelatedByIdModification->contains($obj)) {
+                          $this->collGridRunAuditsRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collGridRunAuditsRelatedByIdModificationPartial = true;
+                    }
+
+                    $collGridRunAuditsRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collGridRunAuditsRelatedByIdModification;
+                }
+
+                if ($partial && $this->collGridRunAuditsRelatedByIdModification) {
+                    foreach ($this->collGridRunAuditsRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collGridRunAuditsRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collGridRunAuditsRelatedByIdModification = $collGridRunAuditsRelatedByIdModification;
+                $this->collGridRunAuditsRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collGridRunAuditsRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of GridRunAuditRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $gridRunAuditsRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setGridRunAuditsRelatedByIdModification(PropelCollection $gridRunAuditsRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $gridRunAuditsRelatedByIdModificationToDelete = $this->getGridRunAuditsRelatedByIdModification(new Criteria(), $con)->diff($gridRunAuditsRelatedByIdModification);
+
+
+        $this->gridRunAuditsRelatedByIdModificationScheduledForDeletion = $gridRunAuditsRelatedByIdModificationToDelete;
+
+        foreach ($gridRunAuditsRelatedByIdModificationToDelete as $gridRunAuditRelatedByIdModificationRemoved) {
+            $gridRunAuditRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collGridRunAuditsRelatedByIdModification = null;
+        foreach ($gridRunAuditsRelatedByIdModification as $gridRunAuditRelatedByIdModification) {
+            $this->addGridRunAuditRelatedByIdModification($gridRunAuditRelatedByIdModification);
+        }
+
+        $this->collGridRunAuditsRelatedByIdModification = $gridRunAuditsRelatedByIdModification;
+        $this->collGridRunAuditsRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related GridRunAudit objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related GridRunAudit objects.
+     * @throws PropelException
+     */
+    public function countGridRunAuditsRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collGridRunAuditsRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collGridRunAuditsRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collGridRunAuditsRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getGridRunAuditsRelatedByIdModification());
+            }
+            $query = GridRunAuditQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collGridRunAuditsRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a GridRunAudit object to this object
+     * through the GridRunAudit foreign key attribute.
+     *
+     * @param    GridRunAudit $l GridRunAudit
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addGridRunAuditRelatedByIdModification(GridRunAudit $l)
+    {
+        if ($this->collGridRunAuditsRelatedByIdModification === null) {
+            $this->initGridRunAuditsRelatedByIdModification();
+            $this->collGridRunAuditsRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collGridRunAuditsRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddGridRunAuditRelatedByIdModification($l);
+
+            if ($this->gridRunAuditsRelatedByIdModificationScheduledForDeletion and $this->gridRunAuditsRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->gridRunAuditsRelatedByIdModificationScheduledForDeletion->remove($this->gridRunAuditsRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	GridRunAuditRelatedByIdModification $gridRunAuditRelatedByIdModification The gridRunAuditRelatedByIdModification object to add.
+     */
+    protected function doAddGridRunAuditRelatedByIdModification($gridRunAuditRelatedByIdModification)
+    {
+        $this->collGridRunAuditsRelatedByIdModification[]= $gridRunAuditRelatedByIdModification;
+        $gridRunAuditRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	GridRunAuditRelatedByIdModification $gridRunAuditRelatedByIdModification The gridRunAuditRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeGridRunAuditRelatedByIdModification($gridRunAuditRelatedByIdModification)
+    {
+        if ($this->getGridRunAuditsRelatedByIdModification()->contains($gridRunAuditRelatedByIdModification)) {
+            $this->collGridRunAuditsRelatedByIdModification->remove($this->collGridRunAuditsRelatedByIdModification->search($gridRunAuditRelatedByIdModification));
+            if (null === $this->gridRunAuditsRelatedByIdModificationScheduledForDeletion) {
+                $this->gridRunAuditsRelatedByIdModificationScheduledForDeletion = clone $this->collGridRunAuditsRelatedByIdModification;
+                $this->gridRunAuditsRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->gridRunAuditsRelatedByIdModificationScheduledForDeletion[]= $gridRunAuditRelatedByIdModification;
+            $gridRunAuditRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|GridRunAudit[] List of GridRunAudit objects
+     */
+    public function getGridRunAuditsRelatedByIdModificationJoinGridRun($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = GridRunAuditQuery::create(null, $criteria);
+        $query->joinWith('GridRun', $join_behavior);
+
+        return $this->getGridRunAuditsRelatedByIdModification($query, $con);
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|GridRunAudit[] List of GridRunAudit objects
+     */
+    public function getGridRunAuditsRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = GridRunAuditQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getGridRunAuditsRelatedByIdModification($query, $con);
+    }
+
+    /**
+     * Clears out the collCountriesRelatedByIdCreation collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addCountriesRelatedByIdCreation()
+     */
+    public function clearCountriesRelatedByIdCreation()
+    {
+        $this->collCountriesRelatedByIdCreation = null; // important to set this to null since that means it is uninitialized
+        $this->collCountriesRelatedByIdCreationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collCountriesRelatedByIdCreation collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialCountriesRelatedByIdCreation($v = true)
+    {
+        $this->collCountriesRelatedByIdCreationPartial = $v;
+    }
+
+    /**
+     * Initializes the collCountriesRelatedByIdCreation collection.
+     *
+     * By default this just sets the collCountriesRelatedByIdCreation collection to an empty array (like clearcollCountriesRelatedByIdCreation());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initCountriesRelatedByIdCreation($overrideExisting = true)
+    {
+        if (null !== $this->collCountriesRelatedByIdCreation && !$overrideExisting) {
+            return;
+        }
+        $this->collCountriesRelatedByIdCreation = new PropelObjectCollection();
+        $this->collCountriesRelatedByIdCreation->setModel('Country');
+    }
+
+    /**
+     * Gets an array of Country objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|Country[] List of Country objects
+     * @throws PropelException
+     */
+    public function getCountriesRelatedByIdCreation($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collCountriesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collCountriesRelatedByIdCreation || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collCountriesRelatedByIdCreation) {
+                // return empty collection
+                $this->initCountriesRelatedByIdCreation();
+            } else {
+                $collCountriesRelatedByIdCreation = CountryQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdCreation($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collCountriesRelatedByIdCreationPartial && count($collCountriesRelatedByIdCreation)) {
+                      $this->initCountriesRelatedByIdCreation(false);
+
+                      foreach ($collCountriesRelatedByIdCreation as $obj) {
+                        if (false == $this->collCountriesRelatedByIdCreation->contains($obj)) {
+                          $this->collCountriesRelatedByIdCreation->append($obj);
+                        }
+                      }
+
+                      $this->collCountriesRelatedByIdCreationPartial = true;
+                    }
+
+                    $collCountriesRelatedByIdCreation->getInternalIterator()->rewind();
+
+                    return $collCountriesRelatedByIdCreation;
+                }
+
+                if ($partial && $this->collCountriesRelatedByIdCreation) {
+                    foreach ($this->collCountriesRelatedByIdCreation as $obj) {
+                        if ($obj->isNew()) {
+                            $collCountriesRelatedByIdCreation[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collCountriesRelatedByIdCreation = $collCountriesRelatedByIdCreation;
+                $this->collCountriesRelatedByIdCreationPartial = false;
+            }
+        }
+
+        return $this->collCountriesRelatedByIdCreation;
+    }
+
+    /**
+     * Sets a collection of CountryRelatedByIdCreation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $countriesRelatedByIdCreation A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setCountriesRelatedByIdCreation(PropelCollection $countriesRelatedByIdCreation, ?PropelPDO $con = null)
+    {
+        $countriesRelatedByIdCreationToDelete = $this->getCountriesRelatedByIdCreation(new Criteria(), $con)->diff($countriesRelatedByIdCreation);
+
+
+        $this->countriesRelatedByIdCreationScheduledForDeletion = $countriesRelatedByIdCreationToDelete;
+
+        foreach ($countriesRelatedByIdCreationToDelete as $countryRelatedByIdCreationRemoved) {
+            $countryRelatedByIdCreationRemoved->setAuthyRelatedByIdCreation(null);
+        }
+
+        $this->collCountriesRelatedByIdCreation = null;
+        foreach ($countriesRelatedByIdCreation as $countryRelatedByIdCreation) {
+            $this->addCountryRelatedByIdCreation($countryRelatedByIdCreation);
+        }
+
+        $this->collCountriesRelatedByIdCreation = $countriesRelatedByIdCreation;
+        $this->collCountriesRelatedByIdCreationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related Country objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related Country objects.
+     * @throws PropelException
+     */
+    public function countCountriesRelatedByIdCreation(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collCountriesRelatedByIdCreationPartial && !$this->isNew();
+        if (null === $this->collCountriesRelatedByIdCreation || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collCountriesRelatedByIdCreation) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getCountriesRelatedByIdCreation());
+            }
+            $query = CountryQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdCreation($this)
+                ->count($con);
+        }
+
+        return count($this->collCountriesRelatedByIdCreation);
+    }
+
+    /**
+     * Method called to associate a Country object to this object
+     * through the Country foreign key attribute.
+     *
+     * @param    Country $l Country
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addCountryRelatedByIdCreation(Country $l)
+    {
+        if ($this->collCountriesRelatedByIdCreation === null) {
+            $this->initCountriesRelatedByIdCreation();
+            $this->collCountriesRelatedByIdCreationPartial = true;
+        }
+
+        if (!in_array($l, $this->collCountriesRelatedByIdCreation->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddCountryRelatedByIdCreation($l);
+
+            if ($this->countriesRelatedByIdCreationScheduledForDeletion and $this->countriesRelatedByIdCreationScheduledForDeletion->contains($l)) {
+                $this->countriesRelatedByIdCreationScheduledForDeletion->remove($this->countriesRelatedByIdCreationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	CountryRelatedByIdCreation $countryRelatedByIdCreation The countryRelatedByIdCreation object to add.
+     */
+    protected function doAddCountryRelatedByIdCreation($countryRelatedByIdCreation)
+    {
+        $this->collCountriesRelatedByIdCreation[]= $countryRelatedByIdCreation;
+        $countryRelatedByIdCreation->setAuthyRelatedByIdCreation($this);
+    }
+
+    /**
+     * @param	CountryRelatedByIdCreation $countryRelatedByIdCreation The countryRelatedByIdCreation object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeCountryRelatedByIdCreation($countryRelatedByIdCreation)
+    {
+        if ($this->getCountriesRelatedByIdCreation()->contains($countryRelatedByIdCreation)) {
+            $this->collCountriesRelatedByIdCreation->remove($this->collCountriesRelatedByIdCreation->search($countryRelatedByIdCreation));
+            if (null === $this->countriesRelatedByIdCreationScheduledForDeletion) {
+                $this->countriesRelatedByIdCreationScheduledForDeletion = clone $this->collCountriesRelatedByIdCreation;
+                $this->countriesRelatedByIdCreationScheduledForDeletion->clear();
+            }
+            $this->countriesRelatedByIdCreationScheduledForDeletion[]= $countryRelatedByIdCreation;
+            $countryRelatedByIdCreation->setAuthyRelatedByIdCreation(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|Country[] List of Country objects
+     */
+    public function getCountriesRelatedByIdCreationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = CountryQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getCountriesRelatedByIdCreation($query, $con);
+    }
+
+    /**
+     * Clears out the collCountriesRelatedByIdModification collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return Authy The current object (for fluent API support)
+     * @see        addCountriesRelatedByIdModification()
+     */
+    public function clearCountriesRelatedByIdModification()
+    {
+        $this->collCountriesRelatedByIdModification = null; // important to set this to null since that means it is uninitialized
+        $this->collCountriesRelatedByIdModificationPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collCountriesRelatedByIdModification collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialCountriesRelatedByIdModification($v = true)
+    {
+        $this->collCountriesRelatedByIdModificationPartial = $v;
+    }
+
+    /**
+     * Initializes the collCountriesRelatedByIdModification collection.
+     *
+     * By default this just sets the collCountriesRelatedByIdModification collection to an empty array (like clearcollCountriesRelatedByIdModification());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initCountriesRelatedByIdModification($overrideExisting = true)
+    {
+        if (null !== $this->collCountriesRelatedByIdModification && !$overrideExisting) {
+            return;
+        }
+        $this->collCountriesRelatedByIdModification = new PropelObjectCollection();
+        $this->collCountriesRelatedByIdModification->setModel('Country');
+    }
+
+    /**
+     * Gets an array of Country objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this Authy is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|Country[] List of Country objects
+     * @throws PropelException
+     */
+    public function getCountriesRelatedByIdModification($criteria = null, ?PropelPDO $con = null)
+    {
+        $partial = $this->collCountriesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collCountriesRelatedByIdModification || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collCountriesRelatedByIdModification) {
+                // return empty collection
+                $this->initCountriesRelatedByIdModification();
+            } else {
+                $collCountriesRelatedByIdModification = CountryQuery::create(null, $criteria)
+                    ->filterByAuthyRelatedByIdModification($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collCountriesRelatedByIdModificationPartial && count($collCountriesRelatedByIdModification)) {
+                      $this->initCountriesRelatedByIdModification(false);
+
+                      foreach ($collCountriesRelatedByIdModification as $obj) {
+                        if (false == $this->collCountriesRelatedByIdModification->contains($obj)) {
+                          $this->collCountriesRelatedByIdModification->append($obj);
+                        }
+                      }
+
+                      $this->collCountriesRelatedByIdModificationPartial = true;
+                    }
+
+                    $collCountriesRelatedByIdModification->getInternalIterator()->rewind();
+
+                    return $collCountriesRelatedByIdModification;
+                }
+
+                if ($partial && $this->collCountriesRelatedByIdModification) {
+                    foreach ($this->collCountriesRelatedByIdModification as $obj) {
+                        if ($obj->isNew()) {
+                            $collCountriesRelatedByIdModification[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collCountriesRelatedByIdModification = $collCountriesRelatedByIdModification;
+                $this->collCountriesRelatedByIdModificationPartial = false;
+            }
+        }
+
+        return $this->collCountriesRelatedByIdModification;
+    }
+
+    /**
+     * Sets a collection of CountryRelatedByIdModification objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $countriesRelatedByIdModification A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return Authy The current object (for fluent API support)
+     */
+    public function setCountriesRelatedByIdModification(PropelCollection $countriesRelatedByIdModification, ?PropelPDO $con = null)
+    {
+        $countriesRelatedByIdModificationToDelete = $this->getCountriesRelatedByIdModification(new Criteria(), $con)->diff($countriesRelatedByIdModification);
+
+
+        $this->countriesRelatedByIdModificationScheduledForDeletion = $countriesRelatedByIdModificationToDelete;
+
+        foreach ($countriesRelatedByIdModificationToDelete as $countryRelatedByIdModificationRemoved) {
+            $countryRelatedByIdModificationRemoved->setAuthyRelatedByIdModification(null);
+        }
+
+        $this->collCountriesRelatedByIdModification = null;
+        foreach ($countriesRelatedByIdModification as $countryRelatedByIdModification) {
+            $this->addCountryRelatedByIdModification($countryRelatedByIdModification);
+        }
+
+        $this->collCountriesRelatedByIdModification = $countriesRelatedByIdModification;
+        $this->collCountriesRelatedByIdModificationPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related Country objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related Country objects.
+     * @throws PropelException
+     */
+    public function countCountriesRelatedByIdModification(?Criteria $criteria = null, $distinct = false, ?PropelPDO $con = null)
+    {
+        $partial = $this->collCountriesRelatedByIdModificationPartial && !$this->isNew();
+        if (null === $this->collCountriesRelatedByIdModification || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collCountriesRelatedByIdModification) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getCountriesRelatedByIdModification());
+            }
+            $query = CountryQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAuthyRelatedByIdModification($this)
+                ->count($con);
+        }
+
+        return count($this->collCountriesRelatedByIdModification);
+    }
+
+    /**
+     * Method called to associate a Country object to this object
+     * through the Country foreign key attribute.
+     *
+     * @param    Country $l Country
+     * @return Authy The current object (for fluent API support)
+     */
+    public function addCountryRelatedByIdModification(Country $l)
+    {
+        if ($this->collCountriesRelatedByIdModification === null) {
+            $this->initCountriesRelatedByIdModification();
+            $this->collCountriesRelatedByIdModificationPartial = true;
+        }
+
+        if (!in_array($l, $this->collCountriesRelatedByIdModification->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddCountryRelatedByIdModification($l);
+
+            if ($this->countriesRelatedByIdModificationScheduledForDeletion and $this->countriesRelatedByIdModificationScheduledForDeletion->contains($l)) {
+                $this->countriesRelatedByIdModificationScheduledForDeletion->remove($this->countriesRelatedByIdModificationScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	CountryRelatedByIdModification $countryRelatedByIdModification The countryRelatedByIdModification object to add.
+     */
+    protected function doAddCountryRelatedByIdModification($countryRelatedByIdModification)
+    {
+        $this->collCountriesRelatedByIdModification[]= $countryRelatedByIdModification;
+        $countryRelatedByIdModification->setAuthyRelatedByIdModification($this);
+    }
+
+    /**
+     * @param	CountryRelatedByIdModification $countryRelatedByIdModification The countryRelatedByIdModification object to remove.
+     * @return Authy The current object (for fluent API support)
+     */
+    public function removeCountryRelatedByIdModification($countryRelatedByIdModification)
+    {
+        if ($this->getCountriesRelatedByIdModification()->contains($countryRelatedByIdModification)) {
+            $this->collCountriesRelatedByIdModification->remove($this->collCountriesRelatedByIdModification->search($countryRelatedByIdModification));
+            if (null === $this->countriesRelatedByIdModificationScheduledForDeletion) {
+                $this->countriesRelatedByIdModificationScheduledForDeletion = clone $this->collCountriesRelatedByIdModification;
+                $this->countriesRelatedByIdModificationScheduledForDeletion->clear();
+            }
+            $this->countriesRelatedByIdModificationScheduledForDeletion[]= $countryRelatedByIdModification;
+            $countryRelatedByIdModification->setAuthyRelatedByIdModification(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|Country[] List of Country objects
+     */
+    public function getCountriesRelatedByIdModificationJoinAuthyGroup($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = CountryQuery::create(null, $criteria);
+        $query->joinWith('AuthyGroup', $join_behavior);
+
+        return $this->getCountriesRelatedByIdModification($query, $con);
+    }
+
+    /**
      * Clears out the collOauthClientsRelatedByIdCreation collection
      *
      * This does not modify the database; however, it will remove any associated objects, causing
@@ -19893,16 +24250,6 @@ abstract class BaseAuthy extends BaseObject implements Persistent
                     $o->clearAllReferences($deep);
                 }
             }
-            if ($this->collCountriesRelatedByIdCreation) {
-                foreach ($this->collCountriesRelatedByIdCreation as $o) {
-                    $o->clearAllReferences($deep);
-                }
-            }
-            if ($this->collCountriesRelatedByIdModification) {
-                foreach ($this->collCountriesRelatedByIdModification as $o) {
-                    $o->clearAllReferences($deep);
-                }
-            }
             if ($this->collGridRunsRelatedByIdCreation) {
                 foreach ($this->collGridRunsRelatedByIdCreation as $o) {
                     $o->clearAllReferences($deep);
@@ -19910,6 +24257,26 @@ abstract class BaseAuthy extends BaseObject implements Persistent
             }
             if ($this->collGridRunsRelatedByIdModification) {
                 foreach ($this->collGridRunsRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collFleetSlotsRelatedByIdCreation) {
+                foreach ($this->collFleetSlotsRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collFleetSlotsRelatedByIdModification) {
+                foreach ($this->collFleetSlotsRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collRegimeEpisodesRelatedByIdCreation) {
+                foreach ($this->collRegimeEpisodesRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collRegimeEpisodesRelatedByIdModification) {
+                foreach ($this->collRegimeEpisodesRelatedByIdModification as $o) {
                     $o->clearAllReferences($deep);
                 }
             }
@@ -19983,6 +24350,16 @@ abstract class BaseAuthy extends BaseObject implements Persistent
                     $o->clearAllReferences($deep);
                 }
             }
+            if ($this->collMarketCandlesRelatedByIdCreation) {
+                foreach ($this->collMarketCandlesRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collMarketCandlesRelatedByIdModification) {
+                foreach ($this->collMarketCandlesRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
             if ($this->collBotDecisionsRelatedByIdCreation) {
                 foreach ($this->collBotDecisionsRelatedByIdCreation as $o) {
                     $o->clearAllReferences($deep);
@@ -19990,6 +24367,36 @@ abstract class BaseAuthy extends BaseObject implements Persistent
             }
             if ($this->collBotDecisionsRelatedByIdModification) {
                 foreach ($this->collBotDecisionsRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collMarketOutlooksRelatedByIdCreation) {
+                foreach ($this->collMarketOutlooksRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collMarketOutlooksRelatedByIdModification) {
+                foreach ($this->collMarketOutlooksRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collMarketOutlookStatesRelatedByIdCreation) {
+                foreach ($this->collMarketOutlookStatesRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collMarketOutlookStatesRelatedByIdModification) {
+                foreach ($this->collMarketOutlookStatesRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collWalletNavsRelatedByIdCreation) {
+                foreach ($this->collWalletNavsRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collWalletNavsRelatedByIdModification) {
+                foreach ($this->collWalletNavsRelatedByIdModification as $o) {
                     $o->clearAllReferences($deep);
                 }
             }
@@ -20070,6 +24477,26 @@ abstract class BaseAuthy extends BaseObject implements Persistent
             }
             if ($this->collAuthyRefreshTokensRelatedByIdModification) {
                 foreach ($this->collAuthyRefreshTokensRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collGridRunAuditsRelatedByIdCreation) {
+                foreach ($this->collGridRunAuditsRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collGridRunAuditsRelatedByIdModification) {
+                foreach ($this->collGridRunAuditsRelatedByIdModification as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collCountriesRelatedByIdCreation) {
+                foreach ($this->collCountriesRelatedByIdCreation as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collCountriesRelatedByIdModification) {
+                foreach ($this->collCountriesRelatedByIdModification as $o) {
                     $o->clearAllReferences($deep);
                 }
             }
@@ -20182,14 +24609,6 @@ abstract class BaseAuthy extends BaseObject implements Persistent
             $this->collPushDevicesRelatedByIdModification->clearIterator();
         }
         $this->collPushDevicesRelatedByIdModification = null;
-        if ($this->collCountriesRelatedByIdCreation instanceof PropelCollection) {
-            $this->collCountriesRelatedByIdCreation->clearIterator();
-        }
-        $this->collCountriesRelatedByIdCreation = null;
-        if ($this->collCountriesRelatedByIdModification instanceof PropelCollection) {
-            $this->collCountriesRelatedByIdModification->clearIterator();
-        }
-        $this->collCountriesRelatedByIdModification = null;
         if ($this->collGridRunsRelatedByIdCreation instanceof PropelCollection) {
             $this->collGridRunsRelatedByIdCreation->clearIterator();
         }
@@ -20198,6 +24617,22 @@ abstract class BaseAuthy extends BaseObject implements Persistent
             $this->collGridRunsRelatedByIdModification->clearIterator();
         }
         $this->collGridRunsRelatedByIdModification = null;
+        if ($this->collFleetSlotsRelatedByIdCreation instanceof PropelCollection) {
+            $this->collFleetSlotsRelatedByIdCreation->clearIterator();
+        }
+        $this->collFleetSlotsRelatedByIdCreation = null;
+        if ($this->collFleetSlotsRelatedByIdModification instanceof PropelCollection) {
+            $this->collFleetSlotsRelatedByIdModification->clearIterator();
+        }
+        $this->collFleetSlotsRelatedByIdModification = null;
+        if ($this->collRegimeEpisodesRelatedByIdCreation instanceof PropelCollection) {
+            $this->collRegimeEpisodesRelatedByIdCreation->clearIterator();
+        }
+        $this->collRegimeEpisodesRelatedByIdCreation = null;
+        if ($this->collRegimeEpisodesRelatedByIdModification instanceof PropelCollection) {
+            $this->collRegimeEpisodesRelatedByIdModification->clearIterator();
+        }
+        $this->collRegimeEpisodesRelatedByIdModification = null;
         if ($this->collBotOrdersRelatedByIdCreation instanceof PropelCollection) {
             $this->collBotOrdersRelatedByIdCreation->clearIterator();
         }
@@ -20254,6 +24689,14 @@ abstract class BaseAuthy extends BaseObject implements Persistent
             $this->collMarketRegimesRelatedByIdModification->clearIterator();
         }
         $this->collMarketRegimesRelatedByIdModification = null;
+        if ($this->collMarketCandlesRelatedByIdCreation instanceof PropelCollection) {
+            $this->collMarketCandlesRelatedByIdCreation->clearIterator();
+        }
+        $this->collMarketCandlesRelatedByIdCreation = null;
+        if ($this->collMarketCandlesRelatedByIdModification instanceof PropelCollection) {
+            $this->collMarketCandlesRelatedByIdModification->clearIterator();
+        }
+        $this->collMarketCandlesRelatedByIdModification = null;
         if ($this->collBotDecisionsRelatedByIdCreation instanceof PropelCollection) {
             $this->collBotDecisionsRelatedByIdCreation->clearIterator();
         }
@@ -20262,6 +24705,30 @@ abstract class BaseAuthy extends BaseObject implements Persistent
             $this->collBotDecisionsRelatedByIdModification->clearIterator();
         }
         $this->collBotDecisionsRelatedByIdModification = null;
+        if ($this->collMarketOutlooksRelatedByIdCreation instanceof PropelCollection) {
+            $this->collMarketOutlooksRelatedByIdCreation->clearIterator();
+        }
+        $this->collMarketOutlooksRelatedByIdCreation = null;
+        if ($this->collMarketOutlooksRelatedByIdModification instanceof PropelCollection) {
+            $this->collMarketOutlooksRelatedByIdModification->clearIterator();
+        }
+        $this->collMarketOutlooksRelatedByIdModification = null;
+        if ($this->collMarketOutlookStatesRelatedByIdCreation instanceof PropelCollection) {
+            $this->collMarketOutlookStatesRelatedByIdCreation->clearIterator();
+        }
+        $this->collMarketOutlookStatesRelatedByIdCreation = null;
+        if ($this->collMarketOutlookStatesRelatedByIdModification instanceof PropelCollection) {
+            $this->collMarketOutlookStatesRelatedByIdModification->clearIterator();
+        }
+        $this->collMarketOutlookStatesRelatedByIdModification = null;
+        if ($this->collWalletNavsRelatedByIdCreation instanceof PropelCollection) {
+            $this->collWalletNavsRelatedByIdCreation->clearIterator();
+        }
+        $this->collWalletNavsRelatedByIdCreation = null;
+        if ($this->collWalletNavsRelatedByIdModification instanceof PropelCollection) {
+            $this->collWalletNavsRelatedByIdModification->clearIterator();
+        }
+        $this->collWalletNavsRelatedByIdModification = null;
         if ($this->collAuthyGroupsRelatedByIdCreation instanceof PropelCollection) {
             $this->collAuthyGroupsRelatedByIdCreation->clearIterator();
         }
@@ -20326,6 +24793,22 @@ abstract class BaseAuthy extends BaseObject implements Persistent
             $this->collAuthyRefreshTokensRelatedByIdModification->clearIterator();
         }
         $this->collAuthyRefreshTokensRelatedByIdModification = null;
+        if ($this->collGridRunAuditsRelatedByIdCreation instanceof PropelCollection) {
+            $this->collGridRunAuditsRelatedByIdCreation->clearIterator();
+        }
+        $this->collGridRunAuditsRelatedByIdCreation = null;
+        if ($this->collGridRunAuditsRelatedByIdModification instanceof PropelCollection) {
+            $this->collGridRunAuditsRelatedByIdModification->clearIterator();
+        }
+        $this->collGridRunAuditsRelatedByIdModification = null;
+        if ($this->collCountriesRelatedByIdCreation instanceof PropelCollection) {
+            $this->collCountriesRelatedByIdCreation->clearIterator();
+        }
+        $this->collCountriesRelatedByIdCreation = null;
+        if ($this->collCountriesRelatedByIdModification instanceof PropelCollection) {
+            $this->collCountriesRelatedByIdModification->clearIterator();
+        }
+        $this->collCountriesRelatedByIdModification = null;
         if ($this->collOauthClientsRelatedByIdCreation instanceof PropelCollection) {
             $this->collOauthClientsRelatedByIdCreation->clearIterator();
         }

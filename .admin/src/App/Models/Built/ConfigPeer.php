@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseConfigPeer;
 
-require 'om/BaseConfigPeer.php';
+require_once __DIR__ . '/om/BaseConfigPeer.php';
 
 
 /**

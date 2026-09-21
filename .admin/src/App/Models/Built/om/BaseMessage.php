@@ -310,7 +310,7 @@ abstract class BaseMessage extends BaseObject implements Persistent
                 $deleteQuery->delete($con);
                 $this->postDelete($con);
                 // GoatCheese behavior
-                
+
                             if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                                 \ApiGoat\Utility\TableVersion::bump('message');
                             }
@@ -367,7 +367,7 @@ abstract class BaseMessage extends BaseObject implements Persistent
                 }
                 $this->postSave($con);
                 // GoatCheese behavior
-                
+
                             if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                                 \ApiGoat\Utility\TableVersion::bump('message');
                             }

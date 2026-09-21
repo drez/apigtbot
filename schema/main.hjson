@@ -10,11 +10,18 @@
             set_list_hide_columns: ["run_uid", "breakout_buffer_pct", "max_open_orders", "last_tick_at", "sim_bal_base", "sim_bal_quote", "engine_state"],
             set_readonly_columns: ["daily_loss_limit_quote", "max_unrealized_loss_quote", "max_position_quote", "max_order_quote", "breakout_policy", "atr_stop_mult", "atr_initial_mult", "reentry_cooldown", "engine_state"],
             add_tab_columns: { "Grid + budget": "p_low", "Risk limits": "max_position_quote", "Trend settings": "trend_tf", "Telemetry": "last_tick_at" },
+            unique: [["label"]],
+            # Who changed what on a run, and from where. The LIST form is
+            # deliberate: `true` would audit engine_state / last_tick_at, which
+            # the daemon rewrites every 5 s — an audit row per tick per run.
+            # These are the operator-facing knobs: a run that went quiet must be
+            # explainable from its own history (see Domains\Bot\DarkArmSweep).
+            add_audit: ["status", "budget_quote", "deploy_pct", "kill_switch", "alloc_mode", "algo", "sell_at_loss", "sell_when_starved", "label"],
 
             "id_grid_run()": ["primary()"],
             "label('Label')": ["varchar(100)", "required"],
             "symbol('Symbol')": ["varchar(20)", "required", "default:BTCUSDT"],
-            "status('Status')": ["enum(Draft, DryRun, Testnet, Live, Halted, Done)", "required", "default:Draft"],
+            "status('Status')": ["enum(Draft, DryRun, Testnet, Live, Halted, Done, Retiring)", "required", "default:Draft"],
             "kill_switch('Kill switch')": ["boolean()", "default:0"],
             "profile('Risk profile')": ["enum(NoLoss, Cautious, Balanced, Aggressive, Max)", "required", "default:Balanced"],
             "algo('Algorithm')": ["enum(Grid, Trend)", "required", "default:Grid"],
@@ -26,11 +33,14 @@
             "allocation('Allocation')": ["enum(EqualQuote, EqualBase, BottomWeighted)", "required", "default:EqualQuote"],
             "budget_quote('Budget (USDT)')": ["decimal(18, 8)", "required"],
             "deploy_pct('Deployed budget %')": ["integer()", "default:100"],
+            "alloc_mode('Allocation mode')": ["enum(Auto, Fixed)", "required", "default:Auto"],
             "fee_pct('Fee per side')": ["decimal(9, 6)", "required", "default:0.001"],
             "max_position_quote('Max position (USDT)')": ["decimal(18, 8)", "required"],
             "max_order_quote('Max per-order (USDT)')": ["decimal(18, 8)", "required"],
             "daily_loss_limit_quote('Daily loss limit')": ["decimal(18, 8)", "required"],
             "max_unrealized_loss_quote('Max unrealized loss')": ["decimal(18, 8)", "not-required", "default:null"],
+            "sell_at_loss('Sell at loss')": ["boolean()", "default:0"],
+            "sell_when_starved('Sell at loss when starved')": ["boolean()", "default:0"],
             "breakout_buffer_pct('Breakout buffer')": ["decimal(9, 6)", "default:0.02"],
             "breakout_policy('On breakout')": ["enum(HaltAndHold, Flatten)", "required", "default:HaltAndHold"],
             "max_open_orders('Max open orders')": ["integer()", "default:60"],
@@ -42,6 +52,8 @@
             "atr_period('ATR period')": ["integer()", "default:14"],
             "atr_stop_mult('Trail stop x ATR')": ["decimal(9, 4)", "not-required", "default:null"],
             "atr_initial_mult('Initial stop x ATR')": ["decimal(9, 4)", "not-required", "default:null"],
+            "trend_stop_floor_pct('Trail stop floor (fraction of HWM)')": ["decimal(9, 6)", "default:0.015"],
+            "trend_signal('Trend entry signal')": ["enum(Donchian, EmaCross1d)", "required", "default:Donchian"],
             "reentry_cooldown('Re-entry cooldown (bars)')": ["integer()", "not-required", "default:null"],
             "engine_state('Engine state (daemon-managed)')": ["longvarchar()", "not-required"],
             "last_tick_at('Last tick')": ["timestamp()", "not-required", "default:null"],
@@ -60,6 +72,110 @@
                 "p_high": { "required": { "msg": "grid_run_p_high_required" } },
                 "budget_quote": { "required": { "msg": "grid_run_budget_required" } }
             }
+        },
+
+        // The DECLARED fleet: one row per (symbol, algo) arm the system owns.
+        //
+        // Before this table the trend arm WAS a run: the activator enumerated
+        // Live+Trend runs, so a symbol whose arm was Halted, Done or never
+        // created got no regime verdict at all and nothing noticed. BNB ran
+        // +5.7% on 2026-09-15..18 with its arm parked by hand and not one
+        // verdict journaled. A slot is declared first and filled second: it is
+        // classified every pass whether or not a run is behind it, and an empty
+        // or parked slot alerts instead of going quiet.
+        //
+        // This is also the activator's STATE STORE (state/confirm_up/
+        // confirm_down/activation) — bot_event rows are still written for the
+        // dashboards and DarkArmSweep, but they are a journal, not the truth.
+        // Rows are reconciled from the runs by FleetSlots::reconcileFromRuns()
+        // at the top of every activator pass; no SQL seed.
+        "fleet_slot('Fleet slot')": {
+            set_menu_icon: "ri-layout-grid-line",
+            set_parent_menu: "Trading",
+            set_menu_priority: 2,
+            set_child_colunms: { "id_grid_run": ["label"] },
+            set_order_list_columns: [["symbol", "ASC"]],
+            // machine-owned: the activator rewrites these every pass
+            set_readonly_columns: ["state", "confirm_up", "confirm_down", "last_verdict", "verdict_at", "episode_started_at", "activation", "last_empty_alert_at", "last_parked_alert_at"],
+            set_list_hide_columns: ["activation", "confirm_up", "confirm_down", "last_empty_alert_at", "last_parked_alert_at"],
+            add_search_columns: {
+                "Symbol": [["symbol", "%val"]],
+                "Algorithm": [["algo", "%val", "multiple"]],
+                "State": [["state", "%val", "multiple"]]
+            },
+            unique: [["symbol", "algo"]],
+
+            "id_fleet_slot()": ["primary()"],
+            "symbol('Symbol')": ["varchar(20)", "required"],
+            "algo('Algorithm')": ["enum(Trend, Grid)", "required", "default:Trend"],
+            "target_slice('Target slice (USDT)')": ["decimal(20, 8)", "required", "default:350"],
+            "enabled('Enabled')": ["boolean()", "default:1"],
+            "state('Arm state')": ["enum(idle, active, winding_down)", "required", "default:idle"],
+            "confirm_up('Consecutive TREND_UP passes')": ["integer()", "default:0"],
+            "confirm_down('Consecutive non-TREND_UP passes')": ["integer()", "default:0"],
+            "last_verdict('Last verdict')": ["varchar(16)", "not-required", "default:null"],
+            "verdict_at('Verdict at')": ["timestamp()", "not-required", "default:null"],
+            "episode_started_at('TREND_UP episode started')": ["timestamp()", "not-required", "default:null"],
+            "activation('Activation payload')": ["longvarchar()", "not-required"],
+            "id_grid_run('Run')": ["integer()", "not-required", "foreign(grid_run)", "onDelete:setnull", "foreign:id_grid_run", "default:null"],
+            "last_empty_alert_at('Empty alerted at')": ["timestamp()", "not-required", "default:null"],
+            "last_parked_alert_at('Parked alerted at')": ["timestamp()", "not-required", "default:null"]
+        },
+
+        // One row per REGIME EPISODE, and how much of the pool was engaged
+        // through it.
+        //
+        // Nothing measured what fraction of the shared pool was actually
+        // working per symbol, nor what a TREND_UP leg captured against
+        // simply holding the coin. Every "the arm sat out a leg" case to
+        // date (edf3c14, 110bd8c, 524ad30, and the BNB arm parked by hand
+        // over 2026-09-15..18) was found by the operator by eye, after the
+        // leg was over. An episode turns that into a journaled number: it
+        // opens when a slot's verdict enters TREND_UP, takes an engagement
+        // sample on every allocator pass (~15 min), and closes on the way
+        // out with its realized + mark-to-market against the HODL move over
+        // exactly the same window.
+        //
+        // Machine-owned end to end (Domains\Bot\RegimeEpisodes) — no SQL
+        // seed and nothing here is hand-edited; the table is a ledger to
+        // read, which is why every column is read-only in the GUI.
+        //
+        // idle_samples / idle_alerted_at are the alert's state: the count of
+        // CONSECUTIVE sub-floor samples, and the stamp that makes
+        // opportunity_idle speak exactly once per episode however long the
+        // episode stays idle.
+        "regime_episode('Regime episode')": {
+            set_menu_icon: "ri-timer-flash-line",
+            set_parent_menu: "Trading",
+            set_menu_priority: 3,
+            set_child_colunms: { "id_grid_run": ["label"], "id_fleet_slot": ["symbol", "algo"] },
+            set_order_list_columns: [["opened_at", "DESC"]],
+            set_readonly_columns: ["symbol", "algo", "verdict", "opened_at", "closed_at", "price_open", "price_close", "engaged_pct_tw", "samples", "realized", "mtm_close", "hodl_pct", "captured_pct", "idle_samples", "idle_alerted_at"],
+            set_list_hide_columns: ["algo", "idle_samples", "idle_alerted_at"],
+            add_search_columns: {
+                "Symbol": [["symbol", "%val"]],
+                "Algorithm": [["algo", "%val", "multiple"]],
+                "Verdict": [["verdict", "%val"]]
+            },
+
+            "id_regime_episode()": ["primary()"],
+            "symbol('Symbol')": ["varchar(20)", "required"],
+            "algo('Algorithm')": ["enum(Trend, Grid)", "required", "default:Trend"],
+            "id_fleet_slot('Slot')": ["integer()", "not-required", "foreign(fleet_slot)", "onDelete:setnull", "foreign:id_fleet_slot", "default:null"],
+            "id_grid_run('Run')": ["integer()", "not-required", "foreign(grid_run)", "onDelete:setnull", "foreign:id_grid_run", "default:null"],
+            "verdict('Verdict')": ["varchar(16)", "required"],
+            "opened_at('Opened at')": ["timestamp()", "required"],
+            "closed_at('Closed at')": ["timestamp()", "not-required", "default:null"],
+            "price_open('Price at open')": ["decimal(20, 8)", "required"],
+            "price_close('Price at close')": ["decimal(20, 8)", "not-required", "default:null"],
+            "engaged_pct_tw('Engaged % (time-weighted)')": ["decimal(8, 4)", "not-required", "default:null"],
+            "samples('Samples')": ["integer()", "default:0"],
+            "realized('Realized (USDT)')": ["decimal(20, 8)", "default:0"],
+            "mtm_close('Mark-to-market at close')": ["decimal(20, 8)", "not-required", "default:null"],
+            "hodl_pct('HODL move %')": ["decimal(8, 4)", "not-required", "default:null"],
+            "captured_pct('Captured % of HODL')": ["decimal(8, 4)", "not-required", "default:null"],
+            "idle_samples('Consecutive sub-floor samples')": ["integer()", "default:0"],
+            "idle_alerted_at('Idle alerted at')": ["timestamp()", "not-required", "default:null"]
         },
 
         "bot_order('Order')": {
@@ -224,11 +340,31 @@
             "depth_imbalance_avg('Depth imbalance (smoothed)')": ["decimal(9, 4)", "not-required", "default:null"]
         },
 
+        "market_candle('Candles')": {
+            set_parent_menu: "Settings",
+            set_menu_priority: 8,
+            set_order_list_columns: [["open_time", "DESC"]],
+            set_readonly_columns: ["symbol", "tf", "open_time", "open", "high", "low", "close", "volume"],
+            add_search_columns: { "Symbol": [["symbol", "%val"]], "Timeframe": [["tf", "%val", "multiple"]] },
+            unique: [["symbol", "tf", "open_time"]],
+
+            "id_market_candle()": ["primary()"],
+            "symbol('Symbol')": ["varchar(20)", "required"],
+            "tf('Timeframe')": ["enum(1m, 5m, 15m, 1h, 4h)", "required"],
+            "open_time('Open time (epoch s)')": ["integer()", "required"],
+            "open('Open')": ["decimal(18, 8)", "required"],
+            "high('High')": ["decimal(18, 8)", "required"],
+            "low('Low')": ["decimal(18, 8)", "required"],
+            "close('Close')": ["decimal(18, 8)", "required"],
+            "volume('Volume')": ["decimal(24, 8)", "default:0"]
+        },
+
         "bot_decision('Refit Decision')": {
             set_parent_table: "grid_run",
             set_child_colunms: { "id_grid_run": ["label"] },
             set_order_child_list_columns: [["date_creation", "DESC"]],
-            set_readonly_columns: ["source", "p_low", "p_high", "n_levels", "reason", "price_at", "realized_before", "eval_status", "eval_at", "applied_at", "cycles_delta", "realized_delta", "price_move_pct", "verdict"],
+            set_readonly_columns: ["source", "p_low", "p_high", "n_levels", "reason", "price_at", "realized_before", "eval_status", "eval_at", "applied_at", "cycles_delta", "realized_delta", "price_move_pct", "verdict", "counterfactual_delta", "candidate_delta", "requested_json", "clamps_json", "brief_json"],
+            set_list_hide_columns: ["requested_json", "clamps_json", "brief_json"],
 
             "id_bot_decision()": ["primary()"],
             "id_grid_run('Run')": ["integer()", "foreign(grid_run)", "onDelete:cascade", "foreign:id_grid_run", "required"],
@@ -246,7 +382,85 @@
             "cycles_delta('Cycles after')": ["integer()", "not-required", "default:null"],
             "realized_delta('P/L after')": ["decimal(18, 8)", "not-required", "default:null"],
             "price_move_pct('Price move %')": ["decimal(9, 4)", "not-required", "default:null"],
-            "verdict('Verdict')": ["enum(Win, Flat, Loss, Superseded)", "not-required", "default:null"]
+            "verdict('Verdict')": ["enum(Win, Flat, Loss, Superseded, Worse)", "not-required", "default:null"],
+            "counterfactual_delta('vs no-change (sim)')": ["decimal(18, 8)", "not-required", "default:null"],
+            "candidate_delta('vs candidate')": ["enum(same, deviated, none)", "not-required", "default:null"],
+            "requested_json('Requested (pre-gate)')": ["longvarchar()", "not-required"],
+            "clamps_json('Clamp trail')": ["longvarchar()", "not-required"],
+            "brief_json('Brief snapshot')": ["longvarchar()", "not-required"]
+        },
+
+        // Long-horizon outlook (MarketOutlook, bin/gtbot-outlook). DETECTION,
+        // not forecast — refit-evidence §16 refuted every long-horizon
+        // direction predictor tried. market_outlook is the append-only log of
+        // confirmed calls (Change) + one Daily snapshot per symbol, each
+        // scored at 7d/30d so the live record says what the sweep could not.
+        // Verdict / kind / eval_status are varchar ON PURPOSE: every reader
+        // uses select() (Propel pool staleness) and select() hands an enum
+        // back as its ordinal.
+        "market_outlook('Market Outlook')": {
+            set_parent_menu: "Settings",
+            set_menu_priority: 9,
+            set_order_list_columns: [["called_at", "DESC"]],
+            set_list_hide_columns: ["detail"],
+            set_readonly_columns: ["symbol", "kind", "verdict", "prev_verdict", "price_at", "called_at", "detail", "eval_status", "price_7d", "price_30d", "ret_7d", "ret_30d", "max_adverse_pct", "hit_7d", "hit_30d", "scored_at"],
+            add_search_columns: {
+                "Symbol": [["symbol", "%val"]],
+                "Kind": [["kind", "%val"]],
+                "Verdict": [["verdict", "%val"]]
+            },
+
+            "id_market_outlook()": ["primary()"],
+            "symbol('Symbol')": ["varchar(20)", "required"],
+            "kind('Kind')": ["varchar(10)", "required", "default:Change"],
+            "verdict('Verdict')": ["varchar(16)", "required"],
+            "prev_verdict('Previous')": ["varchar(16)", "not-required", "default:null"],
+            "price_at('Price at call')": ["decimal(18, 8)", "required"],
+            "called_at('Called at')": ["timestamp()", "required"],
+            "detail('Detail')": ["longvarchar()", "not-required"],
+            "eval_status('Eval')": ["varchar(10)", "required", "default:Pending"],
+            "price_7d('Price +7d')": ["decimal(18, 8)", "not-required", "default:null"],
+            "price_30d('Price +30d')": ["decimal(18, 8)", "not-required", "default:null"],
+            "ret_7d('Return 7d %')": ["decimal(9, 4)", "not-required", "default:null"],
+            "ret_30d('Return 30d %')": ["decimal(9, 4)", "not-required", "default:null"],
+            "max_adverse_pct('Max adverse 30d %')": ["decimal(9, 4)", "not-required", "default:null"],
+            "hit_7d('Hit 7d')": ["boolean()", "not-required", "default:null"],
+            "hit_30d('Hit 30d')": ["boolean()", "not-required", "default:null"],
+            "scored_at('Scored at')": ["timestamp()", "not-required", "default:null"]
+        },
+
+        // one row per watched symbol: the confirmed verdict + the pass
+        // hysteresis counters (MarketOutlook::step). Machine-owned.
+        "market_outlook_state('Outlook State')": {
+            set_parent_menu: "Settings",
+            set_menu_priority: 10,
+            set_readonly_columns: ["symbol", "verdict", "verdict_since", "price_at_verdict", "candidate", "candidate_passes", "last_raw", "last_pass_at"],
+            unique: [["symbol"]],
+
+            "id_market_outlook_state()": ["primary()"],
+            "symbol('Symbol')": ["varchar(20)", "required"],
+            "verdict('Verdict')": ["varchar(16)", "not-required", "default:null"],
+            "verdict_since('Since')": ["timestamp()", "not-required", "default:null"],
+            "price_at_verdict('Price at verdict')": ["decimal(18, 8)", "not-required", "default:null"],
+            "candidate('Candidate')": ["varchar(16)", "not-required", "default:null"],
+            "candidate_passes('Candidate passes')": ["integer()", "required", "default:0"],
+            "last_raw('Last raw read')": ["varchar(16)", "not-required", "default:null"],
+            "last_pass_at('Last pass')": ["timestamp()", "not-required", "default:null"]
+        },
+
+        "wallet_nav('Wallet NAV')": {
+            set_parent_menu: "Settings",
+            set_menu_priority: 7,
+            set_order_list_columns: [["date_creation", "DESC"]],
+            set_readonly_columns: ["mode", "equity_quote", "budget_quote", "ref_symbol", "ref_price", "unpriced"],
+
+            "id_wallet_nav()": ["primary()"],
+            "mode('Mode')": ["enum(sim, real)", "required", "default:sim"],
+            "equity_quote('Equity (USDT)')": ["decimal(18, 8)", "required"],
+            "budget_quote('Shared budget')": ["decimal(18, 8)", "required"],
+            "ref_symbol('HODL reference')": ["varchar(20)", "not-required", "default:null"],
+            "ref_price('Reference price')": ["decimal(18, 8)", "not-required", "default:null"],
+            "unpriced('Unpriced assets')": ["varchar(100)", "not-required", "default:null"]
         }
     }
 }

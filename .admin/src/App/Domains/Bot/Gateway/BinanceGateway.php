@@ -19,6 +19,8 @@ class BinanceGateway implements GatewayInterface
     /** @var callable returns current epoch milliseconds */
     private $clockMs;
     private ?int $usedWeight = null;
+    /** server clock − host clock, learned from a -1021 rejection (see request()) */
+    private int $clockOffsetMs = 0;
 
     public function __construct(
         private readonly string $baseUrl,
@@ -59,7 +61,7 @@ class BinanceGateway implements GatewayInterface
     /**
      * Public candlestick history, newest last.
      *
-     * @return array<int, array{open:string, high:string, low:string, close:string, volume:?string, taker_buy:?string}>
+     * @return array<int, array{open_time:int, open:string, high:string, low:string, close:string, volume:?string, taker_buy:?string}>
      */
     public function klines(string $symbol, string $interval, int $limit): array
     {
@@ -74,6 +76,8 @@ class BinanceGateway implements GatewayInterface
                 continue;
             }
             $out[] = [
+                // epoch seconds (Binance sends ms): the candle store keys on it
+                'open_time' => (int) ((int) $k[0] / 1000),
                 'open' => (string) $k[1], 'high' => (string) $k[2], 'low' => (string) $k[3], 'close' => (string) $k[4],
                 'volume' => isset($k[5]) ? (string) $k[5] : null,
                 'taker_buy' => isset($k[9]) ? (string) $k[9] : null,
@@ -194,12 +198,40 @@ class BinanceGateway implements GatewayInterface
 
     // ── internals ───────────────────────────────────────────────────────
 
+    public function clockOffsetMs(): int
+    {
+        return $this->clockOffsetMs;
+    }
+
+    /**
+     * A signed request is stamped with the host clock; a host that drifted
+     * past recvWindow (VM suspend/resume, dead NTP) gets -1021 on EVERY signed
+     * call — no fills seen, no exits placed — until a human fixes the clock.
+     * Resync on the exchange's own time once and retry; a second -1021 is a
+     * real problem and surfaces.
+     */
     private function request(string $method, string $path, array $params, bool $signed): array
+    {
+        try {
+            return $this->send($method, $path, $params, $signed);
+        } catch (BinanceApiError $e) {
+            if (!$signed || $e->binanceCode !== -1021) {
+                throw $e;
+            }
+        }
+        $server = (int) ($this->send('GET', '/api/v3/time', [], false)['serverTime'] ?? 0);
+        if ($server > 0) {
+            $this->clockOffsetMs = $server - ($this->clockMs)();
+        }
+        return $this->send($method, $path, $params, $signed);
+    }
+
+    private function send(string $method, string $path, array $params, bool $signed): array
     {
         $headers = [];
         if ($signed) {
             $params['recvWindow'] = 5000;
-            $params['timestamp'] = ($this->clockMs)();
+            $params['timestamp'] = ($this->clockMs)() + $this->clockOffsetMs;
             $headers['X-MBX-APIKEY'] = $this->apiKey;
         }
         $query = http_build_query($params, '', '&', PHP_QUERY_RFC3986);

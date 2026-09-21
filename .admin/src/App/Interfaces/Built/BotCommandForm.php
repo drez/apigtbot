@@ -91,8 +91,36 @@ class BotCommandForm extends BotCommand
     public $formSaveBtn;
     public $formSaveBar;
     public $omMap;
+    /** getEditForm()/getList() field slots, keyed [Model][Column]['html']. */
+    public $fields = [];
+    public $fieldsRo = [];
+    /** Columns whose read-only markup gcBuildFieldRo() has already built (A43). */
+    public $gcFieldRoBuilt = [];
+    /** Sort-header restore JS, rebuilt per list query. */
+    public $orderReadyJsOrder = '';
 
         public $arrayIdGridRunOptions;
+    public $commentsIdBotCommand;
+    public $commentsIdBotCommand_css;
+    public $commentsIdGridRun;
+    public $commentsIdGridRun_css;
+    public $commentsCommand;
+    public $commentsCommand_css;
+    public $commentsCmdStatus;
+    public $commentsCmdStatus_css;
+    public $commentsNote;
+    public $commentsNote_css;
+    public $commentsDateCreation;
+    public $commentsDateCreation_css;
+    public $commentsDateModification;
+    public $commentsDateModification_css;
+    public $commentsIdGroupCreation;
+    public $commentsIdGroupCreation_css;
+    public $commentsIdCreation;
+    public $commentsIdCreation_css;
+    public $commentsIdModification;
+    public $commentsIdModification_css;
+    public $BotCommand;
 
 
     /**
@@ -132,7 +160,7 @@ class BotCommandForm extends BotCommand
 
         $q = new BotCommandQuery();
         $q = $this->setAclFilter($q);
-        
+
 
         $q
 
@@ -140,46 +168,71 @@ class BotCommandForm extends BotCommand
                 ->leftJoinWith('GridRun');
         if(is_array( $this->searchMs )){
             # main search form
-            
-            
+
+
         }else{
             ## standard list
-            
+
         }
-        
+
         $hasParent = json_decode((string) $IdParent);
         if (!empty($hasParent)) {
             $q->filterByIdGridRun($hasParent);
         }
 
-        
+
+            $this->orderReadyJsOrder = '';
             if(!empty($this->searchOrder)){
                 $f=0;
                 foreach($this->searchOrder as $order){
                     foreach($order as $col => $sens){
                         if($sens){
                             $tOrd = explode('.',$col);
-                            if($tOrd[1]){
+                            # The ordering comes from the session (setOrderVar keeps
+                            # whatever the client last clicked, and a session can outlive
+                            # a renamed/removed column or be seeded by another list).
+                            # Propel throws on a column it cannot resolve, which turned a
+                            # stale sort key into a 500 on the whole list — fall back to
+                            # the model's default order instead, and forget the key so the
+                            # next request is clean.
+                            $gcOrdApplied = true;
+                            try {
+                            if(!empty($tOrd[1])){
                                 $q->join($tOrd[0]." order".$f);
                                 $orderBy = "use".$tOrd[0]."Query";
                                 $q->$orderBy("order".$f, 'left join')->orderBy($tOrd[1], $sens)->endUse();
                             }else{
                                 $q->orderBy($col,$sens);
                             }
+                            } catch (\Exception $gcOrdEx) {
+                                $gcOrdApplied = false;
+                                error_log('list order: dropping unresolvable column ' . (string) $col
+                                    . ' on BotCommand — ' . $gcOrdEx->getMessage());
+                                unset($_SESSION['mem']['order']['BotCommand/'],
+                                    $_SESSION['mem']['order']['BotCommand/child']);
+                            }
+                            if($gcOrdApplied){
+                            # C8: $col / $sens come from the session (setOrderVar), so they
+                            # are never interpolated raw into the JS source. JSON_HEX_* keeps
+                            # quotes/tags/ampersands out of the surrounding <script> and the
+                            # attribute selector is composed client-side from the JSON value.
+                            $gcOrdCol = json_encode((string) $col, JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP);
+                            $gcOrdSens = json_encode(strtolower((string) $sens), JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP);
                             $this->orderReadyJsOrder .="
-                                var __se=document.querySelector(\"#BotCommandListForm [th='sorted'][c='".$col."']\");if(__se){__se.setAttribute('sens', '".strtolower($sens)."');__se.setAttribute('order','on');__se.classList.add('sorted');}
+                                (function(){var __c=".$gcOrdCol.",__s=".$gcOrdSens.";var __se=document.querySelector(\"#BotCommandListForm [th='sorted'][c=\"+JSON.stringify(__c)+\"]\");if(__se){__se.setAttribute('sens', __s);__se.setAttribute('order','on');__se.classList.add('sorted');}})();
                             ";
+                            }
                         }
                         $f++;
                     }
                 }
             }
-            
-        
-        
+
+
+
 
         $this->pmpoData = $q;
-        
+
 
         return $this->pmpoData;
     }
@@ -197,7 +250,7 @@ class BotCommandForm extends BotCommand
 
         switch($act) {
             case 'head':
-                $trHead = th(_("Grid Run label"), " th='sorted' c='GridRun.Label' title='"._('GridRun.Label')."' ")
+                $trHead = (empty($this->IdParent) ? th(_("Grid Run label"), " th='sorted' c='GridRun.Label' title='"._('GridRun.Label')."' ") : '')
 .th(_("Command"), " th='sorted' c='Command' title='" . _('Command')."' ")
 .th(_("Status"), " th='sorted' c='CmdStatus' title='" . _('Status')."' ")
 .th(_("Note"), " th='sorted' c='Note' title='" . _('Note')."' ")
@@ -210,20 +263,20 @@ class BotCommandForm extends BotCommand
 
             case 'list-button':
                 $listButton = '';
-                
-                
+
+
                 return $listButton;
 
             case 'search':
-                
-                
-                ;
+
+
+
                 return $trSearch;
 
             case 'add':
             ###### ADD
-                 if($_SESSION[_AUTH_VAR]->hasRights('BotCommand', 'a') && !$this->setReadOnly){
-                
+                if($_SESSION[_AUTH_VAR]->hasRights('BotCommand', 'a') && !$this->setReadOnly){
+
                                 $this->listAddButton = htmlLink(
                                     _("Add new")
                                 ,_SITE_URL.$this->virtualClassName."/edit/", "id='addBotCommand' title='"._('Add')."' class='button-link-blue add-button'");
@@ -256,7 +309,10 @@ class BotCommandForm extends BotCommand
         $this->in = 'getList';
         $this->isChild = '';
         $this->TableName = 'BotCommand';
-        $altValue = array (
+        # A11: the per-row reset below restores this seed instead of nulling
+        # $altValue — every `($altValue['X'] !== null) ? … : …` cell read from
+        # row 2 on was an array offset on null (one warning per cell per row).
+        $__altValueInit = array (
   'IdBotCommand' => NULL,
   'IdGridRun' => NULL,
   'Command' => NULL,
@@ -268,14 +324,16 @@ class BotCommandForm extends BotCommand
   'IdCreation' => NULL,
   'IdModification' => NULL,
 );
+        $altValue = $__altValueInit;
         $tr = '';
         $trDt = '';
-        $hook = [];
+        $hook = ['class' => ''];
+        $this->orderReadyJsOrder = '';
         $editEvent = '';
         $return = ['html' => '', 'js' => '', 'onReadyJs' => ''];
         $cCmoreCols = '';
 
-        
+
 
         // SECURITY (review H7): uiTabsId comes from request['ui'] and is reflected
         // raw into the list container's data-ui attribute and into the quick-add
@@ -284,22 +342,40 @@ class BotCommandForm extends BotCommand
         $uiTabsId = preg_replace('/[^A-Za-z0-9_]/', '', (string) $uiTabsId);
         $this->uiTabsId = $uiTabsId;
 
-        
+
         $this->IdParent = $IdParent;
         // Child-tab / nested list: mark context for behaviors that branch on isChild.
         if ($IdParent !== null && $IdParent !== '') {
             $this->isChild = 'BotCommand';
         }
 
+        // A22: list session key for search / order / page. $childTableName is
+        // always empty in the unified getList(), so the standalone list and every
+        // parent-scoped (child-tab) render used to share ONE key and therefore one
+        // page/sort/search state. Standalone keeps the historic '<Table>/' key;
+        // parent-scoped renders get '<Table>/child'. NOT keyed per parent id:
+        // FormHelper stores these keys unbounded, so one entry per visited parent
+        // would grow the session forever — instead the stored page is dropped when
+        // the parent id changes (search/sort intentionally carry over, matching the
+        // pre-existing '<Parent>/<Child>' desktop child-list behaviour).
+        $gcListKey = 'BotCommand/';
+        if ($IdParent !== null && $IdParent !== '') {
+            $gcListKey = 'BotCommand/child';
+            if (($_SESSION['mem']['ip'][$gcListKey] ?? null) !== (string) $IdParent) {
+                $_SESSION['mem']['ip'][$gcListKey] = (string) $IdParent;
+                unset($_SESSION['mem']['page'][$gcListKey]);
+            }
+        }
+
         // if Search params
-        $this->searchMs = $this->setSearchVar($request['ms'] ?? '', 'BotCommand/');
+        $this->searchMs = $this->setSearchVar($request['ms'] ?? '', $gcListKey);
 
         // Guideline filter chips (built from the first ENUM search col).
         $trChips = '';
-        
+
 
         // order
-        $this->searchOrder = $this->setOrderVar($request['order'] ?? '', 'BotCommand/');
+        $this->searchOrder = $this->setOrderVar($request['order'] ?? '', $gcListKey);
 
         // Clear-sort affordances (chip strip + sort-sheet row), rendered only
         // while the session carries a user ordering for this list. Both carry
@@ -307,20 +383,20 @@ class BotCommandForm extends BotCommand
         // sort handler; the server drops the whole stored ordering on '*'.
         $gcSortClear = '';
         $gcSortSheetClear = '';
-        if (!empty($_SESSION['mem']['order']['BotCommand/'])) {
+        if (!empty($_SESSION['mem']['order'][$gcListKey])) {
             $gcSortClear = div(button("<i class='ri-sort-desc'></i>"._('Sorted')."<span class='cl-active-filter-x' aria-hidden='true'>×</span>", " type='button' th='sorted' c='*' class='cl-active-filter cl-sort-clear' "), '', " class='va-mob-sortclear' ");
             $gcSortSheetClear = button("<i class='ri-arrow-go-back-line'></i> "._('Default order'), " type='button' th='sorted' c='*' class='va-mob-sortrow va-mob-sortrow-clear' ");
         }
 
         // page
-        $search['page'] = $this->setPageVar($request['pg'] ?? '', 'BotCommand/');
+        $search['page'] = $this->setPageVar($request['pg'] ?? '', $gcListKey);
 
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
 
         // Parent-scoped lists use the child pager size (same as former inlined getChildList).
         $maxPerPage = ($IdParent !== null && $IdParent !== '') ? $this->childMaxPerPage : $this->maxPerPage;
@@ -331,6 +407,7 @@ class BotCommandForm extends BotCommand
         $resultsCount = 0;
         if(empty($pmpoDataIn)) {
             $pmpoData = $this->getListSearch($IdParent, $search);
+
             $pmpoData = $pmpoData->paginate($search['page'], $maxPerPage);
             $resultsCount = $pmpoData->getNbResults();
 
@@ -356,107 +433,123 @@ class BotCommandForm extends BotCommand
             /**
             *	Main list loop
             **/
-            
+
             $i=0;
             $gcGroupCol = 'GridRun.Label';
             $gcGroupNorm = function($s){ return strtolower(preg_replace('/[^a-z0-9]/i','', (string) $s)); };
             $gcGroupKey = $gcGroupNorm($gcGroupCol);
-            // Use the RAW request order, not the resolved $this->searchOrder
-            // (getListSearch mutates the latter). Empty => default landing
-            // view => list is in its default (name) order => group A–Z, as
-            // the guideline screenshots show. A user sort only keeps the
-            // headers when it is the name column ascending.
-            $gcReqOrder = $request['order'] ?? '';
+            // $this->searchOrder is the ordering this list actually runs with: the
+            // session ordering for this list, or the schema default ($default_order,
+            // resolved just above) when the session carries none. A table that
+            // declares NO default order leaves it empty — the query emits no ORDER BY,
+            // so the list is NOT name-ordered and gets no headers. Only the first
+            // entry with a truthy sens decides (that is the primary sort column that
+            // getListSearch() applies); direction-agnostic, since a Z→A sort groups
+            // just as well as A→Z. Compared on the NORMALISED FULL column name so a
+            // dotted FK label ('Product.Name') matches its own sort key.
+            // Child-context lists (IdParent set) never letter-group: their order is
+            // the child ranking/FK order, not the name column.
             $gcGroupOn = false;
-            // Child-context lists (IdParent set) never letter-group: their
-            // default order is the child ranking/FK order, not the name
-            // column, so the empty-order assumption below doesn't hold and
-            // the letters render as stray one-letter rows in the drawer.
-            if (empty($IdParent)) {
-                if ($gcReqOrder === '' || $gcReqOrder === null) {
-                    $gcGroupOn = true;
-                } else {
-                    $gcOd = is_array($gcReqOrder) ? $gcReqOrder : json_decode((string) $gcReqOrder, true);
-                    if (is_array($gcOd) && isset($gcOd['col'])) {
-                        $gcFc = (string) $gcOd['col'];
-                        if (strpos($gcFc, '.') !== false) { $gcParts = explode('.', $gcFc); $gcFc = end($gcParts); }
-                        $gcSens = strtolower((string) ($gcOd['sens'] ?? ''));
-                        if ($gcGroupNorm($gcFc) === $gcGroupKey && $gcSens !== 'desc') { $gcGroupOn = true; }
+            if (empty($IdParent) && is_array($this->searchOrder)) {
+                foreach ($this->searchOrder as $gcOrdEntry) {
+                    if (!is_array($gcOrdEntry)) { continue; }
+                    foreach ($gcOrdEntry as $gcOrdCol => $gcOrdSens) {
+                        if (!$gcOrdSens) { continue; }
+                        $gcGroupOn = ($gcGroupNorm($gcOrdCol) === $gcGroupKey);
+                        break 2;
                     }
                 }
             }
             $gcGroupLetter = null;
-            
+
             if(!$this->setReadOnly && !$this->setListRemoveDelete){
                 if($_SESSION[_AUTH_VAR]->hasRights('BotCommand', 'd')){
                     $this->canDelete = htmlLink("<i class='ri-delete-bin-7-line'></i>", "Javascript:", "class='ac-delete-link' j='deleteBotCommand' ");
                 }
             }
-        
+
             $gcListRows = [];
             $gcListRowsDt = [];
             foreach($pcData as $data) {
-                if ($gcGroupOn) {
-                    $gcVal = (string) ((($altValue['IdGridRun'] !== null ) ? $altValue['IdGridRun'] : $altValue['GridRun_Label']));
-                    $gcL = mb_strtoupper(mb_substr(trim($gcVal), 0, 1));
-                    if ($gcL !== '' && $gcL !== $gcGroupLetter) {
-                        $gcGroupLetter = $gcL;
-                        $tr .= div(htmlspecialchars($gcL), '', " class='va-mob-sect-head' ");
-                    }
-                }
                 # hoist the row PK encodings once — reused by the mobile + desktop row wrappers below
                 $__pkJsonEsc = htmlspecialchars(json_encode($data->getPrimaryKey()), ENT_QUOTES);
                 $__pkEsc = htmlspecialchars((string)$data->getPrimaryKey(), ENT_QUOTES);
                 $this->listActionCell = '';
-                
-                
+
+
 
         $altValue['GridRun_Label'] = "";
         if($data->getGridRun()){
             $altValue['GridRun_Label'] = $data->getGridRun()->getLabel();
         }
-                
 
-                $actionCell =  td($this->canDelete . $this->listActionCell, " class='actionrow' ");
+
+                $actionInner = '' . $this->canDelete . $this->listActionCell;
+                $actionCell =  td($actionInner, " class='actionrow' ");
 
                 $gcRowHtml = div(
  ''
  . div(
-   div('' . span(htmlspecialchars((string)((($altValue['IdGridRun'] !== null ) ? $altValue['IdGridRun'] : $altValue['GridRun_Label'])))." ", "   i='" . $__pkJsonEsc . "' c='IdGridRun' class=''  j='editBotCommand'") ,''," class='name' ")
-   . div(''  . span(htmlspecialchars((string)((($altValue['Command'] !== null ) ? $altValue['Command'] : isntPo($data->getCommand()))))." ", "   i='" . $__pkJsonEsc . "' c='Command' class='center'  j='editBotCommand'") . span(htmlspecialchars((string)((($altValue['CmdStatus'] !== null ) ? $altValue['CmdStatus'] : isntPo($data->getCmdStatus()))))." ", "   i='" . $__pkJsonEsc . "' c='CmdStatus' class='center'  j='editBotCommand'") . span(htmlspecialchars((string)((($altValue['Note'] !== null ) ? $altValue['Note'] : $data->getNote())))." ", "   i='" . $__pkJsonEsc . "' c='Note' class=''  j='editBotCommand'") . $cCmoreCols ,''," class='meta' ")
+   div('' . (empty($this->IdParent) ? (span(htmlspecialchars((string)((($altValue['IdGridRun'] !== null ) ? $altValue['IdGridRun'] : $altValue['GridRun_Label'])))." ", "   i='" . $__pkJsonEsc . "' c='IdGridRun' class=''  j='editBotCommand'")) : (span(htmlspecialchars((string)((($altValue['Command'] !== null ) ? $altValue['Command'] : isntPo($data->getCommand()))))." ", "   i='" . $__pkJsonEsc . "' c='Command' class='center'  j='editBotCommand'"))) ,''," class='name' ")
+   . div(''  . (empty($this->IdParent) ? (''  . span(htmlspecialchars((string)((($altValue['Command'] !== null ) ? $altValue['Command'] : isntPo($data->getCommand()))))." ", "   i='" . $__pkJsonEsc . "' c='Command' class='center'  j='editBotCommand'") . span(htmlspecialchars((string)((($altValue['CmdStatus'] !== null ) ? $altValue['CmdStatus'] : isntPo($data->getCmdStatus()))))." ", "   i='" . $__pkJsonEsc . "' c='CmdStatus' class='center'  j='editBotCommand'") . span(htmlspecialchars((string)((($altValue['Note'] !== null ) ? $altValue['Note'] : $data->getNote())))." ", "   i='" . $__pkJsonEsc . "' c='Note' class=''  j='editBotCommand'")) : (''  . span(htmlspecialchars((string)((($altValue['CmdStatus'] !== null ) ? $altValue['CmdStatus'] : isntPo($data->getCmdStatus()))))." ", "   i='" . $__pkJsonEsc . "' c='CmdStatus' class='center'  j='editBotCommand'") . span(htmlspecialchars((string)((($altValue['Note'] !== null ) ? $altValue['Note'] : $data->getNote())))." ", "   i='" . $__pkJsonEsc . "' c='Note' class=''  j='editBotCommand'"))) . $cCmoreCols ,''," class='meta' ")
  ,'', " class='body' ")
 . div('' . '<i class="ri-arrow-right-s-line chev"></i>',''," class='trail' ")
-. $actionCell
-                , '', " 
+. div($actionInner, '', " class='actionrow' ")
+                , '', "
                         rid='".$__pkJsonEsc."' data-iterator='".$pcData->getPosition()."'
                         r='data'
                         class='va-mob-row ".$hook['class']." '
                         id='BotCommandRow".$__pkEsc."'")
                 ;
                 $gcDtRowHtml = tr(
-                td(span(htmlspecialchars((string)((($altValue['IdGridRun'] !== null ) ? $altValue['IdGridRun'] : $altValue['GridRun_Label'])))." "), "  i='" . $__pkJsonEsc . "' c='IdGridRun' class=''  j='editBotCommand'") .
+                    (empty($this->IdParent) ?
+                td(span(htmlspecialchars((string)((($altValue['IdGridRun'] !== null ) ? $altValue['IdGridRun'] : $altValue['GridRun_Label'])))." "), "  i='" . $__pkJsonEsc . "' c='IdGridRun' class=''  j='editBotCommand'") : '') .
                 td(span(htmlspecialchars((string)((($altValue['Command'] !== null ) ? $altValue['Command'] : isntPo($data->getCommand()))))." "), "  i='" . $__pkJsonEsc . "' c='Command' class='center'  j='editBotCommand'") .
                 td(span(htmlspecialchars((string)((($altValue['CmdStatus'] !== null ) ? $altValue['CmdStatus'] : isntPo($data->getCmdStatus()))))." "), "  i='" . $__pkJsonEsc . "' c='CmdStatus' class='center'  j='editBotCommand'") .
                 td(span(htmlspecialchars((string)((($altValue['Note'] !== null ) ? $altValue['Note'] : $data->getNote())))." "), "  i='" . $__pkJsonEsc . "' c='Note' class=''  j='editBotCommand'") .  $actionCell, "  rid='".$__pkJsonEsc."' data-iterator='".$pcData->getPosition()."' r='data' class='va-dt-row ".$hook['class']." ' id='BotCommandDtRow".$__pkEsc."'");
-                
+
+                # A10: the letter header reads $this->listCardNameVar, which for an
+                # FK-labelled list is a local ($<Rel>_Name) or an $altValue key the
+                # row body above assigns — so it is pushed here, after the body ran
+                # and before the row itself, keeping header→row order.
+
+                if ($gcGroupOn) {
+                    $gcVal = (string) ((($altValue['IdGridRun'] !== null ) ? $altValue['IdGridRun'] : $altValue['GridRun_Label']));
+                    $gcL = mb_strtoupper(mb_substr(trim($gcVal), 0, 1));
+                    if ($gcL !== '' && $gcL !== $gcGroupLetter) {
+                        $gcGroupLetter = $gcL;
+                        $gcListRows[] = div(htmlspecialchars($gcL), '', " class='va-mob-sect-head' ");
+                    }
+                }
                 $gcListRows[] = $gcRowHtml;
                 $gcListRowsDt[] = $gcDtRowHtml;
 
                 $i++;
-                $altValue = null;
+                $altValue = $__altValueInit;
             }
             $tr .= implode('', $gcListRows);
             $trDt .= implode('', $gcListRowsDt);
             $tr .= input('hidden', 'rowCountBotCommand', $i);
+
         }
 
-        
+        $gcParentRef = '';
+        $gcParentPk = json_decode((string) $IdParent);
+        if (!empty($gcParentPk) && $_SESSION[_AUTH_VAR]->hasRights('GridRun', 'r')) {
+            $gcParentObj = $_SESSION[_AUTH_VAR]->loadPkScoped(GridRunQuery::class, $gcParentPk, 'GridRun', 'r');
+            if ($gcParentObj) {
+                $gcParentRef = trim((string) ($gcParentObj->getLabel() ?? ''));
+                if ($gcParentRef === '') {
+                    $gcParentRef = is_scalar($gcParentPk) ? (string) $gcParentPk : (string) json_encode($gcParentPk);
+                }
+            }
+        }
 
         ## @Paging
         $pagerRow = $this->getPager($pmpoData, $resultsCount, $search);
         $bottomRow = div($pagerRow,'bottomPagerRow', "class='tablesorter'");
 
-        
+
 
         $controlsContent = $this->getListHeader('list-button');
 
@@ -466,11 +559,11 @@ class BotCommandForm extends BotCommand
                 div(
                     href(span(_('Open/close menu')),'javascript:','class="toggle-menu button-link-blue trigger-menu"')
                     .$this->getListHeader('add')
-                    
+
                 ,'','class="default-controls"')
                 .div($controlsContent,'BotCommandControlsList', "class='custom-controls'")
                 .$this->hookSwHeader.$HelpDiv
-                
+
             ,'','class="sw-header"')
 
             /*.div(
@@ -486,6 +579,7 @@ class BotCommandForm extends BotCommand
                         .button("<i class='ri-sort-desc'></i>", " type='button' class='va-mob-sort-btn' aria-haspopup='true' aria-label='"._('Sort')."' ")
                         .(($_SESSION[_AUTH_VAR]->hasRights('BotCommand', 'a') && !$this->setReadOnly) ? href("<i class='ri-add-line'></i>"._('New'), _SITE_URL.$this->virtualClassName."/edit/", " class='add-btn' ") : '')
                     ,''," class='va-mob-row1' ")
+                    .($gcParentRef !== '' ? div(span(_('Grid Run'), " class='va-mob-parent-type' ") . span(htmlspecialchars($gcParentRef), " class='va-mob-parent-name' "), '', " class='va-mob-parent' ") : '')
                     .div(
                         "<i class='ri-search-line'></i>"
                         .$this->getListHeader('search')
@@ -501,7 +595,7 @@ class BotCommandForm extends BotCommand
                             span(_('Sort by'), " class='sheet-title' ")
                             .button("<i class='ri-close-line'></i>", " type='button' class='sheet-close va-mob-sortsheet-close' aria-label='"._('Close')."' ")
                         ,''," class='sheet-head' ")
-                        .div("".$gcSortSheetClear . button(_("Grid Run label"), " type='button' th='sorted' c='GridRun.Label' class='va-mob-sortrow' ") . button(_("Command"), " type='button' th='sorted' c='Command' class='va-mob-sortrow' ") . button(_("Status"), " type='button' th='sorted' c='CmdStatus' class='va-mob-sortrow' ") . button(_("Note"), " type='button' th='sorted' c='Note' class='va-mob-sortrow' "), '', " class='sheet-body va-mob-sortsheet-body' ")
+                        .div("".$gcSortSheetClear . (empty($this->IdParent) ? button(_("Grid Run label"), " type='button' th='sorted' c='GridRun.Label' class='va-mob-sortrow' ") : '') . button(_("Command"), " type='button' th='sorted' c='Command' class='va-mob-sortrow' ") . button(_("Status"), " type='button' th='sorted' c='CmdStatus' class='va-mob-sortrow' ") . button(_("Note"), " type='button' th='sorted' c='Note' class='va-mob-sortrow' "), '', " class='sheet-body va-mob-sortsheet-body' ")
                     ,''," class='va-mob-sortsheet-panel' ")
                 ,''," class='va-mob-sortsheet' ")
                 .input('hidden', 'rowCount', $i, "s='d'")
@@ -514,23 +608,23 @@ class BotCommandForm extends BotCommand
                 ,'listForm',' class="ac-list" ')
                 .$this->hookListBottom
                 .$bottomRow
-            , 'BotCommandListForm', " class='va-mob proto-app' data-model='BotCommand' data-table='BotCommand' data-ui='".$this->uiTabsId."' " . ($IdParent !== null && $IdParent !== '' ? " data-ip='".htmlspecialchars((string)$IdParent, ENT_QUOTES)."' data-tp='BotCommand' data-parent='GridRun'" : ''));
+            , 'BotCommandListForm', " class='va-mob proto-app' data-model='BotCommand' data-table='BotCommand' data-gc-db='bot_command' data-ui='".$this->uiTabsId."' " . ($IdParent !== null && $IdParent !== '' ? " data-ip='".htmlspecialchars((string)$IdParent, ENT_QUOTES)."' data-tp='BotCommand' data-parent='GridRun'" : ''));
 
-        
+
 
 
 
         $return['onReadyJs'] =
             $HelpDivJs
-            
+
             ."
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         (function(){var r=document.getElementById('tabsContain');if(r&&window.gcSelectBox){gcSelectBox.bindWithin(r);}})();
         ".$this->hookListReadyJsFirst.$editEvent."
         var __ab=document.getElementById('addBotCommandAutoc');
@@ -540,12 +634,12 @@ class BotCommandForm extends BotCommand
                 fetch('"._SITE_URL."GuiManager',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','X-Requested-With':'XMLHttpRequest'},body:__b.toString()}).then(function(){document.location='"._SITE_URL.$this->virtualClassName."/edit/';});
             });
         }
-        
-        
+
+
         ".$this->orderReadyJsOrder."
         ".$this->hookListReadyJs;
-        
-        $return['js'] .= script("". $this->hookListJs);
+
+        $return['js'] .= script($this->hookListJs);
         return $return;
     }
     /*
@@ -564,21 +658,13 @@ class BotCommandForm extends BotCommand
         if(!$data['CmdStatus']){
             $data['CmdStatus'] = 'Pending';
         }
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
         #
 
-        //integer not required
+        //varchar not required
         $e->setNote( ($data['Note'] == '' ) ? null : $data['Note']);
-        $e->setDateCreation( ($data['DateCreation'] == '' || $data['DateCreation'] == 'null' || substr($data['DateCreation'],0,10) == '-0001-11-30') ? null : $data['DateCreation'] );
-        $e->setDateModification( ($data['DateModification'] == '' || $data['DateModification'] == 'null' || substr($data['DateModification'],0,10) == '-0001-11-30') ? null : $data['DateModification'] );
-        //foreign
-        $e->setIdGroupCreation(( $data['IdGroupCreation'] == '' ) ? null : $data['IdGroupCreation']);
-        //foreign
-        $e->setIdCreation(( $data['IdCreation'] == '' ) ? null : $data['IdCreation']);
-        //foreign
-        $e->setIdModification(( $data['IdModification'] == '' ) ? null : $data['IdModification']);
         #
 
         return $e;
@@ -601,28 +687,13 @@ class BotCommandForm extends BotCommand
         if(!$data['CmdStatus']){
             $data['CmdStatus'] = 'Pending';
         }
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
 
 
         if(isset($data['Note'])){
             $e->setNote( ($data['Note'] == '' ) ? null : $data['Note']);
-        }
-        if(isset($data['DateCreation'])){
-            $e->setDateCreation( ($data['DateCreation'] == '' || $data['DateCreation'] == 'null' || substr($data['DateCreation'],0,10) == '-0001-11-30') ? null : $data['DateCreation'] );
-        }
-        if(isset($data['DateModification'])){
-            $e->setDateModification( ($data['DateModification'] == '' || $data['DateModification'] == 'null' || substr($data['DateModification'],0,10) == '-0001-11-30') ? null : $data['DateModification'] );
-        }
-        if( isset($data['IdGroupCreation']) ){
-            $e->setIdGroupCreation(( $data['IdGroupCreation'] == '' ) ? null : $data['IdGroupCreation']);
-        }
-        if( isset($data['IdCreation']) ){
-            $e->setIdCreation(( $data['IdCreation'] == '' ) ? null : $data['IdCreation']);
-        }
-        if( isset($data['IdModification']) ){
-            $e->setIdModification(( $data['IdModification'] == '' ) ? null : $data['IdModification']);
         }
         $e->setNew(false);
         return $e;
@@ -644,14 +715,11 @@ class BotCommandForm extends BotCommand
 
         $HelpDivJs = '';
         $HelpDiv = '';
-        $childTable = [];
+        $childTable = ['html' => '', 'js' => '', 'onReadyJs' => ''];
         $script_autoc_one = '';
         $ongletf = '';
         $mceInclude = '';
-        $ip_save = '';
-        $ip_save = '';
         $IdParent = 0;
-        $editDialog = ( $data['dialog'] ) ? $data['dialog'] : 'editDialog';
         $uiTabsId = ( $uiTabsId === null ) ? 'tabsContain' : $uiTabsId;
         $jet = 'tr';
 
@@ -665,13 +733,13 @@ class BotCommandForm extends BotCommand
             $jet = $jsElementType;
         }
 
-        if($data['data']['ip']){
+        if(!empty($data['data']['ip'])){
             $data['ip'] = $data['data']['ip'];
-            $data['pc'] = $data['data']['pc'];
-            $data['tp'] = $data['data']['tp'];
+            $data['pc'] = $data['data']['pc'] ?? '';
+            $data['tp'] = $data['data']['tp'] ?? '';
         }
 
-        if($data['pc']) {
+        if(!empty($data['pc'])) {
             switch($data['pc']){
 
                 case 'GridRun':
@@ -705,12 +773,12 @@ class BotCommandForm extends BotCommand
         $this->SaveButtonJs = "";
 
         if($_SESSION[_AUTH_VAR]->hasRights('BotCommand', 'a') && !$this->setReadOnly) {
-            $this->formAddButton = htmlLink(_("Add new"), 'Javascript:;' , "id='addBotCommand' title='"._('Add')."' class='button-link-blue add-button'");
+            $this->formAddButton = htmlLink(_("Add new"), 'Javascript:;' , "id='addBotCommandForm' title='"._('Add')."' class='button-link-blue add-button'");
             $this->bindEditJs = "";
-                if ($this->formAddButton) { $this->formAddButton = str_replace("add-button'", "add-button' data-gc-add='".$this->virtualClassName."' data-gc-ip='".($IdParent ?: '')."'", $this->formAddButton); }
+                if ($this->formAddButton) { $this->formAddButton = str_replace("add-button'", "add-button' data-gc-add='".$this->virtualClassName."' data-gc-ip='".htmlspecialchars((string) ($IdParent ?: ''), ENT_QUOTES)."'", $this->formAddButton); }
         }
 
-        if($id && !$data['reload']) {
+        if($id && empty($data['reload'])) {
 
 
             $q = BotCommandQuery::create()
@@ -766,7 +834,7 @@ class BotCommandForm extends BotCommand
 
 
 $this->fields['BotCommand']['IdGridRun']['html'] = stdFieldRow(_("Run"),
-    input('text', 'IdGridRunAutoc', $dataObj->getGridRun()?->getIdGridRun(), " title='".str_replace("'","", (string)($dataObj->getGridRun()?->getIdGridRun()))."' v='ID_GRID_RUN' rid='IdGridRun' placeholder='"._('Run')."' j='autocomplete' class='ui-autocomplete-input' data-gc-autoc='{&quot;name&quot;:&quot;IdGridRun&quot;,&quot;table&quot;:&quot;BotCommand&quot;,&quot;childTable&quot;:&quot;GridRun&quot;,&quot;spec&quot;:{&quot;fkt&quot;:&quot;GridRun&quot;,&quot;show&quot;:[&quot;IdGridRun&quot;],&quot;id&quot;:&quot;IdGridRun&quot;,&quot;filter&quot;:&quot;IdGridRun&quot;,&quot;term&quot;:&quot;str&quot;,&quot;limit&quot;:20}}'")
+    input('text', 'IdGridRunAutoc', $dataObj->getGridRun()?->getLabel(), " title='".str_replace("'","", (string)($dataObj->getGridRun()?->getLabel()))."' v='ID_GRID_RUN' rid='IdGridRun' placeholder='"._('Run')."' j='autocomplete' class='ui-autocomplete-input' data-gc-autoc='{&quot;name&quot;:&quot;IdGridRun&quot;,&quot;table&quot;:&quot;BotCommand&quot;,&quot;childTable&quot;:&quot;GridRun&quot;,&quot;spec&quot;:{&quot;fkt&quot;:&quot;GridRun&quot;,&quot;show&quot;:[&quot;Label&quot;],&quot;id&quot;:&quot;IdGridRun&quot;,&quot;filter&quot;:&quot;Label&quot;,&quot;term&quot;:&quot;str&quot;,&quot;limit&quot;:20}}'")
     .input('hidden', 'IdGridRun', $dataObj->getIdGridRun(), "s='d'"), 'IdGridRun', "", $this->commentsIdGridRun, $this->commentsIdGridRun_css, '', ' ', 'no', 'v2');
 $this->fields['BotCommand']['Command']['html'] = stdFieldRow(_("Command"), selectboxCustomArray('Command', [ '0' => ['0'=>_("Start"), '1'=>"Start"],'1' => ['0'=>_("Pause"), '1'=>"Pause"],'2' => ['0'=>_("Resume"), '1'=>"Resume"],'3' => ['0'=>_("Kill"), '1'=>"Kill"],'4' => ['0'=>_("Flatten"), '1'=>"Flatten"],'5' => ['0'=>_("CancelBuys"), '1'=>"CancelBuys"],'6' => ['0'=>_("Reload"), '1'=>"Reload"], ], "", "s='d'  ", $dataObj->getCommand(), '', false), 'Command', "", $this->commentsCommand, $this->commentsCommand_css, ' half', ' ', 'no', 'v2');
 $this->fields['BotCommand']['CmdStatus']['html'] = stdFieldRow(_("Status"), selectboxCustomArray('CmdStatus', [ '0' => ['0'=>_("Pending"), '1'=>"Pending"],'1' => ['0'=>_("Acked"), '1'=>"Acked"],'2' => ['0'=>_("Done"), '1'=>"Done"],'3' => ['0'=>_("Failed"), '1'=>"Failed"], ], "", "s='d'  ", $dataObj->getCmdStatus(), '', false), 'CmdStatus', "", $this->commentsCmdStatus, $this->commentsCmdStatus_css, ' half', ' ', 'no', 'v2');
@@ -802,6 +870,13 @@ $this->fields['BotCommand']['Note']['html'] = stdFieldRow(_("Note"), input('text
                             .$this->hookListSearchButton
                         ,""," class='form-savehidden' ");
         }
+        // add_hooks: afterFormObj (always emitted — the stub lives in the FormWrapper)
+        if (method_exists($this, 'afterFormObj')) { $this->afterFormObj($data, $dataObj); }
+        $gcFirstTabActive = true;
+        if (!empty($this->formCustomTabs)) {
+            throw new \LogicException('BotCommand: addFormTab() needs add_tab_columns (without add_field_groups) on the table — there is no tab strip to put the tab in');
+        }
+
 
 
 
@@ -858,9 +933,6 @@ $this->fields['BotCommand']['Note']['html'] = stdFieldRow(_("Note"), input('text
                         href('<i class="ri-arrow-left-s-line"></i>'._('Command'), _SITE_URL.'BotCommand', "class='nav-btn'")
                         .div(
                             span(_('Command'), "class='nav-title-type'")
-                            .(isset($_gcNameVal) && trim((string)$_gcNameVal) !== ''
-                                ? span(htmlspecialchars($_gcNameVal), "class='nav-title-name'")
-                                : '')
                         , '', "class='nav-title'")
                         .$this->formSaveBtn
                         .href('<i class="ri-close-line"></i>', _SITE_URL.'BotCommand', "class='nav-btn nav-close' title='"._('Close')."' aria-label='"._('Close')."'")
@@ -896,10 +968,10 @@ $this->fields['BotCommand']['IdGridRun']['html']
         // first tab active by default; the stale session ['ogf'] value is inert.
         $tabs_act = '';
 
-        if($_SESSION['mem']['BotCommand']['ixmemautocapp'] and $_GET['Autocapp'] == 1) {
-            $Autocapp = $_SESSION['mem']['BotCommand']['ixmemautocapp'];
-            unset($_SESSION['mem']['BotCommand']['ixmemautocapp']);
-        }
+        // The ['ixmemautocapp'] restore block is gone: nothing in the emitter,
+        // the runtime or the template ever writes that session key, so the
+        // condition was dead — and with it an unguarded $_GET['Autocapp'] read
+        // (a warning on every form render) and an $Autocapp local nothing read.
 
         $return['js'] .= $childTable['js']
         . script($this->hookFormIncludeJs) ."
@@ -913,7 +985,7 @@ $this->fields['BotCommand']['IdGridRun']['html']
         ".$this->SaveButtonJs."
 
         ".$childTable['onReadyJs']."
-        ".$error['onReadyJs']."
+        ".($error['onReadyJs'] ?? '')."
         ".$tabs_act."
         ".$this->hookFormReadyJs
         .$script_autoc_one
@@ -927,28 +999,44 @@ $this->fields['BotCommand']['IdGridRun']['html']
 
     function lockFormField($fields, $dataObj)
     {
+        if($fields === 'all') {
+            $fields = array_keys($this->fields['BotCommand']);
+        } elseif(!is_array($fields)) {
+            return;
+        }
+        foreach($fields as $field) {
+            if(!isset($this->gcFieldRoBuilt[$field])) {
+                $this->gcFieldRoBuilt[$field] = true;
+                $this->gcBuildFieldRo($field, $dataObj);
+            }
+            $this->fields['BotCommand'][$field]['html'] = $this->fieldsRo['BotCommand'][$field]['html'] ?? '';
+        }
+    }
 
+    /** Build ONE column's read-only markup into $this->fieldsRo (A43). */
+    private function gcBuildFieldRo($field, $dataObj)
+    {
+        switch($field) {
+            case 'IdGridRun':
         $this->fieldsRo['BotCommand']['IdGridRun']['html'] = stdFieldRow(_("Run"), div( htmlspecialchars((string)(($dataObj->getGridRun())?($dataObj->getGridRun()->getLabel()):''), ENT_QUOTES), 'IdGridRun_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'IdGridRun', $dataObj->getIdGridRun(), "s='d'"), 'IdGridRun', "", $this->commentsIdGridRun, $this->commentsIdGridRun_css, 'readonly', ' ', 'no', 'v2');
 
+            break;
+            case 'Command':
         $this->fieldsRo['BotCommand']['Command']['html'] = stdFieldRow(_("Command"), div( htmlspecialchars((string)($dataObj->getCommand()), ENT_QUOTES), 'Command_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Command', $dataObj->getCommand(), "s='d'"), 'Command', "", $this->commentsCommand, $this->commentsCommand_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'CmdStatus':
         $this->fieldsRo['BotCommand']['CmdStatus']['html'] = stdFieldRow(_("Status"), div( htmlspecialchars((string)($dataObj->getCmdStatus()), ENT_QUOTES), 'CmdStatus_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'CmdStatus', $dataObj->getCmdStatus(), "s='d'"), 'CmdStatus', "", $this->commentsCmdStatus, $this->commentsCmdStatus_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'Note':
         $this->fieldsRo['BotCommand']['Note']['html'] = stdFieldRow(_("Note"), div( htmlspecialchars((string)($dataObj->getNote()), ENT_QUOTES), 'Note_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Note', $dataObj->getNote(), "s='d'"), 'Note', "", $this->commentsNote, $this->commentsNote_css, 'readonly', ' ', 'no', 'v2');
 
-
-        if($fields == 'all') {
-            foreach($this->fields['BotCommand'] as $field => $ar) {
-                $this->fields['BotCommand'][$field]['html'] = $this->fieldsRo['BotCommand'][$field]['html'];
-            }
-        } elseif(is_array($fields)) {
-            foreach($fields as $field) {
-                $this->fields['BotCommand'][$field]['html'] = $this->fieldsRo['BotCommand'][$field]['html'];
-            }
+            break;
         }
     }
 
@@ -963,23 +1051,32 @@ $this->fields['BotCommand']['IdGridRun']['html']
  $gcSbHost = is_object($obj) ? $obj : $this;
  $gcSbUseCache = $array
         && class_exists('\\ApiGoat\\Utility\\SelectBoxCache')
+        && method_exists('\\ApiGoat\\Utility\\SelectBoxCache', 'scopeToken')
         && !method_exists($gcSbHost, 'beginSelectboxBotCommand_IdGridRun')
         && !method_exists($gcSbHost, 'selectboxDataBotCommand_IdGridRun');
     if ($gcSbUseCache) {
-        $gcSbHit = \ApiGoat\Utility\SelectBoxCache::fetch('grid_run', 'BotCommand_IdGridRun', false);
+        $gcSbHit = \ApiGoat\Utility\SelectBoxCache::fetch('grid_run', 'BotCommand_IdGridRun', false, \ApiGoat\Utility\SelectBoxCache::scopeToken('GridRun'));
         if ($gcSbHit !== null) {
             return $gcSbHit;
         }
     }
         $q = GridRunQuery::create();
 
+    $gcSbSess = $_SESSION[_AUTH_VAR] ?? null;
+    if (is_object($gcSbSess) && method_exists($gcSbSess, 'applyOwnerGroupScope')) {
+        $gcSbSess->applyOwnerGroupScope($q, $gcSbSess->hasRights('GridRun', 'r'));
+    }
+
     $gcSbHost = is_object($obj) ? $obj : $this;
+    $ret = null;
     if(method_exists($gcSbHost, 'beginSelectboxBotCommand_IdGridRun') and $array)
         $ret = $gcSbHost->beginSelectboxBotCommand_IdGridRun($q, $dataObj, $data, $obj);
-    if($ret !== false)
+    if($ret !== false) {
             $q->addAsColumn('selDisplay', ''.GridRunPeer::LABEL.'');
             $q->select(['selDisplay', 'IdGridRun']);
             $q->orderBy('selDisplay', 'ASC');
+
+    }
         
             if(!$array){
                 return $q;
@@ -997,9 +1094,9 @@ $this->fields['BotCommand']['IdGridRun']['html']
         if($override === false){
             $arrayOpt = $pcDataO->toArray();
 
-            $gcSbResult = assocToNum($arrayOpt , true);
+            $gcSbResult = assocToNum($arrayOpt );
             if (!empty($gcSbUseCache)) {
-                \ApiGoat\Utility\SelectBoxCache::store('grid_run', 'BotCommand_IdGridRun', false, $gcSbResult);
+                \ApiGoat\Utility\SelectBoxCache::store('grid_run', 'BotCommand_IdGridRun', false, $gcSbResult, \ApiGoat\Utility\SelectBoxCache::scopeToken('GridRun'));
             }
             return $gcSbResult;
         }else{

@@ -157,6 +157,36 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
     protected $verdict;
 
     /**
+     * The value for the counterfactual_delta field.
+     * @var        string
+     */
+    protected $counterfactual_delta;
+
+    /**
+     * The value for the candidate_delta field.
+     * @var        int
+     */
+    protected $candidate_delta;
+
+    /**
+     * The value for the requested_json field.
+     * @var        string
+     */
+    protected $requested_json;
+
+    /**
+     * The value for the clamps_json field.
+     * @var        string
+     */
+    protected $clamps_json;
+
+    /**
+     * The value for the brief_json field.
+     * @var        string
+     */
+    protected $brief_json;
+
+    /**
      * The value for the date_creation field.
      * @var        string
      */
@@ -431,7 +461,7 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
         }
 
         if (strpos($format, '%') !== false) {
-            return strftime($format, $dt->format('U'));
+            return self::formatStrftime($format, $dt);
         }
 
         return $dt->format($format);
@@ -472,7 +502,7 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
         }
 
         if (strpos($format, '%') !== false) {
-            return strftime($format, $dt->format('U'));
+            return self::formatStrftime($format, $dt);
         }
 
         return $dt->format($format);
@@ -537,6 +567,74 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
 
     /**
      * @Field()
+     * Get the [counterfactual_delta] column value.
+     * vs no-change (sim)
+     * @return string
+     */
+    public function getCounterfactualDelta()
+    {
+
+        return $this->counterfactual_delta;
+    }
+
+    /**
+     * @Field()
+     * Get the [candidate_delta] column value.
+     * vs candidate
+     * @return int
+     * @throws PropelException - if the stored enum key is unknown.
+     */
+    public function getCandidateDelta()
+    {
+        if (null === $this->candidate_delta) {
+            return null;
+        }
+        $valueSet = BotDecisionPeer::getValueSet(BotDecisionPeer::CANDIDATE_DELTA);
+        if (!isset($valueSet[$this->candidate_delta])) {
+            throw new PropelException('Unknown stored enum key: ' . $this->candidate_delta);
+        }
+
+        return $valueSet[$this->candidate_delta];
+    }
+
+    /**
+     * @Field()
+     * Get the [requested_json] column value.
+     * Requested (pre-gate)
+     * @return string
+     */
+    public function getRequestedJson()
+    {
+
+        return $this->requested_json;
+    }
+
+    /**
+     * @Field()
+     * Get the [clamps_json] column value.
+     * Clamp trail
+     * @return string
+     */
+    public function getClampsJson()
+    {
+
+        return $this->clamps_json;
+    }
+
+    /**
+     * @Field()
+     * Get the [brief_json] column value.
+     * Brief snapshot
+     * @return string
+     */
+    public function getBriefJson()
+    {
+
+        return $this->brief_json;
+    }
+
+    /**
+     * @Field()
      * Get the [optionally formatted] temporal [date_creation] column value.
      *
      *
@@ -569,7 +667,7 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
         }
 
         if (strpos($format, '%') !== false) {
-            return strftime($format, $dt->format('U'));
+            return self::formatStrftime($format, $dt);
         }
 
         return $dt->format($format);
@@ -610,7 +708,7 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
         }
 
         if (strpos($format, '%') !== false) {
-            return strftime($format, $dt->format('U'));
+            return self::formatStrftime($format, $dt);
         }
 
         return $dt->format($format);
@@ -651,6 +749,97 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
     {
 
         return $this->id_modification;
+    }
+
+    /**
+     * strftime()-compatible formatting for the temporal accessors above.
+     *
+     * strftime() is deprecated as of PHP 8.1 and removed in PHP 9, so the
+     * conversion specifiers are expanded here instead. The expansion follows the
+     * C/POSIX locale, which is what these accessors have always resolved to in
+     * practice. Anything not in the tables below -- including the %E / %O locale
+     * modifiers and a trailing bare '%' -- raises rather than silently
+     * mis-formatting.
+     *
+     * The one deliberate divergence from strftime() is %s: PHP's strftime()
+     * double-applies the timezone offset for that specifier, this returns the
+     * true Unix timestamp.
+     *
+     * @param  string   $format A strftime()-style format string.
+     * @param  DateTime $dt     The value to format.
+     * @return string
+     * @throws PropelException If the format uses an unsupported conversion specifier.
+     */
+    protected static function formatStrftime($format, $dt)
+    {
+        // Composite specifiers, expanded to their C/POSIX-locale definitions.
+        static $composite = array(
+            'c' => '%a %b %e %H:%M:%S %Y',
+            'D' => '%m/%d/%y',
+            'F' => '%Y-%m-%d',
+            'r' => '%I:%M:%S %p',
+            'R' => '%H:%M',
+            'T' => '%H:%M:%S',
+            'x' => '%m/%d/%y',
+            'X' => '%H:%M:%S',
+        );
+        // Specifiers that are exactly one date() format character.
+        static $direct = array(
+            'a' => 'D', 'A' => 'l', 'b' => 'M', 'h' => 'M', 'B' => 'F',
+            'd' => 'd', 'H' => 'H', 'I' => 'h', 'm' => 'm', 'M' => 'i',
+            'p' => 'A', 'P' => 'a', 's' => 'U', 'S' => 's', 'u' => 'N',
+            'w' => 'w', 'y' => 'y', 'Y' => 'Y', 'G' => 'o', 'z' => 'O',
+            'Z' => 'T',
+        );
+        // Literal passthroughs.
+        static $literal = array('n' => "\n", 't' => "\t", '%' => '%');
+
+        $out = '';
+        $len = strlen($format);
+
+        for ($i = 0; $i < $len; $i++) {
+            if ('%' !== $format[$i]) {
+                $out .= $format[$i];
+                continue;
+            }
+            if (++$i === $len) {
+                throw new PropelException("Malformed strftime() format string (trailing '%'): " . var_export($format, true));
+            }
+
+            $c = $format[$i];
+
+            if (isset($composite[$c])) {
+                $out .= self::formatStrftime($composite[$c], $dt);
+            } elseif (isset($direct[$c])) {
+                $out .= $dt->format($direct[$c]);
+            } elseif (isset($literal[$c])) {
+                $out .= $literal[$c];
+            } elseif ('e' === $c) {
+                $out .= sprintf('%2d', $dt->format('j'));                // space-padded day of the month
+            } elseif ('k' === $c) {
+                $out .= sprintf('%2d', $dt->format('G'));                // space-padded hour, 24h clock
+            } elseif ('l' === $c) {
+                $out .= sprintf('%2d', $dt->format('g'));                // space-padded hour, 12h clock
+            } elseif ('j' === $c) {
+                $out .= sprintf('%03d', $dt->format('z') + 1);           // day of the year, 001-366
+            } elseif ('V' === $c) {
+                $out .= sprintf('%02d', $dt->format('W'));               // ISO-8601 week number
+            } elseif ('C' === $c) {
+                $out .= sprintf('%02d', (int) ($dt->format('Y') / 100)); // century
+            } elseif ('g' === $c) {
+                $out .= substr('0' . $dt->format('o'), -2);              // 2-digit ISO-8601 year
+            } elseif ('U' === $c) {
+                // Week of the year, Sunday as the first day: (yday + 7 - wday) / 7.
+                $out .= sprintf('%02d', (int) (($dt->format('z') + 7 - $dt->format('w')) / 7));
+            } elseif ('W' === $c) {
+                // Week of the year, Monday as the first day: (yday + 7 - (wday + 6) % 7) / 7.
+                $out .= sprintf('%02d', (int) (($dt->format('z') + 7 - ($dt->format('N') - 1)) / 7));
+            } else {
+                throw new PropelException("Unsupported strftime() conversion specifier '%" . $c . "' in format " . var_export($format, true));
+            }
+        }
+
+        return $out;
     }
 
     /**
@@ -1034,6 +1223,116 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
     } // setVerdict()
 
     /**
+     * Set the value of [counterfactual_delta] column.
+     * vs no-change (sim)
+     * @param  string $v new value
+     * @return BotDecision The current object (for fluent API support)
+     */
+    public function setCounterfactualDelta($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (string) $v;
+        }
+
+        if ($this->counterfactual_delta !== $v) {
+            $this->counterfactual_delta = $v;
+            $this->modifiedColumns[] = BotDecisionPeer::COUNTERFACTUAL_DELTA;
+        }
+
+
+        return $this;
+    } // setCounterfactualDelta()
+
+    /**
+     * Set the value of [candidate_delta] column.
+     * vs candidate
+     * @param  int $v new value
+     * @return BotDecision The current object (for fluent API support)
+     * @throws PropelException - if the value is not accepted by this enum.
+     */
+    public function setCandidateDelta($v)
+    {
+        if ($v !== null) {
+            $valueSet = BotDecisionPeer::getValueSet(BotDecisionPeer::CANDIDATE_DELTA);
+            if (!in_array($v, $valueSet)) {
+                throw new PropelException(sprintf('Value "%s" is not accepted in this enumerated column', $v));
+            }
+            $v = array_search($v, $valueSet);
+        }
+
+        if ($this->candidate_delta !== $v) {
+            $this->candidate_delta = $v;
+            $this->modifiedColumns[] = BotDecisionPeer::CANDIDATE_DELTA;
+        }
+
+
+        return $this;
+    } // setCandidateDelta()
+
+    /**
+     * Set the value of [requested_json] column.
+     * Requested (pre-gate)
+     * @param  string $v new value
+     * @return BotDecision The current object (for fluent API support)
+     */
+    public function setRequestedJson($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->requested_json !== $v) {
+            $this->requested_json = $v;
+            $this->modifiedColumns[] = BotDecisionPeer::REQUESTED_JSON;
+        }
+
+
+        return $this;
+    } // setRequestedJson()
+
+    /**
+     * Set the value of [clamps_json] column.
+     * Clamp trail
+     * @param  string $v new value
+     * @return BotDecision The current object (for fluent API support)
+     */
+    public function setClampsJson($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->clamps_json !== $v) {
+            $this->clamps_json = $v;
+            $this->modifiedColumns[] = BotDecisionPeer::CLAMPS_JSON;
+        }
+
+
+        return $this;
+    } // setClampsJson()
+
+    /**
+     * Set the value of [brief_json] column.
+     * Brief snapshot
+     * @param  string $v new value
+     * @return BotDecision The current object (for fluent API support)
+     */
+    public function setBriefJson($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->brief_json !== $v) {
+            $this->brief_json = $v;
+            $this->modifiedColumns[] = BotDecisionPeer::BRIEF_JSON;
+        }
+
+
+        return $this;
+    } // setBriefJson()
+
+    /**
      * Sets the value of [date_creation] column to a normalized version of the date/time value specified.
      *
      * @param mixed $v string, integer (timestamp), or DateTime value.
@@ -1215,11 +1514,16 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
             $this->realized_delta = ($row[$startcol + 14] !== null) ? (string) $row[$startcol + 14] : null;
             $this->price_move_pct = ($row[$startcol + 15] !== null) ? (string) $row[$startcol + 15] : null;
             $this->verdict = ($row[$startcol + 16] !== null) ? (int) $row[$startcol + 16] : null;
-            $this->date_creation = ($row[$startcol + 17] !== null) ? (string) $row[$startcol + 17] : null;
-            $this->date_modification = ($row[$startcol + 18] !== null) ? (string) $row[$startcol + 18] : null;
-            $this->id_group_creation = ($row[$startcol + 19] !== null) ? (int) $row[$startcol + 19] : null;
-            $this->id_creation = ($row[$startcol + 20] !== null) ? (int) $row[$startcol + 20] : null;
-            $this->id_modification = ($row[$startcol + 21] !== null) ? (int) $row[$startcol + 21] : null;
+            $this->counterfactual_delta = ($row[$startcol + 17] !== null) ? (string) $row[$startcol + 17] : null;
+            $this->candidate_delta = ($row[$startcol + 18] !== null) ? (int) $row[$startcol + 18] : null;
+            $this->requested_json = ($row[$startcol + 19] !== null) ? (string) $row[$startcol + 19] : null;
+            $this->clamps_json = ($row[$startcol + 20] !== null) ? (string) $row[$startcol + 20] : null;
+            $this->brief_json = ($row[$startcol + 21] !== null) ? (string) $row[$startcol + 21] : null;
+            $this->date_creation = ($row[$startcol + 22] !== null) ? (string) $row[$startcol + 22] : null;
+            $this->date_modification = ($row[$startcol + 23] !== null) ? (string) $row[$startcol + 23] : null;
+            $this->id_group_creation = ($row[$startcol + 24] !== null) ? (int) $row[$startcol + 24] : null;
+            $this->id_creation = ($row[$startcol + 25] !== null) ? (int) $row[$startcol + 25] : null;
+            $this->id_modification = ($row[$startcol + 26] !== null) ? (int) $row[$startcol + 26] : null;
             $this->resetModified();
 
             $this->setNew(false);
@@ -1229,7 +1533,7 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
             }
             $this->postHydrate($row, $startcol, $rehydrate);
 
-            return $startcol + 22; // 22 = BotDecisionPeer::NUM_HYDRATE_COLUMNS.
+            return $startcol + 27; // 27 = BotDecisionPeer::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException("Error populating BotDecision object", $e);
@@ -1339,7 +1643,7 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
                 $deleteQuery->delete($con);
                 $this->postDelete($con);
                 // GoatCheese behavior
-                
+
                             if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                                 \ApiGoat\Utility\TableVersion::bump('bot_decision');
                             }
@@ -1388,11 +1692,11 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
 
                     $this->setDateCreation(time());
                     $this->setDateModification(time());
-                    $this->setIdGroupCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
+                    $this->setIdGroupCreation( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
                     if(!$this->getIdCreation())
-                        $this->setIdCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                        $this->setIdCreation( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
                     if(!$this->getIdModification())
-                        $this->setIdModification( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                        $this->setIdModification( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
 
             } else {
                 $ret = $ret && $this->preUpdate($con);
@@ -1400,11 +1704,11 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
                 if ($this->isModified() ) {
                     $this->setDateCreation( $this->getDateCreation() );
                     $this->setDateModification(time());
-                    $this->setIdGroupCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
+                    $this->setIdGroupCreation( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdPrimaryGroup():null );
                     if(!$this->getIdCreation())
-                        $this->setIdCreation( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                        $this->setIdCreation( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
                     if(!$this->getIdModification())
-                        $this->setIdModification( (get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
+                        $this->setIdModification( (isset($_SESSION[_AUTH_VAR]) && is_object($_SESSION[_AUTH_VAR]) && get_class($_SESSION[_AUTH_VAR]) === 'ApiGoat\Sessions\AuthySession')?$_SESSION[_AUTH_VAR]->getIdAuthy():null );
                 }
             }
             if ($ret) {
@@ -1416,7 +1720,7 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
                 }
                 $this->postSave($con);
                 // GoatCheese behavior
-                
+
                             if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                                 \ApiGoat\Utility\TableVersion::bump('bot_decision');
                             }
@@ -1571,6 +1875,21 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
         if ($this->isColumnModified(BotDecisionPeer::VERDICT)) {
             $modifiedColumns[':p' . $index++]  = '`verdict`';
         }
+        if ($this->isColumnModified(BotDecisionPeer::COUNTERFACTUAL_DELTA)) {
+            $modifiedColumns[':p' . $index++]  = '`counterfactual_delta`';
+        }
+        if ($this->isColumnModified(BotDecisionPeer::CANDIDATE_DELTA)) {
+            $modifiedColumns[':p' . $index++]  = '`candidate_delta`';
+        }
+        if ($this->isColumnModified(BotDecisionPeer::REQUESTED_JSON)) {
+            $modifiedColumns[':p' . $index++]  = '`requested_json`';
+        }
+        if ($this->isColumnModified(BotDecisionPeer::CLAMPS_JSON)) {
+            $modifiedColumns[':p' . $index++]  = '`clamps_json`';
+        }
+        if ($this->isColumnModified(BotDecisionPeer::BRIEF_JSON)) {
+            $modifiedColumns[':p' . $index++]  = '`brief_json`';
+        }
         if ($this->isColumnModified(BotDecisionPeer::DATE_CREATION)) {
             $modifiedColumns[':p' . $index++]  = '`date_creation`';
         }
@@ -1647,6 +1966,21 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
                         break;
                     case '`verdict`':
                         $stmt->bindValue($identifier, $this->verdict, PDO::PARAM_INT);
+                        break;
+                    case '`counterfactual_delta`':
+                        $stmt->bindValue($identifier, $this->counterfactual_delta, PDO::PARAM_STR);
+                        break;
+                    case '`candidate_delta`':
+                        $stmt->bindValue($identifier, $this->candidate_delta, PDO::PARAM_INT);
+                        break;
+                    case '`requested_json`':
+                        $stmt->bindValue($identifier, $this->requested_json, PDO::PARAM_STR);
+                        break;
+                    case '`clamps_json`':
+                        $stmt->bindValue($identifier, $this->clamps_json, PDO::PARAM_STR);
+                        break;
+                    case '`brief_json`':
+                        $stmt->bindValue($identifier, $this->brief_json, PDO::PARAM_STR);
                         break;
                     case '`date_creation`':
                         $stmt->bindValue($identifier, $this->date_creation, PDO::PARAM_STR);
@@ -1857,11 +2191,16 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
             $keys[14] => $this->getRealizedDelta(),
             $keys[15] => $this->getPriceMovePct(),
             $keys[16] => $this->getVerdict(),
-            $keys[17] => $this->getDateCreation(),
-            $keys[18] => $this->getDateModification(),
-            $keys[19] => $this->getIdGroupCreation(),
-            $keys[20] => $this->getIdCreation(),
-            $keys[21] => $this->getIdModification(),
+            $keys[17] => $this->getCounterfactualDelta(),
+            $keys[18] => $this->getCandidateDelta(),
+            $keys[19] => $this->getRequestedJson(),
+            $keys[20] => $this->getClampsJson(),
+            $keys[21] => $this->getBriefJson(),
+            $keys[22] => $this->getDateCreation(),
+            $keys[23] => $this->getDateModification(),
+            $keys[24] => $this->getIdGroupCreation(),
+            $keys[25] => $this->getIdCreation(),
+            $keys[26] => $this->getIdModification(),
         );
         $virtualColumns = $this->virtualColumns;
         foreach ($virtualColumns as $key => $virtualColumn) {
@@ -1979,18 +2318,37 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
                 $this->setVerdict($value);
                 break;
             case 17:
-                $this->setDateCreation($value);
+                $this->setCounterfactualDelta($value);
                 break;
             case 18:
-                $this->setDateModification($value);
+                $valueSet = BotDecisionPeer::getValueSet(BotDecisionPeer::CANDIDATE_DELTA);
+                if (isset($valueSet[$value])) {
+                    $value = $valueSet[$value];
+                }
+                $this->setCandidateDelta($value);
                 break;
             case 19:
-                $this->setIdGroupCreation($value);
+                $this->setRequestedJson($value);
                 break;
             case 20:
-                $this->setIdCreation($value);
+                $this->setClampsJson($value);
                 break;
             case 21:
+                $this->setBriefJson($value);
+                break;
+            case 22:
+                $this->setDateCreation($value);
+                break;
+            case 23:
+                $this->setDateModification($value);
+                break;
+            case 24:
+                $this->setIdGroupCreation($value);
+                break;
+            case 25:
+                $this->setIdCreation($value);
+                break;
+            case 26:
                 $this->setIdModification($value);
                 break;
         } // switch()
@@ -2034,11 +2392,16 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
         if (array_key_exists($keys[14], $arr)) $this->setRealizedDelta($arr[$keys[14]]);
         if (array_key_exists($keys[15], $arr)) $this->setPriceMovePct($arr[$keys[15]]);
         if (array_key_exists($keys[16], $arr)) $this->setVerdict($arr[$keys[16]]);
-        if (array_key_exists($keys[17], $arr)) $this->setDateCreation($arr[$keys[17]]);
-        if (array_key_exists($keys[18], $arr)) $this->setDateModification($arr[$keys[18]]);
-        if (array_key_exists($keys[19], $arr)) $this->setIdGroupCreation($arr[$keys[19]]);
-        if (array_key_exists($keys[20], $arr)) $this->setIdCreation($arr[$keys[20]]);
-        if (array_key_exists($keys[21], $arr)) $this->setIdModification($arr[$keys[21]]);
+        if (array_key_exists($keys[17], $arr)) $this->setCounterfactualDelta($arr[$keys[17]]);
+        if (array_key_exists($keys[18], $arr)) $this->setCandidateDelta($arr[$keys[18]]);
+        if (array_key_exists($keys[19], $arr)) $this->setRequestedJson($arr[$keys[19]]);
+        if (array_key_exists($keys[20], $arr)) $this->setClampsJson($arr[$keys[20]]);
+        if (array_key_exists($keys[21], $arr)) $this->setBriefJson($arr[$keys[21]]);
+        if (array_key_exists($keys[22], $arr)) $this->setDateCreation($arr[$keys[22]]);
+        if (array_key_exists($keys[23], $arr)) $this->setDateModification($arr[$keys[23]]);
+        if (array_key_exists($keys[24], $arr)) $this->setIdGroupCreation($arr[$keys[24]]);
+        if (array_key_exists($keys[25], $arr)) $this->setIdCreation($arr[$keys[25]]);
+        if (array_key_exists($keys[26], $arr)) $this->setIdModification($arr[$keys[26]]);
     }
 
     /**
@@ -2067,6 +2430,11 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
         if ($this->isColumnModified(BotDecisionPeer::REALIZED_DELTA)) $criteria->add(BotDecisionPeer::REALIZED_DELTA, $this->realized_delta);
         if ($this->isColumnModified(BotDecisionPeer::PRICE_MOVE_PCT)) $criteria->add(BotDecisionPeer::PRICE_MOVE_PCT, $this->price_move_pct);
         if ($this->isColumnModified(BotDecisionPeer::VERDICT)) $criteria->add(BotDecisionPeer::VERDICT, $this->verdict);
+        if ($this->isColumnModified(BotDecisionPeer::COUNTERFACTUAL_DELTA)) $criteria->add(BotDecisionPeer::COUNTERFACTUAL_DELTA, $this->counterfactual_delta);
+        if ($this->isColumnModified(BotDecisionPeer::CANDIDATE_DELTA)) $criteria->add(BotDecisionPeer::CANDIDATE_DELTA, $this->candidate_delta);
+        if ($this->isColumnModified(BotDecisionPeer::REQUESTED_JSON)) $criteria->add(BotDecisionPeer::REQUESTED_JSON, $this->requested_json);
+        if ($this->isColumnModified(BotDecisionPeer::CLAMPS_JSON)) $criteria->add(BotDecisionPeer::CLAMPS_JSON, $this->clamps_json);
+        if ($this->isColumnModified(BotDecisionPeer::BRIEF_JSON)) $criteria->add(BotDecisionPeer::BRIEF_JSON, $this->brief_json);
         if ($this->isColumnModified(BotDecisionPeer::DATE_CREATION)) $criteria->add(BotDecisionPeer::DATE_CREATION, $this->date_creation);
         if ($this->isColumnModified(BotDecisionPeer::DATE_MODIFICATION)) $criteria->add(BotDecisionPeer::DATE_MODIFICATION, $this->date_modification);
         if ($this->isColumnModified(BotDecisionPeer::ID_GROUP_CREATION)) $criteria->add(BotDecisionPeer::ID_GROUP_CREATION, $this->id_group_creation);
@@ -2151,6 +2519,11 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
         $copyObj->setRealizedDelta($this->getRealizedDelta());
         $copyObj->setPriceMovePct($this->getPriceMovePct());
         $copyObj->setVerdict($this->getVerdict());
+        $copyObj->setCounterfactualDelta($this->getCounterfactualDelta());
+        $copyObj->setCandidateDelta($this->getCandidateDelta());
+        $copyObj->setRequestedJson($this->getRequestedJson());
+        $copyObj->setClampsJson($this->getClampsJson());
+        $copyObj->setBriefJson($this->getBriefJson());
         $copyObj->setDateCreation($this->getDateCreation());
         $copyObj->setDateModification($this->getDateModification());
         $copyObj->setIdGroupCreation($this->getIdGroupCreation());
@@ -2444,6 +2817,11 @@ abstract class BaseBotDecision extends BaseObject implements Persistent
         $this->realized_delta = null;
         $this->price_move_pct = null;
         $this->verdict = null;
+        $this->counterfactual_delta = null;
+        $this->candidate_delta = null;
+        $this->requested_json = null;
+        $this->clamps_json = null;
+        $this->brief_json = null;
         $this->date_creation = null;
         $this->date_modification = null;
         $this->id_group_creation = null;

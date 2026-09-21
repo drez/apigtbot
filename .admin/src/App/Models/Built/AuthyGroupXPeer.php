@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseAuthyGroupXPeer;
 
-require 'om/BaseAuthyGroupXPeer.php';
+require_once __DIR__ . '/om/BaseAuthyGroupXPeer.php';
 
 
 /**

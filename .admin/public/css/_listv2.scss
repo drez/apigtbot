@@ -105,6 +105,13 @@ body .legacy-list-toolbar { display: none !important; }
 .va-mob .va-mob-row1 .count { background: $mint-50; color: $mint-700; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
 .va-mob .va-mob-row1 .add-btn { background: $mint; color: $on-accent; border: none; height: 32px; padding: 0 12px 0 9px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,209,178,.3); cursor: pointer; }
 .va-mob .va-mob-row1 .add-btn i { font-size: 16px; }
+/* Parent-scoped list (ChildListDelegate: Parent/Child?i=<pk>): the parent is
+   named ONCE here under the title (muted type label + display name) and the
+   parent-FK column leaves the rows — emitted by getList.php only when
+   getList() runs with $IdParent. */
+.va-mob .va-mob-parent { display: flex; align-items: baseline; gap: 6px; padding: 0 0 6px; font-size: 13px; min-width: 0; }
+.va-mob .va-mob-parent-type { color: $text-mute; text-transform: uppercase; font-size: 11px; letter-spacing: .04em; flex: none; }
+.va-mob .va-mob-parent-name { color: $ink; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .va-mob .va-mob-search { position: relative; margin-top: 6px; }
 .va-mob .va-mob-search input { width: 100%; height: 38px; padding: 0 12px 0 38px; border: 1px solid $line; border-radius: 8px; font-size: 14px; color: $text; background: $bg-warm; outline: none; -webkit-appearance: none; }
@@ -435,6 +442,29 @@ ul.select-element.gc-portal-menu li strong { font-weight: 700; }
 }
 .va-mob .cl-sort-clear:hover .cl-active-filter-x { background: $danger; color: #fff; }
 
+/* Quick-filter chip rows are collapsible per column (list.js
+ * setupChipsToggles injects one toggle strip per row and remembers each
+ * row's state in localStorage). An active-filters row is never hidden —
+ * that would hide the fact that a filter is on. */
+.va-mob .va-mob-chips-toggle { display: flex; padding: 8px 14px 0; background: $surface; }
+.va-mob .va-mob-chips-toggle > button {
+  display: inline-flex; align-items: center; gap: 4px; height: 26px;
+  padding: 0 8px 0 2px; border: 0; border-radius: 999px; background: transparent;
+  color: $text-mute; font-size: 12px; font-weight: 600; line-height: 1;
+  cursor: pointer; white-space: nowrap; max-width: 100%;
+}
+.va-mob .va-mob-chips-toggle > button:hover { color: $text-mid; }
+.va-mob .va-mob-chips-toggle > button i { font-size: 16px; }
+.va-mob .va-mob-chips-toggle-sum {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-weight: 500; color: $mint-700;
+}
+.va-mob .va-mob-chips-toggle-sum:not(:empty)::before { content: '\00b7\00a0'; color: $text-mute; }
+.va-mob .va-mob-chips.gc-chips-hidden:not(.active-filters) { display: none; }
+/* While the first row is showing the active filters it is not a column's
+ * presets any more — its column toggle would be mislabelled, so drop it. */
+.va-mob .va-mob-chips-toggle:has(+ .va-mob-chips.active-filters) { display: none; }
+
 .va-mob .va-mob-chips { display: flex; gap: 6px; padding: 10px 14px 6px; overflow-x: auto; background: $surface; border-bottom: 1px solid $line; }
 .va-mob .va-mob-chips::-webkit-scrollbar { display: none; }
 .va-mob .va-mob-chip { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 10px; border-radius: 999px; background: $bg; border: 1px solid $line; font-size: 12px; color: $text-mid; white-space: nowrap; }
@@ -452,7 +482,7 @@ ul.select-element.gc-portal-menu li strong { font-weight: 700; }
  * padding-bottom:0 kills the legacy .content 100px bottom padding
  * that would otherwise show as dead space above the pager.
  * Desktop (≥720px) re-overrides all of this in _desktopv2. */
-.va-mob > .va-mob-header, .va-mob > .va-mob-chips, .va-mob > .va-mob-sortclear { flex: 0 0 auto; }
+.va-mob > .va-mob-header, .va-mob > .va-mob-chips, .va-mob > .va-mob-chips-toggle, .va-mob > .va-mob-sortclear { flex: 0 0 auto; }
 .va-mob > .ac-list { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 .va-mob > .ac-list > .content { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding-bottom: 0; }
 
@@ -531,8 +561,158 @@ p.no-results > span {
 .va-mob .va-mob-row .cl-avatar { width: 40px; height: 40px; border-radius: 12px; color: $on-accent; display: grid; place-items: center; font-size: 13px; font-weight: 700; letter-spacing: -0.01em; flex-shrink: 0; }
 .va-mob .va-mob-row .name .cl-type { margin-left: 6px; font-size: 9.5px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; background: $mint-50; color: $mint-700; border: 1px solid $mint-100; white-space: nowrap; }
 .va-mob .va-mob-row .name .cl-type-prospect { background: #ffedd5; color: #c2410c; border-color: #fed7aa; }
-.va-mob .va-mob-row .cl-status { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600; padding: 3px 8px 3px 6px; border-radius: 999px; line-height: 1.3; white-space: nowrap; background: $line-soft; color: $text-mid; }
-.va-mob .va-mob-row .cl-status .cl-status-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; background: currentColor; }
+.va-mob .va-mob-row .cl-status, .va-mob .va-dt-row .cl-status { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600; padding: 3px 8px 3px 6px; border-radius: 999px; line-height: 1.3; white-space: nowrap; }
+// Neutral row colours only for pills WITHOUT a value variant: a 3-class rule
+// here would otherwise beat every .cl-status-{value} colour from _clientv2
+// (set_pills / list_pill) and flatten them all to grey in card rows.
+.va-mob .va-mob-row .cl-status:not([class*="cl-status-"]), .va-mob .va-dt-row .cl-status:not([class*="cl-status-"]) { background: $line-soft; color: $text-mid; }
+.va-mob .va-mob-row .cl-status .cl-status-dot, .va-mob .va-dt-row .cl-status .cl-status-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; background: currentColor; }
+
+/* ───── Grouped row actions (add_row_action: { group: … }) ─────
+ * A <details> popover, so a list with three or four per-row actions spends
+ * its width on data rather than on a row of buttons. No JS: the buttons
+ * inside are handled by list.js's document-level delegate wherever they sit.
+ */
+.gc-row-actions { position: relative; display: inline-block; }
+
+/* The action cell is `position: sticky; z-index: 1`, so it opens a stacking
+ * context and the menu is trapped inside it — every LATER row's action cell
+ * carries the same z-index and, coming later in the DOM, painted on top of
+ * it. The menu looked open but its items could not be clicked. Lift the one
+ * cell that owns an open menu above its siblings. */
+.va-dt-table td.actionrow:has(details.gc-row-actions[open]),
+.va-mob-row .actionrow:has(details.gc-row-actions[open]) { z-index: 60; }
+
+.gc-row-actions > summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid $line;
+  border-radius: $radius;
+  background: $surface;
+  color: $text-mid;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.gc-row-actions > summary::-webkit-details-marker { display: none; }
+.gc-row-actions > summary:hover { border-color: $line-hard; color: $text; }
+.gc-row-actions[open] > summary { background: $mint; border-color: $mint; color: $on-accent; }
+
+.gc-row-actions-menu {
+  // Fixed, not absolute: the list table scrolls (overflow: auto hidden), so
+  // an absolutely positioned menu is clipped by that container the moment it
+  // extends past its row — it opened as an empty white box. list.js sets the
+  // coordinates on open (placeRowActions).
+  position: fixed;
+  z-index: 60;
+  min-width: 170px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  background: $surface;
+  border: 1px solid $line;
+  border-radius: $radius;
+  box-shadow: $shadow-md;
+}
+.gc-row-actions-menu .gc-row-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: $text;
+  font-size: 12.5px;
+  text-align: left;
+  white-space: nowrap;
+}
+.gc-row-actions-menu .gc-row-action:hover { background: $row-hover; }
+.gc-row-actions-menu .gc-row-action i { font-size: 15px; color: $text-mute; }
+
+/* ───── Threaded conversations: make an OPEN thread obvious ─────
+ * Rows injected under a collapsed conversation (data-gc-thread-child) look
+ * identical to ordinary rows without this — the reader cannot tell where a
+ * conversation starts or ends.
+ *
+ * The thing that actually makes the group read as ONE block is a single
+ * unbroken accent rail down its whole left edge. An earlier pass gave the
+ * parent a mint rail and the children a grey one, which cut the group in
+ * half at the first child and left it, in the author's words, "barely
+ * visible". Parent and children now share the same rail; the children are
+ * separated from it by an indent and a hairline instead, and the last child
+ * carries a closing rule so an expanded thread has a visible end and does
+ * not bleed into the next one.
+ *
+ * Both row flavours are covered: .va-dt-row is the desktop table, .va-mob-row
+ * the mobile card. Colours are the shared tokens (var()-backed), so the dark
+ * themes follow automatically. A tr cannot reliably carry border-left under
+ * border-collapse, hence the inset box-shadow on the first cell. */
+.va-mob .va-dt-row[data-gc-thread-open],
+.va-mob .va-mob-row[data-gc-thread-open] {
+  background: $mint-50;
+  font-weight: 600;
+}
+.va-mob .va-dt-row[data-gc-thread-open] > *:first-child,
+.va-mob .va-mob-row[data-gc-thread-open] > *:first-child { box-shadow: inset 4px 0 0 0 $mint; }
+
+.va-mob .va-dt-row[data-gc-thread-child],
+.va-mob .va-mob-row[data-gc-thread-child] {
+  background: $bg-warm;
+  color: $text-mid;
+}
+.va-mob .va-dt-row[data-gc-thread-child] > *:first-child,
+.va-mob .va-mob-row[data-gc-thread-child] > *:first-child {
+  position: relative;
+  /* Same mint as the parent: one rail, top to bottom, is the whole trick. */
+  box-shadow: inset 4px 0 0 0 $mint;
+  padding-left: 34px;
+}
+/* Hairline at the indent — reads as "nested under", and keeps the content
+ * from sitting hard against the group rail. */
+.va-mob .va-dt-row[data-gc-thread-child] > *:first-child::before,
+.va-mob .va-mob-row[data-gc-thread-child] > *:first-child::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid $line-hard;
+}
+/* The rail must be UNBROKEN. Each row draws its own bottom border, which
+ * cuts a white gap through the rail at every row boundary and leaves it
+ * looking like a dotted line rather than one bar. Suppress that border on
+ * the railed cell for every row of the group except the last, which is the
+ * one that closes it. */
+.va-mob .va-dt-row[data-gc-thread-open],
+.va-mob .va-mob-row[data-gc-thread-open],
+.va-mob .va-dt-row[data-gc-thread-child]:not([data-gc-thread-last]),
+.va-mob .va-mob-row[data-gc-thread-child]:not([data-gc-thread-last]) { border-bottom-color: transparent; }
+
+/* Close the group. */
+.va-mob .va-dt-row[data-gc-thread-last],
+.va-mob .va-mob-row[data-gc-thread-last] { border-bottom: 2px solid $mint-200; }
+
+/* The badge itself reads as pressed while its thread is open. */
+/* Equal specificity to .va-mob .va-<x>-row .cl-status:not([class*="cl-status-"])
+ * and later in the file, so the pressed state actually wins. */
+.va-mob .va-dt-row[data-gc-thread-open] [data-gc-thread-toggle],
+.va-mob .va-mob-row[data-gc-thread-open] [data-gc-thread-toggle] { background: $mint; color: $on-accent; }
+// set_list_threaded: the count badge doubles as the expand/collapse control
+// (app/list.js onThreadRowClick) — same mobile+desktop ancestor scoping as
+// the .cl-status rules above it, so the pointer cursor reaches the desktop
+// .va-dt-row badge too, not only the mobile card.
+.va-mob .va-mob-row [data-gc-thread-toggle], .va-mob .va-dt-row [data-gc-thread-toggle] { cursor: pointer; }
+// set_list_threaded badge:"first" — the badge's own leading column. Narrow and
+// non-wrapping so a thread of one (empty cell) costs no visible width; on the
+// mobile card the badge sits inline before the name and needs no rule here.
+.va-mob .va-dt-table th.gc-thread-cell, .va-mob .va-dt-table td.gc-thread-cell { width: 1%; white-space: nowrap; padding-right: 4px; }
+.va-mob .va-mob-row .name [data-gc-thread-toggle] { margin-right: 6px; vertical-align: middle; }
 
 .va-mob .va-mob-pager { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px calc(14px + env(safe-area-inset-bottom)); background: $surface; border-top: 1px solid $line; font-size: 12.5px; color: $text-mute; }
 .va-mob .va-mob-pager .pgr { display: inline-flex; align-items: center; gap: 4px; }
@@ -692,6 +872,49 @@ a.add-button:hover {
     background: rgba(239, 68, 68, 0.12);
     color: #ef4444;
 }
+/* add_row_action button (goatcheese Parameter): the row's primary verb —
+   "Send", "Approve", "Retry" — styled like the app's .btn (same border,
+   surface, radius and type ramp as .va-head .btn, one size down) and always
+   visible, unlike the hover-revealed delete icon beside it. */
+.actionrow .gc-row-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 10px;
+    margin-right: 6px;
+    border: 1px solid $line;
+    border-radius: 6px;
+    background: $surface;
+    color: $text;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+.actionrow .gc-row-action i { font-size: 15px; line-height: 1; color: $mint-700; }
+.actionrow .gc-row-action:hover {
+    background: $mint;
+    border-color: $mint;
+    color: $on-accent;
+}
+.actionrow .gc-row-action:hover i { color: $on-accent; }
+.actionrow .gc-row-action:disabled,
+.actionrow .gc-row-action.is-busy { opacity: 0.5; cursor: progress; }
+/* The desktop action cell is a fixed 60px sticky column sized for icons;
+   let it grow to fit a labelled button. */
+table.va-dt-table td.actionrow:has(.gc-row-action) { width: auto; min-width: 0; padding-left: 8px; }
+table.va-dt-table td.actionrow .gc-row-action { opacity: 1; }
+/* Card rows (drawer/child screens render the card layout even on desktop):
+   the action cell is a DIV there — the old markup nested a <td> inside the
+   card div and the HTML parser stripped it, leaving the buttons unwrapped,
+   unstyled and never hidden (2026-09-12). Flex-align it after .trail; the
+   more-specific mobile-list hide above still wins on phones. */
+.va-mob-row .actionrow { display: flex; align-items: center; gap: 2px; margin-left: 8px; flex-shrink: 0; }
 /* File action icons (open / download) — same over-icon treatment as the
    row's ac-delete-link (28x28, rounded, revealed on row hover), with a
    neutral mint hover instead of delete-red. */

@@ -11,3 +11,5 @@ mobile/node_modules
 .admin/config/gtbot-ed25519-priv.pem
 .admin/.phpunit.cache
 .playwright-mcp/
+
+.admin/build.properties

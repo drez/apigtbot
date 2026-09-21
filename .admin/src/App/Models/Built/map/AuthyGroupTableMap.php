@@ -88,8 +88,9 @@ class AuthyGroupTableMap extends TableMap
         $this->addRelation('AuthyRelatedByIdAuthyGroup', 'App\\Authy', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_authy_group', ), 'CASCADE', null, 'AuthiesRelatedByIdAuthyGroup');
         $this->addRelation('AuthyRelatedByIdGroupCreation', 'App\\Authy', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'AuthiesRelatedByIdGroupCreation');
         $this->addRelation('PushDevice', 'App\\PushDevice', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'PushDevices');
-        $this->addRelation('Country', 'App\\Country', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'Countries');
         $this->addRelation('GridRun', 'App\\GridRun', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'GridRuns');
+        $this->addRelation('FleetSlot', 'App\\FleetSlot', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'FleetSlots');
+        $this->addRelation('RegimeEpisode', 'App\\RegimeEpisode', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'RegimeEpisodes');
         $this->addRelation('BotOrder', 'App\\BotOrder', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'BotOrders');
         $this->addRelation('TradeCycle', 'App\\TradeCycle', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'TradeCycles');
         $this->addRelation('BotEvent', 'App\\BotEvent', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'BotEvents');
@@ -97,7 +98,11 @@ class AuthyGroupTableMap extends TableMap
         $this->addRelation('SimWallet', 'App\\SimWallet', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'SimWallets');
         $this->addRelation('MarketSummary', 'App\\MarketSummary', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'MarketSummaries');
         $this->addRelation('MarketRegime', 'App\\MarketRegime', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'MarketRegimes');
+        $this->addRelation('MarketCandle', 'App\\MarketCandle', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'MarketCandles');
         $this->addRelation('BotDecision', 'App\\BotDecision', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'BotDecisions');
+        $this->addRelation('MarketOutlook', 'App\\MarketOutlook', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'MarketOutlooks');
+        $this->addRelation('MarketOutlookState', 'App\\MarketOutlookState', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'MarketOutlookStates');
+        $this->addRelation('WalletNav', 'App\\WalletNav', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'WalletNavs');
         $this->addRelation('AuthyGroupRelatedByIdAuthyGroup', 'App\\AuthyGroup', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'AuthyGroupsRelatedByIdAuthyGroup');
         $this->addRelation('AuthyGroupXRelatedByIdGroupCreation', 'App\\AuthyGroupX', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'AuthyGroupxesRelatedByIdGroupCreation');
         $this->addRelation('Config', 'App\\Config', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'Configs');
@@ -105,6 +110,8 @@ class AuthyGroupTableMap extends TableMap
         $this->addRelation('Template', 'App\\Template', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'Templates');
         $this->addRelation('TemplateFile', 'App\\TemplateFile', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'TemplateFiles');
         $this->addRelation('AuthyRefreshToken', 'App\\AuthyRefreshToken', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'AuthyRefreshTokens');
+        $this->addRelation('GridRunAudit', 'App\\GridRunAudit', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'GridRunAudits');
+        $this->addRelation('Country', 'App\\Country', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'Countries');
         $this->addRelation('OauthClient', 'App\\OauthClient', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'OauthClients');
         $this->addRelation('OauthAuthCode', 'App\\OauthAuthCode', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'OauthAuthCodes');
         $this->addRelation('OauthAccessToken', 'App\\OauthAccessToken', RelationMap::ONE_TO_MANY, array('id_authy_group' => 'id_group_creation', ), null, null, 'OauthAccessTokens');

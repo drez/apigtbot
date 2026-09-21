@@ -24,6 +24,12 @@ use ApiGoat\Sessions\AuthySession as AuthySession;
 
 class TemplateFileService
 {
+    // A40/C7: halt() replaces every die() this class used to end a
+    // short-circuit branch with, so the response still travels back out
+    // through the middleware stack (CORS, security headers, server timing,
+    // session release). The generated services are plain classes, so the
+    // helper comes in as a trait rather than from a base class.
+    use \ApiGoat\Services\Concerns\HaltsResponses;
 
     /**
      * return abstract
@@ -52,7 +58,31 @@ class TemplateFileService
      *
      * @var array
      */
-    public $customActions;
+    public $customActions = [];
+    /**
+     * Custom actions ($customActions KEYS) that are READS and may therefore be
+     * reached over a cookie-auth GET.
+     *
+     * I-5: Service::MUTATING_ACTIONS only inventories the case labels this
+     * emitter writes, so a project-registered custom action is invisible to it
+     * and used to be fail-OPEN — a cross-site <a href=".../Model/myAction/42">
+     * ran it on the SameSite=Lax session cookie. An unknown custom action is now
+     * treated as MUTATING on GET and answered with "This action requires POST";
+     * list a genuine read here to opt it back in (case-insensitive):
+     *
+     *     public $readOnlyCustomActions = ['agingReport'];
+     *
+     * @var array
+     */
+    public $readOnlyCustomActions = [];
+    /**
+     * PhpName of the model this service serves. Passed to PropelErrorHandler
+     * (which scopes the validation-error highlight to #form{Class} when the
+     * request carries no drawer container).
+     *
+     * @var string
+     */
+    public $virtualClassName = 'TemplateFile';
     public $rawRequest;
     public $Form;
     public $contentType;
@@ -86,7 +116,30 @@ class TemplateFileService
      */
     public function getResponse()
     {
-        $this->content = "Unknown method";
+        // Mutating actions must never be reachable by a GET navigation. The
+        // generated HTML route is registered for GET as well as POST and this
+        // switch dispatches purely off the {a} URL segment, so without this a
+        // cross-site <a href=".../Model/delete/42"> ran the write on the
+        // SameSite=Lax session cookie. AuthyMiddleware::checkMutatingGet()
+        // refuses these first; this is defence in depth at the controller, and
+        // it shares ONE action inventory with the middleware
+        // (ApiGoat\Services\Service::MUTATING_ACTIONS) so the two can never
+        // drift. There are no exemptions any more: every mutating action is
+        // POST-only. Refusal shape matches the middleware's
+        // ApiResponse body (status/data/errors), not a die().
+        if (method_exists('\ApiGoat\Services\Service', 'mutatingGetRefusal')
+            && \ApiGoat\Services\Service::mutatingGetRefusal($this->request, $this->rawRequest)) {
+            error_log('mutating GET refused (service): ' . ($this->request['route'] ?? '')
+                . ' action=' . ($this->request['a'] ?? '')
+                . ' from ' . ($_SERVER['REMOTE_ADDR'] ?? '?'));
+            $this->contentType = 'application/json';
+            return json_encode(['status' => 'failure', 'data' => null, 'errors' => [_('This action requires POST')]]);
+        }
+
+        // Same shape as every other $this->content assignment (and the runtime
+        // base Service): a bare string reaches BuilderLayout::render() as an
+        // array offset read on a string.
+        $this->content = ['html' => 'Unknown method', 'js' => '', 'onReadyJs' => ''];
 
         switch($this->request['a']){
             case '':
@@ -108,10 +161,17 @@ class TemplateFileService
                     $this->content = $this->edit();
                 }
             break;
+            // A26: only 'update' is emitted. Nothing sends a=insert — the
+            // client posts {Model}/update for both create and update (see
+            // template public/js/app/screens.js) — and the unreachable arm
+            // dispatched to BuilderReturn::insert_return(). It stays on the
+            // runtime's MUTATING_ACTIONS list, so a hand-crafted /insert is
+            // still refused on GET before it reaches the default arm.
             case 'update':
-            case 'insert':
                 $this->content = $this->saveUpdate();
-                $this->content['onReadyJs'] .= ($this->content['error'] != 'yes')?"sw_message('".addslashes(_('Saved'))."');":'';
+                // BuilderReturn only sets ['error'] on a failure, so the bare read
+                // warned on every successful save.
+                $this->content['onReadyJs'] .= (($this->content['error'] ?? '') != 'yes')?"sw_message('".addslashes(_('Saved'))."');":'';
                 return $this->BuilderLayout->renderXHR($this->content);
             case 'delete':
                 $this->content = $this->deleteOne();
@@ -119,11 +179,11 @@ class TemplateFileService
 
             case 'upload':
                 return $this->file();
-            break;
             case 'file':
             case 'open':
                 return $this->getFileContent();
-            break;
+
+
 
 
 
@@ -140,7 +200,28 @@ class TemplateFileService
 
 
             default:
-                if (method_exists($this, $this->customActions[$this->request['a']])) {
+                // Guarded like getApiResponse(): $customActions is empty on
+                // most services, so the bare read was a null array offset plus
+                // method_exists(null) on every unknown action.
+                if (isset($this->customActions[$this->request['a']])
+                    && method_exists($this, $this->customActions[$this->request['a']])) {
+                    // I-5: a PROJECT-defined action is invisible to
+                    // Service::MUTATING_ACTIONS (that inventory only lists the
+                    // case labels this emitter writes), so the refusal above
+                    // never fired for it and a cross-site
+                    // <a href=".../Model/approveInvoice/42"> ran the write on
+                    // the SameSite=Lax session cookie. Fail CLOSED here instead:
+                    // on a cookie-auth GET an unknown custom action is treated
+                    // as mutating unless the wrapper declares it read-only in
+                    // $readOnlyCustomActions (see ApiGoat\Services\Service).
+                    if (method_exists('\ApiGoat\Services\Service', 'customActionGetRefusal')
+                        && \ApiGoat\Services\Service::customActionGetRefusal($this, $this->request, $this->rawRequest)) {
+                        error_log('custom action GET refused (service): ' . ($this->request['route'] ?? '')
+                            . ' action=' . ($this->request['a'] ?? '')
+                            . ' from ' . ($_SERVER['REMOTE_ADDR'] ?? '?'));
+                        $this->contentType = 'application/json';
+                        return json_encode(['status' => 'failure', 'data' => null, 'errors' => [_('This action requires POST')]]);
+                    }
                     $callable = $this->customActions[$this->request['a']];
                     $this->content = $this->$callable($this->request);
                 }
@@ -148,7 +229,7 @@ class TemplateFileService
 
 
 
-        if($this->request['ui']){
+        if(!empty($this->request['ui'])){
             return $this->BuilderLayout->renderXHR($this->content);
         }else{
             return $this->BuilderLayout->render($this->content);
@@ -170,8 +251,14 @@ class TemplateFileService
         }else{
             switch($this->request['method']){
                 case 'AUTH':
-                    $dispatch = $this->request['a'];
-                    $this->body = $this->$dispatch();
+                    // The action segment is request-controlled; without the
+                    // guard an unknown one is a fatal call to an undefined
+                    // method. RouteHelper::reassertTrustedArgs is the other
+                    // half of this (it fixes what the action may be).
+                    $dispatch = (string) $this->request['a'];
+                    if ($dispatch !== '' && method_exists($this, $dispatch)) {
+                        $this->body = $this->$dispatch();
+                    }
                     break;
                 case 'GET':
                     $this->body = $Api->getJson($this->request);
@@ -270,7 +357,22 @@ class TemplateFileService
             // File exists and is readable, proceed with download
             $this->Name = $pc->getName();
             $this->length = filesize($fullPath);
-            $this->contentType = mime_content_type($fullPath);
+            // INLINE-SAFE ALLOWLIST (security): the upload allowlist checks the
+            // EXTENSION only, so the sniffed type is attacker-controlled — an HTML
+            // (or SVG) payload saved as invoice.txt sniffs as text/html and was
+            // served as such on the app origin by 'open' (stored XSS). Only types
+            // a browser renders without running script pass through; text/plain
+            // is pinned to a charset; everything else becomes an opaque download
+            // (routes.php turns application/octet-stream into an attachment and
+            // stamps nosniff on every file/open answer).
+            $gcMime = strtolower(trim((string) mime_content_type($fullPath)));
+            if (preg_match('#^(image/(jpeg|png|gif|webp|bmp)|application/pdf|(video|audio)/[a-z0-9][a-z0-9.+-]*)$#', $gcMime)) {
+                $this->contentType = $gcMime;
+            } elseif ($gcMime === 'text/plain') {
+                $this->contentType = 'text/plain; charset=utf-8';
+            } else {
+                $this->contentType = 'application/octet-stream';
+            }
             $this->filePath = $fullPath;
 
             // VIDEO/AUDIO: leave the body empty on purpose — routes.php streams
@@ -329,11 +431,18 @@ class TemplateFileService
                 return json_encode($ret);
             }
 
-            $tab_style = getimagesize($_FILES['file']['tmp_name']);
+            // A20: pathinfo() has NO 'extension' key for an extension-less name
+            // ('README'), so the old strtolower($path_info['extension']) raised
+            // an undefined-key warning + a null-argument deprecation and then
+            // fell through to `return json_encode($data)` with $data never
+            // assigned — an HTTP 200 whose body was literally `null`, which the
+            // client reports as 'Invalid server response'. Default the whole
+            // response so every exit path carries {status, messages}.
+            $data = ['status' => 'failure', 'messages' => [_('File type not allowed')]];
             $path_info = pathinfo($_FILES['file']['name']);
-            $path_info["extension"] = strtolower($path_info["extension"]);
+            $path_info["extension"] = strtolower((string) ($path_info["extension"] ?? ''));
 
-            if($path_info["extension"]) {
+            if($path_info["extension"] !== '') {
 
                 // Server-side extension allowlist: never trust the client
                 // filename. Executable / inline-renderable types (php*, phtml,
@@ -378,28 +487,7 @@ class TemplateFileService
                     $path_file = 'public/file/TemplateFile/';
                     $destDir = _INSTALL_PATH.'/'.$path_file;
                     if(!is_dir($destDir)) { @mkdir($destDir, 0775, true); }
-                    $gcHtUpd = rtrim($destDir, '/') . '/.htaccess';
-                    if(!file_exists($gcHtUpd)) { @file_put_contents($gcHtUpd, '# GoatCheese upload directory - no script execution
-<IfModule mod_php.c>
-php_flag engine off
-</IfModule>
-<IfModule mod_php7.c>
-php_flag engine off
-</IfModule>
-RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .phar .phps
-RemoveType .php .phtml .php3 .php4 .php5 .php7 .phar .phps
-<FilesMatch "\\.(php[0-9]?|phtml|phar|phps)$">
-SetHandler none
-Require all denied
-</FilesMatch>
-<FilesMatch "\\.(html?|xhtml|svgz?|xml)$">
-ForceType text/plain
-<IfModule mod_headers.c>
-Header set Content-Disposition attachment
-Header set X-Content-Type-Options nosniff
-</IfModule>
-</FilesMatch>
-'); }
+                    $this->ensureUploadDirGuards($destDir, '', true);
                     $oldFile = $eUpd->getFile();
                     $newRel = $path_file.md5((string)$eUpd->getPrimaryKey()).'.'.$path_info['extension'];
                     $copyret = copy($_FILES['file']['tmp_name'], _INSTALL_PATH.'/'.$newRel);
@@ -438,60 +526,42 @@ Header set X-Content-Type-Options nosniff
                                     'ip' => (isset($reqData['ip']) ? $reqData['ip'] : '')
                                 ]
                         ];
-                $tabIp = explode(',', isset($reqData['ip']) ? $reqData['ip'] : '');
-                if($tabIp) {
-                    foreach(array_unique($tabIp) as $ip) {
+                $data['error'] = '';
+                // A20: explode() NEVER returns [], so `if($tabIp)` was always
+                // true and a request with no 'ip' ran the loop once with '' —
+                // which loadPkScoped could only `continue` past, leaving the
+                // response with no 'status' at all. Normalise, then say plainly
+                // what the two cases are.
+                $gcIps = array_values(array_unique(array_filter(
+                    array_map('trim', explode(',', (string) (isset($reqData['ip']) ? $reqData['ip'] : ''))),
+                    static function ($v) { return $v !== ''; }
+                )));
+                if (empty($gcIps)) {
+                    $data['status'] = 'failure';
+                    $data['messages'][] = _('Missing parent reference');
+                    if(is_file($_FILES['file']['tmp_name'])) { unlink($_FILES['file']['tmp_name']); }
+                    return json_encode($data);
+                }
+                {
+                    foreach($gcIps as $ip) {
+                        if ((!$_SESSION[_AUTH_VAR]->isRoot() && $_SESSION[_AUTH_VAR]->hasRights('Template', 'w') === false)
+                            || $_SESSION[_AUTH_VAR]->loadPkScoped(TemplateQuery::class, $ip, 'Template', 'w') === null) {
+                            $data['messages'][] = 'Parent not found or not writable';
+                            $data['status'] = 'failure';
+                            continue;
+                        }
                         $e = $this->Form->setCreateDefaultsTemplateFile($data['data']);
-                        if ($_SESSION[_AUTH_VAR]->loadPkScoped(TemplateQuery::class, $ip, 'Template', 'w') === null) { continue; }
                         $e->setIdTemplate($ip);
                         $e->setName($_FILES['file']['name']);
                         $path_dest = 'public/file/';
                         $path_file= 'public/file/TemplateFile/';
 
 
-                        if($data['error'] == '') {
+                        if(empty($data['error'])) {
 
-                            $gcEnsureDir = function($dir, $indexFile) {
-                                if(!is_dir($dir)) {
-                                    if(!@mkdir($dir, 0775, true) && !is_dir($dir)) {
-                                        return 'Cannot create directory: ' . $dir;
-                                    }
-                                }
-                                if(!file_exists($indexFile)) {
-                                    $fp = @fopen($indexFile, 'w');
-                                    if($fp === false) { return 'Cannot write guard: ' . $indexFile; }
-                                    fwrite($fp, '<?php header(\'Location:'._SITE_URL.'\'); ');
-                                    fclose($fp);
-                                }
-                                $gcHt = rtrim($dir, '/') . '/.htaccess';
-                                if(!file_exists($gcHt)) {
-                                    if(@file_put_contents($gcHt, '# GoatCheese upload directory - no script execution
-<IfModule mod_php.c>
-php_flag engine off
-</IfModule>
-<IfModule mod_php7.c>
-php_flag engine off
-</IfModule>
-RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .phar .phps
-RemoveType .php .phtml .php3 .php4 .php5 .php7 .phar .phps
-<FilesMatch "\\.(php[0-9]?|phtml|phar|phps)$">
-SetHandler none
-Require all denied
-</FilesMatch>
-<FilesMatch "\\.(html?|xhtml|svgz?|xml)$">
-ForceType text/plain
-<IfModule mod_headers.c>
-Header set Content-Disposition attachment
-Header set X-Content-Type-Options nosniff
-</IfModule>
-</FilesMatch>
-') === false) { return 'Cannot write guard: ' . $gcHt; }
-                                }
-                                return '';
-                            };
-                            $gcDirErr = $gcEnsureDir(_INSTALL_PATH.'/'.$path_dest, _INSTALL_PATH.'/public/file/index.php');
+                            $gcDirErr = $this->ensureUploadDirGuards(_INSTALL_PATH.'/'.$path_dest, _INSTALL_PATH.'/public/file/index.php', true);
                             if($gcDirErr === '') {
-                                $gcDirErr = $gcEnsureDir(_INSTALL_PATH.'/'.$path_file, _INSTALL_PATH.'/'.$path_file.'/index.php');
+                                $gcDirErr = $this->ensureUploadDirGuards(_INSTALL_PATH.'/'.$path_file, _INSTALL_PATH.'/'.$path_file.'/index.php', true);
                             }
                             if($gcDirErr !== '') {
                                 $data['messages'][] = $gcDirErr;
@@ -523,7 +593,12 @@ Header set X-Content-Type-Options nosniff
                                 }
                             } else {
                                 $data['messages'][] = "Db error";
-                                $msg = handleValidationError($e, ((isset($this->request['data']['ui']) ? $this->request['data']['ui'] : '')), _('User'), $extValidationErr);
+                                // A20: $extValidationErr is a local of saveUpdate(), never
+                                // defined here (undefined-variable warning), and the title was
+                                // hardcoded _('User') on every table. Initialise it and name
+                                // the real table, the way saveUpdate() names its context.
+                                $extValidationErr = false;
+                                $msg = handleValidationError($e, ((isset($this->request['data']['ui']) ? $this->request['data']['ui'] : '')), _('File'), $extValidationErr);
                                 $data['messages'][] = $msg['txt'];
                                 $data['status'] = 'failure';
                             }
@@ -537,9 +612,18 @@ Header set X-Content-Type-Options nosniff
 
             }
 
+            // A20: never answer `null` / a status-less body — the client only
+            // understands {status, messages}.
+            if (!isset($data['status'])) {
+                $data['status'] = 'failure';
+                if (empty($data['messages'])) { $data['messages'][] = _('Upload failed'); }
+            }
             return json_encode($data);
         }
     }
+
+    use \ApiGoat\Services\Concerns\HandlesUploads;
+
 
 
 
@@ -558,10 +642,52 @@ Header set X-Content-Type-Options nosniff
 
         $obj = $_SESSION[_AUTH_VAR]->loadPkScoped(TemplateFileQuery::class, json_decode($this->request['i']), 'TemplateFile', 'd');
         if ($obj) {
+            $this->gcDeleteRow($obj, $error, $messages);
+        }
+
+        $BuilderReturn = new BuilderReturn($this->request, $error, $messages);
+        return $BuilderReturn->return();
+    }
+
+    /**
+     * Delete ONE already-loaded (ACL-scoped) row through the guarded path:
+     * referential guard, BeforeDelete/AfterDelete hooks, upload file cleanup.
+     * A refusal halts (HaltResponse) — deleteOne() lets it reach the client,
+     * massDelete() catches it per row.
+     */
+    protected function gcDeleteRow($obj, &$error, &$messages)
+    {
 
 
 
-        $obj->delete();
+        try {
+            $obj->delete();
+        } catch (\Exception $gcDelErr) {
+            // A39: the pre-delete guard deliberately does not probe the audit
+            // FKs (id_creation / id_modification / id_group_creation), so a row
+            // still referenced only from an audit trail now reaches InnoDB and
+            // comes back as a RESTRICT violation (SQLSTATE 23000 / errno 1451).
+            // Answer with the same refusal the guard would have produced instead
+            // of a 500; anything else is a real error and is re-thrown.
+            $gcDelMsg = $gcDelErr->getMessage();
+            for ($gcDelPrev = $gcDelErr->getPrevious(); $gcDelPrev !== null; $gcDelPrev = $gcDelPrev->getPrevious()) {
+                $gcDelMsg .= ' ' . $gcDelPrev->getMessage();
+            }
+            if (strpos($gcDelMsg, '1451') === false && strpos($gcDelMsg, '23000') === false) {
+                throw $gcDelErr;
+            }
+            error_log('TemplateFile delete refused by a foreign key: ' . $gcDelMsg);
+            // F5: name the blocking table when MySQL said which one it was. The
+            // audit FKs are not in the pre-delete guard list, so this literal is
+            // the only place their label can come from.
+            $gcFkBlocker = \ApiGoat\Orm\ReferentialGuard::blockerFromMessage($gcDelMsg, []);
+            $error = handleNotOkResponse(
+                $gcFkBlocker !== null
+                    ? _("This entry cannot be deleted. It is in use in ")." '".$gcFkBlocker."'. "
+                    : _("This entry cannot be deleted. It is still referenced by other records."),
+                '', true,'File');
+            $this->halt($error['onReadyJs']);
+        }
 
             // PATH-TRAVERSAL CONFINEMENT: the file column can be poisoned; only
             // unlink inside this table's own upload dir (mirrors getFileContent).
@@ -576,10 +702,6 @@ Header set X-Content-Type-Options nosniff
 
 
 
-        }
-
-        $BuilderReturn = new BuilderReturn($this->request, $error, $messages);
-        return $BuilderReturn->return();
     }
 
     public function saveUpdate(): array
@@ -593,7 +715,6 @@ Header set X-Content-Type-Options nosniff
         $data['i'] = ( $data['IdTemplateFile'] ) ? $data['IdTemplateFile'] : $this->request['i'];
         $data['ip'] = urldecode($this->request['data']['ip'] ?? '');
         $data['pc'] = urldecode($this->request['data']['pc'] ?? '');
-        $this->TemplateFile['request'] = $this->request;
 
         if(!empty($data['i'])) {
             ## Save
@@ -650,14 +771,12 @@ Header set X-Content-Type-Options nosniff
     */
     private function edit()
     {
-        $this->TemplateFile['request'] = $this->request;
-        $this->TemplateFile['parentId'] = $this->request['data']['ip'];
-
-            if($this->request['data']['ip']){
-                $relData['IdTemplate'] = $this->request['data']['ip'];
-                $relData['ip'] = json_decode($this->request['data']['ip']);
-                $relData['pc'] = $this->request['data']['pc'];
-            }
+        // A27: the parent prefill that used to be built here ($relData['Id<Parent>']
+        // / ['ip'] / ['pc'] from $this->request['data']) was overwritten by
+        // $relData = $this->request on the very next line and never reached the
+        // form. getEditForm() does the prefill itself, off $data['data']['ip']
+        // (Form.php: $data['ip']/['pc'] then the $data['pc'] switch), so the
+        // request array alone is all it needs.
 
         // Crossref (NtN) far-record view: ro=1 renders the whole form via the
         // dormant setReadOnly='all' switch — fields locked to fieldsRo, no
@@ -667,7 +786,7 @@ Header set X-Content-Type-Options nosniff
         }
 
         $relData = $this->request;
-        $output = $this->Form->getEditForm($this->request['i'], $this->request['ui'], $relData, '', $this->request['data']['je'], $this->request['data']['jet']);
+        $output = $this->Form->getEditForm($this->request['i'], $this->request['ui'] ?? '', $relData, '', $this->request['data']['je'] ?? '', $this->request['data']['jet'] ?? '');
 
         return $output;
     }

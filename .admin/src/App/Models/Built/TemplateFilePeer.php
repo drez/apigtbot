@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseTemplateFilePeer;
 
-require 'om/BaseTemplateFilePeer.php';
+require_once __DIR__ . '/om/BaseTemplateFilePeer.php';
 
 
 /**

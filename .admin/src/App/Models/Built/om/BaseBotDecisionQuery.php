@@ -41,6 +41,11 @@ use App\GridRun;
  * @method BotDecisionQuery orderByRealizedDelta($order = Criteria::ASC) Order by the realized_delta column
  * @method BotDecisionQuery orderByPriceMovePct($order = Criteria::ASC) Order by the price_move_pct column
  * @method BotDecisionQuery orderByVerdict($order = Criteria::ASC) Order by the verdict column
+ * @method BotDecisionQuery orderByCounterfactualDelta($order = Criteria::ASC) Order by the counterfactual_delta column
+ * @method BotDecisionQuery orderByCandidateDelta($order = Criteria::ASC) Order by the candidate_delta column
+ * @method BotDecisionQuery orderByRequestedJson($order = Criteria::ASC) Order by the requested_json column
+ * @method BotDecisionQuery orderByClampsJson($order = Criteria::ASC) Order by the clamps_json column
+ * @method BotDecisionQuery orderByBriefJson($order = Criteria::ASC) Order by the brief_json column
  * @method BotDecisionQuery orderByDateCreation($order = Criteria::ASC) Order by the date_creation column
  * @method BotDecisionQuery orderByDateModification($order = Criteria::ASC) Order by the date_modification column
  * @method BotDecisionQuery orderByIdGroupCreation($order = Criteria::ASC) Order by the id_group_creation column
@@ -64,6 +69,11 @@ use App\GridRun;
  * @method BotDecisionQuery groupByRealizedDelta() Group by the realized_delta column
  * @method BotDecisionQuery groupByPriceMovePct() Group by the price_move_pct column
  * @method BotDecisionQuery groupByVerdict() Group by the verdict column
+ * @method BotDecisionQuery groupByCounterfactualDelta() Group by the counterfactual_delta column
+ * @method BotDecisionQuery groupByCandidateDelta() Group by the candidate_delta column
+ * @method BotDecisionQuery groupByRequestedJson() Group by the requested_json column
+ * @method BotDecisionQuery groupByClampsJson() Group by the clamps_json column
+ * @method BotDecisionQuery groupByBriefJson() Group by the brief_json column
  * @method BotDecisionQuery groupByDateCreation() Group by the date_creation column
  * @method BotDecisionQuery groupByDateModification() Group by the date_modification column
  * @method BotDecisionQuery groupByIdGroupCreation() Group by the id_group_creation column
@@ -109,6 +119,11 @@ use App\GridRun;
  * @method BotDecision findOneByRealizedDelta(string $realized_delta) Return the first BotDecision filtered by the realized_delta column
  * @method BotDecision findOneByPriceMovePct(string $price_move_pct) Return the first BotDecision filtered by the price_move_pct column
  * @method BotDecision findOneByVerdict(int $verdict) Return the first BotDecision filtered by the verdict column
+ * @method BotDecision findOneByCounterfactualDelta(string $counterfactual_delta) Return the first BotDecision filtered by the counterfactual_delta column
+ * @method BotDecision findOneByCandidateDelta(int $candidate_delta) Return the first BotDecision filtered by the candidate_delta column
+ * @method BotDecision findOneByRequestedJson(string $requested_json) Return the first BotDecision filtered by the requested_json column
+ * @method BotDecision findOneByClampsJson(string $clamps_json) Return the first BotDecision filtered by the clamps_json column
+ * @method BotDecision findOneByBriefJson(string $brief_json) Return the first BotDecision filtered by the brief_json column
  * @method BotDecision findOneByDateCreation(string $date_creation) Return the first BotDecision filtered by the date_creation column
  * @method BotDecision findOneByDateModification(string $date_modification) Return the first BotDecision filtered by the date_modification column
  * @method BotDecision findOneByIdGroupCreation(int $id_group_creation) Return the first BotDecision filtered by the id_group_creation column
@@ -132,6 +147,11 @@ use App\GridRun;
  * @method array findByRealizedDelta(string $realized_delta) Return BotDecision objects filtered by the realized_delta column
  * @method array findByPriceMovePct(string $price_move_pct) Return BotDecision objects filtered by the price_move_pct column
  * @method array findByVerdict(int $verdict) Return BotDecision objects filtered by the verdict column
+ * @method array findByCounterfactualDelta(string $counterfactual_delta) Return BotDecision objects filtered by the counterfactual_delta column
+ * @method array findByCandidateDelta(int $candidate_delta) Return BotDecision objects filtered by the candidate_delta column
+ * @method array findByRequestedJson(string $requested_json) Return BotDecision objects filtered by the requested_json column
+ * @method array findByClampsJson(string $clamps_json) Return BotDecision objects filtered by the clamps_json column
+ * @method array findByBriefJson(string $brief_json) Return BotDecision objects filtered by the brief_json column
  * @method array findByDateCreation(string $date_creation) Return BotDecision objects filtered by the date_creation column
  * @method array findByDateModification(string $date_modification) Return BotDecision objects filtered by the date_modification column
  * @method array findByIdGroupCreation(int $id_group_creation) Return BotDecision objects filtered by the id_group_creation column
@@ -245,7 +265,7 @@ abstract class BaseBotDecisionQuery extends ModelCriteria
      */
     protected function findPkSimple($key, $con)
     {
-        $sql = 'SELECT `id_bot_decision`, `id_grid_run`, `source`, `p_low`, `p_high`, `n_levels`, `deploy_pct`, `reason`, `price_at`, `realized_before`, `eval_status`, `eval_at`, `applied_at`, `cycles_delta`, `realized_delta`, `price_move_pct`, `verdict`, `date_creation`, `date_modification`, `id_group_creation`, `id_creation`, `id_modification` FROM `bot_decision` WHERE `id_bot_decision` = :p0';
+        $sql = 'SELECT `id_bot_decision`, `id_grid_run`, `source`, `p_low`, `p_high`, `n_levels`, `deploy_pct`, `reason`, `price_at`, `realized_before`, `eval_status`, `eval_at`, `applied_at`, `cycles_delta`, `realized_delta`, `price_move_pct`, `verdict`, `counterfactual_delta`, `candidate_delta`, `requested_json`, `clamps_json`, `brief_json`, `date_creation`, `date_modification`, `id_group_creation`, `id_creation`, `id_modification` FROM `bot_decision` WHERE `id_bot_decision` = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -998,6 +1018,162 @@ abstract class BaseBotDecisionQuery extends ModelCriteria
     }
 
     /**
+     * Filter the query on the counterfactual_delta column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByCounterfactualDelta(1234); // WHERE counterfactual_delta = 1234
+     * $query->filterByCounterfactualDelta(array(12, 34)); // WHERE counterfactual_delta IN (12, 34)
+     * $query->filterByCounterfactualDelta(array('min' => 12)); // WHERE counterfactual_delta >= 12
+     * $query->filterByCounterfactualDelta(array('max' => 12)); // WHERE counterfactual_delta <= 12
+     * </code>
+     *
+     * @param     mixed $counterfactualDelta The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return BotDecisionQuery The current query, for fluid interface
+     */
+    public function filterByCounterfactualDelta($counterfactualDelta = null, $comparison = null)
+    {
+        if (is_array($counterfactualDelta)) {
+            $useMinMax = false;
+            if (isset($counterfactualDelta['min'])) {
+                $this->addUsingAlias(BotDecisionPeer::COUNTERFACTUAL_DELTA, $counterfactualDelta['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($counterfactualDelta['max'])) {
+                $this->addUsingAlias(BotDecisionPeer::COUNTERFACTUAL_DELTA, $counterfactualDelta['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(BotDecisionPeer::COUNTERFACTUAL_DELTA, $counterfactualDelta, $comparison);
+    }
+
+    /**
+     * Filter the query on the candidate_delta column
+     *
+     * @param     mixed $candidateDelta The value to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return BotDecisionQuery The current query, for fluid interface
+     * @throws PropelException - if the value is not accepted by the enum.
+     */
+    public function filterByCandidateDelta($candidateDelta = null, $comparison = null)
+    {
+        if (is_scalar($candidateDelta)) {
+            $candidateDelta = BotDecisionPeer::getSqlValueForEnum(BotDecisionPeer::CANDIDATE_DELTA, $candidateDelta);
+        } elseif (is_array($candidateDelta)) {
+            $convertedValues = array();
+            foreach ($candidateDelta as $value) {
+                $convertedValues[] = BotDecisionPeer::getSqlValueForEnum(BotDecisionPeer::CANDIDATE_DELTA, $value);
+            }
+            $candidateDelta = $convertedValues;
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(BotDecisionPeer::CANDIDATE_DELTA, $candidateDelta, $comparison);
+    }
+
+    /**
+     * Filter the query on the requested_json column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByRequestedJson('fooValue');   // WHERE requested_json = 'fooValue'
+     * $query->filterByRequestedJson('%fooValue%'); // WHERE requested_json LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $requestedJson The value to use as filter.
+     *              Accepts wildcards (* and % trigger a LIKE)
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return BotDecisionQuery The current query, for fluid interface
+     */
+    public function filterByRequestedJson($requestedJson = null, $comparison = null)
+    {
+        if (null === $comparison) {
+            if (is_array($requestedJson)) {
+                $comparison = Criteria::IN;
+            } elseif (preg_match('/[\%\*]/', $requestedJson)) {
+                $requestedJson = str_replace('*', '%', $requestedJson);
+                $comparison = Criteria::LIKE;
+            }
+        }
+
+        return $this->addUsingAlias(BotDecisionPeer::REQUESTED_JSON, $requestedJson, $comparison);
+    }
+
+    /**
+     * Filter the query on the clamps_json column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByClampsJson('fooValue');   // WHERE clamps_json = 'fooValue'
+     * $query->filterByClampsJson('%fooValue%'); // WHERE clamps_json LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $clampsJson The value to use as filter.
+     *              Accepts wildcards (* and % trigger a LIKE)
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return BotDecisionQuery The current query, for fluid interface
+     */
+    public function filterByClampsJson($clampsJson = null, $comparison = null)
+    {
+        if (null === $comparison) {
+            if (is_array($clampsJson)) {
+                $comparison = Criteria::IN;
+            } elseif (preg_match('/[\%\*]/', $clampsJson)) {
+                $clampsJson = str_replace('*', '%', $clampsJson);
+                $comparison = Criteria::LIKE;
+            }
+        }
+
+        return $this->addUsingAlias(BotDecisionPeer::CLAMPS_JSON, $clampsJson, $comparison);
+    }
+
+    /**
+     * Filter the query on the brief_json column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByBriefJson('fooValue');   // WHERE brief_json = 'fooValue'
+     * $query->filterByBriefJson('%fooValue%'); // WHERE brief_json LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $briefJson The value to use as filter.
+     *              Accepts wildcards (* and % trigger a LIKE)
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return BotDecisionQuery The current query, for fluid interface
+     */
+    public function filterByBriefJson($briefJson = null, $comparison = null)
+    {
+        if (null === $comparison) {
+            if (is_array($briefJson)) {
+                $comparison = Criteria::IN;
+            } elseif (preg_match('/[\%\*]/', $briefJson)) {
+                $briefJson = str_replace('*', '%', $briefJson);
+                $comparison = Criteria::LIKE;
+            }
+        }
+
+        return $this->addUsingAlias(BotDecisionPeer::BRIEF_JSON, $briefJson, $comparison);
+    }
+
+    /**
      * Filter the query on the date_creation column
      *
      * Example usage:
@@ -1544,7 +1720,7 @@ abstract class BaseBotDecisionQuery extends ModelCriteria
     protected function basePostDelete($affectedRows, PropelPDO $con)
     {
         // GoatCheese behavior
-        
+
                 if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                     \ApiGoat\Utility\TableVersion::bump('bot_decision');
                 }
@@ -1561,7 +1737,7 @@ abstract class BaseBotDecisionQuery extends ModelCriteria
     protected function basePostUpdate($affectedRows, PropelPDO $con)
     {
         // GoatCheese behavior
-        
+
                 if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                     \ApiGoat\Utility\TableVersion::bump('bot_decision');
                 }

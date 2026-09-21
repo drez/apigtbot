@@ -43,13 +43,31 @@ const SPACING = 1.7;           // % per grid — spacing-sweep winner, held fixe
 $WIDTHS = [4, 6];              // half-width = k × fit-window 4h ATR% (width-sweep winners)
 
 $symbol = strtoupper((string) ($argv[1] ?? 'BTCUSDT'));
+// 2026-09-05: `--tape=bull|bear` replays a cached long tape
+// (tmp/gate-{SYMBOL}-15m-*.json, see strategy-gate.php) instead of the
+// live ~187d fetch — the 2026-08-11 run had ZERO bull windows, so the
+// down|adx>=30 gate it picked was never scored on a tape where a grid
+// sits in a 1d-aligned uptrend (BNB 2026-09: 4h ADX >= 30 for weeks in a
+// +30% month, grid pinned at deploy 25). Funding gates sit out in tape mode.
+$TAPES = ['bull' => ['2023-11-01', '2025-01-01'], 'bear' => ['2025-10-01', '2026-07-31']];
+$tapeName = null;
+foreach ($argv as $a) {
+    if (str_starts_with((string) $a, '--tape=')) {
+        $tapeName = substr((string) $a, 7);
+    }
+}
 
 $gw = new BinanceGateway('https://api.binance.com', '', '');
 
 // ── fetch klines with endTime pagination (oldest→newest) ─────────────────
 $all = [];
 $endTime = null;
-for ($b = 0; $b < BATCHES; $b++) {
+if ($tapeName !== null) {
+    [$from, $to] = $TAPES[$tapeName] ?? throw new \RuntimeException("unknown tape {$tapeName}");
+    $file = dirname(__DIR__) . "/tmp/gate-{$symbol}-15m-{$from}-{$to}.json";
+    $all = json_decode((string) file_get_contents($file), true) ?: throw new \RuntimeException("missing tape {$file}");
+}
+for ($b = 0; $b < BATCHES && $tapeName === null; $b++) {
     $params = ['symbol' => $symbol, 'interval' => INTERVAL, 'limit' => 1000];
     if ($endTime !== null) {
         $params['endTime'] = $endTime;
@@ -71,6 +89,9 @@ printf("%s candles: %d (%s → %s)\n", $symbol, count($all), date('Y-m-d', $all[
 // ── fetch perp funding history (8h prints, 1000 ≈ 333d — covers the tape) ─
 $funding = []; // [['t' => ms, 'r' => rate], …] oldest→newest
 try {
+    if ($tapeName !== null) {
+        throw new \RuntimeException('tape mode');
+    }
     $fut = new BinanceGateway((string) env('GTBOT_FUTURES_BASE', 'https://fapi.binance.com'), '', '');
     $raw = $fut->publicGet('/fapi/v1/fundingRate', ['symbol' => $symbol, 'limit' => 1000]);
     foreach ((array) $raw as $r) {
@@ -158,6 +179,12 @@ for ($start = 0; $start + FIT + TEST <= count($all); $start += STEP) {
     $atr4 = Indicators::atr($h4, $l4, $c4);
     $atr4Pct = $price0 > 0 ? $atr4 / $price0 * 100 : 0;
     $ema50 = Indicators::ema($c4, 50);
+    // 1d alignment at fit end (TrendRegime::oneDayUp: 1d up-family label OR
+    // price above both the 1d EMA20 and EMA50), from the FULL history up to
+    // fit end aggregated to daily buckets — the same input the activator reads
+    $a1d = aggregate(array_slice($all, 0, $start + FIT), 96, 300);
+    $c1d = array_column($a1d, 'close');
+    $s1d = ['trend' => Indicators::trend($c1d), 'price' => $price0, 'ema20' => Indicators::ema($c1d, 20), 'ema50' => Indicators::ema($c1d, 50)];
 
     $w = [
         't' => (int) end($fitC)['t'],
@@ -169,6 +196,7 @@ for ($start = 0; $start + FIT + TEST <= count($all); $start += STEP) {
         'atr_rank' => Indicators::atrPctRank($h4, $l4, $c4, 14),
         'stretch' => $atr4 > 0 ? ($price0 - $ema50) / $atr4 : null, // ATRs above(+)/below(−) 4h EMA50
         'fund_pct' => fundingPctile($funding, (int) end($fitC)['t']),
+        '1d_up' => count($c1d) >= 30 && \App\Domains\Bot\TrendRegime::oneDayUp($s1d),
         'net' => [],
     ];
     $tape = array_map(static fn ($c) => (string) $c['close'], $testC);
@@ -179,10 +207,11 @@ for ($start = 0; $start + FIT + TEST <= count($all); $start += STEP) {
     $windows[] = $w;
 }
 $nW = count($windows);
-printf("windows: %d · trends: up %d / side %d / down %d\n\n", $nW,
+printf("windows: %d · trends: up %d / side %d / down %d · 1d_up %d\n\n", $nW,
     count(array_filter($windows, fn ($w) => $w['trend'] === 'up')),
     count(array_filter($windows, fn ($w) => $w['trend'] === 'side')),
-    count(array_filter($windows, fn ($w) => $w['trend'] === 'down')));
+    count(array_filter($windows, fn ($w) => $w['trend'] === 'down')),
+    count(array_filter($windows, fn ($w) => $w['1d_up'])));
 
 // ── (1) signal → outcome quartile table (baseline = 4×ATR nets) ──────────
 $SIGNALS = ['adx', 'er', 'chop', 'rsi', 'atr_rank', 'stretch', 'fund_pct'];
@@ -211,6 +240,8 @@ $GATES = [
     'chop<=45'        => fn ($w) => $w['chop'] !== null && $w['chop'] <= 45,
     'trend=down'      => fn ($w) => $w['trend'] === 'down',
     'down|adx>=30'    => fn ($w) => $w['trend'] === 'down' || $w['adx'] >= 30,
+    'G2 down|adx30&!1dup' => fn ($w) => $w['trend'] === 'down' || ($w['adx'] >= 30 && !$w['1d_up']),
+    '1d_up only'      => fn ($w) => !$w['1d_up'],
     'rsi<=40'         => fn ($w) => $w['rsi'] <= 40,
     'atr_rank>=90'    => fn ($w) => $w['atr_rank'] !== null && $w['atr_rank'] >= 90,
     'stretch<=-1'     => fn ($w) => $w['stretch'] !== null && $w['stretch'] <= -1,
@@ -219,7 +250,7 @@ $GATES = [
 ];
 foreach ($GLOBALS['WIDTHS'] as $k) {
     echo "\n═══ gates @ {$k}xATR static — skipped window = 0 net ═══\n";
-    printf("%-16s %9s %9s %9s %6s %6s %10s\n", 'gate', 'mean net', 'median', 'worst', 'win%', 'skip', 'avoided');
+    printf("%-22s %9s %9s %9s %6s %6s %10s\n", 'gate', 'mean net', 'median', 'worst', 'win%', 'skip', 'avoided');
     foreach ($GATES as $name => $pred) {
         $nets = [];
         $avoided = [];
@@ -239,7 +270,7 @@ foreach ($GLOBALS['WIDTHS'] as $k) {
         }
         $sorted = $nets;
         sort($sorted);
-        printf("%-16s %9.2f %9.2f %9.2f %5.0f%% %6d %10s\n",
+        printf("%-22s %9.2f %9.2f %9.2f %5.0f%% %6d %10s\n",
             $name,
             array_sum($nets) / count($nets),
             $sorted[intdiv(count($sorted), 2)],

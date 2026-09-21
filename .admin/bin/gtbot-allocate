@@ -1,0 +1,173 @@
+#!/usr/bin/env php
+<?php
+/**
+ * gtbot-allocate — keeps the shared pool allocated. Cron it every 15 minutes:
+ *
+ *   8,23,38,53 * * * * /usr/bin/php8.4 <project>/.admin/bin/gtbot-allocate >/dev/null 2>&1
+ *
+ * Deliberately offset 5 minutes AFTER gtbot-trend-activate (3,18,33,48) so the
+ * trend arm's slice is settled before this reads it, and deliberately a
+ * separate script rather than a leg of that one — gtbot-trend-activate exits
+ * early when there is no Live Trend run, and allocation must still happen.
+ *
+ * Two legs, different cadences:
+ *
+ *   REBALANCE  every pass. Brings slices in line with the current cap: spreads
+ *              idle headroom, shrinks toward the floors when the cap dropped.
+ *              Skipped while idle headroom is inside gtbot_alloc_deadband, so a
+ *              cap that follows a moving wallet does not churn slices.
+ *
+ *   DRIFT      at most once per gtbot_alloc_drift_hours, and only when
+ *              gtbot_alloc_drift_pct > 0 (it SHIPS AT 0 — off). Moves a little
+ *              budget from the worse earners to the better ones.
+ *
+ * Both legs write decreases before increases, BudgetGuard-check every write,
+ * run the whole pass in one transaction, and Reload only the runs that moved.
+ * Neither ever sells anything: a donor can only give up capital that is idle
+ * inside its slice, and a cap lowering that cannot be satisfied reports a
+ * shortfall with exit proposals instead of liquidating.
+ *
+ *   --dry          plan both legs, write nothing
+ *   --drift-only   skip the rebalance leg
+ *   --force-drift  ignore the gtbot_alloc_drift_hours spacing
+ */
+
+$admin = dirname(__DIR__);
+require $admin . '/vendor/autoload.php';
+(new \Ahc\Env\Loader())->load($admin . '/.env');
+require $admin . '/config/Built/config.php';
+require $admin . '/config/Built/propel.php';
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
+$_SESSION[_AUTH_VAR] = new \ApiGoat\Sessions\AuthySession();
+
+use App\Domains\Bot\Allocator;
+use App\Domains\Bot\BudgetPool;
+use App\Domains\Bot\Engagement;
+use App\Domains\Bot\EventLog;
+use App\Domains\Bot\RegimeEpisodes;
+use App\Domains\Bot\TelegramNotifier;
+
+$dry = in_array('--dry', $argv, true);
+$driftOnly = in_array('--drift-only', $argv, true);
+$forceDrift = in_array('--force-drift', $argv, true);
+
+// Serialise against the trend activator: the 5-minute cron offset makes a
+// collision unlikely, but the dashboard buttons can fire at any moment.
+$con = \Propel::getConnection();
+$lock = $con->prepare('SELECT GET_LOCK(?, 0)');
+$lock->execute([Allocator::LOCK]);
+if ((int) $lock->fetchColumn() !== 1) {
+    echo "another allocator pass holds the lock — skipping\n";
+    exit(0);
+}
+
+$release = static function () use ($con): void {
+    $con->prepare('SELECT RELEASE_LOCK(?)')->execute([Allocator::LOCK]);
+};
+
+$exit = 0;
+try {
+    // the event feed needs a run to hang off; any active one will do
+    $host = \App\GridRunQuery::create()
+        ->filterByStatus(\App\Domains\Bot\BudgetGuard::ACTIVE_STATUSES, \Criteria::IN)
+        ->orderByIdGridRun()
+        ->findOne();
+    if ($host === null) {
+        echo "no active run — nothing to allocate\n";
+        $release();
+        exit(0);
+    }
+    $log = $dry ? null : new EventLog((int) $host->getIdGridRun(), false, TelegramNotifier::fromEnv(), [Allocator::KIND_DRIFT]);
+
+    if (!$driftOnly) {
+        $deadband = \App\ConfigQuery::create()->findOneByConfig('gtbot_alloc_deadband')?->getValue();
+        $deadband = ($deadband !== null && $deadband !== '' && is_numeric($deadband)) ? (string) $deadband : '25';
+        // Allocator::rebalanceNeeded owns the whole gate: idle headroom past
+        // the deadband, an overcommit, OR a fleet sitting above the
+        // allocatable pool with idle capital it could give back (the reserve
+        // has no other way home — see its docblock).
+        $gate = Allocator::rebalanceNeeded($deadband);
+
+        if (!$gate['run']) {
+            echo 'rebalance: ' . $gate['why'] . "\n";
+        } else {
+            $res = Allocator::rebalance('cron', !$dry, $log);
+            echo ($dry ? '[dry] ' : '') . 'rebalance: ' . $res['message'] . "\n";
+            if (!$res['ok']) {
+                $exit = 1;
+            }
+            // a run the plan could not move — pinned, or carrying less than
+            // its own floor — was computed and then printed nowhere
+            foreach ($res['skipped'] as $id => $why) {
+                echo sprintf("  skipped run %d: %s\n", $id, $why);
+            }
+            foreach ($res['proposals'] as $p) {
+                echo sprintf(
+                    "  proposal run %d (%s): free %s, verdict %s%s\n",
+                    $p['run'],
+                    $p['label'],
+                    $p['must_free'],
+                    $p['verdict'],
+                    $p['requires_loss_optin'] ? ' — needs a loss opt-in' : ''
+                );
+            }
+        }
+    }
+
+    $cfg = Allocator::driftConfig();
+    $since = Allocator::hoursSinceDrift();
+    if (bccomp($cfg['pct'], '0', 6) <= 0) {
+        echo "drift: disabled (gtbot_alloc_drift_pct = 0)\n";
+    } elseif (!$forceDrift && $since !== null && $since < $cfg['hours']) {
+        echo sprintf("drift: last pass %.1fh ago, spacing is %dh — skipping\n", $since, $cfg['hours']);
+    } else {
+        $res = Allocator::drift(!$dry, $log);
+        echo 'drift: ' . $res['message'] . "\n";
+        if (!$res['ok']) {
+            $exit = 1;
+        }
+    }
+
+    // ENGAGEMENT (2026-09-19). Allocation says how the pool is DIVIDED; this
+    // says how much of it is actually working. One sample per pass, journaled
+    // on the host run and folded into whatever regime episodes are open — and
+    // a symbol under the floor for long enough gets its one alert per episode.
+    //
+    // Two denominators, and the printed line NAMES each: the headline is
+    // against the pool CAP (only active runs charge it, so a parked slice is
+    // headroom, not declared capital), each symbol against what its own
+    // active runs have ALLOCATED. cap = allocated + headroom reconciles the
+    // two, and all three are in the journaled payload.
+    $engagement = Engagement::pool();
+    echo Engagement::describe($engagement) . "\n";
+    if (!$dry) {
+        Engagement::journal($log, $engagement);
+        foreach (RegimeEpisodes::sample($engagement, TelegramNotifier::fromEnv()) as $s) {
+            echo sprintf(
+                "  episode %s: sample %d, time-weighted %s%%%s%s\n",
+                $s['symbol'],
+                $s['samples'],
+                $s['tw'],
+                $s['idle'] > 0 ? sprintf(', %d consecutive sub-floor', $s['idle']) : '',
+                $s['alerted'] ? ' — ALERTED' : ''
+            );
+        }
+    }
+
+    // cap is what BudgetGuard enforces, allocatable is what the two legs above
+    // are allowed to plan against — printing both is how the operator tells a
+    // pool the machine deliberately left short from one it failed to fill.
+    echo sprintf(
+        "pool cap %s (allocatable %s, %s%% reserve), allocated %s\n",
+        BudgetPool::cap(),
+        BudgetPool::allocatable(),
+        BudgetPool::fmt(BudgetPool::reservePct()),
+        Allocator::activeSum()
+    );
+} finally {
+    $release();
+}
+
+exit($exit);

@@ -84,10 +84,10 @@ class EventLogFanoutTest extends TestCase
         $log = new EventLog((int) $this->run->getIdGridRun(), false, $notifier);
         $log->write('Info', 'boot', 'quiet');
         $log->write('Warn', 'veto', 'quiet');
-        $log->write('Alert', 'kill', 'loud');
+        $log->write('Alert', 'stranded_book', 'loud');
         $log->write('Error', 'api_error', 'loud too');
         $this->assertCount(1, $this->sent, 'second alert inside the window waits for the digest');
-        $this->assertStringContainsString('kill: loud', $this->sent[0]);
+        $this->assertStringContainsString('stranded_book: loud', $this->sent[0]);
         $this->assertStringContainsString('🚨', $this->sent[0]);
 
         $now = 1301; // window expired — next tick's flush delivers the digest
@@ -130,7 +130,7 @@ class EventLogFanoutTest extends TestCase
             return $now;
         });
         $log = new EventLog((int) $this->run->getIdGridRun(), false, $notifier, ['buy_fill'], ['cycle_closed']);
-        $log->write('Alert', 'kill', 'spends the window');
+        $log->write('Alert', 'no_budget', 'spends the window');
         $this->assertCount(1, $this->sent);
 
         $now = 1100; // inside the 5-min window
@@ -138,6 +138,32 @@ class EventLogFanoutTest extends TestCase
         $this->assertCount(2, $this->sent, 'cycle result must not wait for the window');
         $this->assertStringContainsString('💰', $this->sent[1]);
         $this->assertStringContainsString('realized 1.31', $this->sent[1]);
+    }
+
+    public function testAKillIsNeverHeldBackByTheThrottleWindow(): void
+    {
+        // an ordinary alert spends the 5-min window; the stop that follows it
+        // seconds later is the one message that cannot wait for the next one
+        $now = 1000;
+        $notifier = new TelegramNotifier('t', 'c', function (string $url, array $post): array {
+            $this->sent[] = $post['text'] ?? '';
+            return ['status' => 200, 'body' => '{"ok":true}'];
+        }, null, function () use (&$now): int {
+            return $now;
+        });
+        $log = new EventLog((int) $this->run->getIdGridRun(), false, $notifier);
+        $log->write('Alert', 'no_budget', 'spends the window');
+        $now = 1010;
+        $log->write('Alert', 'ordinary', 'waits for the window');
+        $this->assertCount(1, $this->sent);
+
+        foreach (EventLog::URGENT_KINDS as $kind) {
+            $log->write('Alert', $kind, 'now');
+        }
+        $this->assertCount(1 + count(EventLog::URGENT_KINDS), $this->sent);
+        $this->assertStringContainsString('🚨', $this->sent[1]);
+        $this->assertContains('drawdown_stop', EventLog::URGENT_KINDS);
+        $this->assertContains('kill', EventLog::URGENT_KINDS);
     }
 
     public function testIdenticalMessagesGetDistinctEventIdTags(): void

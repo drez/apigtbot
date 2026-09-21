@@ -4,7 +4,7 @@ namespace App;
 
 use App\om\BaseMarketSummaryPeer;
 
-require 'om/BaseMarketSummaryPeer.php';
+require_once __DIR__ . '/om/BaseMarketSummaryPeer.php';
 
 
 /**

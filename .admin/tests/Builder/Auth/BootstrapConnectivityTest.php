@@ -17,11 +17,15 @@ final class BootstrapConnectivityTest extends AuthyTestCase
         $con = \Propel::getConnection(_DATA_SRC);
         $dbname = $con->query('SELECT DATABASE()')->fetchColumn();
 
+        // Under paratest this worker holds its own clone, gc_apigtbot_test_t<N>
+        // (DbTestCase::workerDbName); under plain phpunit it is the test DB
+        // itself. Either is correct — the live DB never is.
         $this->assertSame(
-            'gc_apigtbot_test',
+            self::workerDbName('gc_apigtbot_test'),
             $dbname,
-            'Tests must run against gc_apigtbot_test, not the live DB.'
+            'Tests must run against gc_apigtbot_test (or this worker\'s clone of it), not the live DB.'
         );
+        $this->assertNotSame('gc_apigtbot', $dbname, 'Tests must never touch the live DB.');
     }
 
     public function test_authy_table_exists_with_expire_column(): void

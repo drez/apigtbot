@@ -101,6 +101,24 @@ Routes that **never require authentication** (in either mode) are listed in
 When auth is required and absent, the middleware redirects browser requests to
 `/Authy/login`, and returns `401` JSON for API requests.
 
+### Google sign-in (GIS)
+
+`Authy/google` verifies a Google Identity Services ID token (`GOOGLE_CLIENT_ID` in `.env`;
+the login button is only emitted when it is set). It signs in the user whose `google_sub`
+matches, else auto-links an active user whose verified email matches. It never creates users
+unless **self-registration** is switched on in `.env` (OFF by default):
+
+| `.env` key | Meaning |
+|---|---|
+| `GOOGLE_AUTO_REGISTER="1"` | create an `authy` row on first Google sign-in (`1`/`true`/`yes`/`on`) |
+| `GOOGLE_AUTO_REGISTER_GROUP="Learner"` | `authy_group` **name** for new users; unset or unknown &rarr; the seeded default group (`default_group=Yes`) |
+| `GOOGLE_AUTO_REGISTER_DOMAINS="a.com,b.org"` | exact email-domain allowlist; empty &rarr; any verified Google account |
+
+A self-registered user gets `is_root=No`, `is_system=No`, `deactivate=No`, the column-default
+`id_tenant`, and a random bcrypt `passwd_hash` (password login only after a normal reset). A
+deactivated user with the same email is not revived (the unique-email validator refuses the
+create). Policy parsing lives in the runtime `ApiGoat\Auth\GoogleRegistration`.
+
 ## JWT (bearer token)
 
 Implemented via `jimtools/jwt-auth` (Slim middleware) + `firebase/php-jwt`
@@ -444,6 +462,68 @@ The `api_rbac` table is editable via the standard CRUD UI at `/ApiRbac/`. Typica
 lifecycle: develop with `app_status=dev` (auto-Allow), audit the table afterward,
 flip to `app_status=prod`, then any new endpoint your client tries gets auto-denied
 until you add an explicit `Allow`.
+
+#### Public GET response cache
+
+Anonymous requests to a **public** GET route can be served from APCu by
+`\ApiGoat\Middlewares\PublicResponseCacheMiddleware` (registered in
+`config/middlewares.php` directly before `RouteParser`, so a HIT is answered right
+after routing and never reaches RBAC, JWT, Authy or the session). It is inert until
+`GC_HTTPCACHE_TTL` > 0 in `.env` **and** the route is declared in `.gc-meta.json`
+under a top-level `"cache"` key, keyed exactly like `rbac.public`; `gc build` compiles
+it into `config/Built/cache.map.php` (generated &mdash; never edit):
+
+```json
+"cache": {
+  "Category/list/GET": { "ttl": 600, "tables": ["category", "category_file"],
+                         "params": ["id_parent"], "bypass_params": ["nocache"],
+                         "vary": ["Accept-Language"] },
+  "Setting/list/GET": 300,
+  "Page/list/GET": true
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `ttl` | seconds, integer &ge; 0. An integer value is shorthand for `{ "ttl": n }`; `true` means ttl 0 = use the `GC_HTTPCACHE_TTL` default. Keep it &le; 600 s &mdash; it is only the backstop, invalidation is version-based (below). |
+| `tables` | snake_case table names the response is built from; an ORM write to any of them invalidates the entry (`TableVersion` generation). Omitting it means only the TTL and a rebuild expire the entry. |
+| `params` | query parameters that are part of the cache key (absent = every parameter, normalised: sorted, decoded, empty values dropped). |
+| `bypass_params` | query parameters whose presence skips the cache entirely. |
+| `vary` | request headers folded into the key (e.g. `Accept-Language`). |
+
+**Rules `gc build` enforces** (a violation is dropped with a yellow warning, never emitted):
+only `GET` tuples; the tuple **must also be listed in `rbac.public`** &mdash; a cache hit
+short-circuits RBAC, so caching a private route would hand an anonymous caller a
+response only a session may see.
+
+**Anonymity gate.** The middleware only looks at the cache when the request carries
+no `Authorization` / `X-Authorization` header **and** the session is not connected
+(`$_SESSION[_AUTH_VAR]->isConnected !== 'YES'`). Anything else is `X-GC-Cache: BYPASS`
+and runs the normal stack &mdash; a logged-in user never sees an anonymous rendering.
+
+**Key ingredients.** project namespace + build id (`config/.buildid`) + the `api_rbac`
+rule generation + the declared tables' `TableVersion` generations + the normalised
+query string + the `vary` header values. Any of them moving is a new key, so
+**invalidation** is implicit: an ORM save/delete on a declared table bumps its
+generation, a rule change bumps the RBAC generation, `gc build` rotates the build id.
+The TTL is the backstop for writes that bypass the ORM (raw SQL, `gc pushdata`).
+
+**Opting out from a handler.** Set the request attribute `gc_httpcache_skip` (e.g.
+`$request = $request->withAttribute('gc_httpcache_skip', true)` before delegating, or
+send `X-GC-Cache: BYPASS` on the response) for a response that must not be stored
+&mdash; per-visitor content, errors, anything larger than `GC_HTTPCACHE_MAX_KB`. Only
+`200` responses are ever stored.
+
+`.env` knobs: `GC_HTTPCACHE_TTL` (0 = off), `GC_HTTPCACHE_VERIFY` (1 = also run the
+handler on a HIT and log a warning when the bodies diverge &mdash; dev only),
+`GC_HTTPCACHE_MAX_KB` (512), and `GC_SESSION_DEFER_ANON_API` (1 = no `session_start`,
+session file or `Set-Cookie` for anonymous `/api/` GETs). Check with
+`curl -sI <app>/api/v1/Category/list | grep -i x-gc-cache` &mdash; `MISS` then `HIT`,
+`BYPASS` once a bearer is sent (a non-empty one — Apache's `SetEnvIf Authorization` rule
+leaves an empty header on every request, which does not count). An entry past its TTL is
+served `STALE` for up to 30 s while ONE request refreshes it, so an expiry under load never
+turns into a burst of handler runs. With `GC_HTTPCACHE_VERIFY=1`, `X-GC-Cache-Reason` says
+why a declared route was not served from cache.
 
 ### Record-level RBAC: `AuthyACL`
 
@@ -795,7 +875,12 @@ available depend on RBAC rights granted to the calling session.
 | `/BotOrder` | bot_order | Order |  |  |
 | `/Config` | config | Setting | Settings |  |
 | `/Country` | country | Country | Settings |  |
-| `/GridRun` | grid_run | Grid Run | Trading | ["bot_order","trade_cycle","bot_event","bot_command"] |
+| `/FleetSlot` | fleet_slot | Fleet slot | Trading |  |
+| `/GridRunAudit` | grid_run_audit | Change history |  |  |
+| `/GridRun` | grid_run | Grid Run | Trading | ["bot_order","trade_cycle","bot_event","bot_command","grid_run_audit"] |
+| `/MarketCandle` | market_candle | Candles | Settings |  |
+| `/MarketOutlookState` | market_outlook_state | Outlook State | Settings |  |
+| `/MarketOutlook` | market_outlook | Market Outlook | Settings |  |
 | `/MarketRegime` | market_regime | Regime History | Settings |  |
 | `/MarketSummary` | market_summary | Market Data | Settings |  |
 | `/MessageI18n` | message_i18n |  |  |  |
@@ -805,10 +890,12 @@ available depend on RBAC rights granted to the calling session.
 | `/OauthClient` | oauth_client |  |  |  |
 | `/OauthRefreshToken` | oauth_refresh_token |  |  |  |
 | `/PushDevice` | push_device | Push device | Settings |  |
+| `/RegimeEpisode` | regime_episode | Regime episode | Trading |  |
 | `/SimWallet` | sim_wallet | Paper Wallet | Settings |  |
 | `/TemplateFile` | template_file | File |  |  |
 | `/Template` | template | Template | Settings | ["template_file"] |
 | `/TradeCycle` | trade_cycle | Trade Cycle |  |  |
+| `/WalletNav` | wallet_nav | Wallet NAV | Settings |  |
 
 ## Examples
 

@@ -7,6 +7,7 @@
         },
         add_validator:true,
         add_tablestamp:true,
+        with_country:true,
         set_debug_level:3,
         add_hooks:{ "afterFormObj":[],
                     // grid_run: GridRunServiceWrapper::beforeSave enforces the shared-budget invariant (never overcommit)
@@ -15,7 +16,7 @@
                     "beforeList":[]
                 },
         with_api:true,
-        with_mcp:true,
+        with_mcp:{ name: "apigtbot", about: "Paper-trading crypto bot: grid and trend runs, orders, decisions, PnL, refits and bot commands", keywords: ["apigtbot","trading bot","crypto","binance","grid","trend","pnl","refit","bot run","order"] },
         set_menu:[
             { name: "Trading", folded: false, icon: "ri-line-chart-line", order: 10 },
             { name: "Settings", folded: true }
@@ -78,16 +79,6 @@
             "platform('Platform')": ["enum(ios, android, web)", "default:ios"],
         },
 
-        "country('Country')": {
-            set_parent_menu:"Settings",
-			"id_country()": ["primary()"],
-			"name('Name')": ["varchar(100)"],
-			"code('Code')": ["varchar(3)"],
-			"timezone('Timezone')": ["varchar(20)"],
-			"timezone_code('Timezone code')": ["varchar(50)"],
-			"priority('Priority')": ["integer()"],
-			"validator": {"name":{"required":{"msg":"coutry_name_required","value":null}}},
-		}
 
 
     }

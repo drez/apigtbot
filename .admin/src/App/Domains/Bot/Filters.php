@@ -63,6 +63,14 @@ class Filters
         return $this->minNotional;
     }
 
+    /** The symbol's price increment — a chase needs it to know whether a
+     *  resting exit is meaningfully above its target or merely rounded up to
+     *  the next tick (Daemon::chaseNeedsReprice). */
+    public function tickSize(): string
+    {
+        return $this->tickSize;
+    }
+
     public function meetsNotional(string $price, string $qty): bool
     {
         return bccomp(bcmul($price, $qty, self::SCALE), $this->minNotional, self::SCALE) >= 0;

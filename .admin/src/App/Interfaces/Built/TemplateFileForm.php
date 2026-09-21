@@ -91,7 +91,33 @@ class TemplateFileForm extends TemplateFile
     public $formSaveBtn;
     public $formSaveBar;
     public $omMap;
+    /** getEditForm()/getList() field slots, keyed [Model][Column]['html']. */
+    public $fields = [];
+    public $fieldsRo = [];
+    /** Columns whose read-only markup gcBuildFieldRo() has already built (A43). */
+    public $gcFieldRoBuilt = [];
+    /** Sort-header restore JS, rebuilt per list query. */
+    public $orderReadyJsOrder = '';
 
+        public $commentsIdTemplateFile;
+    public $commentsIdTemplateFile_css;
+    public $commentsIdTemplate;
+    public $commentsIdTemplate_css;
+    public $commentsName;
+    public $commentsName_css;
+    public $commentsFile;
+    public $commentsFile_css;
+    public $commentsDateCreation;
+    public $commentsDateCreation_css;
+    public $commentsDateModification;
+    public $commentsDateModification_css;
+    public $commentsIdGroupCreation;
+    public $commentsIdGroupCreation_css;
+    public $commentsIdCreation;
+    public $commentsIdCreation_css;
+    public $commentsIdModification;
+    public $commentsIdModification_css;
+    public $TemplateFile;
 
 
     /**
@@ -131,52 +157,77 @@ class TemplateFileForm extends TemplateFile
 
         $q = new TemplateFileQuery();
         $q = $this->setAclFilter($q);
-        
+
 
         $q
             ;
         if(is_array( $this->searchMs )){
             # main search form
-            
-            
+
+
         }else{
             ## standard list
-            
+
         }
-        
+
         $hasParent = json_decode((string) $IdParent);
         if (!empty($hasParent)) {
             $q->filterByIdTemplate($hasParent);
         }
 
-        
+
+            $this->orderReadyJsOrder = '';
             if(!empty($this->searchOrder)){
                 $f=0;
                 foreach($this->searchOrder as $order){
                     foreach($order as $col => $sens){
                         if($sens){
                             $tOrd = explode('.',$col);
-                            if($tOrd[1]){
+                            # The ordering comes from the session (setOrderVar keeps
+                            # whatever the client last clicked, and a session can outlive
+                            # a renamed/removed column or be seeded by another list).
+                            # Propel throws on a column it cannot resolve, which turned a
+                            # stale sort key into a 500 on the whole list — fall back to
+                            # the model's default order instead, and forget the key so the
+                            # next request is clean.
+                            $gcOrdApplied = true;
+                            try {
+                            if(!empty($tOrd[1])){
                                 $q->join($tOrd[0]." order".$f);
                                 $orderBy = "use".$tOrd[0]."Query";
                                 $q->$orderBy("order".$f, 'left join')->orderBy($tOrd[1], $sens)->endUse();
                             }else{
                                 $q->orderBy($col,$sens);
                             }
+                            } catch (\Exception $gcOrdEx) {
+                                $gcOrdApplied = false;
+                                error_log('list order: dropping unresolvable column ' . (string) $col
+                                    . ' on TemplateFile — ' . $gcOrdEx->getMessage());
+                                unset($_SESSION['mem']['order']['TemplateFile/'],
+                                    $_SESSION['mem']['order']['TemplateFile/child']);
+                            }
+                            if($gcOrdApplied){
+                            # C8: $col / $sens come from the session (setOrderVar), so they
+                            # are never interpolated raw into the JS source. JSON_HEX_* keeps
+                            # quotes/tags/ampersands out of the surrounding <script> and the
+                            # attribute selector is composed client-side from the JSON value.
+                            $gcOrdCol = json_encode((string) $col, JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP);
+                            $gcOrdSens = json_encode(strtolower((string) $sens), JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP);
                             $this->orderReadyJsOrder .="
-                                var __se=document.querySelector(\"#TemplateFileListForm [th='sorted'][c='".$col."']\");if(__se){__se.setAttribute('sens', '".strtolower($sens)."');__se.setAttribute('order','on');__se.classList.add('sorted');}
+                                (function(){var __c=".$gcOrdCol.",__s=".$gcOrdSens.";var __se=document.querySelector(\"#TemplateFileListForm [th='sorted'][c=\"+JSON.stringify(__c)+\"]\");if(__se){__se.setAttribute('sens', __s);__se.setAttribute('order','on');__se.classList.add('sorted');}})();
                             ";
+                            }
                         }
                         $f++;
                     }
                 }
             }
-            
-        
-        
+
+
+
 
         $this->pmpoData = $q;
-        
+
 
         return $this->pmpoData;
     }
@@ -205,21 +256,21 @@ class TemplateFileForm extends TemplateFile
 
             case 'list-button':
                 $listButton = '';
-                
-                
+
+
                 return $listButton;
 
             case 'search':
-                
-                
-                ;
+
+
+
                 return $trSearch;
 
             case 'add':
             ###### ADD
-                if(!empty($this->IdParent)){ return htmlLink("<i class='ri-upload-2-line'></i>"._("Upload"), "Javascript:","id='pickfiles' title='"._('Upload new file')."' class='add-btn'").div('', 'filelist')."<span class='gc-upl-cfg' data-gc-upl='child' data-gc-upl-url='"._SITE_URL."TemplateFile/upload' data-gc-upl-conglet='Template' data-gc-upl-child='TemplateFile' data-gc-upl-max='10mb' data-gc-upl-ext='jpg,gif,png,jpeg' data-gc-upl-ip='".htmlspecialchars((string) $this->IdParent, ENT_QUOTES)."' data-gc-upl-user='".$_SESSION[_AUTH_VAR]->get('id')."'></span>"; }
-             if($_SESSION[_AUTH_VAR]->hasRights('TemplateFile', 'a') && !$this->setReadOnly){
-                
+                if($_SESSION[_AUTH_VAR]->hasRights('TemplateFile', 'a') && !$this->setReadOnly){
+                if(!empty($this->IdParent)){ return htmlLink("<i class='ri-upload-2-line'></i>"._("Upload"), "Javascript:","id='pickfiles-TemplateFile' title='"._('Upload new file')."' class='add-btn'").div('', 'filelist-TemplateFile')."<span class='gc-upl-cfg' data-gc-upl='child' data-gc-upl-btn='pickfiles-TemplateFile' data-gc-upl-list='filelist-TemplateFile' data-gc-upl-url='"._SITE_URL."TemplateFile/upload' data-gc-upl-conglet='Template' data-gc-upl-child='TemplateFile' data-gc-upl-max='10mb' data-gc-upl-ext='jpg,jpeg,png,gif,webp,bmp,pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,md,zip,odt,ods,mp4,m4v,mov,webm,ogv,avi,mkv,mpg,mpeg' data-gc-upl-ip='".htmlspecialchars((string) $this->IdParent, ENT_QUOTES)."'></span>"; }
+
                                 $this->listAddButton = htmlLink(
                                     _("Add new")
                                 ,_SITE_URL.$this->virtualClassName."/edit/", "id='addTemplateFile' title='"._('Add')."' class='button-link-blue add-button'");
@@ -252,7 +303,10 @@ class TemplateFileForm extends TemplateFile
         $this->in = 'getList';
         $this->isChild = '';
         $this->TableName = 'TemplateFile';
-        $altValue = array (
+        # A11: the per-row reset below restores this seed instead of nulling
+        # $altValue — every `($altValue['X'] !== null) ? … : …` cell read from
+        # row 2 on was an array offset on null (one warning per cell per row).
+        $__altValueInit = array (
   'IdTemplateFile' => NULL,
   'IdTemplate' => NULL,
   'Name' => NULL,
@@ -263,14 +317,16 @@ class TemplateFileForm extends TemplateFile
   'IdCreation' => NULL,
   'IdModification' => NULL,
 );
+        $altValue = $__altValueInit;
         $tr = '';
         $trDt = '';
-        $hook = [];
+        $hook = ['class' => ''];
+        $this->orderReadyJsOrder = '';
         $editEvent = '';
         $return = ['html' => '', 'js' => '', 'onReadyJs' => ''];
         $cCmoreCols = '';
 
-        
+
 
         // SECURITY (review H7): uiTabsId comes from request['ui'] and is reflected
         // raw into the list container's data-ui attribute and into the quick-add
@@ -279,22 +335,40 @@ class TemplateFileForm extends TemplateFile
         $uiTabsId = preg_replace('/[^A-Za-z0-9_]/', '', (string) $uiTabsId);
         $this->uiTabsId = $uiTabsId;
 
-        
+
         $this->IdParent = $IdParent;
         // Child-tab / nested list: mark context for behaviors that branch on isChild.
         if ($IdParent !== null && $IdParent !== '') {
             $this->isChild = 'TemplateFile';
         }
 
+        // A22: list session key for search / order / page. $childTableName is
+        // always empty in the unified getList(), so the standalone list and every
+        // parent-scoped (child-tab) render used to share ONE key and therefore one
+        // page/sort/search state. Standalone keeps the historic '<Table>/' key;
+        // parent-scoped renders get '<Table>/child'. NOT keyed per parent id:
+        // FormHelper stores these keys unbounded, so one entry per visited parent
+        // would grow the session forever — instead the stored page is dropped when
+        // the parent id changes (search/sort intentionally carry over, matching the
+        // pre-existing '<Parent>/<Child>' desktop child-list behaviour).
+        $gcListKey = 'TemplateFile/';
+        if ($IdParent !== null && $IdParent !== '') {
+            $gcListKey = 'TemplateFile/child';
+            if (($_SESSION['mem']['ip'][$gcListKey] ?? null) !== (string) $IdParent) {
+                $_SESSION['mem']['ip'][$gcListKey] = (string) $IdParent;
+                unset($_SESSION['mem']['page'][$gcListKey]);
+            }
+        }
+
         // if Search params
-        $this->searchMs = $this->setSearchVar($request['ms'] ?? '', 'TemplateFile/');
+        $this->searchMs = $this->setSearchVar($request['ms'] ?? '', $gcListKey);
 
         // Guideline filter chips (built from the first ENUM search col).
         $trChips = '';
-        
+
 
         // order
-        $this->searchOrder = $this->setOrderVar($request['order'] ?? '', 'TemplateFile/');
+        $this->searchOrder = $this->setOrderVar($request['order'] ?? '', $gcListKey);
 
         // Clear-sort affordances (chip strip + sort-sheet row), rendered only
         // while the session carries a user ordering for this list. Both carry
@@ -302,20 +376,20 @@ class TemplateFileForm extends TemplateFile
         // sort handler; the server drops the whole stored ordering on '*'.
         $gcSortClear = '';
         $gcSortSheetClear = '';
-        if (!empty($_SESSION['mem']['order']['TemplateFile/'])) {
+        if (!empty($_SESSION['mem']['order'][$gcListKey])) {
             $gcSortClear = div(button("<i class='ri-sort-desc'></i>"._('Sorted')."<span class='cl-active-filter-x' aria-hidden='true'>×</span>", " type='button' th='sorted' c='*' class='cl-active-filter cl-sort-clear' "), '', " class='va-mob-sortclear' ");
             $gcSortSheetClear = button("<i class='ri-arrow-go-back-line'></i> "._('Default order'), " type='button' th='sorted' c='*' class='va-mob-sortrow va-mob-sortrow-clear' ");
         }
 
         // page
-        $search['page'] = $this->setPageVar($request['pg'] ?? '', 'TemplateFile/');
+        $search['page'] = $this->setPageVar($request['pg'] ?? '', $gcListKey);
 
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
 
         // Parent-scoped lists use the child pager size (same as former inlined getChildList).
         $maxPerPage = ($IdParent !== null && $IdParent !== '') ? $this->childMaxPerPage : $this->maxPerPage;
@@ -326,6 +400,7 @@ class TemplateFileForm extends TemplateFile
         $resultsCount = 0;
         if(empty($pmpoDataIn)) {
             $pmpoData = $this->getListSearch($IdParent, $search);
+
             $pmpoData = $pmpoData->paginate($search['page'], $maxPerPage);
             $resultsCount = $pmpoData->getNbResults();
 
@@ -351,64 +426,55 @@ class TemplateFileForm extends TemplateFile
             /**
             *	Main list loop
             **/
-            
+
             $i=0;
             $gcGroupCol = 'Name';
             $gcGroupNorm = function($s){ return strtolower(preg_replace('/[^a-z0-9]/i','', (string) $s)); };
             $gcGroupKey = $gcGroupNorm($gcGroupCol);
-            // Use the RAW request order, not the resolved $this->searchOrder
-            // (getListSearch mutates the latter). Empty => default landing
-            // view => list is in its default (name) order => group A–Z, as
-            // the guideline screenshots show. A user sort only keeps the
-            // headers when it is the name column ascending.
-            $gcReqOrder = $request['order'] ?? '';
+            // $this->searchOrder is the ordering this list actually runs with: the
+            // session ordering for this list, or the schema default ($default_order,
+            // resolved just above) when the session carries none. A table that
+            // declares NO default order leaves it empty — the query emits no ORDER BY,
+            // so the list is NOT name-ordered and gets no headers. Only the first
+            // entry with a truthy sens decides (that is the primary sort column that
+            // getListSearch() applies); direction-agnostic, since a Z→A sort groups
+            // just as well as A→Z. Compared on the NORMALISED FULL column name so a
+            // dotted FK label ('Product.Name') matches its own sort key.
+            // Child-context lists (IdParent set) never letter-group: their order is
+            // the child ranking/FK order, not the name column.
             $gcGroupOn = false;
-            // Child-context lists (IdParent set) never letter-group: their
-            // default order is the child ranking/FK order, not the name
-            // column, so the empty-order assumption below doesn't hold and
-            // the letters render as stray one-letter rows in the drawer.
-            if (empty($IdParent)) {
-                if ($gcReqOrder === '' || $gcReqOrder === null) {
-                    $gcGroupOn = true;
-                } else {
-                    $gcOd = is_array($gcReqOrder) ? $gcReqOrder : json_decode((string) $gcReqOrder, true);
-                    if (is_array($gcOd) && isset($gcOd['col'])) {
-                        $gcFc = (string) $gcOd['col'];
-                        if (strpos($gcFc, '.') !== false) { $gcParts = explode('.', $gcFc); $gcFc = end($gcParts); }
-                        $gcSens = strtolower((string) ($gcOd['sens'] ?? ''));
-                        if ($gcGroupNorm($gcFc) === $gcGroupKey && $gcSens !== 'desc') { $gcGroupOn = true; }
+            if (empty($IdParent) && is_array($this->searchOrder)) {
+                foreach ($this->searchOrder as $gcOrdEntry) {
+                    if (!is_array($gcOrdEntry)) { continue; }
+                    foreach ($gcOrdEntry as $gcOrdCol => $gcOrdSens) {
+                        if (!$gcOrdSens) { continue; }
+                        $gcGroupOn = ($gcGroupNorm($gcOrdCol) === $gcGroupKey);
+                        break 2;
                     }
                 }
             }
             $gcGroupLetter = null;
-            
+
             if(!$this->setReadOnly && !$this->setListRemoveDelete){
                 if($_SESSION[_AUTH_VAR]->hasRights('TemplateFile', 'd')){
                     $this->canDelete = htmlLink("<i class='ri-delete-bin-7-line'></i>", "Javascript:", "class='ac-delete-link' j='deleteTemplateFile' ");
                 }
             }
-        
+
             $gcListRows = [];
             $gcListRowsDt = [];
             foreach($pcData as $data) {
-                if ($gcGroupOn) {
-                    $gcVal = (string) ((($altValue['Name'] !== null ) ? $altValue['Name'] : $data->getName()));
-                    $gcL = mb_strtoupper(mb_substr(trim($gcVal), 0, 1));
-                    if ($gcL !== '' && $gcL !== $gcGroupLetter) {
-                        $gcGroupLetter = $gcL;
-                        $tr .= div(htmlspecialchars($gcL), '', " class='va-mob-sect-head' ");
-                    }
-                }
                 # hoist the row PK encodings once — reused by the mobile + desktop row wrappers below
                 $__pkJsonEsc = htmlspecialchars(json_encode($data->getPrimaryKey()), ENT_QUOTES);
                 $__pkEsc = htmlspecialchars((string)$data->getPrimaryKey(), ENT_QUOTES);
                 $this->listActionCell = '';
-                
-                
-                
-                $this->listActionCell .= htmlLink(img(_SITE_URL.$data->getFile(), '25', '25'), _SITE_URL.$data->getFile(), "j='imageTemplateFile' i='".$__pkEsc."' target='_blank'");
 
-                $actionCell =  td($this->canDelete . $this->listActionCell, " class='actionrow' ");
+
+
+                $this->listActionCell .= htmlLink(img(htmlspecialchars((string)(_SITE_URL."TemplateFile/open?i=".$data->getPrimaryKey()), ENT_QUOTES), '25', '25'), htmlspecialchars((string)(_SITE_URL."TemplateFile/open?i=".$data->getPrimaryKey()), ENT_QUOTES), "j='imageTemplateFile' i='".$__pkEsc."' target='_blank'");
+
+                $actionInner = '' . $this->canDelete . $this->listActionCell;
+                $actionCell =  td($actionInner, " class='actionrow' ");
 
                 $gcRowHtml = div(
  ''
@@ -417,8 +483,8 @@ class TemplateFileForm extends TemplateFile
    . div(''  . span(htmlspecialchars((string)((($altValue['File'] !== null ) ? $altValue['File'] : $data->getFile())))." ", "   i='" . $__pkJsonEsc . "' c='File' class=''  j='editTemplateFile'") . $cCmoreCols ,''," class='meta' ")
  ,'', " class='body' ")
 . div('' . '<i class="ri-arrow-right-s-line chev"></i>',''," class='trail' ")
-. $actionCell
-                , '', " 
+. div($actionInner, '', " class='actionrow' ")
+                , '', "
                         rid='".$__pkJsonEsc."' data-iterator='".$pcData->getPosition()."'
                         r='data'
                         class='va-mob-row ".$hook['class']." '
@@ -427,25 +493,49 @@ class TemplateFileForm extends TemplateFile
                 $gcDtRowHtml = tr(
                 td(span(htmlspecialchars((string)((($altValue['Name'] !== null ) ? $altValue['Name'] : $data->getName())))." "), "  i='" . $__pkJsonEsc . "' c='Name' class=''  j='editTemplateFile'") .
                 td(span(htmlspecialchars((string)((($altValue['File'] !== null ) ? $altValue['File'] : $data->getFile())))." "), "  i='" . $__pkJsonEsc . "' c='File' class=''  j='editTemplateFile'") .  $actionCell, "  rid='".$__pkJsonEsc."' data-iterator='".$pcData->getPosition()."' r='data' class='va-dt-row ".$hook['class']." ' id='TemplateFileDtRow".$__pkEsc."'");
-                
+
+                # A10: the letter header reads $this->listCardNameVar, which for an
+                # FK-labelled list is a local ($<Rel>_Name) or an $altValue key the
+                # row body above assigns — so it is pushed here, after the body ran
+                # and before the row itself, keeping header→row order.
+
+                if ($gcGroupOn) {
+                    $gcVal = (string) ((($altValue['Name'] !== null ) ? $altValue['Name'] : $data->getName()));
+                    $gcL = mb_strtoupper(mb_substr(trim($gcVal), 0, 1));
+                    if ($gcL !== '' && $gcL !== $gcGroupLetter) {
+                        $gcGroupLetter = $gcL;
+                        $gcListRows[] = div(htmlspecialchars($gcL), '', " class='va-mob-sect-head' ");
+                    }
+                }
                 $gcListRows[] = $gcRowHtml;
                 $gcListRowsDt[] = $gcDtRowHtml;
 
                 $i++;
-                $altValue = null;
+                $altValue = $__altValueInit;
             }
             $tr .= implode('', $gcListRows);
             $trDt .= implode('', $gcListRowsDt);
             $tr .= input('hidden', 'rowCountTemplateFile', $i);
+
         }
 
-        
+        $gcParentRef = '';
+        $gcParentPk = json_decode((string) $IdParent);
+        if (!empty($gcParentPk) && $_SESSION[_AUTH_VAR]->hasRights('Template', 'r')) {
+            $gcParentObj = $_SESSION[_AUTH_VAR]->loadPkScoped(TemplateQuery::class, $gcParentPk, 'Template', 'r');
+            if ($gcParentObj) {
+                $gcParentRef = trim((string) ($gcParentObj->getName() ?? ''));
+                if ($gcParentRef === '') {
+                    $gcParentRef = is_scalar($gcParentPk) ? (string) $gcParentPk : (string) json_encode($gcParentPk);
+                }
+            }
+        }
 
         ## @Paging
         $pagerRow = $this->getPager($pmpoData, $resultsCount, $search);
         $bottomRow = div($pagerRow,'bottomPagerRow', "class='tablesorter'");
 
-        
+
 
         $controlsContent = $this->getListHeader('list-button');
 
@@ -455,11 +545,11 @@ class TemplateFileForm extends TemplateFile
                 div(
                     href(span(_('Open/close menu')),'javascript:','class="toggle-menu button-link-blue trigger-menu"')
                     .$this->getListHeader('add')
-                    
+
                 ,'','class="default-controls"')
                 .div($controlsContent,'TemplateFileControlsList', "class='custom-controls'")
                 .$this->hookSwHeader.$HelpDiv
-                
+
             ,'','class="sw-header"')
 
             /*.div(
@@ -473,8 +563,9 @@ class TemplateFileForm extends TemplateFile
                         .span(_('File'), " class='title' ")
                         .span("".$resultsCount."", " class='count' ")
                         .button("<i class='ri-sort-desc'></i>", " type='button' class='va-mob-sort-btn' aria-haspopup='true' aria-label='"._('Sort')."' ")
-                        .(($_SESSION[_AUTH_VAR]->hasRights('TemplateFile', 'a') && !$this->setReadOnly) ? (!empty($this->IdParent) ? href("<i class='ri-upload-2-line'></i>"._('Upload'), 'Javascript:', " class='add-btn' data-upload-trigger='pickfiles' ") : href("<i class='ri-add-line'></i>"._('New'), _SITE_URL.$this->virtualClassName."/edit/", " class='add-btn' ")) : '')
+                        .(($_SESSION[_AUTH_VAR]->hasRights('TemplateFile', 'a') && !$this->setReadOnly) ? (!empty($this->IdParent) ? href("<i class='ri-upload-2-line'></i>"._('Upload'), 'Javascript:', " class='add-btn' data-upload-trigger='pickfiles-TemplateFile' ") : href("<i class='ri-add-line'></i>"._('New'), _SITE_URL.$this->virtualClassName."/edit/", " class='add-btn' ")) : '')
                     ,''," class='va-mob-row1' ")
+                    .($gcParentRef !== '' ? div(span(_('Template'), " class='va-mob-parent-type' ") . span(htmlspecialchars($gcParentRef), " class='va-mob-parent-name' "), '', " class='va-mob-parent' ") : '')
                     .div(
                         "<i class='ri-search-line'></i>"
                         .$this->getListHeader('search')
@@ -503,23 +594,23 @@ class TemplateFileForm extends TemplateFile
                 ,'listForm',' class="ac-list" ')
                 .$this->hookListBottom
                 .$bottomRow
-            , 'TemplateFileListForm', " class='va-mob proto-app' data-model='TemplateFile' data-table='TemplateFile' data-ui='".$this->uiTabsId."' " . ($IdParent !== null && $IdParent !== '' ? " data-ip='".htmlspecialchars((string)$IdParent, ENT_QUOTES)."' data-tp='TemplateFile' data-parent='Template'" : ''));
+            , 'TemplateFileListForm', " class='va-mob proto-app' data-model='TemplateFile' data-table='TemplateFile' data-gc-db='template_file' data-ui='".$this->uiTabsId."' " . ($IdParent !== null && $IdParent !== '' ? " data-ip='".htmlspecialchars((string)$IdParent, ENT_QUOTES)."' data-tp='TemplateFile' data-parent='Template'" : ''));
 
-        
+
 
 
 
         $return['onReadyJs'] =
             $HelpDivJs
-            
+
             ."
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         (function(){var r=document.getElementById('tabsContain');if(r&&window.gcSelectBox){gcSelectBox.bindWithin(r);}})();
         ".$this->hookListReadyJsFirst.$editEvent."
         var __ab=document.getElementById('addTemplateFileAutoc');
@@ -529,12 +620,12 @@ class TemplateFileForm extends TemplateFile
                 fetch('"._SITE_URL."GuiManager',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','X-Requested-With':'XMLHttpRequest'},body:__b.toString()}).then(function(){document.location='"._SITE_URL.$this->virtualClassName."/edit/';});
             });
         }
-        
-        
+
+
         ".$this->orderReadyJsOrder."
         ".$this->hookListReadyJs;
-        
-        $return['js'] .= script("". $this->hookListJs);
+
+        $return['js'] .= script($this->hookListJs);
         return $return;
     }
     /*
@@ -547,23 +638,13 @@ class TemplateFileForm extends TemplateFile
         $e = new TemplateFile();
 
 
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','File'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
         #
 
-        //integer not required
+        //varchar not required
         $e->setName( ($data['Name'] == '' ) ? null : $data['Name']);
-        //integer not required
-        $e->setFile( ($data['File'] == '' ) ? null : $data['File']);
-        $e->setDateCreation( ($data['DateCreation'] == '' || $data['DateCreation'] == 'null' || substr($data['DateCreation'],0,10) == '-0001-11-30') ? null : $data['DateCreation'] );
-        $e->setDateModification( ($data['DateModification'] == '' || $data['DateModification'] == 'null' || substr($data['DateModification'],0,10) == '-0001-11-30') ? null : $data['DateModification'] );
-        //foreign
-        $e->setIdGroupCreation(( $data['IdGroupCreation'] == '' ) ? null : $data['IdGroupCreation']);
-        //foreign
-        $e->setIdCreation(( $data['IdCreation'] == '' ) ? null : $data['IdCreation']);
-        //foreign
-        $e->setIdModification(( $data['IdModification'] == '' ) ? null : $data['IdModification']);
         #
 
         return $e;
@@ -580,31 +661,13 @@ class TemplateFileForm extends TemplateFile
         if ($e === null) { return null; }
 
 
-        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','IdAuthy'] as $__gcDeny) { unset($data[$__gcDeny]); }
+        foreach (['IsSystem','IsRoot','IdCreation','IdModification','IdGroupCreation','DateCreation','DateModification','IdTenant','File'] as $__gcDeny) { unset($data[$__gcDeny]); }
         $e->fromArray($data );
 
 
 
         if(isset($data['Name'])){
             $e->setName( ($data['Name'] == '' ) ? null : $data['Name']);
-        }
-        if(isset($data['File'])){
-            $e->setFile( ($data['File'] == '' ) ? null : $data['File']);
-        }
-        if(isset($data['DateCreation'])){
-            $e->setDateCreation( ($data['DateCreation'] == '' || $data['DateCreation'] == 'null' || substr($data['DateCreation'],0,10) == '-0001-11-30') ? null : $data['DateCreation'] );
-        }
-        if(isset($data['DateModification'])){
-            $e->setDateModification( ($data['DateModification'] == '' || $data['DateModification'] == 'null' || substr($data['DateModification'],0,10) == '-0001-11-30') ? null : $data['DateModification'] );
-        }
-        if( isset($data['IdGroupCreation']) ){
-            $e->setIdGroupCreation(( $data['IdGroupCreation'] == '' ) ? null : $data['IdGroupCreation']);
-        }
-        if( isset($data['IdCreation']) ){
-            $e->setIdCreation(( $data['IdCreation'] == '' ) ? null : $data['IdCreation']);
-        }
-        if( isset($data['IdModification']) ){
-            $e->setIdModification(( $data['IdModification'] == '' ) ? null : $data['IdModification']);
         }
         $e->setNew(false);
         return $e;
@@ -626,14 +689,11 @@ class TemplateFileForm extends TemplateFile
 
         $HelpDivJs = '';
         $HelpDiv = '';
-        $childTable = [];
+        $childTable = ['html' => '', 'js' => '', 'onReadyJs' => ''];
         $script_autoc_one = '';
         $ongletf = '';
         $mceInclude = '';
-        $ip_save = '';
-        $ip_save = '';
         $IdParent = 0;
-        $editDialog = ( $data['dialog'] ) ? $data['dialog'] : 'editDialog';
         $uiTabsId = ( $uiTabsId === null ) ? 'tabsContain' : $uiTabsId;
         $jet = 'tr';
 
@@ -647,13 +707,13 @@ class TemplateFileForm extends TemplateFile
             $jet = $jsElementType;
         }
 
-        if($data['data']['ip']){
+        if(!empty($data['data']['ip'])){
             $data['ip'] = $data['data']['ip'];
-            $data['pc'] = $data['data']['pc'];
-            $data['tp'] = $data['data']['tp'];
+            $data['pc'] = $data['data']['pc'] ?? '';
+            $data['tp'] = $data['data']['tp'] ?? '';
         }
 
-        if($data['pc']) {
+        if(!empty($data['pc'])) {
             switch($data['pc']){
 
                 case 'Template':
@@ -689,10 +749,10 @@ class TemplateFileForm extends TemplateFile
         if($_SESSION[_AUTH_VAR]->hasRights('TemplateFile', 'a') && !$this->setReadOnly) {
 
             $this->bindEditJs = "";
-                if ($this->formAddButton) { $this->formAddButton = str_replace("add-button'", "add-button' data-gc-add='".$this->virtualClassName."' data-gc-ip='".($IdParent ?: '')."'", $this->formAddButton); }
+                if ($this->formAddButton) { $this->formAddButton = str_replace("add-button'", "add-button' data-gc-add='".$this->virtualClassName."' data-gc-ip='".htmlspecialchars((string) ($IdParent ?: ''), ENT_QUOTES)."'", $this->formAddButton); }
         }
 
-        if($id && !$data['reload']) {
+        if($id && empty($data['reload'])) {
 
 
             $q = TemplateFileQuery::create()
@@ -748,7 +808,7 @@ $this->fields['TemplateFile']['Name']['html'] = stdFieldRow(_("Name"), input('te
 $this->fields['TemplateFile']['File']['html'] = stdFieldRow(_("File"), input('text', 'File', htmlentities((string)($dataObj->getFile() ?? '')), "   placeholder='".str_replace("'","&#39;",_('File'))."' size='69'  v='FILE' s='d' class=''  ")."", 'File', "", $this->commentsFile, $this->commentsFile_css, '', ' ', 'no', 'v2');
 
 
-        $this->lockFormField(array(0=>'IdCreation',1=>'IdModification',2=>'IdGroupCreation',), $dataObj);
+        $this->lockFormField(array(0=>'IdCreation',1=>'IdModification',2=>'IdGroupCreation',3=>'File',), $dataObj);
 
         // Whole form read only
         if($this->setReadOnly == 'all' ) {
@@ -777,6 +837,13 @@ $this->fields['TemplateFile']['File']['html'] = stdFieldRow(_("File"), input('te
                             .$this->hookListSearchButton
                         ,""," class='form-savehidden' ");
         }
+        // add_hooks: afterFormObj (always emitted — the stub lives in the FormWrapper)
+        if (method_exists($this, 'afterFormObj')) { $this->afterFormObj($data, $dataObj); }
+        $gcFirstTabActive = true;
+        if (!empty($this->formCustomTabs)) {
+            throw new \LogicException('TemplateFile: addFormTab() needs add_tab_columns (without add_field_groups) on the table — there is no tab strip to put the tab in');
+        }
+
 
 
 
@@ -833,9 +900,6 @@ $this->fields['TemplateFile']['File']['html'] = stdFieldRow(_("File"), input('te
                         href('<i class="ri-arrow-left-s-line"></i>'._('File'), _SITE_URL.'TemplateFile', "class='nav-btn'")
                         .div(
                             span(_('File'), "class='nav-title-type'")
-                            .(isset($_gcNameVal) && trim((string)$_gcNameVal) !== ''
-                                ? span(htmlspecialchars($_gcNameVal), "class='nav-title-name'")
-                                : '')
                         , '', "class='nav-title'")
                         .$this->formSaveBtn
                         .href('<i class="ri-close-line"></i>', _SITE_URL.'TemplateFile', "class='nav-btn nav-close' title='"._('Close')."' aria-label='"._('Close')."'")
@@ -858,7 +922,7 @@ $this->fields['TemplateFile']['Name']['html']
                 ,"divCntTemplateFile", "class='sw-body form-scroll divStdform' CntTabs=1 ".$this->ccStdFormOptions)
                 .$_gcFooterHtml
             ,'',"class='sw-drawer is-open proto-form'")
-        , "id='formTemplateFile' class='mainForm formContent' data-gc-upl='form' data-gc-upl-url='"._SITE_URL."TemplateFile/upload' data-gc-upl-done='"._SITE_URL."TemplateFile/list/' data-gc-upl-max='10mb' data-gc-upl-ext='jpg,gif,png,jpeg' data-gc-upl-file='File' data-gc-upl-fk='IdTemplate' data-gc-upl-pk='IdTemplateFile' data-gc-upl-parent='Template' data-gc-upl-table='TemplateFile' data-gc-upl-txt-upload='".htmlspecialchars(_('Upload'),ENT_QUOTES)."' data-gc-upl-txt-replace='".htmlspecialchars(_('Replace file'),ENT_QUOTES)."' data-gc-upl-txt-failed='".htmlspecialchars(_('Upload failed'),ENT_QUOTES)."' ")
+        , "id='formTemplateFile' class='mainForm formContent' data-gc-upl='form' data-gc-upl-url='"._SITE_URL."TemplateFile/upload' data-gc-upl-done='"._SITE_URL."TemplateFile/list/' data-gc-upl-max='10mb' data-gc-upl-ext='jpg,jpeg,png,gif,webp,bmp,pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,md,zip,odt,ods,mp4,m4v,mov,webm,ogv,avi,mkv,mpg,mpeg' data-gc-upl-file='File' data-gc-upl-fk='IdTemplate' data-gc-upl-pk='IdTemplateFile' data-gc-upl-parent='Template' data-gc-upl-table='TemplateFile' data-gc-upl-txt-upload='".htmlspecialchars(_('Upload'),ENT_QUOTES)."' data-gc-upl-txt-replace='".htmlspecialchars(_('Replace file'),ENT_QUOTES)."' data-gc-upl-txt-failed='".htmlspecialchars(_('Upload failed'),ENT_QUOTES)."' ")
         .$this->hookFormBottom;
 
         // Remember-last-tab restore retired (also closes a HIGH XSS finding):
@@ -869,10 +933,10 @@ $this->fields['TemplateFile']['Name']['html']
         // first tab active by default; the stale session ['ogf'] value is inert.
         $tabs_act = '';
 
-        if($_SESSION['mem']['TemplateFile']['ixmemautocapp'] and $_GET['Autocapp'] == 1) {
-            $Autocapp = $_SESSION['mem']['TemplateFile']['ixmemautocapp'];
-            unset($_SESSION['mem']['TemplateFile']['ixmemautocapp']);
-        }
+        // The ['ixmemautocapp'] restore block is gone: nothing in the emitter,
+        // the runtime or the template ever writes that session key, so the
+        // condition was dead — and with it an unguarded $_GET['Autocapp'] read
+        // (a warning on every form render) and an $Autocapp local nothing read.
 
         $return['js'] .= $childTable['js']
         . script($this->hookFormIncludeJs) ."
@@ -886,7 +950,7 @@ $this->fields['TemplateFile']['Name']['html']
         ".$this->SaveButtonJs."
 
         ".$childTable['onReadyJs']."
-        ".$error['onReadyJs']."
+        ".($error['onReadyJs'] ?? '')."
         ".$tabs_act."
         ".$this->hookFormReadyJs
         .$script_autoc_one
@@ -900,22 +964,34 @@ $this->fields['TemplateFile']['Name']['html']
 
     function lockFormField($fields, $dataObj)
     {
+        if($fields === 'all') {
+            $fields = array_keys($this->fields['TemplateFile']);
+        } elseif(!is_array($fields)) {
+            return;
+        }
+        foreach($fields as $field) {
+            if(!isset($this->gcFieldRoBuilt[$field])) {
+                $this->gcFieldRoBuilt[$field] = true;
+                $this->gcBuildFieldRo($field, $dataObj);
+            }
+            $this->fields['TemplateFile'][$field]['html'] = $this->fieldsRo['TemplateFile'][$field]['html'] ?? '';
+        }
+    }
 
+    /** Build ONE column's read-only markup into $this->fieldsRo (A43). */
+    private function gcBuildFieldRo($field, $dataObj)
+    {
+        switch($field) {
+            case 'Name':
         $this->fieldsRo['TemplateFile']['Name']['html'] = stdFieldRow(_("Name"), div( htmlspecialchars((string)($dataObj->getName()), ENT_QUOTES), 'Name_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'Name', $dataObj->getName(), "s='d'"), 'Name', "", $this->commentsName, $this->commentsName_css, 'readonly half', ' ', 'no', 'v2');
 
+            break;
+            case 'File':
         $this->fieldsRo['TemplateFile']['File']['html'] = stdFieldRow(_("File"), div( htmlspecialchars((string)($dataObj->getFile()), ENT_QUOTES), 'File_label' , "class='readonly ro-value' s='d'")
                 .input('hidden', 'File', $dataObj->getFile(), "s='d'"), 'File', "", $this->commentsFile, $this->commentsFile_css, 'readonly', ' ', 'no', 'v2');
 
-
-        if($fields == 'all') {
-            foreach($this->fields['TemplateFile'] as $field => $ar) {
-                $this->fields['TemplateFile'][$field]['html'] = $this->fieldsRo['TemplateFile'][$field]['html'];
-            }
-        } elseif(is_array($fields)) {
-            foreach($fields as $field) {
-                $this->fields['TemplateFile'][$field]['html'] = $this->fieldsRo['TemplateFile'][$field]['html'];
-            }
+            break;
         }
     }
 }

@@ -25,7 +25,12 @@ use App\BotEvent;
 use App\BotOrder;
 use App\Config;
 use App\Country;
+use App\FleetSlot;
 use App\GridRun;
+use App\GridRunAudit;
+use App\MarketCandle;
+use App\MarketOutlook;
+use App\MarketOutlookState;
 use App\MarketRegime;
 use App\MarketSummary;
 use App\MessageI18n;
@@ -34,10 +39,12 @@ use App\OauthAuthCode;
 use App\OauthClient;
 use App\OauthRefreshToken;
 use App\PushDevice;
+use App\RegimeEpisode;
 use App\SimWallet;
 use App\Template;
 use App\TemplateFile;
 use App\TradeCycle;
+use App\WalletNav;
 
 /**
  * Base class that represents a query for the 'authy_group' table.
@@ -104,13 +111,17 @@ use App\TradeCycle;
  * @method AuthyGroupQuery rightJoinPushDevice($relationAlias = null) Adds a RIGHT JOIN clause to the query using the PushDevice relation
  * @method AuthyGroupQuery innerJoinPushDevice($relationAlias = null) Adds a INNER JOIN clause to the query using the PushDevice relation
  *
- * @method AuthyGroupQuery leftJoinCountry($relationAlias = null) Adds a LEFT JOIN clause to the query using the Country relation
- * @method AuthyGroupQuery rightJoinCountry($relationAlias = null) Adds a RIGHT JOIN clause to the query using the Country relation
- * @method AuthyGroupQuery innerJoinCountry($relationAlias = null) Adds a INNER JOIN clause to the query using the Country relation
- *
  * @method AuthyGroupQuery leftJoinGridRun($relationAlias = null) Adds a LEFT JOIN clause to the query using the GridRun relation
  * @method AuthyGroupQuery rightJoinGridRun($relationAlias = null) Adds a RIGHT JOIN clause to the query using the GridRun relation
  * @method AuthyGroupQuery innerJoinGridRun($relationAlias = null) Adds a INNER JOIN clause to the query using the GridRun relation
+ *
+ * @method AuthyGroupQuery leftJoinFleetSlot($relationAlias = null) Adds a LEFT JOIN clause to the query using the FleetSlot relation
+ * @method AuthyGroupQuery rightJoinFleetSlot($relationAlias = null) Adds a RIGHT JOIN clause to the query using the FleetSlot relation
+ * @method AuthyGroupQuery innerJoinFleetSlot($relationAlias = null) Adds a INNER JOIN clause to the query using the FleetSlot relation
+ *
+ * @method AuthyGroupQuery leftJoinRegimeEpisode($relationAlias = null) Adds a LEFT JOIN clause to the query using the RegimeEpisode relation
+ * @method AuthyGroupQuery rightJoinRegimeEpisode($relationAlias = null) Adds a RIGHT JOIN clause to the query using the RegimeEpisode relation
+ * @method AuthyGroupQuery innerJoinRegimeEpisode($relationAlias = null) Adds a INNER JOIN clause to the query using the RegimeEpisode relation
  *
  * @method AuthyGroupQuery leftJoinBotOrder($relationAlias = null) Adds a LEFT JOIN clause to the query using the BotOrder relation
  * @method AuthyGroupQuery rightJoinBotOrder($relationAlias = null) Adds a RIGHT JOIN clause to the query using the BotOrder relation
@@ -140,9 +151,25 @@ use App\TradeCycle;
  * @method AuthyGroupQuery rightJoinMarketRegime($relationAlias = null) Adds a RIGHT JOIN clause to the query using the MarketRegime relation
  * @method AuthyGroupQuery innerJoinMarketRegime($relationAlias = null) Adds a INNER JOIN clause to the query using the MarketRegime relation
  *
+ * @method AuthyGroupQuery leftJoinMarketCandle($relationAlias = null) Adds a LEFT JOIN clause to the query using the MarketCandle relation
+ * @method AuthyGroupQuery rightJoinMarketCandle($relationAlias = null) Adds a RIGHT JOIN clause to the query using the MarketCandle relation
+ * @method AuthyGroupQuery innerJoinMarketCandle($relationAlias = null) Adds a INNER JOIN clause to the query using the MarketCandle relation
+ *
  * @method AuthyGroupQuery leftJoinBotDecision($relationAlias = null) Adds a LEFT JOIN clause to the query using the BotDecision relation
  * @method AuthyGroupQuery rightJoinBotDecision($relationAlias = null) Adds a RIGHT JOIN clause to the query using the BotDecision relation
  * @method AuthyGroupQuery innerJoinBotDecision($relationAlias = null) Adds a INNER JOIN clause to the query using the BotDecision relation
+ *
+ * @method AuthyGroupQuery leftJoinMarketOutlook($relationAlias = null) Adds a LEFT JOIN clause to the query using the MarketOutlook relation
+ * @method AuthyGroupQuery rightJoinMarketOutlook($relationAlias = null) Adds a RIGHT JOIN clause to the query using the MarketOutlook relation
+ * @method AuthyGroupQuery innerJoinMarketOutlook($relationAlias = null) Adds a INNER JOIN clause to the query using the MarketOutlook relation
+ *
+ * @method AuthyGroupQuery leftJoinMarketOutlookState($relationAlias = null) Adds a LEFT JOIN clause to the query using the MarketOutlookState relation
+ * @method AuthyGroupQuery rightJoinMarketOutlookState($relationAlias = null) Adds a RIGHT JOIN clause to the query using the MarketOutlookState relation
+ * @method AuthyGroupQuery innerJoinMarketOutlookState($relationAlias = null) Adds a INNER JOIN clause to the query using the MarketOutlookState relation
+ *
+ * @method AuthyGroupQuery leftJoinWalletNav($relationAlias = null) Adds a LEFT JOIN clause to the query using the WalletNav relation
+ * @method AuthyGroupQuery rightJoinWalletNav($relationAlias = null) Adds a RIGHT JOIN clause to the query using the WalletNav relation
+ * @method AuthyGroupQuery innerJoinWalletNav($relationAlias = null) Adds a INNER JOIN clause to the query using the WalletNav relation
  *
  * @method AuthyGroupQuery leftJoinAuthyGroupRelatedByIdAuthyGroup($relationAlias = null) Adds a LEFT JOIN clause to the query using the AuthyGroupRelatedByIdAuthyGroup relation
  * @method AuthyGroupQuery rightJoinAuthyGroupRelatedByIdAuthyGroup($relationAlias = null) Adds a RIGHT JOIN clause to the query using the AuthyGroupRelatedByIdAuthyGroup relation
@@ -171,6 +198,14 @@ use App\TradeCycle;
  * @method AuthyGroupQuery leftJoinAuthyRefreshToken($relationAlias = null) Adds a LEFT JOIN clause to the query using the AuthyRefreshToken relation
  * @method AuthyGroupQuery rightJoinAuthyRefreshToken($relationAlias = null) Adds a RIGHT JOIN clause to the query using the AuthyRefreshToken relation
  * @method AuthyGroupQuery innerJoinAuthyRefreshToken($relationAlias = null) Adds a INNER JOIN clause to the query using the AuthyRefreshToken relation
+ *
+ * @method AuthyGroupQuery leftJoinGridRunAudit($relationAlias = null) Adds a LEFT JOIN clause to the query using the GridRunAudit relation
+ * @method AuthyGroupQuery rightJoinGridRunAudit($relationAlias = null) Adds a RIGHT JOIN clause to the query using the GridRunAudit relation
+ * @method AuthyGroupQuery innerJoinGridRunAudit($relationAlias = null) Adds a INNER JOIN clause to the query using the GridRunAudit relation
+ *
+ * @method AuthyGroupQuery leftJoinCountry($relationAlias = null) Adds a LEFT JOIN clause to the query using the Country relation
+ * @method AuthyGroupQuery rightJoinCountry($relationAlias = null) Adds a RIGHT JOIN clause to the query using the Country relation
+ * @method AuthyGroupQuery innerJoinCountry($relationAlias = null) Adds a INNER JOIN clause to the query using the Country relation
  *
  * @method AuthyGroupQuery leftJoinOauthClient($relationAlias = null) Adds a LEFT JOIN clause to the query using the OauthClient relation
  * @method AuthyGroupQuery rightJoinOauthClient($relationAlias = null) Adds a RIGHT JOIN clause to the query using the OauthClient relation
@@ -1405,80 +1440,6 @@ abstract class BaseAuthyGroupQuery extends ModelCriteria
     }
 
     /**
-     * Filter the query by a related Country object
-     *
-     * @param   Country|PropelObjectCollection $country  the related object to use as filter
-     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
-     *
-     * @return                 AuthyGroupQuery The current query, for fluid interface
-     * @throws PropelException - if the provided filter is invalid.
-     */
-    public function filterByCountry($country, $comparison = null)
-    {
-        if ($country instanceof Country) {
-            return $this
-                ->addUsingAlias(AuthyGroupPeer::ID_AUTHY_GROUP, $country->getIdGroupCreation(), $comparison);
-        } elseif ($country instanceof PropelObjectCollection) {
-            return $this
-                ->useCountryQuery()
-                ->filterByPrimaryKeys($country->getPrimaryKeys())
-                ->endUse();
-        } else {
-            throw new PropelException('filterByCountry() only accepts arguments of type Country or PropelCollection');
-        }
-    }
-
-    /**
-     * Adds a JOIN clause to the query using the Country relation
-     *
-     * @param     string $relationAlias optional alias for the relation
-     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
-     *
-     * @return AuthyGroupQuery The current query, for fluid interface
-     */
-    public function joinCountry($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
-    {
-        $tableMap = $this->getTableMap();
-        $relationMap = $tableMap->getRelation('Country');
-
-        // create a ModelJoin object for this join
-        $join = new ModelJoin();
-        $join->setJoinType($joinType);
-        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-        if ($previousJoin = $this->getPreviousJoin()) {
-            $join->setPreviousJoin($previousJoin);
-        }
-
-        // add the ModelJoin to the current object
-        if ($relationAlias) {
-            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
-            $this->addJoinObject($join, $relationAlias);
-        } else {
-            $this->addJoinObject($join, 'Country');
-        }
-
-        return $this;
-    }
-
-    /**
-     * Use the Country relation Country object
-     *
-     * @see       useQuery()
-     *
-     * @param     string $relationAlias optional alias for the relation,
-     *                                   to be used as main alias in the secondary query
-     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
-     *
-     * @return   \App\CountryQuery A secondary query class using the current class as primary query
-     */
-    public function useCountryQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
-    {
-        return $this
-            ->joinCountry($relationAlias, $joinType)
-            ->useQuery($relationAlias ? $relationAlias : 'Country', '\App\CountryQuery');
-    }
-
-    /**
      * Filter the query by a related GridRun object
      *
      * @param   GridRun|PropelObjectCollection $gridRun  the related object to use as filter
@@ -1550,6 +1511,154 @@ abstract class BaseAuthyGroupQuery extends ModelCriteria
         return $this
             ->joinGridRun($relationAlias, $joinType)
             ->useQuery($relationAlias ? $relationAlias : 'GridRun', '\App\GridRunQuery');
+    }
+
+    /**
+     * Filter the query by a related FleetSlot object
+     *
+     * @param   FleetSlot|PropelObjectCollection $fleetSlot  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyGroupQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByFleetSlot($fleetSlot, $comparison = null)
+    {
+        if ($fleetSlot instanceof FleetSlot) {
+            return $this
+                ->addUsingAlias(AuthyGroupPeer::ID_AUTHY_GROUP, $fleetSlot->getIdGroupCreation(), $comparison);
+        } elseif ($fleetSlot instanceof PropelObjectCollection) {
+            return $this
+                ->useFleetSlotQuery()
+                ->filterByPrimaryKeys($fleetSlot->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByFleetSlot() only accepts arguments of type FleetSlot or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the FleetSlot relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyGroupQuery The current query, for fluid interface
+     */
+    public function joinFleetSlot($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('FleetSlot');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'FleetSlot');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the FleetSlot relation FleetSlot object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\FleetSlotQuery A secondary query class using the current class as primary query
+     */
+    public function useFleetSlotQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinFleetSlot($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'FleetSlot', '\App\FleetSlotQuery');
+    }
+
+    /**
+     * Filter the query by a related RegimeEpisode object
+     *
+     * @param   RegimeEpisode|PropelObjectCollection $regimeEpisode  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyGroupQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByRegimeEpisode($regimeEpisode, $comparison = null)
+    {
+        if ($regimeEpisode instanceof RegimeEpisode) {
+            return $this
+                ->addUsingAlias(AuthyGroupPeer::ID_AUTHY_GROUP, $regimeEpisode->getIdGroupCreation(), $comparison);
+        } elseif ($regimeEpisode instanceof PropelObjectCollection) {
+            return $this
+                ->useRegimeEpisodeQuery()
+                ->filterByPrimaryKeys($regimeEpisode->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByRegimeEpisode() only accepts arguments of type RegimeEpisode or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the RegimeEpisode relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyGroupQuery The current query, for fluid interface
+     */
+    public function joinRegimeEpisode($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('RegimeEpisode');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'RegimeEpisode');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the RegimeEpisode relation RegimeEpisode object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\RegimeEpisodeQuery A secondary query class using the current class as primary query
+     */
+    public function useRegimeEpisodeQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinRegimeEpisode($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'RegimeEpisode', '\App\RegimeEpisodeQuery');
     }
 
     /**
@@ -2071,6 +2180,80 @@ abstract class BaseAuthyGroupQuery extends ModelCriteria
     }
 
     /**
+     * Filter the query by a related MarketCandle object
+     *
+     * @param   MarketCandle|PropelObjectCollection $marketCandle  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyGroupQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByMarketCandle($marketCandle, $comparison = null)
+    {
+        if ($marketCandle instanceof MarketCandle) {
+            return $this
+                ->addUsingAlias(AuthyGroupPeer::ID_AUTHY_GROUP, $marketCandle->getIdGroupCreation(), $comparison);
+        } elseif ($marketCandle instanceof PropelObjectCollection) {
+            return $this
+                ->useMarketCandleQuery()
+                ->filterByPrimaryKeys($marketCandle->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByMarketCandle() only accepts arguments of type MarketCandle or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the MarketCandle relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyGroupQuery The current query, for fluid interface
+     */
+    public function joinMarketCandle($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('MarketCandle');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'MarketCandle');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the MarketCandle relation MarketCandle object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\MarketCandleQuery A secondary query class using the current class as primary query
+     */
+    public function useMarketCandleQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinMarketCandle($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'MarketCandle', '\App\MarketCandleQuery');
+    }
+
+    /**
      * Filter the query by a related BotDecision object
      *
      * @param   BotDecision|PropelObjectCollection $botDecision  the related object to use as filter
@@ -2142,6 +2325,228 @@ abstract class BaseAuthyGroupQuery extends ModelCriteria
         return $this
             ->joinBotDecision($relationAlias, $joinType)
             ->useQuery($relationAlias ? $relationAlias : 'BotDecision', '\App\BotDecisionQuery');
+    }
+
+    /**
+     * Filter the query by a related MarketOutlook object
+     *
+     * @param   MarketOutlook|PropelObjectCollection $marketOutlook  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyGroupQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByMarketOutlook($marketOutlook, $comparison = null)
+    {
+        if ($marketOutlook instanceof MarketOutlook) {
+            return $this
+                ->addUsingAlias(AuthyGroupPeer::ID_AUTHY_GROUP, $marketOutlook->getIdGroupCreation(), $comparison);
+        } elseif ($marketOutlook instanceof PropelObjectCollection) {
+            return $this
+                ->useMarketOutlookQuery()
+                ->filterByPrimaryKeys($marketOutlook->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByMarketOutlook() only accepts arguments of type MarketOutlook or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the MarketOutlook relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyGroupQuery The current query, for fluid interface
+     */
+    public function joinMarketOutlook($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('MarketOutlook');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'MarketOutlook');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the MarketOutlook relation MarketOutlook object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\MarketOutlookQuery A secondary query class using the current class as primary query
+     */
+    public function useMarketOutlookQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinMarketOutlook($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'MarketOutlook', '\App\MarketOutlookQuery');
+    }
+
+    /**
+     * Filter the query by a related MarketOutlookState object
+     *
+     * @param   MarketOutlookState|PropelObjectCollection $marketOutlookState  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyGroupQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByMarketOutlookState($marketOutlookState, $comparison = null)
+    {
+        if ($marketOutlookState instanceof MarketOutlookState) {
+            return $this
+                ->addUsingAlias(AuthyGroupPeer::ID_AUTHY_GROUP, $marketOutlookState->getIdGroupCreation(), $comparison);
+        } elseif ($marketOutlookState instanceof PropelObjectCollection) {
+            return $this
+                ->useMarketOutlookStateQuery()
+                ->filterByPrimaryKeys($marketOutlookState->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByMarketOutlookState() only accepts arguments of type MarketOutlookState or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the MarketOutlookState relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyGroupQuery The current query, for fluid interface
+     */
+    public function joinMarketOutlookState($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('MarketOutlookState');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'MarketOutlookState');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the MarketOutlookState relation MarketOutlookState object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\MarketOutlookStateQuery A secondary query class using the current class as primary query
+     */
+    public function useMarketOutlookStateQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinMarketOutlookState($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'MarketOutlookState', '\App\MarketOutlookStateQuery');
+    }
+
+    /**
+     * Filter the query by a related WalletNav object
+     *
+     * @param   WalletNav|PropelObjectCollection $walletNav  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyGroupQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByWalletNav($walletNav, $comparison = null)
+    {
+        if ($walletNav instanceof WalletNav) {
+            return $this
+                ->addUsingAlias(AuthyGroupPeer::ID_AUTHY_GROUP, $walletNav->getIdGroupCreation(), $comparison);
+        } elseif ($walletNav instanceof PropelObjectCollection) {
+            return $this
+                ->useWalletNavQuery()
+                ->filterByPrimaryKeys($walletNav->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByWalletNav() only accepts arguments of type WalletNav or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the WalletNav relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyGroupQuery The current query, for fluid interface
+     */
+    public function joinWalletNav($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('WalletNav');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'WalletNav');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the WalletNav relation WalletNav object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\WalletNavQuery A secondary query class using the current class as primary query
+     */
+    public function useWalletNavQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinWalletNav($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'WalletNav', '\App\WalletNavQuery');
     }
 
     /**
@@ -2660,6 +3065,154 @@ abstract class BaseAuthyGroupQuery extends ModelCriteria
         return $this
             ->joinAuthyRefreshToken($relationAlias, $joinType)
             ->useQuery($relationAlias ? $relationAlias : 'AuthyRefreshToken', '\App\AuthyRefreshTokenQuery');
+    }
+
+    /**
+     * Filter the query by a related GridRunAudit object
+     *
+     * @param   GridRunAudit|PropelObjectCollection $gridRunAudit  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyGroupQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByGridRunAudit($gridRunAudit, $comparison = null)
+    {
+        if ($gridRunAudit instanceof GridRunAudit) {
+            return $this
+                ->addUsingAlias(AuthyGroupPeer::ID_AUTHY_GROUP, $gridRunAudit->getIdGroupCreation(), $comparison);
+        } elseif ($gridRunAudit instanceof PropelObjectCollection) {
+            return $this
+                ->useGridRunAuditQuery()
+                ->filterByPrimaryKeys($gridRunAudit->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByGridRunAudit() only accepts arguments of type GridRunAudit or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the GridRunAudit relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyGroupQuery The current query, for fluid interface
+     */
+    public function joinGridRunAudit($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('GridRunAudit');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'GridRunAudit');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the GridRunAudit relation GridRunAudit object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\GridRunAuditQuery A secondary query class using the current class as primary query
+     */
+    public function useGridRunAuditQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinGridRunAudit($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'GridRunAudit', '\App\GridRunAuditQuery');
+    }
+
+    /**
+     * Filter the query by a related Country object
+     *
+     * @param   Country|PropelObjectCollection $country  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 AuthyGroupQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByCountry($country, $comparison = null)
+    {
+        if ($country instanceof Country) {
+            return $this
+                ->addUsingAlias(AuthyGroupPeer::ID_AUTHY_GROUP, $country->getIdGroupCreation(), $comparison);
+        } elseif ($country instanceof PropelObjectCollection) {
+            return $this
+                ->useCountryQuery()
+                ->filterByPrimaryKeys($country->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByCountry() only accepts arguments of type Country or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the Country relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return AuthyGroupQuery The current query, for fluid interface
+     */
+    public function joinCountry($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('Country');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'Country');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the Country relation Country object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   \App\CountryQuery A secondary query class using the current class as primary query
+     */
+    public function useCountryQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinCountry($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'Country', '\App\CountryQuery');
     }
 
     /**
@@ -3193,7 +3746,7 @@ abstract class BaseAuthyGroupQuery extends ModelCriteria
     protected function basePostDelete($affectedRows, PropelPDO $con)
     {
         // GoatCheese behavior
-        
+
                 if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                     \ApiGoat\Utility\TableVersion::bump('authy_group');
                 }
@@ -3210,7 +3763,7 @@ abstract class BaseAuthyGroupQuery extends ModelCriteria
     protected function basePostUpdate($affectedRows, PropelPDO $con)
     {
         // GoatCheese behavior
-        
+
                 if (class_exists('\\ApiGoat\\Utility\\TableVersion')) {
                     \ApiGoat\Utility\TableVersion::bump('authy_group');
                 }

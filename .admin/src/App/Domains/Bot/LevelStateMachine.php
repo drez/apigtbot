@@ -111,17 +111,21 @@ class LevelStateMachine
      *
      * @return array{cycle: array<string,string>, rearm: IntendedOrder}
      */
-    public function onSellFill(int $i, string $feesTotal = '0'): array
+    public function onSellFill(int $i, string $feesTotal = '0', ?string $boughtAt = null, ?string $soldAt = null): array
     {
         if (($this->states[$i] ?? null) !== 'SELL_OPEN') {
             throw new \LogicException("sell fill on level $i in state " . ($this->states[$i] ?? 'unknown'));
         }
         $qty = $this->held[$i]; // actual backing qty (≠ level qty after a partial booking)
-        $gross = bcmul($qty, bcsub($this->levels[$i + 1], $this->levels[$i], self::SCALE), self::SCALE);
+        // the ladder's lines unless the ledger knows better: an order that
+        // crossed the book as it was placed traded at the book's price
+        $boughtAt ??= $this->levels[$i];
+        $soldAt ??= $this->levels[$i + 1];
+        $gross = bcmul($qty, bcsub($soldAt, $boughtAt, self::SCALE), self::SCALE);
         $cycle = [
             'level_idx' => (string) $i,
-            'buy_price' => $this->levels[$i],
-            'sell_price' => $this->levels[$i + 1],
+            'buy_price' => $boughtAt,
+            'sell_price' => $soldAt,
             'qty' => $qty,
             'gross_pnl' => $gross,
             'fees_total' => $feesTotal,
@@ -134,6 +138,15 @@ class LevelStateMachine
             // re-arm at the standard level qty, not the (possibly partial) cycle qty
             'rearm' => new IntendedOrder('Buy', $i, $this->levels[$i], $this->qtys[$i]),
         ];
+    }
+
+    /** The base qty this level is actually backing right now — the standard
+     *  level qty only when nothing shrank it (a netted buy, a shrunk or
+     *  partially executed exit). An engine books a partial exit against this,
+     *  never against $qtys. */
+    public function heldAt(int $i): string
+    {
+        return $this->held[$i] ?? '0';
     }
 
     /** Total base qty committed to open sells (actual per-level backing). */

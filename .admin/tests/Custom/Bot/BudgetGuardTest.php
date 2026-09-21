@@ -82,6 +82,38 @@ class BudgetGuardTest extends TestCase
         $this->assertNull(BudgetGuard::check());
     }
 
+    /**
+     * The daemon calls check() every tick from one long-lived process. Propel
+     * never re-hydrates an object already in its instance pool, so a check
+     * that walks hydrated GridRun objects sums the slices AS OF BOOT and an
+     * external reallocation (routine, activator, GUI) stays invisible until
+     * the process restarts — prod 2026-09-05→09: both grids sat halted for
+     * four days after the slices already fit again. check() must read the
+     * rows fresh.
+     */
+    public function testCheckSeesASliceChangedBehindTheInstancePool(): void
+    {
+        $a = $this->mkRun('400');
+        $b = $this->mkRun('600');
+        $this->assertNull(BudgetGuard::check(), 'objects for both runs are now pooled');
+
+        // another process raises b's slice — bypass the pooled object
+        \Propel::getConnection()
+            ->prepare('UPDATE grid_run SET budget_quote = 700 WHERE id_grid_run = ?')
+            ->execute([(int) $b->getIdGridRun()]);
+        $this->assertSame(0, bccomp('600', (string) $b->getBudgetQuote(), 2), 'the pooled object still carries the boot value');
+
+        $over = BudgetGuard::check();
+        $this->assertNotNull($over, 'a slice raised behind the pool must be seen');
+        $this->assertSame(0, bccomp('1100', $over['sum'], 2));
+
+        // …and the reverse: b lowered behind the pool (400 + 500) re-opens entries
+        \Propel::getConnection()
+            ->prepare('UPDATE grid_run SET budget_quote = 500 WHERE id_grid_run = ?')
+            ->execute([(int) $b->getIdGridRun()]);
+        $this->assertNull(BudgetGuard::check(), 'a slice lowered behind the pool must be seen too');
+    }
+
     public function testOvercommitReportsSumAndExcess(): void
     {
         $this->mkRun('700');

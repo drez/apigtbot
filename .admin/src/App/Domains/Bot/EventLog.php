@@ -28,8 +28,23 @@ class EventLog
     ) {
     }
 
+    /**
+     * Stops and the failures that leave real inventory unguarded: always
+     * sent the instant they happen, whoever constructed the log. As plain
+     * alerts they shared the one-message-per-5-min budget, so a kill could
+     * reach the operator five minutes after the alert that preceded it.
+     */
+    public const URGENT_KINDS = [
+        'kill', 'risk_kill', 'drawdown_stop', 'unrealized_stop',
+        'exit_shrunk', 'api_rate_limited', 'clock_drift',
+    ];
+
     private const KIND_ICON = [
         'buy_fill' => '🟢',
+        'run_retired' => '📦',
+        'run_finalized' => '🏁',
+        'alloc_rebalance' => '⚖️',
+        'alloc_drift' => '📈',
         'cycle_closed' => '💰',
         'refit_applied' => '🔄',
         'boot' => '🚀',
@@ -59,7 +74,8 @@ class EventLog
             fwrite(STDOUT, sprintf("[%s] %s %s: %s\n", date('H:i:s'), $level, $kind, $message));
         }
         $isAlert = in_array($level, ['Alert', 'Error'], true);
-        $isImmediate = in_array($kind, $this->immediateKinds, true);
+        $isUrgent = $isAlert && in_array($kind, self::URGENT_KINDS, true);
+        $isImmediate = in_array($kind, $this->immediateKinds, true) || $isUrgent;
         $isTrade = in_array($kind, $this->notifyKinds, true);
         if ($this->notifier !== null && ($isAlert || $isImmediate || $isTrade)) {
             $icon = $isAlert ? ($level === 'Alert' ? '🚨' : '❌') : (self::KIND_ICON[$kind] ?? '•');
@@ -72,7 +88,17 @@ class EventLog
             // notifications buffer so a burst of fills in one tick coalesces
             // into a single digest (flush() sends it).
             if ($isImmediate) {
-                $this->notifier->sendNow($line);
+                // An URGENT line repeats for reasons that are not news: the
+                // same kill re-announced by every boot of a restart loop, the
+                // same exit_shrunk on every chase tick. Collapse those for a
+                // minute — Telegram answers a burst with a 429 and sendNow's
+                // casualty is as likely to be the stop as the noise. A trade
+                // notification (cycle_closed) passes no key: two real cycles
+                // at one level print the same text and are both real.
+                $this->notifier->sendNow(
+                    $line,
+                    $isUrgent ? sprintf('%d:%s:%s', $this->runId, $kind, $message) : null
+                );
             } elseif ($isAlert) {
                 $this->notifier->send($line);
             } else {

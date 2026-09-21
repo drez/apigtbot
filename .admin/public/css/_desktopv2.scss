@@ -249,8 +249,20 @@
     padding-left: 12px;
     padding-right: 12px;
   }
+  /* The collapse toggle rides the search/filter row with the chips it
+   * folds away (see the display:contents promotion above). */
+  .va-mob .va-mob-chips-toggle {
+    flex: 0 0 auto;
+    align-self: center;
+    margin: 0 0 14px 20px;
+    padding: 0;
+    background: transparent;
+  }
   .va-mob .va-mob-chips {
-    flex: 1 1 auto;
+    // 0 1 auto (not 1 1) so a chip row does not stretch across the
+    // toolbar: with one collapse toggle per row (setupChipsToggles) a
+    // growing row would push the NEXT row's label away from its chips.
+    flex: 0 1 auto;
     align-self: center;   // vertically center the chips on the search/filter row
     margin: 0 28px 14px 4px;
     padding: 0;

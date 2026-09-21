@@ -320,42 +320,117 @@ if (typeof window.gcQuickAddInit === 'undefined') {
         if (srcDep) { srcDep.addEventListener('change', depSyncLink); }
       });
     }
-    var rows = '';
+    // The modal is built node by node (createElement + textContent), never by
+    // concatenating HTML: f.label, f.options and cfg.title reach us through
+    // gettext on column descriptions, so a translated .po string was an
+    // injection vector straight into innerHTML. Same reason res.message is
+    // rendered through qaStatus() below — a {Model}ServiceWrapper::quickAdd
+    // override chooses that text server-side.
+    var QA_FIELD_STYLE = 'width:100%;border:1px solid #d9dce0;border-radius:6px;'
+      + 'padding:8px;background:#fff;box-sizing:border-box;';
+    var qaFields = document.createDocumentFragment();
     for (var i = 0; i < cfg.fields.length; i++) {
       var f = cfg.fields[i];
       var inId = 'gcqa_' + cfg.key + '_' + f.col;
+      var row = document.createElement('div');
+      row.className = (f.type === 'textarea') ? 'form-row stacked' : 'form-row';
+      var lblEl = document.createElement('span');
+      lblEl.className = 'lbl';
+      lblEl.textContent = (f.label == null) ? '' : String(f.label);
+      row.appendChild(lblEl);
+      var inEl;
       if (f.type === 'textarea') {
-        rows += '<div class="form-row stacked"><span class="lbl">' + f.label + '</span>'
-          + '<textarea id="' + inId + '" data-col="' + f.col + '" style="text-align:left;width:100%;border:1px solid #d9dce0;border-radius:6px;padding:8px;background:#fff;box-sizing:border-box;min-height:60px;"></textarea></div>';
+        inEl = document.createElement('textarea');
+        inEl.style.cssText = 'text-align:left;' + QA_FIELD_STYLE + 'min-height:60px;';
       } else if (f.type === 'select') {
-        var __opts = '<option value=""></option>';
-        (f.options || []).forEach(function (o) { __opts += '<option value="' + String(o).replace(/"/g, '&quot;') + '">' + String(o) + '</option>'; });
-        rows += '<div class="form-row"><span class="lbl">' + f.label + '</span>'
-          + '<select id="' + inId + '" data-col="' + f.col + '" style="width:100%;border:1px solid #d9dce0;border-radius:6px;padding:8px;background:#fff;box-sizing:border-box;">' + __opts + '</select></div>';
+        inEl = document.createElement('select');
+        inEl.style.cssText = QA_FIELD_STYLE;
+        inEl.appendChild(document.createElement('option')); // blank, value=''
+        (f.options || []).forEach(function (o) {
+          var opt = document.createElement('option');
+          opt.value = String(o);
+          opt.textContent = String(o);
+          inEl.appendChild(opt);
+        });
       } else {
-        var __it = (f.type === 'date' ? 'date' : (f.type === 'number' ? 'number' : 'text'));
-        rows += '<div class="form-row"><span class="lbl">' + f.label + '</span>'
-          + '<input type="' + __it + '" id="' + inId + '" data-col="' + f.col + '" /></div>';
+        inEl = document.createElement('input');
+        inEl.type = (f.type === 'date' ? 'date' : (f.type === 'number' ? 'number' : 'text'));
       }
+      inEl.id = inId;
+      inEl.setAttribute('data-col', f.col);
+      row.appendChild(inEl);
+      qaFields.appendChild(row);
     }
-    var html = '<div class="scan-modal gc-quickadd-modal" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:10000;overflow-y:auto;display:none;">'
-      + '<div class="scan-modal-content proto-form" style="max-width:460px;position:relative;margin:40px auto;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.3);overflow:hidden;">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:#fff;border-bottom:1px solid #e6e8eb;">'
-      + '<strong style="font-size:1.05em;">' + cfg.title + '</strong>'
-      + '<button type="button" class="gc-qa-close" style="background:none;border:none;font-size:22px;cursor:pointer;line-height:1;color:#555;">&times;</button></div>'
-      + '<div class="form-card">' + rows + '</div>'
-      + '<div style="display:flex;gap:10px;justify-content:flex-end;padding:14px 18px;">'
-      + '<a href="javascript:;" class="gc-qa-save" style="background:#28a745;color:#fff;border:none;border-radius:8px;padding:10px 22px;font-weight:600;font-size:0.95em;cursor:pointer;text-decoration:none;">' + cfg.saveLabel + '</a>'
-      + '<a href="javascript:;" class="gc-qa-cancel" style="background:#dc3545;color:#fff;border:none;border-radius:8px;padding:10px 22px;font-weight:600;font-size:0.95em;cursor:pointer;text-decoration:none;">' + cfg.cancelLabel + '</a></div>'
-      + '<div class="gc-qa-status" style="text-align:center;min-height:18px;padding:0 18px 14px;"></div>'
-      + '</div></div>';
-    var wrap = document.createElement('div');
-    wrap.innerHTML = html;
-    var modal = wrap.firstElementChild;
+
+    var modal = document.createElement('div');
+    modal.className = 'scan-modal gc-quickadd-modal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;'
+      + 'background:rgba(0,0,0,0.7);z-index:10000;overflow-y:auto;display:none;';
+    var qaContent = document.createElement('div');
+    qaContent.className = 'scan-modal-content proto-form';
+    qaContent.style.cssText = 'max-width:460px;position:relative;margin:40px auto;'
+      + 'border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.3);overflow:hidden;';
+    var qaHead = document.createElement('div');
+    qaHead.style.cssText = 'display:flex;justify-content:space-between;align-items:center;'
+      + 'padding:14px 18px;background:#fff;border-bottom:1px solid #e6e8eb;';
+    var qaTitle = document.createElement('strong');
+    qaTitle.style.cssText = 'font-size:1.05em;';
+    qaTitle.textContent = (cfg.title == null) ? '' : String(cfg.title);
+    var qaClose = document.createElement('button');
+    qaClose.type = 'button';
+    qaClose.className = 'gc-qa-close';
+    qaClose.style.cssText = 'background:none;border:none;font-size:22px;cursor:pointer;'
+      + 'line-height:1;color:#555;';
+    qaClose.textContent = '\u00D7';
+    qaHead.appendChild(qaTitle);
+    qaHead.appendChild(qaClose);
+    var qaCard = document.createElement('div');
+    qaCard.className = 'form-card';
+    qaCard.appendChild(qaFields);
+    var qaFoot = document.createElement('div');
+    qaFoot.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;padding:14px 18px;';
+    var qaSave = document.createElement('a');
+    qaSave.href = 'javascript:;';
+    qaSave.className = 'gc-qa-save';
+    qaSave.style.cssText = 'background:#28a745;color:#fff;border:none;border-radius:8px;'
+      + 'padding:10px 22px;font-weight:600;font-size:0.95em;cursor:pointer;text-decoration:none;';
+    qaSave.textContent = (cfg.saveLabel == null) ? '' : String(cfg.saveLabel);
+    var qaCancel = document.createElement('a');
+    qaCancel.href = 'javascript:;';
+    qaCancel.className = 'gc-qa-cancel';
+    qaCancel.style.cssText = 'background:#dc3545;color:#fff;border:none;border-radius:8px;'
+      + 'padding:10px 22px;font-weight:600;font-size:0.95em;cursor:pointer;text-decoration:none;';
+    qaCancel.textContent = (cfg.cancelLabel == null) ? '' : String(cfg.cancelLabel);
+    qaFoot.appendChild(qaSave);
+    qaFoot.appendChild(qaCancel);
+    var qaStatusEl = document.createElement('div');
+    qaStatusEl.className = 'gc-qa-status';
+    qaStatusEl.style.cssText = 'text-align:center;min-height:18px;padding:0 18px 14px;';
+    qaContent.appendChild(qaHead);
+    qaContent.appendChild(qaCard);
+    qaContent.appendChild(qaFoot);
+    qaContent.appendChild(qaStatusEl);
+    modal.appendChild(qaContent);
     document.body.appendChild(modal);
+    // The modal lives on document.body, outside the pushed screen that owns
+    // the select — so it does NOT die with that screen. Remember it here and
+    // gcQuickAdd.destroyWithin() (called from screens.js pop(), next to
+    // gcEditor.destroyWithin) takes it down; without that every drawer push
+    // leaked one modal carrying duplicate gcqa_<key>_<col> ids.
+    sel.__gcQaModal = modal;
+
+    // Status line, always as text. color defaults to the error red.
+    function qaStatus(msg, color) {
+      qaStatusEl.textContent = '';
+      if (msg == null || msg === '') { return; }
+      var sp = document.createElement('span');
+      sp.style.color = color || 'red';
+      sp.textContent = String(msg);
+      qaStatusEl.appendChild(sp);
+    }
     function openModal() {
       Array.prototype.forEach.call(modal.querySelectorAll('input,textarea'), function(el){ el.value = ''; });
-      var st = modal.querySelector('.gc-qa-status'); if (st) { st.innerHTML = ''; }
+      qaStatus('');
       var sv = modal.querySelector('.gc-qa-save'); if (sv) { sv.style.pointerEvents = 'auto'; }
       modal.style.display = 'block';
       var first = modal.querySelector('input,textarea'); if (first) { first.focus(); }
@@ -375,10 +450,9 @@ if (typeof window.gcQuickAddInit === 'undefined') {
           fields[c] = v;
           if (String(v).trim() !== '') { ok = true; }
         });
-        var st = modal.querySelector('.gc-qa-status');
-        if (!ok) { if (st) { st.innerHTML = '<span style="color:red;">' + cfg.requiredMsg + '</span>'; } return; }
+        if (!ok) { qaStatus(cfg.requiredMsg); return; }
         saveBtn.style.pointerEvents = 'none';
-        if (st) { st.innerHTML = '<span style="color:#888;">...</span>'; }
+        qaStatus('...', '#888');
         var params = new URLSearchParams();
         params.append('a', 'quickadd');
         params.append('fkt', cfg.table);
@@ -429,12 +503,12 @@ if (typeof window.gcQuickAddInit === 'undefined') {
               closeModal();
               if (typeof sw_message === 'function') { sw_message(cfg.savedMsg); }
             } else {
-              if (st) { st.innerHTML = '<span style="color:red;">' + ((res && res.message) || cfg.failMsg) + '</span>'; }
+              qaStatus((res && res.message) || cfg.failMsg);
               saveBtn.style.pointerEvents = 'auto';
             }
           })
           .catch(function(){
-            if (st) { st.innerHTML = '<span style="color:red;">' + cfg.failMsg + '</span>'; }
+            qaStatus(cfg.failMsg);
             saveBtn.style.pointerEvents = 'auto';
           });
       });
@@ -443,6 +517,20 @@ if (typeof window.gcQuickAddInit === 'undefined') {
 }
 })();
 window.gcQuickAdd = {
+    // Take down the body-level modals owned by the selects inside `scope`
+    // (a screen about to be popped). Mirrors gcEditor.destroyWithin, and
+    // screens.js pop() calls it from the same place. Clearing the bound flag
+    // means re-opening the screen re-binds cleanly instead of no-oping on a
+    // stale guard whose modal is gone.
+    destroyWithin: function (scope) {
+        if (!scope || !scope.querySelectorAll) { return; }
+        Array.prototype.forEach.call(scope.querySelectorAll('[data-gc-qa-bound]'), function (sel) {
+            var m = sel.__gcQaModal;
+            if (m && m.parentNode) { m.parentNode.removeChild(m); }
+            sel.__gcQaModal = null;
+            sel.removeAttribute('data-gc-qa-bound');
+        });
+    },
     bindWithin: function (scope) {
         scope = scope || document;
         if (!scope.querySelectorAll || typeof window.gcQuickAddInit !== 'function') { return; }
@@ -750,6 +838,9 @@ window.gcBulkSave = {
                     }).then(function (r) { return cfg.json ? r.json() : r.text(); }).then(function (data) {
                         var ok = cfg.json ? (data && data['ok'] == 'ok') : true;
                         if (ok && window.gcScreens) { gcScreens.popAfterSave(null); }
+                        // A refused / rolled-back bulk update says why; the
+                        // panel used to just stay open in silence.
+                        else if (!ok && cfg.json && data && data.message) { alertb('Not saved', String(data.message)); }
                         reset();
                     }).catch(reset);
                 });
