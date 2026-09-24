@@ -597,3 +597,132 @@ for MAJOR/NEUTRAL, three for FORMING (144/72 hourly passes): 8.6 (BTC) /
 direct MAJOR↔MAJOR reversals a year. The routine brief carries
 `shared.outlook` as labelled context; an outlook change is listed in
 `changes[]` and is never `material_change`.
+
+## §17 30-day review 2026-08-23 → 09-23 — the engine is fine, half the pool sits idle (month-replay + prod)
+
+`month-replay.php {BTC,BNB}USDT --from=2026-08-23 --to=2026-09-23` (45d
+warm-up, active 211, grid slices 300/450) next to prod read off the DB
+(trade_cycle, engine_state, wallet_nav, bot_event, pool_engagement).
+Tape: BTC 77 282 → 86 178 (+11.5%), BNB 699 → 790 (+13.0%); activator
+TREND_UP 72% / 74% of the hours.
+
+**Prod pool:** NAV 1005.76 → 1349.28 with +300 added 09-03, so **+43.5
+(≈ +3.7%)**; maxDD 3.5% (1311 → 1265, 09-15). 50/50 HODL of the pool ≈
++150: prod kept ~30% of it. Reconciles: realized +42.0 (run 1 +17.57,
+run 4 +11.28, run 7 +6.14, run 8 +3.09, run 9 +1.09, run 10 +2.82) + open
+trend MTM (run 1 0.00408 @ 85 366 ≈ +3.3, run 10 0.44 @ 791.45 ≈ −0.7).
+
+| arm | replay @211 / grid slice | replay scaled to prod slice | prod |
+|---|---|---|---|
+| BTC trend (hold) | +16.16 | +26.8 @350 | run 1 +20.9 (slice 100–450, deploy 50 until 09-16) + core run 8 +3.1 |
+| BNB trend (hold) | +11.75 | +19.5 @350 | runs 9+10 +3.2 — no BNB arm until 09-09, a wrong idle entry 09-14, the right one only from 09-20; the replay's +10.36 (09-04 → 09-06) had no prod arm |
+| BTC grid (gated, continuous) | +8.93 @300 | ≈ +5.7 @192 | run 7 +6.14 |
+| BNB grid (gated, continuous) | +17.06 @450 | ≈ +13 @343 | run 4 +11.28 (14 losing cycles −2.97, the 09-02 starved release) |
+
+Readings: (1) **The live engine did what the replay says.** BTC trend
+reached ~80% of its replay number despite three engine/size changes in the
+window. The 09-20 → 09-22 leg (80 656 → 85 184, +18.84) was the arm working
+as designed, and so was the 15-day hold of the 09-05 bag (79 800 → exit
++1.91 on 09-20). The gap on BNB is fleet shape (no BNB arm for most of the
+window), and fleet_slot fixed that on 09-20. (2) **Even perfect execution
+at today's shape is ≈ +65 / 1300 (+5%) against HODL +12%.** That ceiling is
+sizing, not signal (as §12 said). (3) **Half the pool is idle in a
+TREND_UP.** pool_engagement 09-21 → 09-23 reads 54–56% engaged, 730 of
+1300. Both trend arms sit at ~350 each; the two grids (343 + 192) sit at
+the hostile cap (deploy 25) with near-zero inventory, and the 5% reserve
+holds 65. About 470 USDT of grid slice is uncommitted by design for as long
+as the 4h regime stays hostile to grids, which during a TREND_UP episode is
+the whole episode.
+
+Defects seen in the window, already fixed: run 10's 1000-slice re-assert
+loop (479 `trend_activator_error`, 09-20 16:33 → 09-21 07:33, fixed
+a68460b); BNB run 9's off-mandate idle entry (retired 09-18);
+August activation flip-flops (hysteresis 08-28). Still set: run 7
+`sell_when_starved = 1` (fired 09-20: 9 legacy exits repriced to market,
+net +0.9, one −0.15), which contradicts the 09-09 refocus "OFF".
+
+Ranked candidates (none on the refuted list):
+1. **Lend capped-grid capital to the active trend arm of the same symbol**
+   while its episode lasts. The grid keeps exactly what deploy 25 works
+   (plus its exit reserve), and the rest goes to the arm's target slice,
+   returned on deactivate, which is also when the §4 gate uncaps the grid.
+   This window: arms at ~550 instead of 350 ≈ **+26 more** (BTC +42 /
+   BNB +31). Cost: sizing scales the bear tail with it (§12 BNB Jun–Jul
+   −37 @211 → ≈ −96 @550, −7% of pool, inside the 25% floor). Needs the
+   six-window month-replay at 350/450/550 before shipping.
+2. **Idle USDT to Binance Simple Earn (real mode only):** ~600 idle ×
+   ~4–5% APR ≈ +2–3/month. Only once real money is live.
+3. **Housekeeping:** decide run 7 `sell_when_starved`, and escalate a
+   repeated `trend_activator_error` (> 4 in a row) to an Alert. The 1000
+   loop ran 15 h and the only thing that surfaced was a mis-labelled
+   `opportunity_idle`.
+
+Not proposed again: entry variants E/G/R/H, top-ups, §13 exits, the
+inventory cap, narrow grids, a standing blend, a core-heavy book, the 1d
+gate, the outlook as a predictor. The end-of-leg bag (run 1 re-entered
+85 366 on 09-22, as the replay did at 85 424) is the §12 pattern and
+stays.
+
+### §17 follow-up — candidate 1 swept: lending is leverage, not edge (2026-09-23)
+
+`month-replay.php` gained a `lend` continuous grid arm: deploy 25 at any
+anchor where the symbol's activator is active, gated otherwise. The trend
+arm ran at `--active` = 350 (today) vs 350 + 0.75 × grid slice (BTC 494 on
+the 192 grid, BNB 607 on the 343 grid). Windows Apr 1 → May 31,
+Jun 1 → Jul 31, Aug 1 → Sep 23.
+
+| window (BTC / BNB tape) | today: trend 350 + gated grids | lend: trend 494/607 + lend grids |
+|---|---|---|
+| Apr–May (+7.8% / +14.8%) | +33.1 | +50.8 |
+| Jun–Jul (−14.9% / −17.4%) | **−74.1** | **−119.2** |
+| Aug–Sep (+36.8% / +34.3%) | +143.5 | +201.5 |
+| sum | **+102.6** | **+133.1** |
+| sum / worst window | 1.39 | 1.12 |
+
+The trend arm is linear in its slice. Every row above is the same trades
+scaled up (BNB Jun–Jul −61 → −106, maxDD 83 → 145 = 11% of the pool).
+Lending only scales them. It gains +30 over seven months (≈ +4/month) and
+gives up 45 more in the worst month, and it lowers the return per unit of
+worst drawdown. The grids lose little (−8 on the Aug–Sep tape), because they
+are capped at 25 in those hours anyway. **Not recommended as a mechanism.**
+If more trend exposure is wanted, raise `fleet_slot.target_slice`: same
+effect, one knob, operator's call.
+
+Housekeeping done the same day: run 7 `sell_when_starved` → 0 (+ Reload),
+per the operator. `TrendActivator` now escalates a refused slice write to
+one Alert once it has been refused `REFUSED_ALERT_AFTER` (4) times in 65
+min, at most one per `PASS_ERROR_EVERY`
+(`testARefusalRepeatedEveryPassEscalatesToOneAlert`).
+
+## §18 Re-entry after a winning exit — X (below the exit) and S (half size), both refuted (2026-09-24)
+
+Prompted by run 10 (BNB trend, episode 09-20→09-23): regime entry 761.56
+→ stop +2.15 → re-entry 783.56 → stop +0.67 → re-entry 791.45 (hwm 799),
+then held under breakeven (sell_at_loss OFF) at ~766. This is the §12
+"last entry of the leg ends up underwater" pattern, and so is run 1's
+85 366. R (new high) and C (EMA20 pullback) were already refuted, so two
+untested variants were added to `trend-entry-sweep.php` and
+`month-replay.php` (`--arms=BX,BS,BXS`):
+
+* **X**: a regime re-entry after a stop-out in the same activation needs
+  close < that exit's fill. The first entry and Donchian entries are
+  unchanged.
+* **S**: after a winning exit in the same activation, the next entry is
+  half the target.
+
+| arm | BTC bull | BNB bull | BTC bear | BNB bear | 2026 Σ (6 windows, §12 set) | Σ\|MTM\| | Aug 1→Sep 23 (BTC+BNB) |
+|---|---|---|---|---|---|---|---|
+| B live | +132.30 | +160.43 | −11.75 | −10.17 | +5.37 | 89.33 | +71.07 |
+| X | +73.89 | +146.26 | −11.75 | −10.17 | +6.50 | 82.77 | +67.55 |
+| S | +71.31 | +108.26 | −11.75 | −10.17 | −5.06 | 73.84 | +48.34 |
+| XS | +40.20 | +97.31 | −11.75 | −10.17 | −3.11 | 70.56 | +46.57 |
+
+Both refuted. X gives up 58 on BTC bull and 14 on BNB bull, buying +1.1 on
+the 2026 sum. S shrinks the bag (−17% Σ|MTM|) by halving every re-entry,
+including the winners: on BTC bull all 34 regime re-entries closed as
+winners, and S roughly halves that tape. The bear tapes don't move, because
+the arm enters once and holds. This confirms §12: the re-entries are where
+the bull money is, and nothing visible at entry time separates the last one.
+The bag is the price of the hold policy plus the re-entry rule, not a
+separate defect. The only levers left are the ones already decided: the
+target slice (sizing) and sell_at_loss.

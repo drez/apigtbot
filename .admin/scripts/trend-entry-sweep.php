@@ -219,6 +219,10 @@ function simulate(array $h1, array $regime, string $rule, bool $topUp): array
     $winCooldown = str_contains($rule, 'G');
     $freshHigh = str_contains($rule, 'R');
     $oneShot = str_contains($rule, 'H');
+    $belowExit = str_contains($rule, 'X'); // X: regime re-entry needs close < the last exit fill
+    $halfReentry = str_contains($rule, 'S'); // S: re-entries after a winning exit in the same activation are half size
+    $lastExitFill = null;
+    $winsThisActivation = 0;
     $base = $rule === 'A' ? 'A' : ($rule === 'C' ? 'C' : 'B');
 
     for ($i = 0; $i < $n; $i++) {
@@ -232,6 +236,8 @@ function simulate(array $h1, array $regime, string $rule, bool $topUp): array
         $wasActive = $armState === 'active';
         if ($raw === 'active') {
             if (!$wasActive) {
+                $lastExitFill = null;
+                $winsThisActivation = 0;
                 $lastExitHwm = null; // fresh activation: the first entry is unrestricted
             }
             $armState = 'active';
@@ -279,6 +285,10 @@ function simulate(array $h1, array $regime, string $rule, bool $topUp): array
                     $trades[] = (float) $net;
                     $stopOutAt = $now;
                     $lastExitHwm = $pos['hwm'];
+                    $lastExitFill = $fill;
+                    if ((float) $net > 0) {
+                        $winsThisActivation++;
+                    }
                     $lastExitBar = $i;
                     $lastExitWin = (float) $pos['hwm'] / (float) $pos['entry'] - 1 >= 0.03;
                     $pos = null;
@@ -360,11 +370,17 @@ function simulate(array $h1, array $regime, string $rule, bool $topUp): array
             if ($regimeEntry && $freshHigh && $lastExitHwm !== null && bccomp($close, $lastExitHwm, SCALE) <= 0) {
                 $regimeEntry = false; // R: the leg has not made a new high since the stop-out
             }
+            if ($regimeEntry && $belowExit && $lastExitFill !== null && bccomp($close, $lastExitFill, SCALE) >= 0) {
+                $regimeEntry = false; // X: buy back only under where the last position was sold
+            }
         }
         if (!$signal && !$regimeEntry) {
             continue;
         }
         $quote = $target;
+        if ($halfReentry && $armState === 'active' && $winsThisActivation > 0) {
+            $quote = bcdiv($target, '2', SCALE);
+        }
         if ($topUp && $armState === 'active') {
             $quote = bcdiv($target, (string) TRANCHES, SCALE); // first tranche now, the rest staggered
         }
@@ -406,7 +422,8 @@ function simulate(array $h1, array $regime, string $rule, bool $topUp): array
 }
 
 $ARMS = ['A' => ['A', false], 'B' => ['B', false], 'C' => ['C', false], 'A+' => ['A', true], 'B+' => ['B', true], 'C+' => ['C', true],
-    'E' => ['BE', false], 'G' => ['BG', false], 'R' => ['BR', false], 'H' => ['BH', false], 'RH' => ['BRH', false]];
+    'E' => ['BE', false], 'G' => ['BG', false], 'R' => ['BR', false], 'H' => ['BH', false], 'RH' => ['BRH', false],
+    'X' => ['BX', false], 'S' => ['BS', false], 'XS' => ['BXS', false]];
 $results = [];
 foreach ($symbols as $symbol) {
     foreach ($tapes as $name => [$from, $to]) {

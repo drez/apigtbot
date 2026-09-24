@@ -120,7 +120,7 @@ foreach (array_slice($argv, 1) as $a) {
     } elseif (str_starts_with($a, '--warmup=')) {
         $warmupDays = (int) substr($a, 9);
     } elseif (str_starts_with($a, '--arms=')) {
-        $arms = explode(',', substr($a, 7)); // B (live), BE, BG, BR, BH, BRH — see trend-entry-sweep.php
+        $arms = explode(',', substr($a, 7)); // B (live), BE, BG, BR, BH, BRH, BX, BS, BXS — see trend-entry-sweep.php
     } elseif (str_starts_with($a, '--core=')) {
         $coreSlices = array_values(array_filter(array_map('trim', explode(',', substr($a, 7))), fn ($s) => $s !== ''));
     } elseif (str_starts_with($a, '--core-max-order=')) {
@@ -307,6 +307,10 @@ function simulateTrend(array $h1, array $regime, int $first, string $activeTarge
     $winCooldown = str_contains($rule, 'G');
     $freshHigh = str_contains($rule, 'R');
     $oneShot = str_contains($rule, 'H');
+    $belowExit = str_contains($rule, 'X'); // X: regime re-entry needs close < the last exit fill
+    $halfReentry = str_contains($rule, 'S'); // S: re-entries after a winning exit in the same activation are half size
+    $lastExitFill = null;
+    $winsThisActivation = 0;
 
     for ($i = $first; $i < $n; $i++) {
         $close = $closes[$i];
@@ -318,6 +322,8 @@ function simulateTrend(array $h1, array $regime, int $first, string $activeTarge
         $wasActive = $armState === 'active';
         if ($raw === 'active') {
             if (!$wasActive) {
+                $lastExitFill = null;
+                $winsThisActivation = 0;
                 $lastExitHwm = null;
             }
             $armState = 'active';
@@ -365,6 +371,10 @@ function simulateTrend(array $h1, array $regime, int $first, string $activeTarge
                     $log[] = sprintf('  %s EXIT  @ %-12s %+8.2f  (held %dh, hwm %+.2f%%)', hstamp($h1[$i]), rtrim(rtrim(bcadd($fill, '0', 2), '0'), '.'), (float) $net, $i - $pos['bar'], ((float) $pos['hwm'] / (float) $pos['entry'] - 1) * 100);
                     $stopOutAt = $now;
                     $lastExitHwm = $pos['hwm'];
+                    $lastExitFill = $fill;
+                    if ((float) $net > 0) {
+                        $winsThisActivation++;
+                    }
                     $lastExitBar = $i;
                     $lastExitWin = (float) $pos['hwm'] / (float) $pos['entry'] - 1 >= 0.03;
                     $pos = null;
@@ -416,10 +426,16 @@ function simulateTrend(array $h1, array $regime, int $first, string $activeTarge
         if ($regimeEntry && $freshHigh && $lastExitHwm !== null && bccomp($close, $lastExitHwm, SCALE) <= 0) {
             $regimeEntry = false;
         }
+        if ($regimeEntry && $belowExit && $lastExitFill !== null && bccomp($close, $lastExitFill, SCALE) >= 0) {
+            $regimeEntry = false; // X: buy back only under where the last position was sold
+        }
         if (!$signal && !$regimeEntry) {
             continue;
         }
         $quote = $target;
+        if ($halfReentry && $armState === 'active' && $winsThisActivation > 0) {
+            $quote = bcdiv($target, '2', SCALE);
+        }
         $qty = bcdiv($quote, $close, SCALE);
         $fee = bcmul($quote, FEE_PCT, SCALE);
         $stop = bcsub($close, TrendEngine::stopDistance($close, INITIAL_MULT, $atrS, STOP_FLOOR_PCT), SCALE);
@@ -766,7 +782,7 @@ function simulateGridCont(array $h1, array $regime, int $first, string $slice, c
             continue;
         }
         $cand = MechanicalRefit::candidate($price, number_format((float) ($s4['atr_pct'] ?? 0), 8, '.', ''), $halfWidth, $levels);
-        $deploy = $deployFor($s4);
+        $deploy = $deployFor($s4, $regime[$i]['state'] ?? null);
         $anchors++;
         $lastApplied = $now;
         $active = ['p_low' => $cand['p_low'], 'p_high' => $cand['p_high']];
@@ -929,6 +945,11 @@ $gridArms = [
     'd100' => fn (array $s4): int => 100,
     'gated' => fn (array $s4): int => RegimeGate::hostile($s4['trend'] ?? null, isset($s4['adx14']) ? (float) $s4['adx14'] : null) ? 25 : 100,
 ];
+// lend (2026-09-23, §17): while the symbol's trend arm is active the grid
+// keeps only its deploy-25 share (the other 75% is lent to the arm, which
+// runs at --active + 0.75 × --slice); gated otherwise. Continuous arm only;
+// decided at each anchor, so a segment that outlives the episode stays at 25.
+$lendFn = fn (array $s4, ?string $state = null): int => $state === 'active' ? 25 : $gridArms['gated']($s4);
 $gridRes = [];
 foreach ($gridArms as $label => $fn) {
     $r = simulateGrid($h1, $regime, $first, $slice, $fn);
@@ -937,9 +958,9 @@ foreach ($gridArms as $label => $fn) {
 }
 echo "\n─── GRID arm, CONTINUOUS (legacy lots carried as exits at cost + 1 rung; ladder budget = min(deploy×slice, slice − reserve)) ───\n";
 printf("%-9s %9s %9s %9s %7s %7s %7s %8s %8s %5s\n", 'arm', 'net', 'realized', 'unreal', 'cycles', 'legacy', 'fees', 'starved%', 'maxRsv', 'lots');
-$contArms = ['d25' => ['d25', 1.0], 'd100' => ['d100', 1.0], 'gated' => ['gated', 1.0], 'gated50' => ['gated', 0.5], 'd100c50' => ['d100', 0.5], 'd100c70' => ['d100', 0.7]];
+$contArms = ['d25' => ['d25', 1.0], 'd100' => ['d100', 1.0], 'gated' => ['gated', 1.0], 'gated50' => ['gated', 0.5], 'd100c50' => ['d100', 0.5], 'd100c70' => ['d100', 0.7], 'lend' => ['lend', 1.0]];
 foreach ($contArms as $label => [$base, $cap]) {
-    $r = simulateGridCont($h1, $regime, $first, $slice, $gridArms[$base], $cap);
+    $r = simulateGridCont($h1, $regime, $first, $slice, $base === 'lend' ? $lendFn : $gridArms[$base], $cap);
     $gridRes["cont:{$label}"] = $r;
     printf("%-9s %+9.2f %+9.2f %+9.2f %7d %7d %7.2f %7.1f%% %8.0f %5d\n", $label, $r['net'], $r['realized'], $r['unrealized'], $r['cycles'], $r['legacy_exits'], $r['fees'], $r['starved_bars'] / max(1, count($window)) * 100, $r['max_reserve'], $r['lots']);
 }
